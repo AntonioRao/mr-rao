@@ -111,7 +111,6 @@ Meglio dirlo subito:
 - **L'OCR non fa miracoli.** Su una scansione storta e sfocata sbaglia, come tutti.
 - **Sui documenti scansionati la protezione è più debole.** I riconoscitori cercano un codice fiscale o un IBAN scritti bene: se l'OCR legge `A01` come `AD1`, il codice non viene riconosciuto e resta nel testo. Il risultato lo segnala con un avviso, ma è lì che il confronto «prima / dopo» va guardato davvero.
 - **Non ha autenticazione.** È un attrezzo locale per una persona, non un servizio multiutente.
-- **La scelta della lingua OCR oggi non cambia il modello.** È già annotata nel [backlog](docs/BACKLOG.md) come cosa da implementare davvero o da togliere.
 
 ---
 

@@ -16,7 +16,7 @@ from pathlib import Path
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION
 from mr_rao.converter import ConvertOptions, convert_file, merge_markdowns
 from mr_rao.privacy import PrivacyOptions
-from mr_rao.watch_service import output_path_for
+from mr_rao.watch_service import output_path_for, write_atomic
 
 
 def _build_options(args: argparse.Namespace) -> ConvertOptions:
@@ -135,7 +135,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
                     print(f"  ERRORE: {r.error}")
                     continue
                 dest = output_path_for(outbox, path)
-                dest.write_text(r.markdown, encoding="utf-8")
+                write_atomic(dest, r.markdown)
                 print(f"  -> {dest}")
                 if args.move_done:
                     done = inbox / "done"
@@ -183,7 +183,10 @@ def main(argv: list[str] | None = None) -> int:
     p_conv.add_argument("files", nargs="+", help="File o cartelle")
     p_conv.add_argument("-o", "--output", help="File o cartella di output")
     p_conv.add_argument("--engine", default="auto", choices=["auto", "rapidocr", "markitdown"])
-    p_conv.add_argument("--language", default="it")
+    p_conv.add_argument(
+        "--language", default="it",
+        help="ignorato: il modello OCR è unico (alfabeti latini). Mantenuto per compatibilità.",
+    )
     p_conv.add_argument("--merge", action="store_true", help="Unisci in un solo Markdown")
     p_conv.add_argument("--title", default="Documento unificato")
     p_conv.add_argument("--no-privacy", action="store_true")
@@ -200,7 +203,10 @@ def main(argv: list[str] | None = None) -> int:
     p_watch.add_argument("--interval", type=float, default=2.0)
     p_watch.add_argument("--move-done", action="store_true")
     p_watch.add_argument("--engine", default="auto")
-    p_watch.add_argument("--language", default="it")
+    p_watch.add_argument(
+        "--language", default="it",
+        help="ignorato: il modello OCR è unico (alfabeti latini). Mantenuto per compatibilità.",
+    )
     p_watch.add_argument("--no-privacy", action="store_true")
     p_watch.add_argument("--scrub-amounts", action="store_true")
     p_watch.add_argument("--no-tables", action="store_true")
