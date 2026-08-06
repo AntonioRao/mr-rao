@@ -57,20 +57,18 @@ function Get-VerbKeys {
 }
 
 function Resolve-Icon {
-    # L'icona sta accanto all'installazione, ma il pacchetto la porta anche
-    # dentro le risorse dell'applicazione: se la prima copia manca si usa
-    # la seconda, e se mancano entrambe si usa l'icona dell'eseguibile.
-    # Un collegamento senza icona resta un collegamento valido: non deve
-    # essere questo a far fallire l'installazione.
-    $candidati = @(
-        (Join-Path $InstallDir 'mr-rao.ico'),
-        (Join-Path $InstallDir 'app\_internal\static\img\mr-rao.ico'),
-        (Join-Path $InstallDir 'app\static\img\mr-rao.ico')
-    )
-    foreach ($c in $candidati) {
-        if (Test-Path $c) { return $c }
-    }
-    Write-Host '  icona: nessun .ico trovato, uso quella dell eseguibile'
+    # L'icona e' quella dentro l'eseguibile, non un .ico accanto.
+    #
+    # Puntare a un file separato sembrava piu' pulito ed e' costato tre
+    # modi diversi di rompersi: il .lnk memorizza il percorso anche in
+    # forma %USERPROFILE%\... in un blocco a parte, Windows continua a
+    # disegnare l'icona che ha in cache quando il file cambia restando
+    # allo stesso percorso, e un .ico che sparisce lascia un riquadro
+    # bianco senza spiegazione.
+    #
+    # L'eseguibile l'icona ce l'ha dentro (PyInstaller la incorpora al
+    # build) e c'e' sempre: se manca lui non c'e' nessun collegamento da
+    # creare. Un'indirezione in meno, tre guasti in meno.
     return $Exe
 }
 

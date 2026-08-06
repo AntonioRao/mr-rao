@@ -5,7 +5,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Versione](https://img.shields.io/badge/versione-1.4.2-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-256%20passati-10b981)](tests/)
+[![Test](https://img.shields.io/badge/test-276%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -28,6 +28,69 @@ Vuoi dare un documento in pasto a un assistente AI. Ti servono due cose:
 Gli strumenti online risolvono il primo problema creando il secondo: per convertire il file glielo devi caricare. Se quel file è una fattura, una cartella clinica, un contratto o un thread email con dentro persone reali, l'hai appena spedito a un server di cui non sai nulla.
 
 Mr. Rao fa la conversione **e** la schermatura dei dati personali sul tuo computer. Il file non si muove.
+
+---
+
+## Il motore di anonimizzazione
+
+La conversione la fa [MarkItDown](https://github.com/microsoft/markitdown), che è di Microsoft ed è ottimo. **Questa è la parte che non trovi altrove.**
+
+### Il numero deve dimostrare di essere un IBAN
+
+Ogni riconoscitore è una coppia: un'espressione regolare che propone candidati, e un validatore che decide. Il pattern non basta mai.
+
+| dato | come viene deciso |
+|------|-------------------|
+| IBAN | **mod-97** (ISO 13616) |
+| Carta di pagamento | **Luhn** (ISO/IEC 7812) |
+| Telefono | prefisso `+39`, prefisso cellulare `3xx`, separatori, o una parola di contesto davanti |
+| P.IVA | prefisso `IT` o contesto fiscale nei caratteri precedenti |
+| Indirizzo | dopo «via», «piazza», «corso» deve seguire una parola con l'iniziale maiuscola |
+| Data di nascita | solo accanto a «nato il», «data di nascita» |
+
+È il motivo per cui questo resta intatto:
+
+```
+Protocollo interno: 0123456789      →  invariato: nessun prefisso, nessun separatore
+Registrata il 01.02.2024            →  invariato: è una data, non un recapito
+Ordine 5551234567890123             →  invariato: non passa Luhn
+```
+
+E questo sparisce:
+
+```
+IBAN IT60X0542811101000000123456    →  {{IBAN}}
+Carta 4111 1111 1111 1111           →  {{CARD}}
+cell. 335 123 4567                  →  {{PHONE}}
+```
+
+### I nomi: quattro segnali, non un elenco
+
+Nessun elenco di cognomi è completo. Per questo valgono anche le regole di contesto, dal segnale più forte al più debole:
+
+1. **titolo professionale davanti** — Dott., Ing., Geom., Avv.;
+2. **nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`, il caso più frequente nelle email;
+3. **nome proprio riconosciuto** che tira dentro la parola successiva: se «Nazzareno» è un nome, «Sbrolli» è il cognome anche se non compare in nessun elenco;
+4. **euristica** — due parole maiuscole di fila che non sono parole italiane.
+
+Solo la quarta può sbagliare, ed è l'unica che si può spegnere da sola.
+
+### Il presidio che conta di più
+
+Un filtro che redige tutto è inutile esattamente come uno che non redige niente. Il banco di prova sono **due** testi, e sono entrambi dei test:
+
+| | sostituzioni attese | risultato |
+|---|---|---|
+| Una mail italiana con dieci categorie di dati personali | tutto | **29 sostituzioni, niente in chiaro** |
+| Un verbale con «Comitato Tecnico», «Piano Industriale», «Fase Uno», protocolli e codici gara | niente | **0 sostituzioni** |
+
+Due presidi tengono in piedi il secondo: un vocabolario di parole italiane che capita di trovare maiuscole, e un controllo sulle terminazioni — «Industriale» e «Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
+
+### Nessun modello
+
+Il riconoscimento è codice, non una rete neurale. Lo stesso documento dà **sempre** lo stesso risultato, e ogni sostituzione si spiega indicando la regola che l'ha prodotta. Niente da scaricare, niente da addestrare, niente che cambi comportamento fra due esecuzioni.
+
+**→ [Come funziona nel dettaglio, con i limiti dichiarati](docs/PRIVACY.md)**
 
 ---
 

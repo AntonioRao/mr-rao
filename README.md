@@ -5,7 +5,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.4.2-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-256%20passing-10b981)](tests/)
+[![Tests](https://img.shields.io/badge/tests-276%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -28,6 +28,69 @@ You want to hand a document to an AI assistant. You need two things:
 Online converters solve the first problem by creating the second: to convert the file, you have to upload it. If that file is an invoice, a medical record, a contract or an email thread with real people in it, you have just shipped it to a server you know nothing about.
 
 Mr. Rao does the conversion **and** the redaction on your own computer. The file never moves.
+
+---
+
+## The redaction engine
+
+The conversion is done by [MarkItDown](https://github.com/microsoft/markitdown), which is Microsoft's and is excellent. **This is the part you won't find elsewhere.**
+
+### The number has to prove it is an IBAN
+
+Every detector is a pair: a regular expression that proposes candidates, and a validator that decides. The pattern is never enough on its own.
+
+| data | how it is decided |
+|------|-------------------|
+| IBAN | **mod-97** (ISO 13616) |
+| Payment card | **Luhn** (ISO/IEC 7812) |
+| Phone number | `+39` prefix, Italian mobile `3xx` prefix, separators, or a context word in front |
+| VAT number | `IT` prefix, or fiscal context in the preceding characters |
+| Street address | the keyword (`via`, `piazza`, `corso`) must be followed by a capitalised word |
+| Date of birth | only next to "nato il", "data di nascita" |
+
+Which is why this survives untouched:
+
+```
+Protocollo interno: 0123456789      →  unchanged: no prefix, no separator
+Registrata il 01.02.2024            →  unchanged: that is a date, not a number to call
+Ordine 5551234567890123             →  unchanged: fails the Luhn check
+```
+
+And this does not:
+
+```
+IBAN IT60X0542811101000000123456    →  {{IBAN}}
+Carta 4111 1111 1111 1111           →  {{CARD}}
+cell. 335 123 4567                  →  {{PHONE}}
+```
+
+### Names: four signals, not a list
+
+No list of surnames is ever complete. So context rules carry the weight, strongest signal first:
+
+1. **a professional title in front** — Dott., Ing., Geom., Avv.;
+2. **a name next to an email address** — `Tizio Caio <t.caio@x.it>`, by far the commonest case in mail;
+3. **a recognised first name** pulling in the word after it: if "Nazzareno" is a first name, "Sbrolli" is the surname even though no list contains it;
+4. **a heuristic** — two capitalised words in a row that are not Italian words.
+
+Only the fourth one can be wrong, and it is the only one with a switch of its own.
+
+### The guard that matters most
+
+A filter that redacts everything is as useless as one that redacts nothing. The bench is **two** texts, and both are tests:
+
+| | expected | result |
+|---|---|---|
+| An Italian email carrying ten categories of personal data | all of it | **29 replacements, nothing left in the clear** |
+| A minutes document full of "Comitato Tecnico", "Piano Industriale", protocol and tender numbers | none of it | **0 replacements** |
+
+Two things hold the second one up: a vocabulary of Italian words that turn up capitalised, and a suffix check — "Industriale" and "Tecnico" end the way words end, not the way surnames end.
+
+### No model
+
+The recognition is code, not a neural network. The same document always yields the same result, and every replacement can be explained by pointing at the rule that produced it. Nothing to download, nothing to train, nothing that behaves differently between two runs.
+
+**→ [How it works in detail, limits included](docs/PRIVACY.md)**
 
 ---
 
