@@ -119,7 +119,13 @@ def finto_server():
     srv = HTTPServer(("127.0.0.1", 0), H)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     yield srv.server_address[1]
+    # shutdown() ferma il ciclo ma NON chiude il socket in ascolto: pytest
+    # lo segnalava come ResourceWarning a fine sessione. Un solo avviso
+    # innocuo in coda alla suite e' comunque un avviso, e conviene che la
+    # riga finale resti pulita: e' quella che si guarda quando qualcosa
+    # inizia davvero a rompersi.
     srv.shutdown()
+    srv.server_close()
 
 
 def test_riconosce_l_istanza_che_occupa_la_porta(finto_server):
