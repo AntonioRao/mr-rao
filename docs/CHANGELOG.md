@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.4 — Conformità LGPL pystray completa + footer
+
+### LGPL (pystray) — adempimenti
+- Cartella `licenses/pystray/`: COPYING.LGPL, COPYING (GPL), LGPL-3.0.txt, GPL-3.0.txt, NOTICE.txt
+- `docs/LGPL_PYSTRAY.md` — come sostituire/aggiornare pystray
+- `mr_rao/tray.py` — notice LGPL a runtime e in testa al file
+- `LICENSE` §5 — nessuna restrizione aggiuntiva su pystray
+- Portable build copia `licenses/`, `LICENSE`, `THIRD_PARTY.md`
+
+### UI
+- Footer strutturato: brand, sintesi licenza, link dipendenze, riga dedicata pystray LGPL
+- Modal ⓘ aggiornato con checklist conformità LGPL
+
 ## 1.2.3 — Trasparenza dipendenze + licenza non commerciale
 
 ### UI

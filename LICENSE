@@ -72,6 +72,12 @@ permissive (MIT, Apache-2.0, BSD) o LGPL (pystray).
 - Redistribuendo Mr. Rao (sorgente o binario) si devono rispettare anche gli
   obblighi di quelle licenze (attribuzione, notice, e per LGPL le regole di
   linking/distribuzione applicabili).
+- In particolare, **pystray** è distribuito sotto GNU LGPL-3.0 (Copyright
+  Moses Palmér). I testi di licenza e il NOTICE sono in `licenses/pystray/`.
+  La presente licenza Mr. Rao **non** impone restrizioni aggiuntive su pystray
+  e non limita i diritti che la LGPL concede agli utenti rispetto a pystray
+  (incluso il diritto di sostituire o modificare la libreria). Istruzioni:
+  `docs/LGPL_PYSTRAY.md`.
 
 Un elenco orientativo è in `THIRD_PARTY.md` e nella UI (info dipendenze).
 

@@ -2,45 +2,61 @@
 
 Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze.
 Le loro licenze restano integre e **prevalgono** sui rispettivi file.
+La [LICENSE](LICENSE) di Mr. Rao **non** limita i diritti sulle librerie sotto.
 
 ## Elenco principale
 
-| Progetto | Uso in Mr. Rao | Licenza (orientativa) | Repository / sito |
-|----------|----------------|----------------------|-------------------|
-| [MarkItDown](https://github.com/microsoft/markitdown) | Conversione documenti → Markdown | MIT | Microsoft |
-| [RapidOCR](https://github.com/RapidAI/RapidOCR) (`rapidocr_onnxruntime`) | OCR offline su immagini/PDF | Apache-2.0 | RapidAI |
-| [ONNX Runtime](https://onnxruntime.ai/) | Runtime modelli OCR / Magika | MIT | Microsoft |
-| [Flask](https://github.com/pallets/flask) | Server web locale | BSD-3-Clause | Pallets |
-| [Werkzeug](https://github.com/pallets/werkzeug) | WSGI / utilità Flask | BSD-3-Clause | Pallets |
-| [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/) (`beautifulsoup4`) | HTML email → testo | MIT | Leonard Richardson |
-| [Scrubadub](https://github.com/LeapBeyond/scrubadub) | Redazione PII (base) | MIT | LeapBeyond |
-| [pdfplumber](https://github.com/jsvine/pdfplumber) | PDF, tabelle, raster pagine | MIT (verificare NOTICE del pacchetto) | jsvine |
-| [Pillow](https://github.com/python-pillow/Pillow) | Immagini | HPND / MIT-CMU | Python Pillow |
-| [Magika](https://github.com/google/magika) | Rilevamento tipo file (via MarkItDown) | Apache-2.0 | Google |
-| [pystray](https://github.com/moses-palmer/pystray) | Icona system tray (opzionale) | **LGPL-3.0** | moses-palmer |
+| Progetto | Uso in Mr. Rao | Licenza | Repository / sito | Notice locale |
+|----------|----------------|---------|-------------------|---------------|
+| [MarkItDown](https://github.com/microsoft/markitdown) | Documenti → Markdown | MIT | Microsoft | — |
+| [RapidOCR](https://github.com/RapidAI/RapidOCR) | OCR offline | Apache-2.0 | RapidAI | — |
+| [ONNX Runtime](https://onnxruntime.ai/) | Runtime modelli | MIT | Microsoft | — |
+| [Flask](https://github.com/pallets/flask) | Server web locale | BSD-3-Clause | Pallets | — |
+| [Werkzeug](https://github.com/pallets/werkzeug) | WSGI | BSD-3-Clause | Pallets | — |
+| [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/) | HTML email → testo | MIT | crummy.com | — |
+| [Scrubadub](https://github.com/LeapBeyond/scrubadub) | Redazione PII | MIT | LeapBeyond | — |
+| [pdfplumber](https://github.com/jsvine/pdfplumber) | PDF / tabelle | MIT* | jsvine | — |
+| [Pillow](https://github.com/python-pillow/Pillow) | Immagini | HPND / MIT-CMU | python-pillow | — |
+| [Magika](https://github.com/google/magika) | Tipo file | Apache-2.0 | Google | — |
+| **[pystray](https://github.com/moses-palmer/pystray)** | System tray | **LGPL-3.0** | Moses Palmér | [`licenses/pystray/`](licenses/pystray/) |
 
-Altre dipendenze transitive (numpy, opencv, scikit-learn, nltk, …) compaiono in `pip freeze` / ambiente virtuale e restano sotto le rispettive licenze PyPI.
+\* Verificare sempre i file LICENSE del pacchetto installato.
 
-## Compatibilità con la licenza di Mr. Rao
+Altre dipendenze transitive: vedi `pip freeze` nell’ambiente virtuale.
 
-La [LICENSE](LICENSE) di Mr. Rao limita l’**uso commerciale del codice e del prodotto Mr. Rao** (autorizzazione richiesta).
+---
 
-Questo **non** vieta di usare MarkItDown, RapidOCR, Flask, ecc. da soli sotto MIT/Apache/BSD.
+## pystray — conformità LGPL-3.0 (completa)
 
-### Nota su pystray (LGPL-3.0)
+**Copyright (C) 2016–2022 Moses Palmér**  
+Licenza: GNU Lesser General Public License v3 (o successiva, a scelta).
 
-- Uso in sviluppo da sorgente con package installato è tipicamente accettabile.
-- **Redistribuzione binaria** (es. PyInstaller che include pystray) richiede di rispettare la LGPL (diritto di sostituire la libreria, notice, eventuale offerta del codice oggetto / istruzioni di relink a seconda del caso).
-- Il tray si può disattivare con `MR_RAO_TRAY=0` se si preferisce non includere pystray in una distribuzione commerciale.
+Mr. Rao adempie agli obblighi LGPL così:
 
-## Attribuzione consigliata
+1. **Testi di licenza** in `licenses/pystray/` (`COPYING.LGPL`, `COPYING`, copie gnu.org).  
+2. **NOTICE** in `licenses/pystray/NOTICE.txt`.  
+3. **Sorgente** disponibile su GitHub e PyPI (link sopra).  
+4. **Libreria sostituibile**: import Python standard; istruzioni in
+   [`docs/LGPL_PYSTRAY.md`](docs/LGPL_PYSTRAY.md).  
+5. **Nessuna restrizione aggiuntiva** su pystray da parte della licenza Mr. Rao.  
+6. **UI e footer** informano l’utente (badge LGPL, link al repository).  
+7. **Build portable**: la cartella `licenses/` viene copiata nel pacchetto.
 
-Quando redistribuisci Mr. Rao, conserva almeno:
+Codice di integrazione: `mr_rao/tray.py` (avviso LGPL in testa al modulo).
 
-- `LICENSE` (Mr. Rao)
-- `THIRD_PARTY.md` (questo file)
-- notice delle librerie se richiesti dai rispettivi package
+---
+
+## Attribuzione in redistribuzione
+
+Conserva almeno:
+
+- `LICENSE` (Mr. Rao)  
+- `THIRD_PARTY.md`  
+- `licenses/` (intera cartella)  
+
+---
 
 ## Aggiornamento
 
-Le licenze sopra sono rilevate dai metadata dei package installati e dalle pagine ufficiali dei progetti; verificare sempre i file LICENSE nei repository upstream prima di una distribuzione formale.
+Licenze rilevate da metadata PyPI e repository ufficiali; verificare upstream
+prima di una distribuzione formale.

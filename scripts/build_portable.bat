@@ -89,6 +89,15 @@ copy /Y "scripts\portable_install.bat" "%OUT%\Installa Mr Rao.bat" >nul
 copy /Y "scripts\portable_uninstall.bat" "%OUT%\Disinstalla Mr Rao.bat" >nul
 copy /Y "docs\PORTABLE.md" "%OUT%\LEGGIMI.txt" >nul
 
+REM Licenze: Mr. Rao + terze parti (LGPL pystray obbligatorio in redistribuzione)
+copy /Y "LICENSE" "%OUT%\LICENSE.txt" >nul
+copy /Y "THIRD_PARTY.md" "%OUT%\THIRD_PARTY.md" >nul
+if exist "licenses" xcopy /E /I /Y "licenses" "%OUT%\licenses\" >nul
+if exist "docs\LGPL_PYSTRAY.md" (
+  mkdir "%OUT%\docs" 2>nul
+  copy /Y "docs\LGPL_PYSTRAY.md" "%OUT%\docs\LGPL_PYSTRAY.md" >nul
+)
+
 (
 echo @echo off
 echo cd /d "%%~dp0app"
@@ -104,6 +113,7 @@ echo MrRao.exe %%*
 echo.
 echo === BUILD OK ===
 echo Folder: %CD%\%OUT%
+echo Licenses: %OUT%\licenses\  (includes pystray LGPL)
 echo Copy that folder to USB/network. On target PC run: Installa Mr Rao.bat
 echo.
 exit /b 0

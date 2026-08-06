@@ -1,0 +1,27 @@
+pystray — used by Mr. Rao (system tray icon)
+============================================
+
+Copyright (C) 2016-2022 Moses Palmér
+
+This library is free software: you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library. See:
+
+  - COPYING.LGPL  (LGPL-3.0, as shipped with pystray)
+  - COPYING       (GPL-3.0, referenced by the LGPL)
+  - LGPL-3.0.txt / GPL-3.0.txt (gnu.org copies)
+
+Source code and project home:
+  https://github.com/moses-palmer/pystray
+  https://pypi.org/project/pystray/
+
+Mr. Rao loads pystray as a separate Python package (import pystray). You may
+replace or upgrade pystray independently of Mr. Rao's own code, subject to the
+LGPL. See docs/LGPL_PYSTRAY.md in the Mr. Rao source tree.
+
+Mr. Rao's own license (../LICENSE) does NOT apply to pystray and does NOT
+restrict your rights under the LGPL with respect to pystray.

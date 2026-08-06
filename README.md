@@ -191,17 +191,34 @@ markitdown-webapp/
 
 ## Licenza
 
-Mr. Rao (codice e prodotto di questo repository) è sotto la [**Mr. Rao Source License**](LICENSE):
+### Mr. Rao (questo progetto)
+
+[**Mr. Rao Source License**](LICENSE):
 
 | Uso | Condizione |
 |-----|------------|
 | Personale, didattico, valutazione interna | Gratuito, con attribuzione |
 | **Commerciale** (vendita, SaaS, prodotto a pagamento basato su Mr. Rao) | **Autorizzazione scritta dell’autore (Rao)** |
 
-Le librerie open source usate sotto (MarkItDown, RapidOCR, Flask, …) restano sotto le **loro** licenze (MIT / Apache / BSD / LGPL).  
-Elenco e link: [THIRD_PARTY.md](THIRD_PARTY.md). Nella UI: pulsante **ⓘ** in basso a sinistra.
+### Dipendenze open source
 
-> Non è un parere legale: per usi commerciali chiedere autorizzazione e, se serve, un legale.
+Restano sotto le **loro** licenze. Elenco: [THIRD_PARTY.md](THIRD_PARTY.md).  
+Nella UI: pulsante **ⓘ** e footer con i link ai repository.
+
+### pystray (LGPL-3.0) — conformità
+
+Il system tray usa **[pystray](https://github.com/moses-palmer/pystray)** © Moses Palmér sotto **GNU LGPL v3**.
+
+| Cosa | Dove |
+|------|------|
+| Testi LGPL/GPL | [`licenses/pystray/`](licenses/pystray/) |
+| NOTICE | [`licenses/pystray/NOTICE.txt`](licenses/pystray/NOTICE.txt) |
+| Come sostituire pystray | [`docs/LGPL_PYSTRAY.md`](docs/LGPL_PYSTRAY.md) |
+
+La licenza di Mr. Rao **non** limita i diritti LGPL su pystray.  
+Le build portable copiano la cartella `licenses/` nel pacchetto.
+
+> Non è un parere legale: per usi commerciali di Mr. Rao chiedere autorizzazione a Rao; per redistribuzioni formali verificare anche le licenze upstream.
 
 ## Documentazione
 
@@ -211,6 +228,8 @@ Elenco e link: [THIRD_PARTY.md](THIRD_PARTY.md). Nella UI: pulsante **ⓘ** in b
 - [Privacy](docs/PRIVACY.md)
 - [Portable](docs/PORTABLE.md)
 - [Terze parti / licenze](THIRD_PARTY.md)
+- [LGPL pystray — conformità](docs/LGPL_PYSTRAY.md)
+- [Cartella licenses/](licenses/README.md)
 - [Changelog](docs/CHANGELOG.md)
 
 ---

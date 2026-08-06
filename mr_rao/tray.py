@@ -1,4 +1,9 @@
-"""System tray icon for Mr. Rao (optional — requires pystray)."""
+# pystray is used under the GNU LGPL v3 (or later).
+# Copyright (C) 2016-2022 Moses Palmér — https://github.com/moses-palmer/pystray
+# Full license texts: licenses/pystray/ (COPYING.LGPL, COPYING, NOTICE.txt)
+# How to replace pystray: docs/LGPL_PYSTRAY.md
+# Mr. Rao's own LICENSE does not apply to pystray.
+"""System tray icon for Mr. Rao (requires pystray, LGPL-3.0)."""
 from __future__ import annotations
 
 import threading
@@ -6,6 +11,21 @@ import webbrowser
 from pathlib import Path
 
 import config
+
+_LGPL_NOTICE_SHOWN = False
+
+
+def _print_lgpl_notice() -> None:
+    """LGPL requires appropriate notices when distributing; we also print at runtime."""
+    global _LGPL_NOTICE_SHOWN
+    if _LGPL_NOTICE_SHOWN:
+        return
+    _LGPL_NOTICE_SHOWN = True
+    print(
+        "Tray: uses pystray (LGPL-3.0), Copyright (C) 2016-2022 Moses Palmér.\n"
+        "  Source: https://github.com/moses-palmer/pystray\n"
+        "  License files: licenses/pystray/  |  docs/LGPL_PYSTRAY.md"
+    )
 
 
 def _load_icon_image():
@@ -19,7 +39,6 @@ def _load_icon_image():
     for p in candidates:
         if p.exists():
             return Image.open(p).convert("RGBA")
-    # fallback solid
     return Image.new("RGBA", (64, 64), (59, 130, 246, 255))
 
 
@@ -31,6 +50,8 @@ def run_tray(url: str, on_quit) -> None:
     except ImportError:
         print("pystray non installato — tray disabilitato. pip install pystray")
         return
+
+    _print_lgpl_notice()
 
     def open_ui(icon=None, item=None):
         webbrowser.open(url)

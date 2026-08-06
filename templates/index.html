@@ -333,21 +333,39 @@
         </div>
     </section>
 
-    <footer class="reveal">
-        <strong>{{ app_name }}</strong> v{{ app_version }} · 100% locale · zero cloud<br>
-        <span class="footer-links">
+    <footer class="reveal site-footer">
+        <div class="site-footer__brand">
+            <strong>{{ app_name }}</strong> v{{ app_version }}
+            <span class="site-footer__sep">·</span>
+            100% locale
+            <span class="site-footer__sep">·</span>
+            zero cloud
+        </div>
+        <p class="site-footer__license">
+            Codice Mr. Rao: uso non commerciale libero; commerciale su autorizzazione di Rao.
+            Componenti di terzi: rispettive licenze open source (vedi ⓘ).
+        </p>
+        <div class="footer-links" aria-label="Dipendenze open source">
             <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
             <a href="https://github.com/RapidAI/RapidOCR" target="_blank" rel="noopener">RapidOCR</a>
             <a href="https://github.com/pallets/flask" target="_blank" rel="noopener">Flask</a>
             <a href="https://www.crummy.com/software/BeautifulSoup/" target="_blank" rel="noopener">BeautifulSoup</a>
             <a href="https://github.com/LeapBeyond/scrubadub" target="_blank" rel="noopener">Scrubadub</a>
             <a href="https://github.com/jsvine/pdfplumber" target="_blank" rel="noopener">pdfplumber</a>
+            <a href="https://github.com/python-pillow/Pillow" target="_blank" rel="noopener">Pillow</a>
             <a href="https://github.com/google/magika" target="_blank" rel="noopener">Magika</a>
-            <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">pystray</a>
-        </span>
-        <br>
-        <button type="button" class="btn" id="open-about-footer" style="margin-top:0.65rem;font-size:0.72rem"
-                data-tip="Licenza Mr. Rao e elenco dipendenze open source.">Licenza e dipendenze</button>
+            <a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>
+            <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener" title="LGPL-3.0">pystray (LGPL)</a>
+        </div>
+        <p class="site-footer__lgpl">
+            Tray: <strong>pystray</strong> © Moses Palmér —
+            <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">sorgente</a>,
+            GNU LGPL v3 (testi in cartella <code>licenses/pystray/</code>).
+        </p>
+        <div class="site-footer__actions">
+            <button type="button" class="btn" id="open-about-footer"
+                    data-tip="Licenza Mr. Rao, elenco dipendenze e obblighi LGPL di pystray.">Licenza e dipendenze</button>
+        </div>
     </footer>
 </div>
 
@@ -428,26 +446,35 @@
                 <li>
                     <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">pystray</a>
                     <span class="dep-tag dep-tag--warn">LGPL-3.0</span>
-                    <span class="dep-role">Icona system tray (opzionale; disattivabile con MR_RAO_TRAY=0)</span>
+                    <span class="dep-role">System tray © Moses Palmér — notice e testi in licenses/pystray/; sostituibile (docs/LGPL_PYSTRAY.md). Opzionale: MR_RAO_TRAY=0</span>
                 </li>
             </ul>
         </div>
 
         <div class="modal__section">
-            <h3>Perché è compatibile</h3>
+            <h3>pystray e LGPL-3.0 (conformità)</h3>
+            <div class="license-box">
+                <strong>pystray</strong> © 2016–2022 Moses Palmér è sotto
+                <strong>GNU LGPL v3</strong> (o successiva).<br><br>
+                Mr. Rao rispetta la LGPL così:
+                <ul style="margin:0.5rem 0 0 1.1rem;padding:0">
+                    <li>Testi di licenza in <code>licenses/pystray/</code> (COPYING.LGPL, COPYING, NOTICE)</li>
+                    <li>Sorgente: <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">github.com/moses-palmer/pystray</a></li>
+                    <li>Libreria <strong>sostituibile</strong> (import Python standard) — guida: <code>docs/LGPL_PYSTRAY.md</code></li>
+                    <li>La licenza di Mr. Rao <strong>non</strong> limita i diritti LGPL su pystray</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="modal__section">
+            <h3>Licenze permissive (MIT / Apache / BSD)</h3>
             <p>
-                MIT, Apache-2.0 e BSD permettono di costruire prodotti anche commerciali
-                <em>sopra</em> le librerie, pur conservando notice e copyright. Mr. Rao limita solo
-                <strong>il proprio codice e il prodotto assemblato</strong>, non le librerie in sé.
-            </p>
-            <p>
-                <strong>LGPL (pystray):</strong> in caso di redistribuzione binaria che include pystray,
-                vanno rispettati gli obblighi LGPL (notice e possibilità di sostituire la libreria).
-                In dubbio, distribuire con tray disattivato o consultare un legale.
+                Consentono di costruire prodotti anche sopra le librerie, con attribuzione.
+                Mr. Rao limita solo il <strong>proprio</strong> codice/prodotto; le librerie restano libere.
             </p>
             <p style="margin-bottom:0">
-                Questo riquadro non è un parere legale. Per usi commerciali critici: autorizzazione a Rao
-                + verifica legale delle licenze upstream.
+                Questo riquadro non è un parere legale. Uso commerciale di Mr. Rao: autorizzazione a Rao.
+                File: <code>LICENSE</code>, <code>THIRD_PARTY.md</code>, <code>licenses/</code>.
             </p>
         </div>
     </div>
