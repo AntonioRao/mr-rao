@@ -6,7 +6,9 @@
     <title>{{ app_name }} — Convertitore intelligente</title>
     <meta name="description" content="Mr. Rao converte documenti, immagini e email in Markdown puro. 100% offline, OCR, privacy IT.">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.png') }}">
     <style>
         :root {
             --bg: #060912;
@@ -78,10 +80,14 @@
         }
         .logo-icon img { width: 100%; height: 100%; display: block; border-radius: 14px; }
         .logo-text {
-            font-size: 2.1rem; font-weight: 800; letter-spacing: -0.03em;
+            font-size: 2.1rem; font-weight: 600; letter-spacing: 0.02em;
             background: linear-gradient(135deg, #e0eaff 0%, #a5c3f5 40%, #c4a8ff 80%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+        .logo-rao {
+            font-weight: 800;
+            letter-spacing: 0.12em;
         }
         .logo-badge {
             display: inline-block; padding: 0.2rem 0.55rem;
@@ -387,9 +393,9 @@
     <header>
         <div class="logo-wrap">
             <div class="logo-icon">
-                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Mr. Rao logo" width="52" height="52">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Mr RAO" width="52" height="52">
             </div>
-            <span class="logo-text">{{ app_name }}<span class="logo-badge">v{{ app_version }}</span></span>
+            <span class="logo-text">Mr <span class="logo-rao">RAO</span><span class="logo-badge">v{{ app_version }}</span></span>
         </div>
         <p class="tagline">Dal documento al Markdown. Offline. Firmato Rao.<br>
             PDF, Office, immagini OCR, thread email — zero cloud.</p>
@@ -406,35 +412,49 @@
     <div class="settings-card">
         <div class="settings-row">
             <div class="field">
+                <span class="field-label">Profilo preset</span>
+                <select id="profile" aria-label="Profilo">
+                    <option value="default">Predefinito</option>
+                    <option value="email_legali">Email legali</option>
+                    <option value="fatture">Fatture / contabili</option>
+                    <option value="solo_ocr">Solo OCR</option>
+                    <option value="llm_ready">Pronto per LLM</option>
+                    <option value="no_privacy">Nessuna redazione</option>
+                </select>
+                <span class="field-hint" id="profile-hint">Bilanciato: privacy, tabelle, frontmatter.</span>
+            </div>
+            <div class="field">
                 <span class="field-label">Motore</span>
                 <select id="engine" aria-label="Motore di conversione">
                     <option value="auto">Automatico (consigliato)</option>
                     <option value="rapidocr">Forza RapidOCR (scansioni / immagini)</option>
                     <option value="markitdown">Solo MarkItDown (documenti nativi)</option>
                 </select>
-                <span class="field-hint">Auto: MarkItDown per documenti, OCR per immagini, fallback OCR sui PDF scansionati.</span>
             </div>
+        </div>
+        <div class="settings-row">
             <div class="field">
                 <span class="field-label">Lingua OCR</span>
                 <select id="language" aria-label="Lingua OCR">
-                    <option value="it">Italiano</option>
-                    <option value="en">English</option>
+                    <option value="it">Italiano (latino)</option>
+                    <option value="en">English (latino)</option>
                     <option value="multi">Multi (latino)</option>
                 </select>
-                <span class="field-hint">Preferenza per OCR e post-processing. I modelli RapidOCR coprono script latini.</span>
+                <span class="field-hint">RapidOCR offline (script latini). Nessun download modelli esterni a runtime.</span>
             </div>
-        </div>
-
-        <div class="toggle-row" id="privacy-row">
-            <div class="toggle-info">
-                <span class="toggle-title">Filtra dati sensibili</span>
-                <span class="toggle-desc">Email, telefoni, CF, IBAN, nomi IT — sempre consigliato per .eml</span>
+            <div class="field" style="justify-content:flex-end">
+                <div class="toggle-row" id="privacy-row">
+                    <div class="toggle-info">
+                        <span class="toggle-title">Filtra dati sensibili</span>
+                        <span class="toggle-desc">Email, tel, CF, IBAN, nomi IT</span>
+                    </div>
+                    <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
+                        <input type="checkbox" id="privacy-filter" checked>
+                        <span class="switch-track"></span>
+                        <span class="switch-thumb"></span>
+                    </label>
+                </div>
             </div>
-            <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
-                <input type="checkbox" id="privacy-filter" checked>
-                <span class="switch-track"></span>
-                <span class="switch-thumb"></span>
-            </label>
         </div>
 
         <div class="privacy-grid" id="privacy-panel" style="display:none">
@@ -449,7 +469,29 @@
             <label class="chip-toggle"><input type="checkbox" id="include-tables" checked> Tabelle PDF</label>
             <label class="chip-toggle"><input type="checkbox" id="include-frontmatter" checked> Frontmatter YAML</label>
             <label class="chip-toggle"><input type="checkbox" id="clean-output"> Output pulito (LLM)</label>
-            <label class="chip-toggle"><input type="checkbox" id="merge-batch"> Unisci batch in un .md</label>
+            <label class="chip-toggle"><input type="checkbox" id="merge-batch"> Unisci batch</label>
+            <label class="chip-toggle"><input type="checkbox" id="compare-mode"> Confronta 2 file</label>
+            <label class="chip-toggle"><input type="checkbox" id="include-raw" checked> Diff privacy</label>
+        </div>
+    </div>
+
+    <div class="side-card" id="watch">
+        <h3>Hotfolder (watch)</h3>
+        <div class="settings-row">
+            <div class="field">
+                <span class="field-label">Cartella ingresso</span>
+                <input type="text" id="watch-inbox" placeholder="C:\path\inbox" style="width:100%;padding:0.55rem 0.85rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text);font:inherit;font-size:0.85rem">
+            </div>
+            <div class="field">
+                <span class="field-label">Cartella uscita .md</span>
+                <input type="text" id="watch-outbox" placeholder="C:\path\out" style="width:100%;padding:0.55rem 0.85rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text);font:inherit;font-size:0.85rem">
+            </div>
+        </div>
+        <div class="options-row" style="margin-top:0.75rem">
+            <label class="chip-toggle"><input type="checkbox" id="watch-move"> Sposta in done/</label>
+            <button type="button" class="btn btn-primary" id="watch-start">Avvia watch</button>
+            <button type="button" class="btn" id="watch-stop">Ferma</button>
+            <span class="muted" id="watch-status">idle</span>
         </div>
     </div>
 
@@ -497,22 +539,25 @@
                 <button type="button" class="btn" id="copy-btn">Copia</button>
                 <button type="button" class="btn" id="copy-clean-btn">Copia pulita</button>
                 <button type="button" class="btn" id="download-txt-btn">.txt</button>
-                <button type="button" class="btn btn-primary" id="download-btn">Scarica .md</button>
+                <button type="button" class="btn btn-primary" id="download-btn" draggable="true" title="Trascina sul Desktop per salvare">Scarica .md</button>
             </div>
         </div>
         <div class="tabs">
             <button type="button" class="tab active" id="tab-raw">Raw</button>
             <button type="button" class="tab" id="tab-preview">Preview</button>
+            <button type="button" class="tab" id="tab-diff" style="display:none">Diff privacy</button>
         </div>
+        <div id="attachments-bar" style="display:none;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.5rem"></div>
         <div class="output-box">
             <div class="output-topbar">
                 <span class="dot dot-r"></span>
                 <span class="dot dot-y"></span>
                 <span class="dot dot-g"></span>
-                <span class="output-lang">markdown</span>
+                <span class="output-lang">markdown · trascina il bottone .md sul Desktop</span>
             </div>
-            <div class="markdown-output" id="markdown-output"></div>
+            <div class="markdown-output" id="markdown-output" draggable="true"></div>
             <div class="preview-output" id="preview-output"></div>
+            <div class="markdown-output" id="diff-output" style="display:none"></div>
         </div>
     </div>
 

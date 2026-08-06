@@ -107,6 +107,20 @@ Il gate (compileall + health + pytest) viene eseguito anche da `Installa Mr Rao.
 
 ---
 
+## Portable (senza Python sul PC destinazione)
+
+Su un PC di build (con Python una tantum):
+
+```bat
+scripts\build_portable.bat
+```
+
+Produce `dist\MrRao-Portable\` con **tutte** le dipendenze incluse (niente git/pip sul target).
+
+Sul PC utente: doppio clic su **`Installa Mr Rao.bat`** → collegamento Desktop, icona, menu contestuale.
+
+Dettagli: [docs/PORTABLE.md](docs/PORTABLE.md)
+
 ## Docker
 
 ```bat

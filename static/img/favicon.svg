@@ -1,10 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mr RAO">
   <defs>
-    <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3b82f6"/>
-      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#fg)"/>
-  <text x="32" y="42" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="28" font-weight="800" fill="#fff">R</text>
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <text x="32" y="26" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif"
+        font-size="16" font-weight="700" fill="rgba(236,240,255,0.98)" letter-spacing="0.04em">Mr</text>
+  <text x="32" y="48" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif"
+        font-size="20" font-weight="800" fill="#ffffff" letter-spacing="0.04em">RAO</text>
 </svg>

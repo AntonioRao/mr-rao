@@ -1,0 +1,3 @@
+# Build-only tools for portable package (not needed on target PCs)
+-r requirements.txt
+pyinstaller>=6.0.0

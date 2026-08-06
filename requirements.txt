@@ -1,14 +1,15 @@
-# Mr. Rao — runtime dependencies
+# Mr. Rao — runtime dependencies (offline after first install / portable build)
 flask>=3.0.3
 werkzeug>=3.0.3
-markitdown[all]>=0.1.7; python_version < "3.14"
 markitdown>=0.1.7
 pdfminer.six>=20231228
 pdfplumber>=0.11.0
 Pillow>=10.0.0
 rapidocr_onnxruntime>=1.2.3
 scrubadub>=2.0.1
-# HTML → text for .eml (and HTML parts). See docs/BEAUTIFULSOUP.md
+# HTML → text for .eml — see docs/BEAUTIFULSOUP.md
 beautifulsoup4>=4.12.0
-# Test / quality gate
+# System tray (optional but recommended)
+pystray>=0.19.5
+# Tests
 pytest>=8.0.0

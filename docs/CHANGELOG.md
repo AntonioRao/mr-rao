@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.0 — Feature pack + portable
+
+### Icone
+- Lockup **Mr** + **RAO** ridisegnato (RAO grande, Mr leggibile, no clipping)
+- `mr-rao.ico` multi-size + shortcut Desktop automatico
+
+### Feature
+- System tray (pystray)
+- Profili preset (email legali, fatture, solo OCR, LLM-ready…)
+- Diff privacy (prima/dopo + highlight segnaposto)
+- Allegati `.eml` scaricabili dall’UI
+- Hotfolder watch da UI (`/api/watch`)
+- Confronto 2 file (Documento A / B)
+- Drag-out `.md` (Chrome/Edge) dal bottone/output
+- Menu contestuale Windows + Invia a
+
+### Portable
+- `scripts/build_portable.bat` → PyInstaller onedir offline
+- `Installa Mr Rao.bat` nel pacchetto: **nessun Python/git sul target**
+- Docs: `docs/PORTABLE.md`
+
 ## 1.0.0 — Mr. Rao
 
 ### Brand

@@ -1,21 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Mr. Rao">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mr RAO">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3b82f6"/>
-      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="55%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#0891b2"/>
     </linearGradient>
-    <linearGradient id="g2" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#06b6d4"/>
-      <stop offset="100%" style="stop-color:#8b5cf6"/>
-    </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1e3a8a" flood-opacity="0.35"/>
+    </filter>
   </defs>
-  <!-- rounded square -->
-  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#g)"/>
-  <!-- monogram hat (Mr.) -->
-  <path d="M34 48h60v8H70v36h-12V56H34z" fill="#f0f4ff" opacity="0.95"/>
-  <!-- markdown chevron -->
-  <path d="M40 92 L64 100 L88 92" fill="none" stroke="#e0eaff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
-  <!-- small R mark -->
-  <circle cx="96" cy="36" r="14" fill="url(#g2)"/>
-  <text x="96" y="41" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="800" fill="#fff">R</text>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)" filter="url(#soft)"/>
+  <rect x="36" y="36" width="440" height="440" rx="100" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
+  <text x="256" y="175" text-anchor="middle"
+        font-family="Segoe UI, system-ui, -apple-system, sans-serif"
+        font-size="120" font-weight="700" fill="rgba(236,240,255,0.98)" letter-spacing="0.06em">Mr</text>
+  <text x="256" y="330" text-anchor="middle"
+        font-family="Segoe UI, system-ui, -apple-system, sans-serif"
+        font-size="175" font-weight="800" fill="#ffffff" letter-spacing="0.04em">RAO</text>
+  <rect x="168" y="372" width="176" height="10" rx="5" fill="rgba(180,195,255,0.65)"/>
 </svg>

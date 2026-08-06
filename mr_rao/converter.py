@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Callable
 
 from config import APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
-from mr_rao.eml_parser import parse_eml
 from mr_rao.ocr_service import extract_pdf_tables, ocr_image, ocr_pdf_fallback
 from mr_rao.privacy import PrivacyOptions, RedactionReport, apply_privacy_filter
 
@@ -39,6 +38,8 @@ class ConvertOptions:
     include_frontmatter: bool = True
     clean_output: bool = False  # strip HTML comments / privacy footers for LLM paste
     force_ocr_pdf: bool = False
+    include_raw: bool = True  # keep pre-privacy text for diff
+    extract_attachments: bool = True
 
 
 @dataclass
@@ -50,6 +51,8 @@ class ConvertResult:
     redaction: RedactionReport = field(default_factory=RedactionReport)
     empty: bool = False
     error: str | None = None
+    markdown_raw: str | None = None  # before privacy (for diff)
+    attachments: list[dict] = field(default_factory=list)
 
 
 def _file_sha256(path: Path) -> str:
@@ -123,6 +126,7 @@ def convert_file(
     engine_used = "none"
     final_text: str | None = None
     file_hash = _file_sha256(path) if path.exists() else "unknown"
+    attachments: list[dict] = []
 
     try:
         if should_cancel and should_cancel():
@@ -137,8 +141,15 @@ def convert_file(
         if ext == ".eml":
             if progress:
                 progress(1, 1, "Parsing thread email…")
+            from mr_rao.eml_parser import extract_attachments, parse_eml
+
             final_text = parse_eml(path)
             engine_used = "eml_parser"
+            if opts.extract_attachments:
+                try:
+                    attachments = extract_attachments(path)
+                except Exception as e:
+                    print(f"EML attachments error: {e}")
             # EML always applies privacy if any privacy flag is on; default on for emails
             if not any(
                 [
@@ -217,14 +228,21 @@ def convert_file(
                 engine_used = "pdf_tables"
 
         redaction = RedactionReport()
-        if final_text and (
-            opts.privacy.emails
-            or opts.privacy.phones
-            or opts.privacy.names
-            or opts.privacy.fiscal
-            or opts.privacy.amounts
-            or opts.privacy.use_scrubadub
-        ):
+        markdown_raw: str | None = None
+        privacy_on = bool(
+            final_text
+            and (
+                opts.privacy.emails
+                or opts.privacy.phones
+                or opts.privacy.names
+                or opts.privacy.fiscal
+                or opts.privacy.amounts
+                or opts.privacy.use_scrubadub
+            )
+        )
+        if privacy_on and final_text:
+            if opts.include_raw:
+                markdown_raw = final_text
             final_text, redaction = apply_privacy_filter(final_text, opts.privacy)
 
         empty = not final_text or not str(final_text).strip()
@@ -234,12 +252,14 @@ def convert_file(
 
         if opts.clean_output and final_text:
             final_text = _strip_noise(final_text)
+            if markdown_raw:
+                markdown_raw = _strip_noise(markdown_raw)
 
         if opts.include_frontmatter and final_text and not empty:
-            final_text = (
-                _frontmatter(original_name, ext, engine_used, file_hash, redaction)
-                + final_text
-            )
+            fm = _frontmatter(original_name, ext, engine_used, file_hash, redaction)
+            final_text = fm + final_text
+            if markdown_raw is not None:
+                markdown_raw = fm + markdown_raw
 
         return ConvertResult(
             markdown=final_text or "",
@@ -248,6 +268,8 @@ def convert_file(
             source_ext=ext,
             redaction=redaction,
             empty=empty,
+            markdown_raw=markdown_raw,
+            attachments=attachments,
         )
     except Exception as e:
         print(f"convert_file error: {e}")
@@ -287,24 +309,41 @@ def convert_bytes(
             pass
 
 
-def merge_markdowns(results: list[ConvertResult], title: str = "Documento unificato") -> str:
-    """Merge multiple conversion results into one Markdown document."""
+def merge_markdowns(
+    results: list[ConvertResult],
+    title: str = "Documento unificato",
+    *,
+    compare_mode: bool = False,
+) -> str:
+    """Merge multiple conversion results into one Markdown document.
+
+    If compare_mode and exactly 2 results, labels them Documento A / B.
+    """
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     parts = [
         "---",
         f"generator: {APP_NAME} {APP_VERSION}",
-        f"type: merged",
+        f"type: {'compare' if compare_mode else 'merged'}",
         f"sources: {len(results)}",
         f"converted_at: {now}",
         "---",
         f"# {title}\n",
     ]
+    labels = None
+    if compare_mode and len(results) == 2:
+        labels = ["Documento A", "Documento B"]
+        parts.append(
+            "> Confronto affiancato (stesso pipeline Mr. Rao su entrambi i file).\n"
+        )
     for i, r in enumerate(results, 1):
-        parts.append(f"\n---\n\n## {i}. {r.source_name}\n")
+        if labels:
+            heading = f"## {labels[i - 1]} — `{r.source_name}`\n"
+        else:
+            heading = f"## {i}. {r.source_name}\n"
+        parts.append(f"\n---\n\n{heading}")
         if r.error:
             parts.append(f"> Errore: {r.error}\n")
         else:
-            # Strip frontmatter from children to avoid nested YAML
             body = r.markdown
             if body.startswith("---"):
                 end = body.find("\n---", 3)

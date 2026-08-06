@@ -57,7 +57,7 @@ echo.
 echo       Dipendenze installate (beautifulsoup4 per HTML email, ecc.).
 echo.
 
-echo [4/5] Gate di qualita' (pytest)...
+echo [4/6] Gate di qualita' (pytest)...
 python -m pytest tests -q --tb=line
 if %ERRORLEVEL% neq 0 (
     echo.
@@ -68,24 +68,48 @@ if %ERRORLEVEL% neq 0 (
 )
 echo.
 
-echo [5/5] Collegamento Desktop...
-set SCRIPT_DIR=%~dp0
-set DESKTOP=%USERPROFILE%\Desktop
-(
-echo @echo off
-echo cd /d "%SCRIPT_DIR%"
-echo call "Avvia Mr Rao.bat"
-) > "%DESKTOP%\Mr Rao.bat"
-echo       Collegamento: Desktop\Mr Rao.bat
+echo [5/7] Generazione icone (logo, favicon, mr-rao.ico)...
+python scripts\generate_icons.py
+if %ERRORLEVEL% neq 0 (
+    echo       AVVISO: generazione icone fallita — lo shortcut usera' l'icona di default.
+) else (
+    echo       Icone OK: static\img\mr-rao.ico
+)
+echo.
+
+echo [6/7] Collegamento Desktop con icona...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\create_desktop_shortcut.ps1" -ProjectRoot "%~dp0"
+if %ERRORLEVEL% neq 0 (
+    echo       Fallback: creo Mr Rao.bat sul Desktop senza .ico
+    set SCRIPT_DIR=%~dp0
+    set DESKTOP=%USERPROFILE%\Desktop
+    (
+    echo @echo off
+    echo cd /d "%SCRIPT_DIR%"
+    echo call "Avvia Mr Rao.bat"
+    ) > "%DESKTOP%\Mr Rao.bat"
+) else (
+    echo       Collegamento: Desktop\Mr. Rao.lnk  (icona mr-rao.ico)
+)
+echo.
+
+echo [7/7] Menu contestuale Windows (Invia a / Apri con)...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\install_shell_integration.ps1" -ExePath "%~dp0scripts\open_with_mr_rao.bat" -IconPath "%~dp0static\img\mr-rao.ico" 2>nul
+if errorlevel 1 (
+    echo       Shell integration opzionale non applicata.
+) else (
+    echo       Invia a / Apri con Mr. Rao configurati.
+)
 echo.
 
 echo ╔═══════════════════════════════════════════════════════╗
 echo ║   INSTALLAZIONE COMPLETATA                            ║
 echo ║                                                       ║
-echo ║   Avvio: doppio clic su "Mr Rao" sul Desktop          ║
+echo ║   Avvio: doppio clic su "Mr. Rao" sul Desktop         ║
 echo ║   oppure "Avvia Mr Rao.bat"                           ║
 echo ║                                                       ║
 echo ║   CLI:  venv\Scripts\python -m mr_rao.cli --help      ║
+echo ║   Portable (no Python): scripts\build_portable.bat    ║
 echo ║   Docs: docs\  e  README.md                           ║
 echo ╚═══════════════════════════════════════════════════════╝
 echo.

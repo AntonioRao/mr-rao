@@ -7,30 +7,70 @@ from pathlib import Path
 from flask import Blueprint, current_app, jsonify, render_template, request
 
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
-from mr_rao.converter import ConvertOptions, convert_bytes, merge_markdowns
+from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
 from mr_rao.jobs import job_store
 from mr_rao.privacy import options_from_form
+from mr_rao.profiles import get_profile, list_profiles, options_from_profile
+from mr_rao.watch_service import get_watch_state, start_watch, stop_watch
 
 bp = Blueprint("main", __name__)
 
 
+def _truthy(val, default: bool = False) -> bool:
+    if val is None:
+        return default
+    if isinstance(val, bool):
+        return val
+    return str(val).lower() in ("1", "true", "yes", "on")
+
+
 def _parse_options_from_request() -> ConvertOptions:
     form = request.form
+    profile_id = form.get("profile") or form.get("preset")
+    if profile_id:
+        opts = options_from_profile(profile_id)
+        if opts:
+            # Allow form overrides on top of profile for a few keys
+            if form.get("engine"):
+                eng = form.get("engine")
+                if eng == "paddleocr":
+                    eng = "rapidocr"
+                opts.engine = eng
+            if form.get("language"):
+                opts.language = form.get("language", opts.language)
+            return opts
+
     engine = form.get("engine", "auto")
     if engine == "paddleocr":
         engine = "rapidocr"
     privacy = options_from_form(form)
-    # EML always gets privacy defaults if master not set — handled in converter
     return ConvertOptions(
         engine=engine,
         language=form.get("language", "it"),
         privacy=privacy,
-        include_tables=str(form.get("include_tables", "true")).lower() in ("1", "true", "yes", "on"),
-        include_frontmatter=str(form.get("include_frontmatter", "true")).lower()
-        in ("1", "true", "yes", "on"),
-        clean_output=str(form.get("clean_output", "false")).lower() in ("1", "true", "yes", "on"),
-        force_ocr_pdf=str(form.get("force_ocr_pdf", "false")).lower() in ("1", "true", "yes", "on"),
+        include_tables=_truthy(form.get("include_tables"), True),
+        include_frontmatter=_truthy(form.get("include_frontmatter"), True),
+        clean_output=_truthy(form.get("clean_output"), False),
+        force_ocr_pdf=_truthy(form.get("force_ocr_pdf"), False),
+        include_raw=_truthy(form.get("include_raw"), True),
+        extract_attachments=_truthy(form.get("extract_attachments"), True),
     )
+
+
+def _result_payload(result: ConvertResult) -> dict:
+    payload = {
+        "markdown": result.markdown,
+        "engine": result.engine_used,
+        "filename": result.source_name,
+        "empty": result.empty,
+        "redaction": result.redaction.to_dict(),
+    }
+    if result.markdown_raw is not None:
+        payload["markdown_raw"] = result.markdown_raw
+    if result.attachments:
+        # strip huge base64 from list preview? keep full for download
+        payload["attachments"] = result.attachments
+    return payload
 
 
 def _validate_filename(filename: str) -> tuple[str | None, str | None]:
@@ -64,8 +104,16 @@ def health():
             "engines": ["markitdown", "rapidocr", "eml_parser"],
             "image_extensions": sorted(IMAGE_EXTENSIONS),
             "allowed_extensions": sorted(ALLOWED_EXTENSIONS),
+            "profiles": list_profiles(),
+            "watch": get_watch_state(),
+            "frozen": bool(getattr(__import__("sys"), "frozen", False)),
         }
     )
+
+
+@bp.route("/api/profiles")
+def profiles():
+    return jsonify({"profiles": list_profiles(), "detail": {p: get_profile(p) for p in [x["id"] for x in list_profiles()]}})
 
 
 def _run_job_single(job_id: str, data: bytes, filename: str, options: ConvertOptions) -> None:
@@ -99,13 +147,7 @@ def _run_job_single(job_id: str, data: bytes, filename: str, options: ConvertOpt
             job.status = "done"
             job.message = "Completato"
             job.progress = job.total
-            job.result = {
-                "markdown": result.markdown,
-                "engine": result.engine_used,
-                "filename": result.source_name,
-                "empty": result.empty,
-                "redaction": result.redaction.to_dict(),
-            }
+            job.result = _result_payload(result)
 
 
 def _run_job_batch(
@@ -114,6 +156,7 @@ def _run_job_batch(
     options: ConvertOptions,
     merge: bool,
     merge_title: str,
+    compare: bool = False,
 ) -> None:
     job = job_store.get(job_id)
     if not job:
@@ -133,7 +176,6 @@ def _run_job_batch(
         job.set_progress(i, len(items), f"File {i + 1}/{len(items)}: {filename}")
 
         def progress(c, t, msg, _i=i, _n=len(items), _f=filename):
-            # Map inner progress into batch slot
             job.set_progress(_i, _n, f"{_f}: {msg}")
 
         r = convert_bytes(
@@ -151,17 +193,18 @@ def _run_job_batch(
             job.message = "Annullato"
         return
 
-    if merge:
-        merged = merge_markdowns(results, title=merge_title)
+    if merge or compare:
+        title = merge_title if not compare else (merge_title or "Confronto documenti")
+        merged = merge_markdowns(results, title=title, compare_mode=compare)
         redaction_total = sum(r.redaction.total for r in results)
         with job.lock:
             job.status = "done"
             job.progress = len(items)
-            job.message = "Merge completato"
+            job.message = "Confronto completato" if compare else "Merge completato"
             job.result = {
                 "markdown": merged,
-                "engine": "merge",
-                "filename": merge_title + ".md",
+                "engine": "compare" if compare else "merge",
+                "filename": (title if title.endswith(".md") else title + ".md"),
                 "empty": False,
                 "redaction": {"total": redaction_total, "counts": {}},
                 "files": [
@@ -182,14 +225,7 @@ def _run_job_batch(
             job.result = {
                 "batch": True,
                 "items": [
-                    {
-                        "markdown": r.markdown,
-                        "engine": r.engine_used,
-                        "filename": r.source_name,
-                        "empty": r.empty,
-                        "error": r.error,
-                        "redaction": r.redaction.to_dict(),
-                    }
+                    {**_result_payload(r), "error": r.error}
                     for r in results
                 ],
             }
@@ -197,7 +233,6 @@ def _run_job_batch(
 
 @bp.route("/api/convert", methods=["POST"])
 def convert_api():
-    """Start async conversion job (single file). Returns job_id."""
     if "file" not in request.files:
         return jsonify({"error": "Nessun file trovato nella richiesta"}), 400
 
@@ -210,9 +245,6 @@ def convert_api():
         return jsonify({"error": err}), 400
 
     options = _parse_options_from_request()
-    # Auto-enable privacy for EML if master off — converter handles defaults when empty;
-    # for EML force privacy master on for safety unless explicitly all off with privacy_filter=false
-    # and privacy_eml_override
     if Path(file.filename).suffix.lower() == ".eml":
         if request.form.get("privacy_filter", "true").lower() != "false":
             from mr_rao.privacy import PrivacyOptions
@@ -250,8 +282,13 @@ def convert_batch():
         return jsonify({"error": "Nessun file nella richiesta"}), 400
 
     options = _parse_options_from_request()
-    merge = str(request.form.get("merge", "false")).lower() in ("1", "true", "yes", "on")
+    merge = _truthy(request.form.get("merge"), False)
+    compare = _truthy(request.form.get("compare"), False)
     merge_title = request.form.get("merge_title", "Documento unificato")
+    if compare:
+        merge = True
+        if merge_title == "Documento unificato":
+            merge_title = "Confronto documenti"
 
     items: list[tuple[bytes, str]] = []
     for f in files:
@@ -266,11 +303,53 @@ def convert_batch():
 
     if not items:
         return jsonify({"error": "Nessun file valido"}), 400
+    if compare and len(items) != 2:
+        return jsonify({"error": "Il confronto richiede esattamente 2 file"}), 400
 
     job = job_store.create()
     t = threading.Thread(
         target=_run_job_batch,
-        args=(job.id, items, options, merge, merge_title),
+        args=(job.id, items, options, merge, merge_title, compare),
+        daemon=True,
+    )
+    t.start()
+    return jsonify({"job_id": job.id}), 202
+
+
+@bp.route("/api/convert/compare", methods=["POST"])
+def convert_compare():
+    """Compare exactly two documents (PDF or any supported)."""
+    # Reuse batch with compare flag
+    # Accept file_a / file_b or files
+    files = request.files.getlist("files")
+    if len(files) < 2:
+        a = request.files.get("file_a") or request.files.get("file1")
+        b = request.files.get("file_b") or request.files.get("file2")
+        files = [f for f in (a, b) if f]
+    if len(files) != 2:
+        return jsonify({"error": "Servono esattamente 2 file (file_a e file_b)"}), 400
+
+    # inject into batch-like handling
+    from werkzeug.datastructures import ImmutableMultiDict
+
+    # Build synthetic multipart by calling logic directly
+    options = _parse_options_from_request()
+    items = []
+    for f in files:
+        if not f.filename:
+            return jsonify({"error": "Nome file mancante"}), 400
+        _, err = _validate_filename(f.filename)
+        if err:
+            return jsonify({"error": err}), 400
+        data = f.read()
+        if not data:
+            return jsonify({"error": f"File vuoto: {f.filename}"}), 400
+        items.append((data, f.filename))
+
+    job = job_store.create()
+    t = threading.Thread(
+        target=_run_job_batch,
+        args=(job.id, items, options, True, request.form.get("merge_title", "Confronto documenti"), True),
         daemon=True,
     )
     t.start()
@@ -279,7 +358,6 @@ def convert_batch():
 
 @bp.route("/api/convert/sync", methods=["POST"])
 def convert_sync():
-    """Synchronous convert (CLI-friendly / simple clients)."""
     if "file" not in request.files:
         return jsonify({"error": "Nessun file trovato nella richiesta"}), 400
     file = request.files["file"]
@@ -294,15 +372,7 @@ def convert_sync():
     result = convert_bytes(data, file.filename, options=options)
     if result.error:
         return jsonify({"error": result.error}), 500
-    return jsonify(
-        {
-            "markdown": result.markdown,
-            "engine": result.engine_used,
-            "filename": result.source_name,
-            "empty": result.empty,
-            "redaction": result.redaction.to_dict(),
-        }
-    )
+    return jsonify(_result_payload(result))
 
 
 @bp.route("/api/jobs/<job_id>", methods=["GET"])
@@ -322,5 +392,36 @@ def job_cancel(job_id: str):
 
 @bp.route("/api/paste-image", methods=["POST"])
 def paste_image():
-    """Accept clipboard image as multipart file named file."""
     return convert_api()
+
+
+@bp.route("/api/watch", methods=["GET"])
+def watch_get():
+    return jsonify(get_watch_state())
+
+
+@bp.route("/api/watch", methods=["POST"])
+def watch_start():
+    data = request.get_json(silent=True) or {}
+    # also accept form
+    inbox = data.get("inbox") or request.form.get("inbox")
+    outbox = data.get("outbox") or request.form.get("outbox")
+    if not inbox or not outbox:
+        return jsonify({"error": "Specificare inbox e outbox"}), 400
+    interval = float(data.get("interval") or request.form.get("interval") or 2)
+    move_done = _truthy(data.get("move_done") or request.form.get("move_done"), False)
+    # options from form/json profile
+    if request.form:
+        options = _parse_options_from_request()
+    else:
+        profile = data.get("profile")
+        options = options_from_profile(profile) if profile else ConvertOptions()
+        if options is None:
+            options = ConvertOptions()
+    state = start_watch(inbox, outbox, options=options, interval=interval, move_done=move_done)
+    return jsonify(state)
+
+
+@bp.route("/api/watch", methods=["DELETE"])
+def watch_stop():
+    return jsonify(stop_watch())

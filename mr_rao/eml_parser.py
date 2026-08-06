@@ -140,6 +140,46 @@ def list_attachments(msg) -> list[tuple[str, int]]:
     return attachments
 
 
+def extract_attachments(filepath: str | Path, max_bytes: int | None = None) -> list[dict]:
+    """Extract attachment payloads as base64 for download in the UI.
+
+    Skips oversized parts (default from config.MAX_ATTACHMENT_BYTES).
+    """
+    import base64
+
+    from config import MAX_ATTACHMENT_BYTES
+
+    limit = max_bytes if max_bytes is not None else MAX_ATTACHMENT_BYTES
+    filepath = Path(filepath)
+    with open(filepath, "rb") as f:
+        msg = BytesParser(policy=policy.default).parse(f)
+
+    out: list[dict] = []
+    if not msg.is_multipart():
+        return out
+    for part in msg.walk():
+        content_disposition = str(part.get("Content-Disposition", ""))
+        if "attachment" not in content_disposition:
+            continue
+        fname = part.get_filename() or "allegato.bin"
+        raw = part.get_payload(decode=True) or b""
+        mime = part.get_content_type() or "application/octet-stream"
+        entry = {
+            "filename": fname,
+            "size": len(raw),
+            "mime": mime,
+            "skipped": False,
+            "content_base64": None,
+        }
+        if len(raw) > limit:
+            entry["skipped"] = True
+            entry["reason"] = f"oltre {limit // (1024 * 1024)} MB"
+        else:
+            entry["content_base64"] = base64.b64encode(raw).decode("ascii")
+        out.append(entry)
+    return out
+
+
 def parse_eml(filepath: str | Path) -> str:
     """Read .eml and produce structured Markdown for the full thread."""
     filepath = Path(filepath)
