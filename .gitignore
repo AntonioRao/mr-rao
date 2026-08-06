@@ -7,10 +7,9 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+# PyInstaller rigenera il .spec a ogni build e build_portable.bat non lo usa
+# (invoca pyinstaller da riga di comando): e' un artefatto, non un sorgente.
 *.spec
-# ...tranne quello del build portable: descrive come si costruisce l'exe,
-# va committato (la regola sopra lo teneva fuori da git senza motivo)
-!MrRao.spec
 
 *.egg
 .pytest_cache/
