@@ -27,7 +27,7 @@ def _writable_dir() -> Path:
 APP_NAME = "Mr. Rao"
 APP_SLUG = "mr-rao"
 APP_TAGLINE = "Dal documento al Markdown. Offline. Firmato Rao."
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.3.0"
 
 # Paths
 BASE_DIR = _base_dir()
@@ -48,8 +48,24 @@ SECRET_KEY = os.environ.get("MR_RAO_SECRET", "mr-rao-local-dev-only")
 USE_TRAY = os.environ.get("MR_RAO_TRAY", "1").strip() not in ("0", "false", "no")
 OPEN_BROWSER = os.environ.get("MR_RAO_OPEN_BROWSER", "1").strip() not in ("0", "false", "no")
 
+# Security — a local server is reachable by any page the user has open in the
+# browser, so the Host header is pinned (anti DNS-rebinding) and cross-site
+# Origins are refused (anti CSRF). Binding 0.0.0.0 is a deliberate choice to
+# expose the app, so the host allow-list opens up; the Origin check stays.
+_default_hosts = "*" if HOST == "0.0.0.0" else "127.0.0.1,localhost,[::1],::1"
+ALLOWED_HOSTS = {
+    h.strip().lower()
+    for h in os.environ.get("MR_RAO_ALLOWED_HOSTS", _default_hosts).split(",")
+    if h.strip()
+}
+
+# Concurrency: one thread per request would let N uploads start N OCR runs.
+MAX_WORKERS = max(1, int(os.environ.get("MR_RAO_MAX_WORKERS", "2")))
+MAX_JOBS_KEPT = max(4, int(os.environ.get("MR_RAO_MAX_JOBS", "50")))
+
 # Limits
 MAX_CONTENT_LENGTH = int(os.environ.get("MR_RAO_MAX_UPLOAD_MB", "50")) * 1024 * 1024
+MAX_UPLOAD_MB = MAX_CONTENT_LENGTH // (1024 * 1024)
 MAX_OCR_PAGES = int(os.environ.get("MR_RAO_MAX_OCR_PAGES", "50"))
 OCR_DPI = int(os.environ.get("MR_RAO_OCR_DPI", "250"))
 JOB_TTL_SECONDS = int(os.environ.get("MR_RAO_JOB_TTL", "3600"))

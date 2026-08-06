@@ -22,15 +22,24 @@ _RE_PIVA = re.compile(
     re.IGNORECASE,
 )
 
-# IBAN (generic + IT)
-_RE_IBAN = re.compile(
-    r"\b([A-Z]{2}\d{2}[A-Z0-9]{11,30})\b",
-    re.IGNORECASE,
+# IBAN (generic + IT). Case-sensitive on purpose: lowercase "words" like
+# "ab12cdefghijklm" are not IBANs. Every candidate is checked with mod-97.
+_RE_IBAN = re.compile(r"\b([A-Z]{2}\d{2}[A-Z0-9]{11,30})\b")
+
+# Italian / international phones. The regex only proposes *candidates*:
+# _phone_is_plausible() decides, so that bare digit runs such as a protocol
+# number ("protocollo 0123456789") are not mistaken for landlines.
+_RE_PHONE = re.compile(
+    r"(?<!\w)(?P<prefix>\+39|0039)?[\s\-\.]?"
+    r"(?P<body>0\d{1,4}[\s\-\.]?\d{5,8}|3\d{2}[\s\-\.]?\d{6,7})"
+    r"(?!\w)"
 )
 
-# Italian / international phones
-_RE_PHONE = re.compile(
-    r"(?<!\w)(?:\+39[\s\-\.]?)?(?:0\d{1,4}[\s\-\.]?\d{5,8}|3\d{2}[\s\-\.]?\d{6,7})(?!\w)"
+# Context words that turn an ambiguous digit run into a phone number.
+_RE_PHONE_CTX = re.compile(
+    r"\b(tel|telefono|telefonico|cell|cellulare|mobile|fax|phone|recapito)\b"
+    r"[\.:]?\s*$",
+    re.IGNORECASE,
 )
 
 # Email
@@ -38,9 +47,21 @@ _RE_EMAIL = re.compile(
     r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"
 )
 
-# Amounts (EUR style)
+# Amounts (EUR style). Candidates only — _amount_is_plausible() requires a
+# currency marker, a thousands group or a fiscal context word, so that version
+# numbers ("Versione 1.10") survive. The trailing currency is optional *with*
+# its own whitespace, so a bare number never swallows the following space.
 _RE_AMOUNT = re.compile(
-    r"(?:€\s*)?\b\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})\b\s*(?:€|EUR|euro)?",
+    r"(?P<cur_pre>€\s*)?"
+    r"\b(?P<num>\d{1,3}(?:[.,]\d{3})*[.,]\d{2})\b"
+    r"(?P<cur_post>\s*(?:€|EUR\b|euro\b))?",
+    re.IGNORECASE,
+)
+
+# Context words that make a bare decimal an amount.
+_RE_AMOUNT_CTX = re.compile(
+    r"\b(importo|importi|totale|subtotale|saldo|prezzo|costo|iva|imponibile|"
+    r"netto|lordo|acconto|fattura|pagamento|canone)\b\W*$",
     re.IGNORECASE,
 )
 
@@ -105,6 +126,52 @@ def _replace_all(text: str, pattern: re.Pattern, placeholder: str, report: Redac
     return pattern.sub(_sub, text)
 
 
+def _context_before(text: str, start: int, window: int = 24) -> str:
+    """The few characters preceding a match, used to disambiguate candidates."""
+    return text[max(0, start - window) : start]
+
+
+def iban_checksum_ok(candidate: str) -> bool:
+    """ISO 13616 mod-97 check. Rejects random uppercase tokens."""
+    s = candidate.replace(" ", "").upper()
+    if len(s) < 15 or len(s) > 34:
+        return False
+    rearranged = s[4:] + s[:4]
+    digits = ""
+    for ch in rearranged:
+        if ch.isdigit():
+            digits += ch
+        elif "A" <= ch <= "Z":
+            digits += str(ord(ch) - 55)
+        else:
+            return False
+    return int(digits) % 97 == 1
+
+
+def _phone_is_plausible(m: re.Match) -> bool:
+    """A digit run is a phone only with a +39 prefix, a separator,
+    a mobile 3xx prefix, or an explicit context word."""
+    if m.group("prefix"):
+        return True
+    body = m.group("body")
+    if body.startswith("3"):  # Italian mobile
+        return True
+    if any(sep in body for sep in (" ", "-", ".")):
+        return True
+    return bool(_RE_PHONE_CTX.search(_context_before(m.string, m.start())))
+
+
+def _amount_is_plausible(m: re.Match) -> bool:
+    """A decimal is an amount only with a currency marker, a thousands
+    group, or a fiscal context word — not every '1.10' in the text."""
+    if m.group("cur_pre") or m.group("cur_post"):
+        return True
+    num = m.group("num")
+    if num.count(".") + num.count(",") > 1:  # e.g. 1.500,00
+        return True
+    return bool(_RE_AMOUNT_CTX.search(_context_before(m.string, m.start())))
+
+
 def _scrub_italian_names(text: str, report: RedactionReport) -> str:
     def _sub(m: re.Match) -> str:
         first, last = m.group(1), m.group(2)
@@ -136,15 +203,29 @@ def apply_privacy_filter(
         out = _replace_all(out, _RE_EMAIL, "{{EMAIL}}", report, "emails")
 
     if opts.phones:
-        out = _replace_all(out, _RE_PHONE, "{{PHONE}}", report, "phones")
+
+        def _phone_sub(m: re.Match) -> str:
+            if not _phone_is_plausible(m):
+                return m.group(0)
+            report.add("phones")
+            return "{{PHONE}}"
+
+        out = _RE_PHONE.sub(_phone_sub, out)
 
     if opts.fiscal:
         out = _replace_all(out, _RE_CF, "{{CODICE_FISCALE}}", report, "codice_fiscale")
-        out = _replace_all(out, _RE_IBAN, "{{IBAN}}", report, "iban")
+
+        def _iban_sub(m: re.Match) -> str:
+            if not iban_checksum_ok(m.group(1)):
+                return m.group(0)
+            report.add("iban")
+            return "{{IBAN}}"
+
+        out = _RE_IBAN.sub(_iban_sub, out)
+
         # P.IVA: only replace if preceded by context keywords nearby or IT prefix
         def _piva_sub(m: re.Match) -> str:
-            start = max(0, m.start() - 24)
-            ctx = out[start : m.start()].lower()
+            ctx = _context_before(m.string, m.start()).lower()
             raw = m.group(0)
             if raw.upper().startswith("IT") or any(
                 k in ctx for k in ("p.iva", "piva", "partita", "vat", "c.f.")
@@ -156,7 +237,14 @@ def apply_privacy_filter(
         out = _RE_PIVA.sub(_piva_sub, out)
 
     if opts.amounts:
-        out = _replace_all(out, _RE_AMOUNT, "{{AMOUNT}}", report, "amounts")
+
+        def _amount_sub(m: re.Match) -> str:
+            if not _amount_is_plausible(m):
+                return m.group(0)
+            report.add("amounts")
+            return "{{AMOUNT}}"
+
+        out = _RE_AMOUNT.sub(_amount_sub, out)
 
     if opts.names:
         out = _scrub_italian_names(out, report)
@@ -194,8 +282,9 @@ def options_from_form(form) -> PrivacyOptions:
             return val
         return str(val).lower() in ("1", "true", "yes", "on")
 
-    # Master switch
-    master = flag("privacy_filter", False)
+    # Master switch. Fail-safe: an API client that omits the field gets the
+    # redactions, it never gets plaintext PII by accident (same default as the CLI).
+    master = flag("privacy_filter", True)
     if not master:
         return PrivacyOptions(
             emails=False,
@@ -218,7 +307,7 @@ def options_from_form(form) -> PrivacyOptions:
 
 def options_from_dict(data: dict | None) -> PrivacyOptions:
     data = data or {}
-    if not data.get("privacy_filter", False):
+    if not data.get("privacy_filter", True):
         return PrivacyOptions(
             emails=False,
             phones=False,

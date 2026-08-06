@@ -8,6 +8,9 @@ __pycache__/
 dist/
 build/
 *.spec
+# ...tranne quello del build portable: descrive come si costruisce l'exe,
+# va committato (la regola sopra lo teneva fuori da git senza motivo)
+!MrRao.spec
 
 *.egg
 .pytest_cache/

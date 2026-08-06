@@ -7,7 +7,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from config import JOB_TTL_SECONDS
+from config import JOB_TTL_SECONDS, MAX_JOBS_KEPT
 
 
 @dataclass
@@ -52,9 +52,33 @@ class JobStore:
     def __init__(self) -> None:
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()
+        self._sweeper: threading.Thread | None = None
+
+    def _ensure_sweeper(self) -> None:
+        """Results (markdown + base64 attachments) used to sit in RAM forever
+        when no new conversion arrived, because cleanup ran only in create()."""
+        if self._sweeper is not None:
+            return
+        with self._lock:
+            if self._sweeper is not None:
+                return
+
+            def _loop() -> None:
+                while True:
+                    time.sleep(60)
+                    try:
+                        self.cleanup()
+                    except Exception:  # noqa: BLE001 — a sweeper must never die
+                        pass
+
+            self._sweeper = threading.Thread(
+                target=_loop, daemon=True, name="mr-rao-job-sweeper"
+            )
+            self._sweeper.start()
 
     def create(self) -> Job:
         self.cleanup()
+        self._ensure_sweeper()
         job = Job(id=uuid.uuid4().hex)
         with self._lock:
             self._jobs[job.id] = job
@@ -76,15 +100,28 @@ class JobStore:
         return True
 
     def cleanup(self) -> None:
+        """Drop expired jobs, then cap the store: a single result can hold a
+        whole document plus base64 attachments."""
         now = time.time()
         with self._lock:
-            dead = [
+            for jid in [
                 jid
                 for jid, j in self._jobs.items()
                 if now - j.created_at > JOB_TTL_SECONDS
-            ]
-            for jid in dead:
+            ]:
                 del self._jobs[jid]
+
+            if len(self._jobs) <= MAX_JOBS_KEPT:
+                return
+            # Evict the oldest *finished* jobs first; never a running one.
+            finished = sorted(
+                (j for j in self._jobs.values() if j.status in ("done", "error", "cancelled")),
+                key=lambda j: j.created_at,
+            )
+            for job in finished:
+                if len(self._jobs) <= MAX_JOBS_KEPT:
+                    break
+                del self._jobs[job.id]
 
 
 job_store = JobStore()

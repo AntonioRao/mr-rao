@@ -13,3 +13,5 @@ beautifulsoup4>=4.12.0
 pystray>=0.19.5
 # Tests
 pytest>=8.0.0
+# usato dai test per verificare che il frontmatter sia YAML valido
+PyYAML>=6.0
