@@ -46,17 +46,18 @@ if exist "static\img\mr-rao.ico" copy /Y "static\img\mr-rao.ico" "%INSTALL_DIR%\
 :: Prefer ico next to install
 if not exist "%INSTALL_DIR%\mr-rao.ico" if exist "%~dp0mr-rao.ico" copy /Y "%~dp0mr-rao.ico" "%INSTALL_DIR%\mr-rao.ico" >nul
 
-echo Creazione collegamento Desktop e menu Start...
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$root='%~dp0'; $inst='%INSTALL_DIR%'; $ico=Join-Path $inst 'mr-rao.ico'; if (-not (Test-Path $ico)) { $ico = Join-Path $inst 'app\mr-rao.ico' }; $exe=Join-Path $inst 'app\MrRao.exe'; $desk=[Environment]::GetFolderPath('Desktop'); $w=New-Object -ComObject WScript.Shell; $s=$w.CreateShortcut((Join-Path $desk 'Mr. Rao.lnk')); $s.TargetPath=$exe; $s.WorkingDirectory=(Join-Path $inst 'app'); $s.Description='Mr. Rao - Markdown offline'; if (Test-Path $ico) { $s.IconLocation=\"$ico,0\" }; $s.Save(); $start=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'; $s2=$w.CreateShortcut((Join-Path $start 'Mr. Rao.lnk')); $s2.TargetPath=$exe; $s2.WorkingDirectory=(Join-Path $inst 'app'); if (Test-Path $ico) { $s2.IconLocation=\"$ico,0\" }; $s2.Save(); Write-Host 'Shortcut OK'"
-
-echo Menu contestuale / Invia a...
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$exe='%INSTALL_DIR%\app\MrRao.exe'; $ico='%INSTALL_DIR%\mr-rao.ico'; if (-not (Test-Path $ico)) { $ico=$exe }; $sendTo=[Environment]::GetFolderPath('SendTo'); $w=New-Object -ComObject WScript.Shell; $s=$w.CreateShortcut((Join-Path $sendTo 'Mr. Rao.lnk')); $s.TargetPath=$exe; $s.WorkingDirectory=(Split-Path $exe); $s.IconLocation=\"$ico,0\"; $s.Save(); function Set-Verb($p){ New-Item -Path $p -Force|Out-Null; Set-ItemProperty -Path $p -Name '(Default)' -Value 'Apri con Mr. Rao'; Set-ItemProperty -Path $p -Name 'Icon' -Value $ico; $c=Join-Path $p 'command'; New-Item -Path $c -Force|Out-Null; Set-ItemProperty -Path $c -Name '(Default)' -Value ('\"{0}\" \"%%1\"' -f $exe) }; Set-Verb 'HKCU:\Software\Classes\*\shell\MrRao'; foreach($e in @('.pdf','.eml','.docx','.doc','.png','.jpg','.jpeg','.xlsx','.pptx','.txt')){ Set-Verb (\"HKCU:\\Software\\Classes\\SystemFileAssociations\\$e\\shell\\MrRao\") }; Write-Host 'Shell OK'"
+echo Collegamenti e menu contestuale...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0mr_rao_shell.ps1" -InstallDir "%INSTALL_DIR%"
+set "SHELL_RC=%ERRORLEVEL%"
 
 echo.
-echo Installazione completata.
-echo Avvia da Desktop: Mr. Rao
+if "%SHELL_RC%"=="0" (
+    echo Installazione completata.
+    echo Avvia da Desktop: Mr. Rao
+) else (
+    echo Installazione completata, ma con qualche collegamento in meno.
+    echo Vedi le righe FALLITO qui sopra.
+)
 echo Oppure: %INSTALL_DIR%\app\MrRao.exe
 echo.
 pause

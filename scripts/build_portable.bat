@@ -87,6 +87,13 @@ xcopy /E /I /Y "dist\MrRao\*" "%OUT%\app\" >nul
 copy /Y "static\img\mr-rao.ico" "%OUT%\mr-rao.ico" >nul
 copy /Y "scripts\portable_install.bat" "%OUT%\Installa Mr Rao.bat" >nul
 copy /Y "scripts\portable_uninstall.bat" "%OUT%\Disinstalla Mr Rao.bat" >nul
+REM I due .bat lo chiamano entrambi: senza questo file l'installazione
+REM arriva fino ai collegamenti e non ne crea nessuno.
+copy /Y "scripts\mr_rao_shell.ps1" "%OUT%\mr_rao_shell.ps1" >nul
+if not exist "%OUT%\mr_rao_shell.ps1" (
+    echo ERROR: mr_rao_shell.ps1 mancante nel pacchetto
+    exit /b 1
+)
 copy /Y "docs\PORTABLE.md" "%OUT%\LEGGIMI.txt" >nul
 
 REM Licenze: Mr. Rao + terze parti (LGPL pystray obbligatorio in redistribuzione)
