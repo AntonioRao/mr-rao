@@ -157,11 +157,48 @@ def _ocr_privacy_warning() -> str:
     )
 
 
+def _togli_commenti_html(text: str) -> str:
+    """Rimuove i commenti HTML scandendo il testo una volta sola.
+
+    Qui c'era ``re.sub(r"<!--.*?-->", ...)``. Con un documento fatto di
+    ``<!--`` mai chiusi il motore riparte da ogni apertura e arriva ogni volta
+    in fondo: tempo quadratico sulla lunghezza. Il limite d'invio è 50 MB, che
+    è abbastanza per bloccare un worker a tempo indeterminato — e il documento
+    lo sceglie chi lo carica, non noi.
+
+    Nessuna riscrittura furba dell'espressione risolve il problema, perché a
+    essere quadratico è il *numero di partenze*, non il singolo tentativo.
+    Due ``find`` che avanzano sempre in avanti sono lineari e si leggono meglio.
+    """
+    pezzi: list[str] = []
+    i = 0
+    while True:
+        inizio = text.find("<!--", i)
+        if inizio == -1:
+            pezzi.append(text[i:])
+            return "".join(pezzi)
+        fine = text.find("-->", inizio + 4)
+        if fine == -1:
+            # Commento aperto e mai chiuso: si tiene com'è, non è compito
+            # nostro indovinare dove finiva.
+            pezzi.append(text[i:])
+            return "".join(pezzi)
+        pezzi.append(text[i:inizio])
+        i = fine + 3
+        if text.startswith("\n", i):
+            i += 1
+
+
+# Le note che l'applicazione stessa scrive, sempre a inizio riga. Ancorate a
+# ``^`` con ``\n?`` in coda invece che in testa: davanti rendeva ambiguo dove
+# comincia il match, ed era la seconda segnalazione di complessità.
+_RE_NOTA_PRIVACY = re.compile(r"^> (?:🛡️|ℹ️) \*.*$\n?", re.MULTILINE)
+
+
 def _strip_noise(text: str) -> str:
     """Clean copy for LLM paste: drop HTML comments and trailing privacy notes."""
-    text = re.sub(r"<!--.*?-->\n?", "", text, flags=re.DOTALL)
-    text = re.sub(r"\n?> 🛡️ \*.*$", "", text, flags=re.MULTILINE)
-    text = re.sub(r"\n?> ℹ️ \*.*$", "", text, flags=re.MULTILINE)
+    text = _togli_commenti_html(text)
+    text = _RE_NOTA_PRIVACY.sub("", text)
     return text.strip()
 
 

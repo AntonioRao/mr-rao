@@ -585,9 +585,27 @@
     }
   });
 
+  // Scandisce una volta sola invece di usare /<!--[\s\S]*?-->/g. Su un
+  // documento pieno di "<!--" mai chiusi quel pattern riparte da ogni
+  // apertura e arriva ogni volta in fondo: tempo quadratico, e qui vuol dire
+  // la scheda del browser che si pianta. Stesso ragionamento del gemello in
+  // converter.py, che e' l'unico posto dove questo testo viene poi *usato*.
+  function togliCommentiHtml(testo) {
+    let fuori = "";
+    let i = 0;
+    for (;;) {
+      const inizio = testo.indexOf("<!--", i);
+      if (inizio === -1) return fuori + testo.slice(i);
+      const fine = testo.indexOf("-->", inizio + 4);
+      if (fine === -1) return fuori + testo.slice(i);
+      fuori += testo.slice(i, inizio);
+      i = fine + 3;
+      if (testo[i] === "\n") i += 1;
+    }
+  }
+
   function stripFrontmatterAndNotes(md) {
-    return stripFrontmatter(md)
-      .replace(/<!--[\s\S]*?-->\n?/g, "")
+    return togliCommentiHtml(stripFrontmatter(md))
       .replace(/^> 🛡️ \*.*$/gm, "")
       .replace(/^> ℹ️ \*.*$/gm, "")
       .trim();
@@ -684,6 +702,10 @@
       const testo = el.getAttribute("data-tip");
       if (!testo) return;
       target = el;
+      // innerHTML voluto: sei tooltip contengono <b>. La sorgente e' sempre un
+      // attributo scritto nei template, mai testo che arriva da un documento
+      // convertito -- quello passa da escapeHtml() prima di toccare il DOM.
+      // Se un giorno un data-tip venisse popolato da dati, qui va textContent.
       tip.innerHTML = testo;
       tip.classList.add("show");
       tip.setAttribute("aria-hidden", "false");

@@ -81,6 +81,31 @@ deve saperlo *prima* di fidarsi. Per la stessa ragione un OCR scaduto senza
 aver letto niente non dice più «nessun testo riconoscibile», che manderebbe
 a cercare il problema nel documento invece che nel tempo.
 
+### Un documento non deve poter piantare il convertitore
+
+CodeQL segnalava `py/polynomial-redos` sulla pulizia del testo per
+l'incolla-in-chat. Non era un falso positivo:
+
+```python
+re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+```
+
+Con un documento fatto di `<!--` mai chiusi il motore riparte da ogni
+apertura e arriva ogni volta in fondo. Misurato: 32 mila caratteri in
+492 ms, 80 mila in 3,2 secondi — due volte e mezzo l'ingresso, sei volte e
+mezzo il tempo. Il limite d'invio è 50 MB, e il documento lo sceglie chi lo
+carica.
+
+Nessuna riscrittura dell'espressione lo risolve, perché a essere quadratico
+è il *numero di partenze*, non il singolo tentativo. Due `find` che
+avanzano sempre in avanti sono lineari: **0,29 ms** sullo stesso ingresso.
+Stessa correzione nel gemello JavaScript, dove il prezzo era la scheda del
+browser che si pianta.
+
+Le note che l'applicazione scrive di suo sono ora ancorate a inizio riga —
+prima `\n?` davanti rendeva ambiguo dove cominciasse il match, ed era la
+seconda segnalazione.
+
 ### Cosa è stato valutato e scartato
 
 - **Confinare i percorsi della sorveglianza.** Romperebbe la funzione: la
@@ -93,7 +118,7 @@ a cercare il problema nel documento invece che nel tempo.
   proteggerebbe da niente. Il threat model adesso lo dichiara esplicitamente
   in [SECURITY.md](../SECURITY.md), che vale di più.
 
-**332 test** (erano 315).
+**342 test** (erano 315).
 
 ## 1.6.0 — Il checksum come garanzia, non come filtro
 
