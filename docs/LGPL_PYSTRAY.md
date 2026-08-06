@@ -33,7 +33,7 @@ Questo documento descrive come il progetto **rispetta** la LGPL. Non è un parer
 ### Installazione da sorgente (sviluppo)
 
 ```bat
-cd C:\Users\anton\markitdown-webapp
+cd <cartella del progetto>
 venv\Scripts\activate
 pip uninstall pystray
 pip install pystray==0.19.5

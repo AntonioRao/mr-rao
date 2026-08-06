@@ -47,7 +47,7 @@ def documenti_in_onedrive(tmp_path, monkeypatch):
 
 
 def test_riconosce_percorso_dentro_onedrive(tmp_path, monkeypatch):
-    od = tmp_path / "OneDrive - SIELTE"
+    od = tmp_path / "OneDrive - Azienda"
     (od / "Documenti").mkdir(parents=True)
     monkeypatch.setenv("OneDrive", str(od))
     assert is_cloud_synced(od / "Documenti") is True
