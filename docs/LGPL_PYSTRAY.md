@@ -69,10 +69,18 @@ pystray, gli obblighi LGPL su pystray non si applicano a quel binario.
 
 ## 4. Combinazione con la licenza Mr. Rao
 
-- Uso **non commerciale** di Mr. Rao: ok (con attribuzione Mr. Rao).  
-- Uso **commerciale** di Mr. Rao: serve autorizzazione a Rao.  
-- In **entrambi** i casi, i diritti LGPL su **pystray** restano intatti:
-  nessuno deve “chiedere a Rao” per usare, modificare o sostituire **pystray**.
+Mr. Rao è distribuito sotto **GNU AGPL-3.0**, che la Free Software Foundation
+indica come compatibile con la LGPL: una libreria LGPL può essere combinata in
+un'opera AGPL-3.0.
+
+Dal punto di vista pratico questa combinazione **semplifica** gli adempimenti:
+l'obbligo LGPL più delicato è consentire all'utente di sostituire la libreria
+con una propria versione, e l'AGPL impone già di distribuire il sorgente
+completo. Chi riceve Mr. Rao ha per costruzione tutto il necessario per
+ricompilarlo con un'altra pystray.
+
+Nessuno deve chiedere permesso a Rao per usare, modificare o sostituire
+**pystray**: quei diritti vengono dalla LGPL e restano intatti.
 
 ---
 

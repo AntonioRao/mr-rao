@@ -2,15 +2,15 @@
 
 Grazie per l'interesse. Prima una cosa da sapere, così non perdi tempo.
 
-## La licenza, detta chiaramente
+## La licenza
 
-Mr. Rao è **source available**, non open source approvato OSI: l'uso non
-commerciale è libero, quello commerciale richiede autorizzazione scritta
-(vedi [LICENSE](LICENSE)).
-
+Mr. Rao è software libero sotto **GNU AGPL-3.0** ([LICENSE](LICENSE)).
 Aprendo una pull request accetti che il tuo contributo venga distribuito sotto
-quella licenza. Se questo per te è un problema — è una posizione legittima —
-dillo pure in una issue: preferisco saperlo prima che tu scriva del codice.
+la stessa licenza.
+
+In pratica: usalo, modificalo, ridistribuiscilo. L'unico obbligo serio scatta
+se lo offri ad altri via rete — in quel caso devi rendere disponibile il
+sorgente della tua versione (articolo 13).
 
 ## Cosa è utile
 

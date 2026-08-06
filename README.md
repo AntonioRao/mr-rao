@@ -1,57 +1,56 @@
 # Mr. Rao
 
-**Trasforma PDF, Word, Excel, scansioni ed email in Markdown pulito. Sul tuo computer, senza mandare niente a nessuno.**
+**Turn PDFs, Office files, scans and emails into clean Markdown — on your own machine, without sending anything anywhere.**
 
-[![Versione](https://img.shields.io/badge/versione-1.3.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-161%20passati-10b981)](tests/)
-[![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
-[![Licenza](https://img.shields.io/badge/licenza-uso%20non%20commerciale-f59e0b)](LICENSE)
-[![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
+[![Version](https://img.shields.io/badge/version-1.3.1-3b82f6)](docs/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-161%20passing-10b981)](tests/)
+[![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
+[![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
+[![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
 
-![Mr. Rao](static/img/logo.svg)
+[🇬🇧 English](README.md) · **[🇮🇹 Italiano](README.it.md)**
 
-> *Note for international visitors: Mr. Rao targets Italian documents — it recognises codice fiscale, partita IVA, IBAN and Italian names. The interface is in Italian; the code is documented in English.*
+![Mr. Rao — interface](docs/img/schermata.png)
 
----
-
-## Il problema
-
-Vuoi dare un documento in pasto a ChatGPT, Claude o un qualunque assistente. Ti servono due cose:
-
-1. il testo, pulito, non un PDF;
-2. **non** consegnare al fornitore il codice fiscale del tuo cliente.
-
-Gli strumenti online risolvono il primo problema creando il secondo: per convertire il file glielo devi caricare. Se quel file è una fattura, una cartella clinica, un contratto o un thread email con dentro persone reali, l'hai appena spedito a un server di cui non sai nulla.
-
-Mr. Rao fa la conversione **e** la schermatura dei dati personali sul tuo computer. Il file non si muove.
+> **Heads up:** Mr. Rao is built for **Italian** documents. It recognises *codice fiscale*, *partita IVA*, IBANs and Italian names, and its interface is in Italian. The code and its documentation are in English, and the redaction engine is designed to be extended to other countries — see [Contributing](CONTRIBUTING.md).
 
 ---
 
-## Cosa fa
+## The problem
+
+You want to hand a document to ChatGPT, Claude or any other assistant. You need two things:
+
+1. the text, clean, not a PDF;
+2. **not** to hand over your client's tax ID while you're at it.
+
+Online converters solve the first problem by creating the second: to convert the file, you have to upload it. If that file is an invoice, a medical record, a contract or an email thread with real people in it, you have just shipped it to a server you know nothing about.
+
+Mr. Rao does the conversion **and** the redaction on your own computer. The file never moves.
+
+---
+
+## What it does
 
 | | |
 |---|---|
-| 📄 **Documenti** | PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, HTML, CSV, JSON, XML, TXT, RTF |
-| 👁️ **Scansioni e foto** | OCR offline su PNG, JPG, TIFF, WebP, BMP, GIF — e su PDF scansionati |
-| 📊 **Tabelle PDF** | Ricostruite come tabelle Markdown, non sfilacciate in righe di testo |
-| 📧 **Email** | File `.eml` col thread separato messaggio per messaggio, allegati scaricabili |
-| 🛡️ **Dati personali** | Email, telefoni, codice fiscale, P.IVA, IBAN, nomi → sostituiti con segnaposto |
-| 🔍 **Verifica** | Scheda «prima / dopo» che mostra esattamente cosa è stato tolto |
-| 📁 **Cartella automatica** | Butti i file in una cartella, i `.md` compaiono nell'altra |
-| ⌨️ **Riga di comando** | `convert`, `watch`, `health` — anche dall'eseguibile portable |
-
-<!-- SCREENSHOT: inserire qui una schermata dell'interfaccia (area di rilascio + risultato
-     col badge delle redazioni). Consigliato PNG largo ~1400 px in docs/img/schermata.png -->
+| 📄 **Documents** | PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, HTML, CSV, JSON, XML, TXT, RTF |
+| 👁️ **Scans and photos** | Offline OCR on PNG, JPG, TIFF, WebP, BMP, GIF — and on scanned PDFs |
+| 📊 **PDF tables** | Rebuilt as Markdown tables instead of unravelling into loose lines |
+| 📧 **Email** | `.eml` files with the thread split message by message, attachments extractable |
+| 🛡️ **Personal data** | Emails, phone numbers, tax IDs, VAT numbers, IBANs, names → replaced with placeholders |
+| 🔍 **Verification** | A before/after view showing exactly what was removed |
+| 📁 **Watched folder** | Drop files in one folder, the `.md` files appear in another |
+| ⌨️ **Command line** | `convert`, `watch`, `health` — also from the portable executable |
 
 ---
 
-## Come si usa
+## Getting started
 
-### Windows, senza installare Python
+### Windows, without installing Python
 
-Scarica il pacchetto portable e fai doppio clic su `Avvia Mr Rao.bat`. Non serve altro: Python, modelli OCR e dipendenze sono già dentro (~390 MB).
+Download the portable package and double-click `Avvia Mr Rao.bat`. Nothing else needed: Python, the OCR models and every dependency are already inside (~390 MB).
 
-### Con Python
+### With Python
 
 ```bash
 python -m venv venv
@@ -60,14 +59,14 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Si apre da solo su `http://127.0.0.1:5000`. Se quella porta è occupata te lo dice — indicando **chi** la occupa — e usa la prima libera.
+It opens at `http://127.0.0.1:5000`. If that port is busy it tells you **which instance** holds it and starts on the first free one.
 
-### Da riga di comando
+### Command line
 
 ```bash
-python -m mr_rao.cli convert fattura.pdf -o fattura.md
-python -m mr_rao.cli convert cartella\*.pdf --merge -o tutto.md
-python -m mr_rao.cli watch .\da-convertire .\convertiti --move-done
+python -m mr_rao.cli convert invoice.pdf -o invoice.md
+python -m mr_rao.cli convert folder\*.pdf --merge -o all.md
+python -m mr_rao.cli watch .\inbox .\outbox --move-done
 ```
 
 ### Docker
@@ -76,109 +75,109 @@ python -m mr_rao.cli watch .\da-convertire .\convertiti --move-done
 docker compose up --build
 ```
 
-Pubblicato **solo su localhost**: l'app non ha autenticazione, esporla in rete dev'essere una scelta consapevole (serve un reverse proxy con autenticazione davanti).
+Published **on localhost only**: the app has no authentication, so exposing it to a network has to be a deliberate choice (put a reverse proxy with auth in front).
 
 ---
 
-## Casi d'uso reali
+## Real use cases
 
-**Studio legale — thread email da allegare a una pratica.**
-Un `.eml` con venti risposte impilate diventa un Markdown leggibile, un messaggio per volta, con gli allegati estratti. Il profilo «Email legali» toglie nomi, indirizzi e recapiti: quello che resta si può girare a un consulente o a un assistente AI senza esporre le controparti.
+**Law firm — an email thread to attach to a case file.**
+An `.eml` with twenty stacked replies becomes readable Markdown, one message at a time, with the attachments pulled out. The "legal email" profile strips names, addresses and contact details, so what's left can go to a consultant or an AI assistant without exposing the other parties.
 
-**Commercialista — fatture e prima nota.**
-Il profilo «Fatture» ricostruisce le tabelle e nasconde codice fiscale, P.IVA e IBAN **lasciando visibili gli importi**, che sono il motivo per cui stai leggendo il documento.
+**Accountant — invoices and bookkeeping.**
+The "invoices" profile rebuilds the tables and hides tax ID, VAT number and IBAN **while leaving the amounts visible** — they're the reason you're reading the document in the first place.
 
-**Chi lavora con gli assistenti AI.**
-Il profilo «Pronto per LLM» produce testo essenziale, senza intestazioni tecniche, coi dati personali già sostituiti. Copi e incolli senza pensarci due volte.
+**Anyone working with AI assistants.**
+The "LLM-ready" profile produces lean text, no technical headers, personal data already replaced. Copy, paste, stop worrying.
 
-**Archivi cartacei digitalizzati.**
-Cartella automatica più profilo «Solo OCR»: svuoti lo scanner dentro una cartella e ti ritrovi i Markdown nell'altra, senza restare davanti allo schermo.
+**Digitised paper archives.**
+Watched folder plus the "OCR only" profile: empty your scanner into one folder and find the Markdown in the other, without sitting in front of the screen.
 
-**Chi deve dimostrare cosa ha fatto.**
-Ogni file può portare in cima una scheda con origine, data, motore usato e **quante sostituzioni** sono state applicate. Utile quando la conversione va documentata.
-
----
-
-## Cosa NON fa
-
-Meglio dirlo subito:
-
-- **Non è un traduttore di layout.** Produce testo strutturato, non un clone grafico del PDF.
-- **La schermatura dei nomi non è infallibile.** Si basa su un elenco di nomi italiani comuni: un cognome raro può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
-- **L'OCR non fa miracoli.** Su una scansione storta e sfocata sbaglia, come tutti.
-- **Non ha autenticazione.** È un attrezzo locale per una persona, non un servizio multiutente.
-- **La scelta della lingua OCR oggi non cambia il modello.** È già annotata nel [backlog](docs/BACKLOG.md) come cosa da implementare davvero o da togliere.
+**Anyone who has to show their work.**
+Each file can carry a header with its origin, date, engine used and **how many redactions** were applied. Useful when the conversion itself needs documenting.
 
 ---
 
-## Come fa a essere davvero locale
+## What it does NOT do
 
-Non è uno slogan, è verificabile:
+Better said upfront:
 
-- **Nel codice dell'app non c'è una sola chiamata di rete verso l'esterno.** L'unica `urlopen` presente punta a `127.0.0.1` e serve a capire chi occupa la porta. Controllabile in un comando: `grep -rn "urlopen\|requests\." mr_rao/`
-- **I modelli OCR sono nel pacchetto.** Nessun download al primo avvio.
-- **Le cartelle di lavoro non finiscono nel cloud.** Su Windows «Documenti» spesso *è* la cartella OneDrive: Mr. Rao se ne accorge e in quel caso usa una cartella locale, dicendoti perché. Era un difetto vero, corretto nella [1.3.0](docs/CHANGELOG.md).
-- **Il server locale si difende.** Header `Host` in allow-list (contro il DNS rebinding) e rifiuto delle richieste cross-site (contro la CSRF): una pagina aperta nel browser non può pilotare Mr. Rao.
-
----
-
-## Trasparenza su cosa c'è dentro
-
-Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze, e le loro licenze restano intatte.
-
-Il cuore della conversione è **[MarkItDown](https://github.com/microsoft/markitdown)** di Microsoft (MIT). L'OCR è **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) su **[ONNX Runtime](https://onnxruntime.ai/)**. Il resto — Flask, BeautifulSoup, pdfplumber, Pillow, Scrubadub — è elencato per intero in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
-
-> *Mr. Rao non è affiliato né sponsorizzato da Microsoft o dagli altri progetti citati.*
-
-Quell'elenco non è scritto a mano: lo **genera** [`scripts/gen_third_party.py`](scripts/gen_third_party.py) leggendo i metadati dei pacchetti realmente installati, e il quality gate fallisce se è disallineato. La versione compilata a mano aveva già sbagliato una licenza e ne aveva omessa un'altra con obblighi veri: da lì la scelta di automatizzarla.
-
-Due librerie sono **LGPL** (pystray e python-stdnum): testi di licenza, notice e istruzioni per sostituirle sono in [`licenses/`](licenses/). La licenza di Mr. Rao non impone restrizioni aggiuntive su di esse.
+- **It is not a layout translator.** It produces structured text, not a graphical clone of the PDF.
+- **Name redaction is not infallible.** It relies on a list of common Italian names, so an unusual surname can slip through. That is exactly why the before/after view exists — **always check** before sharing.
+- **OCR works no miracles.** On a skewed, blurry scan it gets things wrong, like everything else.
+- **There is no authentication.** It is a local tool for one person, not a multi-user service.
+- **The OCR language selector does not switch models yet.** It is already logged in the [backlog](docs/BACKLOG.md) as something to either implement properly or remove.
 
 ---
 
-## Licenza
+## How it actually stays local
 
-**Uso personale, didattico, di ricerca e interno all'azienda: libero e gratuito.**
-**Uso commerciale** (rivendita, SaaS, prodotto a pagamento che lo incorpora): serve autorizzazione scritta.
+Not a slogan — something you can check:
 
-Testo completo in [LICENSE](LICENSE). È una licenza *source available*: **non** è una licenza open source approvata OSI, ed è giusto chiamarla col suo nome. Le dipendenze restano ciascuna sotto la propria licenza open source.
+- **There is not a single outbound network call in the app's own code.** The only `urlopen` in the codebase points at `127.0.0.1`, and it exists to identify which process holds a busy port. One command proves it: `grep -rn "urlopen\|requests\." mr_rao/`
+- **The OCR models ship with the package.** No download on first run.
+- **Working folders never land in a synced directory.** On Windows, "Documents" often *is* the OneDrive folder: Mr. Rao detects that and falls back to a local folder, telling you why. This was a real bug, fixed in [1.3.0](docs/CHANGELOG.md).
+- **The local server defends itself.** `Host` header allow-list (against DNS rebinding) and rejection of cross-site requests (against CSRF), so no page open in your browser can drive Mr. Rao.
 
 ---
 
-## Qualità
+## What's inside, transparently
+
+Mr. Rao is **not** a fork of any of these projects: it uses them as dependencies, and their licences stay intact.
+
+The conversion core is **[MarkItDown](https://github.com/microsoft/markitdown)** by Microsoft (MIT). OCR is **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) on **[ONNX Runtime](https://onnxruntime.ai/)**. Everything else — Flask, BeautifulSoup, pdfplumber, Pillow, Scrubadub — is listed in full in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
+
+> *Mr. Rao is not affiliated with or endorsed by Microsoft or any of the projects mentioned.*
+
+That list is not maintained by hand: [`scripts/gen_third_party.py`](scripts/gen_third_party.py) **generates** it from the metadata of the packages actually installed, and the quality gate fails when it drifts. The hand-written version had already got one licence wrong and omitted another one that carried real obligations — hence the automation.
+
+Two libraries are **LGPL** (pystray and python-stdnum): licence texts, notices and replacement instructions live in [`licenses/`](licenses/).
+
+---
+
+## Licence
+
+Copyright © 2026 Rao
+
+Mr. Rao is **free software** under the **[GNU Affero General Public License v3.0](LICENSE)**.
+You may use, study, modify and redistribute it — including commercially — under the terms of that licence.
+
+The one obligation that matters in practice: **if you offer Mr. Rao to others over a network** (turn it into a web service, put it behind a company portal), section 13 of the AGPL requires you to make the source of your version, modifications included, available to those users. Used locally as intended, nothing changes.
+
+Distributed **without any warranty**, in the hope that it will be useful.
+Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_PARTY.md).
+
+---
+
+## Quality
 
 ```bash
 scripts\quality_gate.bat
 ```
 
-Quattro passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, **161 test**.
+Four steps: compilation, dependency health, licence alignment, **161 tests**.
 
-I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
-
----
-
-## Documentazione
-
-- [Architettura](docs/ARCHITECTURE.md) — com'è fatto dentro
-- [Privacy](docs/PRIVACY.md) — cosa viene riconosciuto e come
-- [Changelog](docs/CHANGELOG.md) — cosa è cambiato e perché
-- [Backlog](docs/BACKLOG.md) — cosa manca, in ordine di priorità
-- [Portable](docs/PORTABLE.md) — come si costruisce il pacchetto Windows
-- [Sicurezza](SECURITY.md) — come segnalare un problema
+The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 
 ---
 
-## Configurazione
+## Documentation
 
-| Variabile | Default | Significato |
-|-----------|---------|-------------|
-| `MR_RAO_PORT` | `5000` | Porta del server locale |
-| `MR_RAO_MAX_UPLOAD_MB` | `50` | Limite per l'**intero invio**, non per singolo file |
-| `MR_RAO_MAX_OCR_PAGES` | `50` | Massimo pagine OCR per PDF |
-| `MR_RAO_MAX_WORKERS` | `2` | Conversioni in parallelo; le altre restano in coda |
-| `MR_RAO_FOLDER_ROOT` | automatico | Dove creare le cartelle di lavoro |
-| `MR_RAO_ALLOWED_HOSTS` | `127.0.0.1,localhost` | Host ammessi nell'header `Host` |
+- [Architecture](docs/ARCHITECTURE.md) · [Privacy](docs/PRIVACY.md) · [Changelog](docs/CHANGELOG.md)
+- [Backlog](docs/BACKLOG.md) — what's missing, in priority order
+- [Portable build](docs/PORTABLE.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+
+## Configuration
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `MR_RAO_PORT` | `5000` | Local server port |
+| `MR_RAO_MAX_UPLOAD_MB` | `50` | Limit for the **whole request**, not per file |
+| `MR_RAO_MAX_OCR_PAGES` | `50` | Maximum OCR pages per PDF |
+| `MR_RAO_MAX_WORKERS` | `2` | Concurrent conversions; the rest queue |
+| `MR_RAO_FOLDER_ROOT` | automatic | Where to create the working folders |
+| `MR_RAO_ALLOWED_HOSTS` | `127.0.0.1,localhost` | Hosts accepted in the `Host` header |
 
 ---
 
-*Mr. Rao — dal documento al Markdown. Offline.*
+*Mr. Rao — from document to Markdown. Offline.*

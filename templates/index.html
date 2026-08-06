@@ -342,8 +342,9 @@
             zero cloud
         </div>
         <p class="site-footer__license">
-            Codice Mr. Rao: uso non commerciale libero; commerciale su autorizzazione di Rao.
-            Componenti di terzi: rispettive licenze open source (vedi ⓘ).
+            Copyright © 2026 Rao — software libero sotto <strong>GNU AGPL-3.0</strong>,
+            fornito <strong>senza alcuna garanzia</strong>.
+            Sei libero di ridistribuirlo alle condizioni della licenza (vedi ⓘ).
         </p>
         <div class="footer-links" aria-label="Dipendenze open source">
             <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
@@ -387,11 +388,20 @@
         <div class="modal__section">
             <h3>Licenza Mr. Rao</h3>
             <div class="license-box">
-                <strong>Uso personale, didattico e di valutazione:</strong> gratuito, con attribuzione.<br>
-                <strong>Uso commerciale</strong> (vendita, SaaS, prodotto a pagamento basato su Mr. Rao):
-                richiede <strong>autorizzazione scritta dell’autore (Rao)</strong>.<br><br>
-                I componenti di terzi restano sotto le <strong>loro</strong> licenze (MIT, Apache, BSD, LGPL…):
-                non sono “chiusi” da questa regola. Dettaglio in <code>LICENSE</code> e <code>THIRD_PARTY.md</code>.
+                Copyright © 2026 Rao<br><br>
+                Mr. Rao è <strong>software libero</strong> sotto
+                <strong>GNU Affero General Public License v3.0</strong>.
+                Puoi usarlo, studiarlo, modificarlo e ridistribuirlo — anche in ambito
+                professionale e commerciale — alle condizioni della licenza.<br><br>
+                <strong>Se lo offri ad altri attraverso una rete</strong>, l'articolo 13
+                dell'AGPL ti obbliga a mettere a disposizione degli utenti il codice
+                sorgente della tua versione. Usato in locale come qui, non cambia nulla.<br><br>
+                Distribuito <strong>SENZA ALCUNA GARANZIA</strong>, nemmeno implicita di
+                commerciabilità o idoneità a uno scopo particolare.<br><br>
+                Testo completo in <code>LICENSE</code> ·
+                <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">gnu.org/licenses/agpl-3.0</a><br>
+                I componenti di terzi restano sotto le <strong>loro</strong> licenze
+                (MIT, Apache-2.0, BSD, LGPL…): dettaglio in <code>THIRD_PARTY.md</code>.
             </div>
         </div>
 
@@ -452,17 +462,24 @@
         </div>
 
         <div class="modal__section">
-            <h3>pystray e LGPL-3.0 (conformità)</h3>
+            <h3>Le due librerie LGPL</h3>
             <div class="license-box">
-                <strong>pystray</strong> © 2016–2022 Moses Palmér è sotto
-                <strong>GNU LGPL v3</strong> (o successiva).<br><br>
-                Mr. Rao rispetta la LGPL così:
+                Nel pacchetto ci sono <strong>due</strong> librerie sotto GNU LGPL.
+                Per entrambe: testo di licenza, notice e istruzioni per sostituirle
+                in <code>licenses/</code>.
                 <ul style="margin:0.5rem 0 0 1.1rem;padding:0">
-                    <li>Testi di licenza in <code>licenses/pystray/</code> (COPYING.LGPL, COPYING, NOTICE)</li>
-                    <li>Sorgente: <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">github.com/moses-palmer/pystray</a></li>
-                    <li>Libreria <strong>sostituibile</strong> (import Python standard) — guida: <code>docs/LGPL_PYSTRAY.md</code></li>
-                    <li>La licenza di Mr. Rao <strong>non</strong> limita i diritti LGPL su pystray</li>
+                    <li><strong>pystray</strong> © 2016–2022 Moses Palmér — LGPL-3.0 —
+                        icona nella barra di sistema —
+                        <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">sorgente</a></li>
+                    <li><strong>python-stdnum</strong> © Arthur de Jong — LGPL-2.1+ —
+                        arriva con Scrubadub —
+                        <a href="https://arthurdejong.org/python-stdnum/" target="_blank" rel="noopener">sorgente</a></li>
                 </ul>
+                <br>
+                Essendo Mr. Rao distribuito sotto AGPL-3.0 con il sorgente disponibile,
+                l'obbligo LGPL di permettere la sostituzione della libreria è soddisfatto
+                di conseguenza: hai già tutto il necessario per ricostruire il programma
+                con una versione diversa.
             </div>
         </div>
 
