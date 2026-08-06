@@ -1,5 +1,78 @@
 # Changelog
 
+## 1.5.0 — «3 redatti, 2 da controllare»
+
+Il limite più serio del motore non era un difetto: era una scelta. I
+riconoscitori cercano forme **valide** e l'OCR produce forme **quasi**
+valide — `A01` letto `AD1`, `IT60` letto `lT60`. La struttura non torna,
+il dato resta nel testo, e resta perfettamente leggibile da una persona.
+
+Sostituire senza certezza vorrebbe dire redigere mezzo documento. Ma
+tacere è peggio: **«3 redazioni» su un documento pulito e «3 redazioni» su
+un documento che il riconoscitore non ha saputo leggere sono lo stesso
+numero e due situazioni opposte.**
+
+Ora il rapporto distingue le due cose. Dopo la sostituzione, un passaggio
+sul testo rimasto cerca ciò che *somiglia* a un dato personale senza
+esserlo abbastanza da poterlo togliere:
+
+- sedici caratteri con la proporzione di un codice fiscale, struttura non valida;
+- la forma di un IBAN che non supera il mod-97 — **senza pretendere le maiuscole**, altrimenti il sospetto non scatterebbe proprio nel caso che lo motiva;
+- sedici cifre che non superano Luhn;
+- dopo «cell.» o «tel.» una sequenza che mescola cifre e lettere.
+
+Il risultato compare accanto al conteggio: **«🛡️ 3 redazioni · ⚠️ 2 da
+controllare»**, con il dettaglio nel suggerimento. I campioni sono
+mascherati (`RS••••••••••••2S`): quanto basta a ritrovarli nel documento,
+non a leggerli.
+
+E la prova che non è rumore: sul verbale amministrativo — protocolli,
+delibere, codici gara, date — **zero redazioni e zero sospetti**. Se ogni
+numero diventasse un avviso, l'avviso non varrebbe più niente.
+
+### Il carattere di controllo del codice fiscale
+
+Il CF era l'unico dato a struttura fissa senza validatore, mentre l'IBAN
+ha il mod-97 e le carte hanno Luhn. Ora c'è il calcolo del carattere di
+controllo (DM 23/12/1976).
+
+Non serve a rifiutare: un codice con la struttura giusta viene sostituito
+comunque, perché su un dato personale l'errore va fatto nella direzione
+prudente. Serve a **sapere**: se la struttura torna e il controllo no,
+quasi sempre il testo viene da una scansione che ha storpiato un
+carattere — e allora ne avrà storpiati altri, che nessun riconoscitore ha
+visto. Diventa un sospetto.
+
+### Quattro difetti trovati misurando
+
+Nessuno dei quattro era stato previsto ragionando.
+
+**`Riferimento Del Piero Alessandro` → `Riferimento Del {{NAME}} {{NAME}}`.**
+La finestra di tre parole partiva da «Riferimento», consumava «Del» e
+lasciava indietro i due nomi, che la regola del nome isolato sostituiva
+separatamente. Adesso il riconoscitore prende la sequenza **intera** di
+parole maiuscole e decide dentro quali tratti sono nomi, con un tetto a
+quattro parole: oltre non è un nome, è un titolo scritto in maiuscolo.
+
+**`spedito via Corriere Espresso` → `{{NAME}}`.** Il riconoscitore di
+indirizzi si asteneva correttamente, perché «Corriere» è nel suo elenco di
+parole di stop. Poi l'euristica dei nomi si mangiava la coppia. Un
+presidio dentro un riconoscitore non protegge gli altri: adesso quell'elenco
+vale per tutti.
+
+**`chiave: importante da ricordare` → `chiave: {{SECRET}}`.** In italiano
+«chiave» ha parecchi significati; «password» no. Le etichette ambigue ora
+pretendono che anche il *valore* sembri una credenziale.
+
+**Coordinate bancarie contate come telefoni.** `BBAN X 05428 11101
+000000123456` veniva spezzato e sostituito con due `{{PHONE}}`: il dato
+spariva ma il rapporto diceva «2 telefoni». Un conteggio che sbaglia
+categoria è peggio di uno che manca, perché chi lo legge si fida. Ora c'è
+un riconoscitore per le coordinate italiane non-IBAN, e gira **prima** dei
+telefoni.
+
+- 304 test (erano 276).
+
 ## 1.4.2 — Il pacchetto spediva l'icona sbagliata
 
 Il collegamento sul Desktop funzionava, puntava al posto giusto e mostrava

@@ -422,3 +422,71 @@ def test_il_participio_davanti_alla_firma_non_e_parte_del_nome(testo, resta):
     assert resta in out, out
     assert "{{NAME}}" in out
     assert "ROSSI" not in out and "ESPOSITO" not in out
+
+
+# ---------------------------------------------------------------------------
+# I quattro difetti trovati misurando, non ragionando
+# ---------------------------------------------------------------------------
+
+
+def test_la_particella_resta_fuori_e_il_nome_non_si_spezza():
+    """«Riferimento Del Piero Alessandro» diventava
+    «Riferimento Del {{NAME}} {{NAME}}»: la finestra di tre parole partiva
+    da «Riferimento», consumava «Del» e lasciava indietro i due nomi, che
+    la regola del nome isolato sostituiva separatamente."""
+    out, report = apply_privacy_filter(
+        "Riferimento Del Piero Alessandro", only("names", "name_guess")
+    )
+    assert out.count("{{NAME}}") == 1, out
+    assert "Piero" not in out and "Alessandro" not in out
+
+
+def test_una_parola_che_ferma_gli_indirizzi_non_e_un_nome_altrove():
+    """«via Corriere Espresso»: il riconoscitore di indirizzi si asteneva
+    correttamente, e poi l'euristica dei nomi si mangiava la coppia. Un
+    presidio dentro un riconoscitore non protegge gli altri."""
+    testo = "spedito via Corriere Espresso"
+    out, report = apply_privacy_filter(testo, PrivacyOptions())
+    assert out == testo
+    assert report.total == 0
+
+
+def test_un_titolo_in_maiuscolo_non_e_un_nome():
+    testo = "PIANO STRATEGICO NAZIONALE PER LA SICUREZZA INFORMATICA"
+    out, _ = apply_privacy_filter(testo, only("names", "name_guess"))
+    assert out == testo
+
+
+@pytest.mark.parametrize(
+    "testo,redatto",
+    [
+        ("chiave: importante da ricordare", False),
+        ("credenziali: personali", False),
+        ("parola chiave: ricerca", False),
+        ("chiave privata: Tr0ub4dor&3", True),
+        ("credenziali: 9f8e7d6c5b4a39281706", True),
+        ("password: segreta", True),
+    ],
+)
+def test_le_etichette_ambigue_pretendono_un_valore_da_credenziale(testo, redatto):
+    """«chiave» in italiano ha parecchi significati; «password» no."""
+    out, _ = apply_privacy_filter(testo, only("secrets"))
+    assert ("{{SECRET}}" in out) is redatto, out
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "BBAN X 05428 11101 000000123456",
+        "coordinate X 05428 11101 000000123456",
+        "ABI 05428 CAB 11101 CIN X",
+    ],
+)
+def test_le_coordinate_bancarie_non_sono_telefoni(testo):
+    """Venivano spezzate e sostituite come {{PHONE}}: il dato spariva ma
+    il rapporto diceva «2 telefoni». Un conteggio che sbaglia categoria e'
+    peggio di uno che manca, perche' chi lo legge si fida."""
+    out, report = apply_privacy_filter(testo, only("fiscal"))
+    assert "{{BBAN}}" in out, out
+    assert "{{PHONE}}" not in out
+    assert report.counts.get("bban", 0) >= 1

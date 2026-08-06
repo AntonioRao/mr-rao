@@ -27,9 +27,10 @@ spiegare guardando la regola che l'ha prodotta.
 | Email | `{{EMAIL}}` | Forma dell'indirizzo |
 | Indirizzi web | `{{URL}}` | `http`, `https`, `www.` — solo questi |
 | Telefoni | `{{PHONE}}` | Prefisso `+39`, cellulari `3xx`, parola di contesto (`cell`, `tel`, `fax`), oppure fisso con separatori |
-| Codice fiscale | `{{CODICE_FISCALE}}` | Struttura a 16 caratteri |
+| Codice fiscale | `{{CODICE_FISCALE}}` | Struttura a 16 caratteri. Il **carattere di controllo** non rifiuta, segnala |
 | P.IVA | `{{PARTITA_IVA}}` | Prefisso `IT` o contesto fiscale vicino |
 | IBAN | `{{IBAN}}` | **Mod-97** (ISO 13616) |
+| Coordinate non-IBAN | `{{BBAN}}` | CIN+ABI+CAB+conto, con contesto bancario vicino |
 | Carte di pagamento | `{{CARD}}` | **Luhn** (ISO/IEC 7812) |
 | Indirizzi | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada e altri, con civico, CAP e comune |
 | Nomi di persona | `{{NAME}}` | Vedi sotto |
@@ -73,6 +74,29 @@ Il banco di prova sono **due** testi, non uno:
 Il secondo conta quanto il primo. Un filtro che redige tutto è inutile
 esattamente come uno che non redige niente, e il verbale è quello che
 impedisce di guadagnare copertura peggiorando lo strumento.
+
+## I sospetti
+
+I riconoscitori cercano forme **valide**. L'OCR produce forme **quasi**
+valide: `A01` letto `AD1`, `IT60` letto `lT60`. La struttura non torna, il
+dato resta nel testo — e resta leggibile da una persona.
+
+Sostituire senza certezza vorrebbe dire redigere mezzo documento. Ma
+tacere è peggio: «3 redazioni» su un documento pulito e «3 redazioni» su
+un documento che il riconoscitore non ha saputo leggere sono lo stesso
+numero e due situazioni opposte.
+
+Per questo, dopo la sostituzione, un passaggio sul testo rimasto segnala
+ciò che somiglia a un dato personale senza esserlo abbastanza da poterlo
+togliere. Compaiono nel rapporto come `suspects`, e nell'interfaccia
+accanto al conteggio: **«🛡️ 3 redazioni · ⚠️ 2 da controllare»**.
+
+I campioni sono mascherati (`RS••••••••••••2S`): quanto basta a
+ritrovarli nel documento, non a leggerli.
+
+Un documento amministrativo pulito — protocolli, delibere, codici gara,
+date — produce **zero** sospetti. Se ogni numero diventasse un avviso,
+l'avviso non varrebbe più niente.
 
 ## Report
 

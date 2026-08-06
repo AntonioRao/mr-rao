@@ -283,10 +283,18 @@
     }
     if (els.redactionBadge) {
       const total = redaction && redaction.total ? redaction.total : 0;
-      if (total > 0) {
+      const sospetti = (redaction && redaction.suspects) || [];
+      if (total > 0 || sospetti.length > 0) {
         els.redactionBadge.style.display = "inline-flex";
-        els.redactionBadge.textContent = "🛡️ " + total + " redazioni";
-        els.redactionBadge.title = JSON.stringify(redaction.counts || {});
+        els.redactionBadge.textContent =
+          "🛡️ " + total + " redazioni" +
+          (sospetti.length ? " · ⚠️ " + sospetti.length + " da controllare" : "");
+        // I sospetti sono il motivo per cui questo riquadro esiste: "3
+        // redazioni" da solo non distingue un documento pulito da un
+        // documento che il riconoscitore non ha saputo leggere.
+        els.redactionBadge.title = sospetti.length
+          ? sospetti.map((s) => `${s.sample} — ${s.why}`).join("\n")
+          : JSON.stringify(redaction.counts || {});
       } else {
         els.redactionBadge.style.display = "none";
       }

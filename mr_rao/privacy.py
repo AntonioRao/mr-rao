@@ -45,6 +45,22 @@ _RE_IBAN = re.compile(r"\b([A-Z]{2}\d{2}[A-Z0-9]{11,30})\b")
 # redatto; con Luhn e' il numero stesso a dire se e' una carta.
 _RE_CARD = re.compile(r"(?<![\w.])([3-6]\d{3}(?:[ \-]?\d{2,6}){2,4})(?![\w])")
 
+# Coordinate bancarie italiane senza IBAN: CIN + ABI (5) + CAB (5) + conto
+# (12). Senza questo riconoscitore il numero non spariva del tutto: veniva
+# spezzato e sostituito dal riconoscitore dei telefoni, quindi il rapporto
+# diceva "2 telefoni" dove c'erano delle coordinate bancarie. Un conteggio
+# che sbaglia categoria e' peggio di un conteggio che manca, perche' chi
+# legge il rapporto si fida.
+_RE_BBAN = re.compile(
+    r"(?<![\w.])([A-Z])[\s\-]?(\d{5})[\s\-]?(\d{5})[\s\-]?([0-9A-Z]{12})(?![\w])"
+)
+
+# La forma discorsiva: "ABI 05428 CAB 11101 CIN X".
+_RE_ABI_CAB = re.compile(
+    r"(?i)\bABI[\s:]*\d{5}\b[\s,;]*(?:\bCAB[\s:]*\d{5}\b)?"
+    r"(?:[\s,;]*\bCIN[\s:]*[A-Z]\b)?"
+)
+
 
 # ---------------------------------------------------------------------------
 # Contatti
@@ -131,12 +147,37 @@ _RE_SECRETS = [
 
 # Il caso generico: "password: ...", "api_key = ...". Sostituisce il valore
 # e lascia l'etichetta, cosi' si capisce cosa e' stato tolto.
+#
+# Le etichette sono divise in due gruppi perche' non valgono uguale.
+# "password:" non ha altri significati; "chiave:" in italiano ne ha
+# parecchi, e infatti "chiave: importante da ricordare" finiva sostituito.
 _RE_SECRET_KV = re.compile(
     r"(?i)\b(password|passwd|pwd|parola d'ordine|token|api[_\- ]?key|"
-    r"secret|client[_\- ]?secret|access[_\- ]?key|chiave|credenziali)\b"
+    r"secret|client[_\- ]?secret|access[_\- ]?key|chiave (?:privata|segreta|api|di accesso))\b"
     r"(?P<sep>\s*[:=]\s*)"
     r"(?P<val>[^\s,;\"']{6,})"
 )
+
+# Etichette ambigue: il valore deve anche *sembrare* una credenziale.
+_RE_SECRET_KV_DEBOLE = re.compile(
+    r"(?i)\b(chiave|credenziali|codice di accesso|passphrase)\b"
+    r"(?P<sep>\s*[:=]\s*)"
+    r"(?P<val>[^\s,;\"']{6,})"
+)
+
+
+def _secret_value_is_plausible(valore: str) -> bool:
+    """Una parola italiana non e' una credenziale.
+
+    Serve solo per le etichette ambigue: una credenziale mescola cifre e
+    lettere, contiene simboli, oppure e' lunga in un modo che le parole
+    non sono.
+    """
+    if len(valore) >= 16:
+        return True
+    if any(c.isdigit() for c in valore) and any(c.isalpha() for c in valore):
+        return True
+    return any(not c.isalnum() for c in valore)
 
 
 # ---------------------------------------------------------------------------
@@ -238,7 +279,19 @@ _RE_NAME_AFTER_EMAIL = re.compile(
     rf"\{{\{{EMAIL\}}\}}(?P<sep>\s*[<\(\[]\s*)(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
 )
 
-_RE_NAME_PAIR = re.compile(rf"(?<!\w){_TOK}(?:{_SP}{_TOK}){{1,2}}(?!\w)")
+# Una sequenza *intera* di parole maiuscole, non una finestra di due o tre.
+#
+# Con la finestra, "Riferimento Del Piero Alessandro" veniva agganciata a
+# partire da "Riferimento": tre parole consumate, dentro una sola del nome,
+# e le altre lasciate indietro come parole isolate. Risultato:
+# "Riferimento Del {{NAME}} {{NAME}}" — la particella fuori e il nome
+# spezzato in due. Prendendo la sequenza intera e decidendo *dentro* quali
+# tratti sono nomi, il problema non si pone: e' la stessa ragione per cui
+# conviene rilevare gli intervalli prima e sostituirli dopo.
+_RE_NAME_RUN = re.compile(rf"(?<!\w){_TOK}(?:{_SP}{_TOK})*(?!\w)")
+
+# Oltre questa lunghezza non e' un nome: e' un titolo scritto in maiuscolo.
+_MAX_TOKEN_NOME = 4
 
 # Un nome scritto TUTTO MAIUSCOLO. Il pattern normale pretende almeno una
 # minuscola — e' cosi' che esclude in un colpo solo acronimi, numeri romani
@@ -298,6 +351,11 @@ class PrivacyOptions:
 class RedactionReport:
     counts: dict[str, int] = field(default_factory=dict)
     total: int = 0
+    # Cio' che *assomiglia* a un dato personale ed e' rimasto nel testo.
+    # Un riconoscitore che non trova nulla e un documento che non contiene
+    # nulla producono lo stesso numero — zero — e sono due situazioni
+    # opposte. I sospetti distinguono il silenzio dalla pulizia.
+    suspects: list[dict] = field(default_factory=list)
 
     def add(self, kind: str, n: int = 1) -> None:
         if n <= 0:
@@ -305,8 +363,24 @@ class RedactionReport:
         self.counts[kind] = self.counts.get(kind, 0) + n
         self.total += n
 
+    def suspect(self, kind: str, sample: str, why: str) -> None:
+        self.suspects.append({"kind": kind, "sample": _mask(sample), "why": why})
+
     def to_dict(self) -> dict:
-        return {"counts": dict(self.counts), "total": self.total}
+        return {
+            "counts": dict(self.counts),
+            "total": self.total,
+            "suspects": list(self.suspects),
+            "suspects_total": len(self.suspects),
+        }
+
+
+def _mask(s: str) -> str:
+    """Quanto basta a ritrovarlo nel documento, non a leggerlo."""
+    s = s.strip()
+    if len(s) <= 4:
+        return "•" * len(s)
+    return f"{s[:2]}{'•' * (len(s) - 4)}{s[-2:]}"
 
 
 def _replace_all(text: str, pattern: re.Pattern, placeholder: str, report: RedactionReport, kind: str) -> str:
@@ -337,6 +411,50 @@ def iban_checksum_ok(candidate: str) -> bool:
         else:
             return False
     return int(digits) % 97 == 1
+
+
+# Tabelle del carattere di controllo del codice fiscale (DM 23/12/1976).
+# I caratteri in posizione dispari pesano diversamente da quelli in
+# posizione pari: e' quello che rende il controllo capace di accorgersi
+# anche di due caratteri scambiati fra loro.
+_CF_DISPARI = {
+    **{c: v for c, v in zip("0123456789", (1, 0, 5, 7, 9, 13, 15, 17, 19, 21))},
+    **{
+        c: v
+        for c, v in zip(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            (1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11,
+             3, 6, 8, 12, 14, 16, 10, 22, 25, 24, 23),
+        )
+    },
+}
+_CF_PARI = {
+    **{c: int(c) for c in "0123456789"},
+    **{c: i for i, c in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ")},
+}
+
+
+def cf_check_char_ok(candidate: str) -> bool:
+    """Carattere di controllo del codice fiscale.
+
+    Non serve a rifiutare: un codice fiscale con la struttura giusta viene
+    sostituito comunque, perche' su un dato personale l'errore va fatto
+    nella direzione prudente. Serve a **sapere**: se la struttura torna e
+    il carattere di controllo no, quasi sempre il documento arriva da un
+    OCR che ha storpiato un carattere — e allora conviene guardare se ha
+    storpiato anche qualcos'altro.
+    """
+    s = re.sub(r"[\s\-.]", "", candidate).upper()
+    if len(s) != 16 or not s.isalnum():
+        return False
+    try:
+        totale = sum(
+            (_CF_DISPARI if i % 2 == 0 else _CF_PARI)[c]
+            for i, c in enumerate(s[:15])
+        )
+    except KeyError:
+        return False
+    return "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[totale % 26] == s[15]
 
 
 def luhn_ok(candidate: str) -> bool:
@@ -400,7 +518,11 @@ def _amount_is_plausible(m: re.Match) -> bool:
 
 
 def _is_common_word(token: str) -> bool:
-    return token.lower().strip("'’-") in COMMON_CAPITALIZED
+    # Anche le parole che fermano il riconoscitore di indirizzi: "via
+    # Corriere Espresso" non e' un indirizzo, e non e' neanche una
+    # persona. Un presidio dentro un riconoscitore non protegge gli altri.
+    t = token.lower().strip("'’-")
+    return t in COMMON_CAPITALIZED or t in _ADDRESS_STOPWORDS
 
 
 # Terminazioni tipiche di sostantivi e aggettivi italiani. Nessun elenco di
@@ -423,6 +545,87 @@ def _looks_like_word(token: str) -> bool:
     if len(t) < 5:
         return False
     return t.endswith(_WORDLIKE_SUFFIXES)
+
+
+# Forme che *assomigliano* a un dato a struttura fissa. Girano sul testo
+# gia' redatto: quello che e' stato sostituito non c'e' piu', quindi cio'
+# che resta e' davvero rimasto.
+_RE_QUASI_CF = re.compile(r"(?<![\w-])[A-Z0-9]{16}(?![\w-])")
+
+# Le prime due lettere sono quelle che l'OCR sbaglia piu' spesso: "IT60"
+# letto "lT60" o "1T6O". Qui non si pretende la maiuscola, altrimenti il
+# sospetto non scatterebbe proprio nel caso che lo motiva.
+_RE_QUASI_IBAN = re.compile(
+    r"(?<![\w-])[A-Za-z0-9]{2}\d{2}[A-Za-z0-9]{11,30}(?![\w-])"
+)
+
+_RE_QUASI_CARTA = re.compile(r"(?<![\w.])(?:\d[ \-]?){15,16}(?![\w])")
+
+# Un recapito storpiato: dopo "cell." o "tel." una sequenza che mescola
+# cifre e lettere non e' un numero, ma quasi sempre lo era prima della
+# scansione.
+_RE_QUASI_TEL = re.compile(
+    r"(?i)\b(?:tel|cell|cellulare|telefono|fax|recapito)\b\.?\s*[:\-]?\s*"
+    r"(?P<val>[0-9A-Za-z][0-9A-Za-z \-.]{5,18}[0-9A-Za-z])"
+)
+
+
+def find_suspects(text: str, report: RedactionReport, opts: PrivacyOptions) -> None:
+    """Segnala cio' che somiglia a un dato personale ed e' rimasto.
+
+    E' la risposta al limite piu' serio del motore: sul testo prodotto da
+    un OCR i riconoscitori cercano forme *valide* e trovano forme *quasi*
+    valide — `A01` letto `AD1`, `IT60` letto `1T6O` — e il dato resta nel
+    testo, ancora perfettamente leggibile da una persona.
+
+    Non si puo' sostituire senza certezza, o si redige mezzo documento.
+    Ma si puo' dire dove guardare: "3 redatti, 2 sospetti" e' una frase
+    onesta, "3 redatti" da sola no.
+    """
+    if not text:
+        return
+
+    if opts.phones:
+        for m in _RE_QUASI_TEL.finditer(text):
+            tok = m.group("val")
+            if sum(c.isdigit() for c in tok) >= 5 and any(c.isalpha() for c in tok):
+                report.suspect(
+                    "telefono",
+                    tok,
+                    "preceduto da una parola di contatto ma contiene lettere: "
+                    "possibile lettura OCR sbagliata",
+                )
+
+    if opts.fiscal:
+        for m in _RE_QUASI_CF.finditer(text):
+            tok = m.group(0)
+            lettere = sum(c.isalpha() for c in tok)
+            cifre = sum(c.isdigit() for c in tok)
+            # Un hash o un identificativo non hanno questa proporzione.
+            if 6 <= lettere <= 11 and 5 <= cifre <= 10:
+                report.suspect(
+                    "codice_fiscale",
+                    tok,
+                    "sedici caratteri con la proporzione di un codice fiscale, "
+                    "ma la struttura non torna: possibile lettura OCR sbagliata",
+                )
+        for m in _RE_QUASI_IBAN.finditer(text):
+            tok = m.group(0)
+            if sum(c.isalpha() for c in tok) < 3 or sum(c.isdigit() for c in tok) < 8:
+                continue
+            report.suspect(
+                "iban",
+                tok,
+                "ha la forma di un IBAN ma non supera il controllo mod-97",
+            )
+        for m in _RE_QUASI_CARTA.finditer(text):
+            cifre = re.sub(r"\D", "", m.group(0))
+            if len(cifre) in (15, 16):
+                report.suspect(
+                    "carta",
+                    m.group(0),
+                    "sedici cifre che non superano il controllo di Luhn",
+                )
 
 
 def _scrub_urls(text: str, report: RedactionReport) -> str:
@@ -448,7 +651,14 @@ def _scrub_secrets(text: str, report: RedactionReport) -> str:
         report.add("secrets")
         return m.group(1) + m.group("sep") + "{{SECRET}}"
 
-    return _RE_SECRET_KV.sub(_kv, text)
+    def _kv_debole(m: re.Match) -> str:
+        if not _secret_value_is_plausible(m.group("val")):
+            return m.group(0)
+        report.add("secrets")
+        return m.group(1) + m.group("sep") + "{{SECRET}}"
+
+    text = _RE_SECRET_KV.sub(_kv, text)
+    return _RE_SECRET_KV_DEBOLE.sub(_kv_debole, text)
 
 
 def _scrub_birth_dates(text: str, report: RedactionReport) -> str:
@@ -539,7 +749,7 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
             run = [t.lower().strip("'’-") for t in tokens[i:j]]
             known = any(t in FIRST_NAMES or t in SURNAMES for t in run)
             guessed = guess and not any(_looks_like_word(t) for t in run)
-            if len(run) >= 2 and (known or guessed):
+            if 2 <= len(run) <= _MAX_TOKEN_NOME and (known or guessed):
                 report.add("names")
                 pieces.append(("{{NAME}}", j - 1))
             else:
@@ -554,7 +764,7 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
             out += seps[prev[1]] + cur[0]
         return out
 
-    text = _RE_NAME_PAIR.sub(_pair_sub, text)
+    text = _RE_NAME_RUN.sub(_pair_sub, text)
     text = _RE_NAME_PAIR_UPPER.sub(_pair_sub, text)
 
     # 5. Nome o cognome isolato ("Ciao Marco,", una firma con il solo
@@ -601,7 +811,24 @@ def apply_privacy_filter(
         out = _replace_all(out, _RE_EMAIL, "{{EMAIL}}", report, "emails")
 
     if opts.fiscal:
-        out = _replace_all(out, _RE_CF, "{{CODICE_FISCALE}}", report, "codice_fiscale")
+
+        def _cf_sub(m: re.Match) -> str:
+            # Si sostituisce comunque: su un dato personale l'errore va
+            # fatto nella direzione prudente. Ma se la struttura torna e il
+            # carattere di controllo no, quasi sempre il testo viene da un
+            # OCR che ha storpiato un carattere -- e allora ne avra'
+            # storpiati altri, che nessun riconoscitore ha visto.
+            if not cf_check_char_ok(m.group(1)):
+                report.suspect(
+                    "codice_fiscale",
+                    m.group(1),
+                    "sostituito, ma il carattere di controllo non torna: "
+                    "il documento potrebbe contenere altri dati storpiati",
+                )
+            report.add("codice_fiscale")
+            return "{{CODICE_FISCALE}}"
+
+        out = _RE_CF.sub(_cf_sub, out)
 
         def _iban_sub(m: re.Match) -> str:
             if not iban_checksum_ok(m.group(1)):
@@ -618,6 +845,18 @@ def apply_privacy_filter(
             return "{{CARD}}"
 
         out = _RE_CARD.sub(_card_sub, out)
+
+        # Prima dei telefoni: 22 cifre di coordinate bancarie hanno la
+        # stessa forma di due numeri di telefono attaccati.
+        def _bban_sub(m: re.Match) -> str:
+            ctx = _context_before(m.string, m.start(), 40).lower()
+            if not any(k in ctx for k in ("bban", "coordinate", "c/c", "conto", "cin ")):
+                return m.group(0)
+            report.add("bban")
+            return "{{BBAN}}"
+
+        out = _RE_BBAN.sub(_bban_sub, out)
+        out = _replace_all(out, _RE_ABI_CAB, "{{BBAN}}", report, "bban")
 
         # P.IVA: only replace if preceded by context keywords nearby or IT prefix
         def _piva_sub(m: re.Match) -> str:
@@ -661,6 +900,7 @@ def apply_privacy_filter(
     if opts.names:
         out = _scrub_names(out, report, guess=opts.name_guess)
 
+    find_suspects(out, report, opts)
     return out, report
 
 
