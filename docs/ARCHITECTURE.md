@@ -7,7 +7,7 @@ Browser ──HTTP──► Flask (routes) ──► jobs (thread pool) ──�
                                                          ├── eml_parser (+ BeautifulSoup4)
                                                          ├── markitdown (+ Magika)
                                                          ├── ocr_service (RapidOCR + pdfplumber)
-                                                         └── privacy (regex IT + Scrubadub)
+                                                         └── privacy (riconoscitori IT + validatori)
 CLI / SendTo ──► mr_rao.cli convert ──► stesso converter
 Watch (UI/CLI) ──► watch_service loop ──► converter
 Tray ──► open browser / quit
@@ -42,7 +42,9 @@ Tray ──► open browser / quit
 | `mr_rao/converter.py` | Pipeline unica + frontmatter + merge + fallback text |
 | `mr_rao/eml_parser.py` | Thread email → Markdown + allegati |
 | `mr_rao/ocr_service.py` | OCR immagini/PDF + tabelle |
-| `mr_rao/privacy.py` | Redaction granulare IT |
+| `mr_rao/privacy.py` | Riconoscitori IT: pattern + validatore, sospetti, recupero OCR |
+| `mr_rao/it_names.py` | Vocabolari: nomi, cognomi, parole comuni maiuscole |
+| `mr_rao/user_folders.py` | Cartelle di lavoro, rilevamento cartelle sincronizzate |
 | `mr_rao/profiles.py` | Preset conversione |
 | `mr_rao/watch_service.py` | Hotfolder in-process |
 | `mr_rao/tray.py` | System tray opzionale |
@@ -68,8 +70,11 @@ Tray ──► open browser / quit
 
 ## Gap noti (vedi BACKLOG)
 
-- Shell **SendTo / Apri con** → solo CLI, non UI (P0)  
-- Lingua OCR advisory (P3)  
+- **Scansioni**: i riconoscitori cercano forme valide, l'OCR ne produce di quasi valide.
+  Mitigato in due modi — recupero vincolato dal checksum per CF e IBAN, e segnalazione
+  dei sospetti per il resto — ma resta il limite di efficacia principale (P0-ter).
+- **Solo formati italiani**: i riconoscitori non sono ancora innestabili per Paese (P1.7).
+- **Nessuna autenticazione**: attrezzo locale per una persona, non un servizio.
 
 ## Documentazione correlata
 

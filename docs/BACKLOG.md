@@ -44,7 +44,7 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 
 | ID | Item | Perché | Stato |
 |----|------|--------|--------|
-| P2.1 | Test E2E portable (health + convert PDF/txt) in CI locale | Build 390 MB fragile | TODO |
+| P2.1 | Test E2E portable (health + convert) | Il build avvia l'eseguibile, interroga `/api/health`, converte un `.docx` e confronta l'icona: se qualcosa non torna, **respinge il pacchetto**. Manca solo il giro in CI | **DONE in locale** (1.4.2) |
 | P2.2 | Test job cancel / watch start-stop | Race conditions | TODO |
 | P2.3 | Test shell integration (mock) | Regressioni SendTo | TODO |
 | P2.4 | Gate pre-commit automatico (hook git opzionale) | Disciplina | TODO |
@@ -125,7 +125,7 @@ Aggiunto dopo l'audit di agosto 2026. Tutti verificati eseguendo, non ipotizzati
 | P2.5 | `gen_third_party.py --check` dentro il quality gate | Le licenze scadono in silenzio | TODO |
 | P2.6 | Gate: `APP_VERSION` senza voce di changelog = errore | Ha già sbagliato una volta | TODO |
 | P2.7 | Verifica «HEAD è importabile» in CI | È già successo di committarne uno rotto | TODO |
-| P2.8 | Valutare la rimozione di Scrubadub | Porta 6 pacchetti (uno LGPL) per un guadagno marginale sull'italiano | TODO |
+| P2.8 | Valutare la rimozione di Scrubadub | Misurato su testo inglese: stesse redazioni con e senza, e da solo spezzava il testo. Rimosso | **DONE** (1.3.3) |
 
 ## P0-ter — Riconoscimento tollerante agli errori OCR
 
@@ -139,7 +139,7 @@ riconoscono più il codice, che resta nel testo deformato ma ancora identificant
 | ID | Item | Note | Stato |
 |----|------|------|-------|
 | A.7 | Avviso nel risultato quando la redazione ha lavorato su testo OCR | Mitigazione immediata: chi legge sa che lì deve controllare | **DONE** (1.3.2) |
-| A.8 | Riconoscimento tollerante alle confusioni tipiche dell'OCR (`0`/`O`/`D`, `1`/`I`/`T`, `5`/`S`, `8`/`B`) sui soli formati a struttura fissa (CF, IBAN, P.IVA) | La verifica mod-97 e il carattere di controllo del CF permettono di essere tolleranti **senza** aumentare i falsi positivi: si accetta la variante solo se il checksum torna | TODO |
+| A.8 | Riconoscimento tollerante alle confusioni tipiche dell'OCR sui formati a struttura fissa | Fatto per CF e IBAN, fino a 2 correzioni, e si accetta solo se il checksum torna. Attenzione: il checksum **non basta** — la prima versione trasformava un numero d'ordine in un IBAN valido. Serve anche restringere i candidati | **DONE** (1.6.0) |
 | A.9 | Banco di prova con scansioni a qualità decrescente | Serve un numero, non un'impressione: quante redazioni si perdono a 300, 200, 150 DPI | TODO |
 
 **Perché A.8 è fattibile senza peggiorare i falsi positivi.** Un IBAN ha un

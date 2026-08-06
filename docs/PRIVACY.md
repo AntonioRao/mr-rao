@@ -24,12 +24,13 @@ spiegare guardando la regola che l'ha prodotta.
 
 | Tipo | Segnaposto | Come viene deciso |
 |------|-----------|-------------------|
-| Email | `{{EMAIL}}` | Forma dell'indirizzo |
+| Email | `{{EMAIL}}` | Forma dell'indirizzo, comprese quelle offuscate (`[at]`, `chiocciola`, `punto`) |
 | Indirizzi web | `{{URL}}` | `http`, `https`, `www.` — solo questi |
 | Telefoni | `{{PHONE}}` | Prefisso `+39`, cellulari `3xx`, parola di contesto (`cell`, `tel`, `fax`), oppure fisso con separatori |
 | Codice fiscale | `{{CODICE_FISCALE}}` | Struttura a 16 caratteri. Il **carattere di controllo** non rifiuta, segnala |
-| P.IVA | `{{PARTITA_IVA}}` | Prefisso `IT` o contesto fiscale vicino |
-| IBAN | `{{IBAN}}` | **Mod-97** (ISO 13616) |
+| | | Recupera anche la forma storpiata dall'OCR, se il controllo del candidato corretto torna |
+| P.IVA | `{{PARTITA_IVA}}` | Prefisso `IT` o contesto fiscale vicino. La **cifra di controllo** non rifiuta, segnala |
+| IBAN | `{{IBAN}}` | **Mod-97** (ISO 13616), anche scritto a gruppi di quattro come lo stampano le banche |
 | Coordinate non-IBAN | `{{BBAN}}` | CIN+ABI+CAB+conto, con contesto bancario vicino |
 | Carte di pagamento | `{{CARD}}` | **Luhn** (ISO/IEC 7812) |
 | Indirizzi | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada e altri, con civico, CAP e comune |
@@ -98,6 +99,32 @@ Un documento amministrativo pulito — protocolli, delibere, codici gara,
 date — produce **zero** sospetti. Se ogni numero diventasse un avviso,
 l'avviso non varrebbe più niente.
 
+## Il recupero dei codici storpiati
+
+I sospetti dicono dove guardare. Per i codici che hanno una cifra di
+controllo si può fare di meglio: **provare a correggerli**.
+
+Il motore prende il candidato, applica le confusioni tipiche del
+riconoscimento ottico — `O`↔`0`, `I`↔`1`, `S`↔`5`, `B`↔`8`, e soprattutto
+la elle minuscola letta al posto della i maiuscola — per **al massimo due
+caratteri**, e sostituisce solo se il checksum del candidato corretto
+torna.
+
+Non decide un'euristica: decide l'aritmetica.
+
+```
+RSSMRA85T1OA562S    →  {{CODICE_FISCALE}}   1 correzione, controllo OK
+lT60X05428…123456   →  {{IBAN}}             1 correzione, mod-97 OK
+lT60X05428…123457   →  invariato            nessuna correzione lo salva
+```
+
+**Il checksum da solo non basta**, ed è una lezione pagata: la prima
+versione trasformava il numero d'ordine `5551234567890123` in
+`SS51234567890123`, e quel candidato il mod-97 lo supera davvero. Se puoi
+convertire qualunque sequenza di cifre in un IBAN, prima o poi ne azzecchi
+uno. Serve anche restringere lo spazio dei candidati: almeno una delle due
+iniziali dev'essere già una lettera.
+
 ## Report
 
 La risposta API include `redaction: { total, counts }`, l'interfaccia mostra
@@ -110,8 +137,15 @@ e, soprattutto, cosa è sfuggito.
 - **Nessun elenco di cognomi è completo.** L'euristica copre molto ma non
   tutto, e un cognome che assomiglia a una parola italiana può restare.
 - **Sulle scansioni la protezione è più debole.** I riconoscitori cercano un
-  codice scritto correttamente: se l'OCR legge `A01` come `AD1`, il codice
-  non viene riconosciuto. Il risultato lo segnala con un avviso.
+  codice scritto correttamente. Per codice fiscale e IBAN il motore prova a
+  correggere fino a due caratteri e a verificare il checksum, quindi molti
+  casi si chiudono; ma un telefono non ha cifra di controllo, un nome nemmeno,
+  e tre caratteri storpiati sono troppi. Quello che resta viene **segnalato**,
+  non sostituito: è lì che il confronto «prima / dopo» va guardato davvero.
+- **Il banco di prova è sintetico.** I casi OCR sono stringhe scritte a mano
+  immaginando come sbaglia un riconoscitore ottico, non scansioni vere. Finché
+  non esiste un corpus di documenti passati davvero da uno scanner, l'efficacia
+  su carta è stimata, non misurata.
 - **I formati sono italiani.** Un numero di telefono tedesco o un codice
   fiscale spagnolo non hanno un riconoscitore dedicato.
 - **Non sostituisce una valutazione DPIA o un parere legale.**
