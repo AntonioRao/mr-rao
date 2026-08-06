@@ -2,6 +2,49 @@
 
 ## 1.4.0 — Su una mail vera passava troppa roba
 
+### Word, Excel e PowerPoint non hanno mai funzionato
+
+Segnalato da un utente con un verbale di collaudo pieno di testo, che
+riceveva **«Il file caricato non contiene testo riconoscibile»**.
+
+I formati Office di MarkItDown vivono dietro degli *extra* che non erano
+installati. Senza, la conversione alza `MissingDependencyException`, il
+testo estratto è vuoto, e il messaggio dà la colpa al documento. DOCX,
+DOC, XLSX, XLS, PPTX e PPT: **nessuno di questi ha mai funzionato**, in
+nessuna versione, pur essendo annunciati nella tabella del README, nei
+badge della finestra di caricamento, nell'elenco del selettore file e
+nelle voci del menu contestuale.
+
+Non si vedeva dai test perché i test usavano file finti: un `.docx` vero
+non era mai stato convertito. Adesso ce n'è uno, costruito byte per byte
+dentro il test, e un controllo che fallisce se un formato dichiarato ha
+la sua dipendenza assente. Le dipendenze sono elencate per nome e non
+come extra: `markitdown[docx]` non porta `python-docx`.
+
+Cambia anche il messaggio. Quando la causa è nostra la diciamo — «Manca
+la libreria python-docx… Non dipende dal documento» — invece di mandare
+qualcuno a cercare il problema nel proprio file. Un documento davvero
+vuoto continua a ricevere il messaggio di prima.
+
+Le sette librerie aggiunte sono tutte MIT o BSD: nessun nuovo obbligo.
+
+### Nomi in maiuscolo e cognomi da soli
+
+Sempre da una mail vera. Il riconoscitore dei nomi pretende almeno una
+minuscola — è così che esclude in un colpo solo acronimi, numeri romani e
+i segnaposto già inseriti — e questo lo rendeva **cieco a `MARIO ROSSI`**,
+che nelle firme e nelle intestazioni è frequentissimo. Ora c'è una regola
+apposta, con gli stessi presidi: `CODICE FISCALE` e `ORDINE DEL GIORNO`
+restano dove sono.
+
+E un cognome noto scritto da solo, come capita nelle firme, ora viene
+sostituito — tranne quelli che sono anche parole comuni: «Costa», «Villa»,
+«Monte», «Ponte» da soli restano quello che sembrano.
+
+Sulla mail di prova: da 98 a 100 nomi sostituiti su 229 dati, e le uniche
+sequenze maiuscole superstiti contengono tutte una parola italiana comune.
+
+
 La segnalazione era circostanziata: in una mail sul desktop restavano in
 chiaro gli URL, i numeri di cellulare, gli indirizzi di casa e i nomi
 scritti accanto agli indirizzi di posta. Prima di toccare il codice ho
@@ -94,7 +137,7 @@ se manca il file `.ico` usa l'icona dell'eseguibile invece di rinunciare.
 L'elenco delle estensioni del menu contestuale, che viveva in due file
 diversi ed era già andato fuori sincrono una volta, adesso sta in uno solo.
 
-- 225 test (erano 164).
+- 250 test (erano 164).
 
 ## 1.3.3 — Via Scrubadub: non faceva quello che credevamo
 

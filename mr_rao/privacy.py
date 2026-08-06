@@ -240,6 +240,15 @@ _RE_NAME_AFTER_EMAIL = re.compile(
 
 _RE_NAME_PAIR = re.compile(rf"(?<!\w){_TOK}(?:{_SP}{_TOK}){{1,2}}(?!\w)")
 
+# Un nome scritto TUTTO MAIUSCOLO. Il pattern normale pretende almeno una
+# minuscola — e' cosi' che esclude in un colpo solo acronimi, numeri romani
+# e i segnaposto gia' inseriti — e questo lo rende cieco a "MARIO ROSSI",
+# che nelle firme e nelle intestazioni delle mail e' frequentissimo.
+# Trovato su una mail vera: quattro sequenze intatte su un testo in cui
+# tutto il resto era stato sostituito.
+_TOK_UP = r"[A-ZÀ-ÖØ-Þ]{3,}"
+_RE_NAME_PAIR_UPPER = re.compile(rf"(?<![\w{{]){_TOK_UP}(?:{_SP}{_TOK_UP}){{1,2}}(?![\w}}])")
+
 _RE_LONE_TOKEN = re.compile(rf"(?<!\w){_TOK}(?!\w)")
 
 # Nomi propri che sono anche parole comuni: da soli non bastano.
@@ -252,6 +261,17 @@ _AMBIGUOUS_ALONE = frozenset(
         "stella", "luna", "alba", "italo", "italia", "domenica", "sabato",
         "marzo", "agosto", "maggio", "conte", "modesto", "candido", "bruno",
         "franco", "sereno", "fiore", "fede", "vero", "divo", "duce",
+        # Cognomi frequentissimi che sono anche parole comuni. In coppia
+        # restano riconoscibili ("Mario Costa"); da soli no, altrimenti
+        # ogni "Costa" a inizio frase diventa una persona.
+        "costa", "sala", "serra", "rocca", "croce", "prato", "riva", "villa",
+        "gatto", "gatti", "gallo", "galli", "lupo", "lupi", "mele", "meli",
+        "pesce", "oliva", "sordi", "grassi", "bianco", "bianchi", "verdi",
+        "neri", "rossi", "russo", "greco", "moro", "biondi", "longo",
+        "marino", "leone", "leoni", "monaco", "corona", "campana", "colomba",
+        "fontana", "torre", "porta", "sacco", "cassa", "carta", "banca",
+        "arena", "cava", "chiesa", "corso", "piazza", "valle", "monte",
+        "ponte", "porto", "punta", "ripa", "sasso", "selva", "vetta",
     }
 )
 
@@ -526,14 +546,16 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
         return out
 
     text = _RE_NAME_PAIR.sub(_pair_sub, text)
+    text = _RE_NAME_PAIR_UPPER.sub(_pair_sub, text)
 
-    # 5. Nome proprio isolato ("Ciao Marco,"). Solo se non e' anche una
-    #    parola comune: "Rosa" da sola resta un fiore.
+    # 5. Nome o cognome isolato ("Ciao Marco,", una firma con il solo
+    #    cognome). Solo se non e' anche una parola comune: "Rosa" da sola
+    #    resta un fiore, "Costa" da sola resta un costo.
     def _lone_sub(m: re.Match) -> str:
         tok = m.group(0).lower().strip("'’-")
         if tok in _AMBIGUOUS_ALONE or tok in COMMON_CAPITALIZED:
             return m.group(0)
-        if tok not in FIRST_NAMES:
+        if tok not in FIRST_NAMES and tok not in SURNAMES:
             return m.group(0)
         report.add("names")
         return "{{NAME}}"

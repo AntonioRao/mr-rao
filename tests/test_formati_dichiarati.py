@@ -1,0 +1,119 @@
+"""Ogni formato che dichiariamo di leggere deve essere leggibile.
+
+Regressione del difetto piu' grave trovato finora: DOCX, XLSX, XLS e PPTX
+non hanno mai funzionato. I formati di Office in MarkItDown vivono dietro
+degli "extra" che non erano installati; senza, MarkItDown alza
+MissingDependencyException, il testo estratto e' vuoto e l'utente riceve
+«Il file caricato non contiene testo riconoscibile» — cioe' la colpa data
+al suo documento.
+
+Erano annunciati nella tabella del README, nei badge della finestra di
+caricamento, nell'elenco del selettore file e nelle voci del menu
+contestuale. Il primo che se ne e' accorto e' stato un utente, con un
+verbale di collaudo pieno di testo.
+
+I test precedenti non lo vedevano perche' usavano file finti: nessuno
+aveva mai convertito un .docx vero.
+"""
+import io
+import zipfile
+
+import pytest
+
+from config import ALLOWED_EXTENSIONS
+from mr_rao.converter import (
+    FORMAT_DEPENDENCIES,
+    ConvertOptions,
+    convert_file,
+    missing_dependency_for,
+)
+
+
+@pytest.mark.parametrize("ext", sorted(FORMAT_DEPENDENCIES))
+def test_la_dipendenza_del_formato_e_installata(ext):
+    mancante = missing_dependency_for(ext)
+    assert mancante is None, (
+        f"{ext} e' dichiarato fra i formati supportati ma manca {mancante}. "
+        f"Con questa dipendenza assente il file sembra vuoto e l'errore da' "
+        f"la colpa al documento."
+    )
+
+
+def test_ogni_formato_office_dichiarato_ha_una_dipendenza_nota():
+    """Se domani si aggiunge .odt all'elenco, deve entrare anche qui."""
+    office = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"}
+    scoperti = (office & ALLOWED_EXTENSIONS) - set(FORMAT_DEPENDENCIES)
+    assert not scoperti, f"formati senza dipendenza dichiarata: {sorted(scoperti)}"
+
+
+def _docx_minimo(testo: str) -> bytes:
+    """Un .docx valido, costruito a mano: niente file finti."""
+    doc = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        f"<w:body><w:p><w:r><w:t>{testo}</w:t></w:r></w:p></w:body></w:document>"
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Target="word/document.xml" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"/>'
+        "</Relationships>"
+    )
+    types = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-'
+        'officedocument.wordprocessingml.document.main+xml"/></Types>'
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("[Content_Types].xml", types)
+        z.writestr("_rels/.rels", rels)
+        z.writestr("word/document.xml", doc)
+    return buf.getvalue()
+
+
+def test_un_docx_vero_produce_testo(tmp_path):
+    p = tmp_path / "verbale.docx"
+    p.write_bytes(_docx_minimo("Consuntivazione giornate lavorate"))
+    r = convert_file(p, options=ConvertOptions(include_frontmatter=False))
+    assert "Consuntivazione" in r.markdown, r.markdown[:200]
+    assert r.engine_used == "markitdown"
+    assert not r.empty
+
+
+def test_un_docx_vero_viene_anonimizzato(tmp_path):
+    p = tmp_path / "lettera.docx"
+    p.write_bytes(_docx_minimo("Contatta mario.rossi@example.it al 335 123 4567"))
+    r = convert_file(p, options=ConvertOptions(include_frontmatter=False))
+    assert "{{EMAIL}}" in r.markdown and "{{PHONE}}" in r.markdown
+
+
+def test_la_dipendenza_mancante_non_diventa_colpa_del_documento(monkeypatch, tmp_path):
+    """Il messaggio deve dire cosa manca, non che il file e' vuoto."""
+    from mr_rao import converter
+
+    class Rotto:
+        def convert(self, _):
+            raise RuntimeError("DocxConverter threw MissingDependencyException")
+
+    monkeypatch.setattr(converter, "get_markitdown", lambda: Rotto())
+    monkeypatch.setattr(converter, "missing_dependency_for", lambda ext: "python-docx")
+
+    p = tmp_path / "verbale.docx"
+    p.write_bytes(_docx_minimo("qualcosa"))
+    r = convert_file(p, options=ConvertOptions(include_frontmatter=False))
+
+    assert "python-docx" in r.markdown
+    assert "Non dipende dal documento" in r.markdown
+    assert "non contiene testo riconoscibile" not in r.markdown
+
+
+def test_senza_causa_nota_resta_il_messaggio_di_prima(tmp_path):
+    """Un file davvero vuoto deve continuare a dire che e' vuoto."""
+    from mr_rao.converter import _empty_message
+
+    assert "non contiene testo riconoscibile" in _empty_message(None)

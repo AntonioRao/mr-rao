@@ -309,3 +309,74 @@ def test_no_redaction_lascia_il_testo_come_sta():
 def test_only_rifiuta_un_riconoscitore_inesistente():
     with pytest.raises(ValueError):
         only("telefoni")
+
+
+# ---------------------------------------------------------------------------
+# Nomi scritti TUTTO MAIUSCOLO
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "Firma: MARIO ROSSI",
+        "Da: GIUSEPPE ESPOSITO",
+        "referente KWABENA OSEI per il progetto",
+    ],
+)
+def test_nomi_tutto_maiuscolo(testo):
+    """Il pattern normale pretende almeno una minuscola — e' cosi' che
+    esclude acronimi e segnaposto — e questo lo rendeva cieco alle firme
+    scritte in maiuscolo, che nelle mail sono frequentissime."""
+    out, _ = apply_privacy_filter(testo, only("names", "name_guess"))
+    assert "{{NAME}}" in out, out
+    assert "ROSSI" not in out and "ESPOSITO" not in out and "OSEI" not in out
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "CODICE FISCALE del titolare",
+        "PARTITA IVA e sede legale",
+        "ORDINE DEL GIORNO approvato",
+        "DIREZIONE GENERALE e SEGRETERIA",
+    ],
+)
+def test_sigle_e_intestazioni_maiuscole_restano(testo):
+    out, report = apply_privacy_filter(testo, only("names", "name_guess"))
+    assert out == testo
+    assert report.total == 0
+
+
+def test_i_segnaposto_non_vengono_riletti_come_nomi():
+    """{{CODICE_FISCALE}} e {{PARTITA_IVA}} sono maiuscoli: se la regola
+    delle maiuscole li rileggesse, il testo si sfarinerebbe a ogni giro."""
+    testo = "Dati: {{CODICE_FISCALE}} {{PARTITA_IVA}} {{EMAIL}} {{IBAN}}"
+    out, report = apply_privacy_filter(testo, only("names", "name_guess"))
+    assert out == testo
+    assert report.total == 0
+
+
+# ---------------------------------------------------------------------------
+# Cognomi isolati
+# ---------------------------------------------------------------------------
+
+
+def test_un_cognome_noto_da_solo_viene_sostituito():
+    """In una firma il cognome sta spesso da solo."""
+    out, _ = apply_privacy_filter("Cordiali saluti, Esposito", only("names"))
+    assert "Esposito" not in out
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "La Costa azzurra e' affollata",
+        "Il Monte Bianco e' alto",
+        "La Villa comunale e' chiusa",
+        "Il Ponte di ferro",
+    ],
+)
+def test_i_cognomi_che_sono_parole_non_bastano_da_soli(testo):
+    out, report = apply_privacy_filter(testo, only("names"))
+    assert report.total == 0, out

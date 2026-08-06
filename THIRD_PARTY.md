@@ -12,7 +12,7 @@ PSF), copyleft di file (MPL-2.0, esplicitamente compatibile) e LGPL, che
 l'AGPL può incorporare. La licenza di Mr. Rao **non** limita i diritti che
 queste librerie concedono.
 
-Pacchetti nell'ambiente: **51** — di cui **4** con obblighi
+Pacchetti nell'ambiente: **64** — di cui **4** con obblighi
 oltre la semplice attribuzione (copyleft o eccezioni).
 
 ## Licenze con obblighi particolari
@@ -66,7 +66,7 @@ Mr. Rao non li modifica.
 Arrivano come dipendenze delle precedenti. Sono elencate per intero perché
 l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 
-<details><summary>Elenco completo (37 pacchetti)</summary>
+<details><summary>Elenco completo (50 pacchetti)</summary>
 
 | Progetto | Versione | Licenza | Notice locale |
 |----------|----------|---------|---------------|
@@ -76,19 +76,26 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [cffi](https://cffi.readthedocs.io/) | 2.1.1 | MIT-0 | — |
 | [charset-normalizer](https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md) | 3.4.9 | MIT | — |
 | [click](https://click.palletsprojects.com/page/changes/) | 8.4.2 | BSD-3-Clause | — |
+| [cobble](http://github.com/mwilliamson/python-cobble) | 0.1.4 | BSD License | — |
 | [colorama](https://github.com/tartley/colorama) | 0.4.6 | BSD License | — |
 | [cryptography](https://cryptography.io/en/latest/changelog/) | 50.0.0 | Apache-2.0 OR BSD-3-Clause | — |
 | [defusedxml](https://github.com/tiran/defusedxml) | 0.7.1 | Python Software Foundation License | — |
+| [et_xmlfile](https://foss.heptapod.net/openpyxl/et_xmlfile) | 2.0.0 | MIT License | — |
 | [flatbuffers](https://google.github.io/flatbuffers/) | 25.12.19 | Apache Software License | — |
 | [idna](https://github.com/kjd/idna/blob/master/HISTORY.md) | 3.18 | BSD-3-Clause | — |
 | [iniconfig](https://github.com/pytest-dev/iniconfig) | 2.3.0 | MIT | — |
 | [itsdangerous](https://itsdangerous.palletsprojects.com/changes/) | 2.2.0 | BSD License | — |
 | [Jinja2](https://jinja.palletsprojects.com/changes/) | 3.1.6 | BSD License | — |
+| [lxml](https://lxml.de/) | 6.1.1 | BSD-3-Clause | — |
+| [mammoth](https://github.com/mwilliamson/python-mammoth) | 1.11.0 | BSD License | — |
 | [markdownify](http://github.com/matthewwithanm/python-markdownify) | 1.2.3 | MIT License | — |
 | [MarkupSafe](https://palletsprojects.com/donate) | 3.0.3 | BSD-3-Clause | — |
 | [numpy](https://numpy.org) | 2.5.1 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 | — |
+| [olefile](https://www.decalage.info/python/olefileio) | 0.47 | BSD License | — |
 | [opencv-python](https://github.com/opencv/opencv-python) | 5.0.0.93 | Apache Software License | — |
+| [openpyxl](https://openpyxl.readthedocs.io) | 3.1.5 | MIT License | — |
 | [packaging](https://packaging.pypa.io/) | 26.3 | Apache-2.0 OR BSD-2-Clause | — |
+| [pandas](https://pandas.pydata.org) | 3.0.5 | BSD License | — |
 | [pefile](https://github.com/erocarrera/pefile) | 2024.8.26 | MIT | — |
 | [pip](https://pip.pypa.io/en/stable/news/) | 26.2.1 | MIT | — |
 | pluggy | 1.6.0 | MIT License | — |
@@ -98,7 +105,10 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [Pygments](https://pygments.org) | 2.20.0 | BSD-2-Clause | — |
 | [pyinstaller-hooks-contrib](https://github.com/pyinstaller/pyinstaller-hooks-contrib) | 2026.6 | Apache Software License; GNU General Public License v2 (GPLv2) | — |
 | [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.12.1 | BSD-3-Clause, Apache-2.0, dependency licenses | — |
+| [python-dateutil](https://github.com/dateutil/dateutil) | 2.9.0.post0 | BSD License; Apache Software License | — |
+| [python-docx](https://github.com/python-openxml/python-docx/blob/master/HISTORY.rst) | 1.2.0 | MIT License | — |
 | [python-dotenv](https://github.com/theskumar/python-dotenv) | 1.2.2 | BSD-3-Clause | — |
+| [python-pptx](https://github.com/scanny/python-pptx/blob/master/HISTORY.rst) | 1.0.2 | MIT License | — |
 | [pywin32-ctypes](https://github.com/enthought/pywin32-ctypes) | 0.2.3 | BSD-3-Clause | — |
 | [requests](https://requests.readthedocs.io) | 2.34.2 | Apache Software License | — |
 | [setuptools](https://github.com/pypa/setuptools) | 83.0.0 | MIT | — |
@@ -106,7 +116,10 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [six](https://github.com/benjaminp/six) | 1.17.0 | MIT License | — |
 | [soupsieve](https://github.com/facelessuser/soupsieve) | 2.9.1 | MIT | — |
 | [typing_extensions](https://github.com/python/typing_extensions/issues) | 4.16.0 | PSF-2.0 | — |
+| [tzdata](https://github.com/python/tzdata) | 2026.3 | Apache-2.0 | — |
 | [urllib3](https://github.com/urllib3/urllib3/blob/main/CHANGES.rst) | 2.7.0 | MIT | — |
+| [xlrd](http://www.python-excel.org/) | 2.0.2 | BSD License | — |
+| [xlsxwriter](https://github.com/jmcnamara/XlsxWriter) | 3.2.9 | BSD License | — |
 
 </details>
 

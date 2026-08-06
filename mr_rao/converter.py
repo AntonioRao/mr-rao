@@ -81,7 +81,21 @@ def _file_sha256(path: Path) -> str:
     return h.hexdigest()[:16]
 
 
-def _empty_message() -> str:
+def _empty_message(reason: str | None = None) -> str:
+    """Il messaggio quando non esce testo.
+
+    Se la conversione e' fallita per una causa nostra, quella causa va
+    detta. Attribuire al documento una colpa che e' del programma manda
+    l'utente a cercare il problema dove non c'e': un .docx pieno di testo
+    che riceve «non contiene testo riconoscibile» perche' manca una
+    libreria e' successo davvero, e per parecchie versioni.
+    """
+    if reason:
+        return (
+            "> ⚠️ **Conversione non riuscita.**\n>\n"
+            f"> {reason}\n>\n"
+            "> Non dipende dal documento."
+        )
     return (
         "> ⚠️ **Nessun testo estratto.**\n>\n"
         "> Il file caricato non contiene testo riconoscibile.\n>\n"
@@ -90,6 +104,33 @@ def _empty_message() -> str:
         "> - Se è un PDF, prova **Forza RapidOCR** o abilita le tabelle.\n"
         "> - Se è protetto da password, rimuovi la protezione prima."
     )
+
+
+# Pacchetto necessario per ogni formato che dichiariamo di leggere. Serve
+# a due cose: dire all'utente cosa manca invece di dare la colpa al file,
+# e far fallire i test quando un formato annunciato non e' installabile.
+FORMAT_DEPENDENCIES: dict[str, tuple[str, str]] = {
+    ".docx": ("docx", "python-docx"),
+    ".doc": ("docx", "python-docx"),
+    ".pptx": ("pptx", "python-pptx"),
+    ".ppt": ("pptx", "python-pptx"),
+    ".xlsx": ("openpyxl", "openpyxl"),
+    ".xls": ("xlrd", "xlrd"),
+    ".pdf": ("pdfminer", "pdfminer.six"),
+}
+
+
+def missing_dependency_for(ext: str) -> str | None:
+    """Il pacchetto mancante per questa estensione, se manca."""
+    entry = FORMAT_DEPENDENCIES.get(ext.lower())
+    if not entry:
+        return None
+    module, package = entry
+    try:
+        __import__(module)
+    except ImportError:
+        return package
+    return None
 
 
 def _is_ocr(engine_used: str) -> bool:
@@ -198,6 +239,7 @@ def convert_file(
 
     engine_used = "none"
     final_text: str | None = None
+    failure_reason: str | None = None
     file_hash = _file_sha256(path) if path.exists() else "unknown"
     attachments: list[dict] = []
 
@@ -252,6 +294,14 @@ def convert_file(
             except Exception as e:
                 print(f"MarkItDown conversion error: {e}")
                 final_text = None
+                mancante = missing_dependency_for(ext)
+                if mancante:
+                    failure_reason = (
+                        f"Manca la libreria **{mancante}**, necessaria per "
+                        f"leggere i file `{ext}`. Installala con "
+                        f"`pip install {mancante}`, oppure usa il pacchetto "
+                        f"portable, che la contiene."
+                    )
                 # Portable resilience if Magika models are missing
                 if ext in {".txt", ".csv", ".md", ".json", ".xml", ".html", ".htm", ".rtf"}:
                     try:
@@ -314,7 +364,7 @@ def convert_file(
 
         empty = not final_text or not str(final_text).strip()
         if empty:
-            final_text = _empty_message()
+            final_text = _empty_message(failure_reason)
             empty = True
 
         _stop_if_cancelled(should_cancel)
