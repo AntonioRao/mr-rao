@@ -15,13 +15,10 @@ import pytest
 
 from mr_rao import converter
 from mr_rao.converter import ConvertOptions, convert_file
-from mr_rao.privacy import PrivacyOptions
+from mr_rao.privacy import PrivacyOptions, no_redaction
 from mr_rao.profiles import PROFILES, options_from_profile
 
-NO_PRIVACY = PrivacyOptions(
-    emails=False, phones=False, names=False, fiscal=False,
-    amounts=False,
-)
+NO_PRIVACY = no_redaction()
 
 
 @pytest.fixture()

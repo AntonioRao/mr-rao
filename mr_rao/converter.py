@@ -13,7 +13,12 @@ from typing import Callable
 
 from config import APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
 from mr_rao.ocr_service import extract_pdf_tables, ocr_image, ocr_pdf_fallback
-from mr_rao.privacy import PrivacyOptions, RedactionReport, apply_privacy_filter
+from mr_rao.privacy import (
+    DETECTOR_FIELDS,
+    PrivacyOptions,
+    RedactionReport,
+    apply_privacy_filter,
+)
 
 ProgressCb = Callable[[int, int, str], None]
 CancelCb = Callable[[], bool]
@@ -293,15 +298,12 @@ def convert_file(
 
         redaction = RedactionReport()
         markdown_raw: str | None = None
+        # Un campo alla volta, non "almeno uno": aggiungendo un
+        # riconoscitore nuovo ci si dimentica sempre di questo elenco, e il
+        # sintomo e' un filtro che sembra spento quando e' acceso.
         privacy_on = bool(
             final_text
-            and (
-                opts.privacy.emails
-                or opts.privacy.phones
-                or opts.privacy.names
-                or opts.privacy.fiscal
-                or opts.privacy.amounts
-            )
+            and any(getattr(opts.privacy, name) for name in DETECTOR_FIELDS)
         )
         if privacy_on and final_text:
             if opts.include_raw:

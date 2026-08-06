@@ -8,13 +8,10 @@ from config import MAX_JOBS_KEPT
 from mr_rao import routes
 from mr_rao.converter import ConvertOptions, convert_file, strip_frontmatter
 from mr_rao.jobs import Job, JobStore
-from mr_rao.privacy import PrivacyOptions
+from mr_rao.privacy import PrivacyOptions, no_redaction
 from mr_rao.watch_service import output_path_for
 
-NO_PRIVACY = PrivacyOptions(
-    emails=False, phones=False, names=False, fiscal=False,
-    amounts=False,
-)
+NO_PRIVACY = no_redaction()
 
 
 # ---------------------------------------------------------------------------

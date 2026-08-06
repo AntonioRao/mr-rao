@@ -15,7 +15,7 @@ from pathlib import Path
 
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION
 from mr_rao.converter import ConvertOptions, convert_file, merge_markdowns
-from mr_rao.privacy import PrivacyOptions
+from mr_rao.privacy import FIELD_DEFAULTS, PrivacyOptions
 from mr_rao.watch_service import output_path_for, write_atomic
 
 
@@ -24,21 +24,19 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
     return ConvertOptions(
         engine=getattr(args, "engine", "auto"),
         language=getattr(args, "language", "it"),
+        # Elencare i campi a mano qui e' una trappola: un riconoscitore
+        # aggiunto dopo resterebbe acceso anche con --no-privacy, perche'
+        # il suo valore predefinito e' True. I campi si leggono dal motore.
         privacy=PrivacyOptions(
-            emails=privacy_on,
-            phones=privacy_on,
-            names=privacy_on,
-            fiscal=privacy_on,
-            amounts=getattr(args, "scrub_amounts", False),
+            **{
+                **{k: True for k in FIELD_DEFAULTS},
+                "amounts": getattr(args, "scrub_amounts", False),
+                "dates": getattr(args, "scrub_dates", False),
+                "name_guess": not getattr(args, "no_name_guess", False),
+            }
         )
         if privacy_on
-        else PrivacyOptions(
-            emails=False,
-            phones=False,
-            names=False,
-            fiscal=False,
-            amounts=False,
-        ),
+        else PrivacyOptions(**{k: False for k in FIELD_DEFAULTS}),
         include_tables=not getattr(args, "no_tables", False),
         include_frontmatter=not getattr(args, "no_frontmatter", False),
         clean_output=getattr(args, "clean", False),
@@ -189,6 +187,16 @@ def main(argv: list[str] | None = None) -> int:
     p_conv.add_argument("--title", default="Documento unificato")
     p_conv.add_argument("--no-privacy", action="store_true")
     p_conv.add_argument("--scrub-amounts", action="store_true")
+    p_conv.add_argument(
+        "--scrub-dates",
+        action="store_true",
+        help="Redigi le date accanto a un contesto di nascita",
+    )
+    p_conv.add_argument(
+        "--no-name-guess",
+        action="store_true",
+        help="Disattiva l'euristica del cognome (due parole maiuscole)",
+    )
     p_conv.add_argument("--no-tables", action="store_true")
     p_conv.add_argument("--no-frontmatter", action="store_true")
     p_conv.add_argument("--clean", action="store_true", help="Output pulito per LLM")
@@ -207,6 +215,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     p_watch.add_argument("--no-privacy", action="store_true")
     p_watch.add_argument("--scrub-amounts", action="store_true")
+    p_watch.add_argument("--scrub-dates", action="store_true")
+    p_watch.add_argument("--no-name-guess", action="store_true")
     p_watch.add_argument("--no-tables", action="store_true")
     p_watch.add_argument("--no-frontmatter", action="store_true")
     p_watch.add_argument("--clean", action="store_true")

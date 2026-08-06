@@ -37,7 +37,7 @@
         </p>
         <div class="pills">
             <span class="pill"><span class="pill-dot"></span> Offline</span>
-            <span class="pill">Anonimizza CF · IBAN · nomi</span>
+            <span class="pill">Anonimizza nomi · indirizzi · codici</span>
             <span class="pill">PDF · DOCX · XLSX</span>
             <span class="pill">OCR</span>
             <span class="pill">Thread .eml</span>
@@ -97,7 +97,7 @@
                 <span class="field-label"
                       data-tip="Una combinazione già pronta di tutte le opzioni. Scegli il profilo che assomiglia al tuo lavoro e non pensare al resto: se serve puoi ritoccare le singole voci in «Opzioni avanzate».">Profilo</span>
                 <select id="profile" aria-label="Profilo"
-                        data-tip="<b>Predefinito</b> — buono per quasi tutto.<br><b>Email legali</b> — massima protezione dei dati personali, testo pulito.<br><b>Fatture</b> — tiene le tabelle e lascia visibili gli importi.<br><b>Solo OCR</b> — per scansioni e foto di documenti.<br><b>Pronto per LLM</b> — testo da incollare in ChatGPT &amp; simili.<br><b>Nessuna redazione</b> — testo integrale, niente sostituzioni.">
+                        data-tip="<b>Predefinito</b> — buono per quasi tutto.<br><b>Email legali</b> — massima protezione dei dati personali, testo pulito.<br><b>Fatture</b> — tiene le tabelle e lascia visibili gli importi.<br><b>Solo OCR</b> — per scansioni e foto di documenti.<br><b>Pronto per LLM</b> — testo da incollare in un assistente AI.<br><b>Nessuna redazione</b> — testo integrale, niente sostituzioni.">
                     <option value="default">Predefinito</option>
                     <option value="email_legali">Email legali</option>
                     <option value="fatture">Fatture / contabili</option>
@@ -111,7 +111,7 @@
                  data-tip="Sostituisce i dati personali con segnaposto tipo <b>{{ '{{EMAIL}}' }}</b> prima di consegnarti il Markdown. Serve soprattutto se poi incolli il testo in un servizio online: quello che è stato tolto lo vedi nella scheda «Confronto privacy».">
                 <div class="toggle-info">
                     <span class="toggle-title">Nascondi i dati personali</span>
-                    <span class="toggle-desc">Email, telefoni, codici fiscali, IBAN, nomi</span>
+                    <span class="toggle-desc">Nomi, indirizzi, recapiti, codici, chiavi</span>
                 </div>
                 <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
                     <input type="checkbox" id="privacy-filter" checked>
@@ -158,13 +158,33 @@
                             <input type="checkbox" id="privacy-phones" checked>
                             <span class="opt-text"><span class="opt-title">Telefoni</span><span class="opt-desc">Fissi e cellulari</span></span>
                         </label>
-                        <label class="opt" data-tip="Nomi e cognomi italiani riconosciuti. È la voce meno precisa delle sei: si basa su un elenco di nomi comuni, quindi può lasciar passare un cognome raro.">
+                        <label class="opt" data-tip="Nomi e cognomi. Oltre all'elenco dei nomi italiani valgono le regole di contesto: un titolo davanti (Dott., Ing., Geom.) e il nome scritto accanto a un indirizzo email.">
                             <input type="checkbox" id="privacy-names" checked>
-                            <span class="opt-text"><span class="opt-title">Nomi</span><span class="opt-desc">Nomi e cognomi italiani</span></span>
+                            <span class="opt-text"><span class="opt-title">Nomi</span><span class="opt-desc">Nomi e cognomi di persona</span></span>
                         </label>
-                        <label class="opt" data-tip="Gli IBAN vengono verificati col calcolo di controllo, così un codice a caso non viene scambiato per un conto corrente.">
+                        <label class="opt" data-tip="Quando due parole maiuscole di fila non sono parole italiane, quasi sempre sono nome e cognome — anche se il cognome non sta in nessun elenco. È la regola che copre i cognomi rari, ed è anche l'unica che può sbagliare: spegnila se il documento è pieno di denominazioni («Piano Industriale», «Fase Uno»).">
+                            <input type="checkbox" id="privacy-name_guess" checked>
+                            <span class="opt-text"><span class="opt-title">Deduci i cognomi sconosciuti</span><span class="opt-desc">Regola aggressiva, disattivabile</span></span>
+                        </label>
+                        <label class="opt" data-tip="Via, viale, piazza, corso, largo, contrada... con il nome della strada, il civico e, se c'è, CAP e comune.">
+                            <input type="checkbox" id="privacy-addresses" checked>
+                            <span class="opt-text"><span class="opt-title">Indirizzi</span><span class="opt-desc">Vie, piazze, civici, CAP</span></span>
+                        </label>
+                        <label class="opt" data-tip="Collegamenti che iniziano con http, https o www. Un link porta con sé il dominio dell'azienda e spesso un identificativo di pratica nella parte finale.">
+                            <input type="checkbox" id="privacy-urls" checked>
+                            <span class="opt-text"><span class="opt-title">Indirizzi web</span><span class="opt-desc">http, https, www.</span></span>
+                        </label>
+                        <label class="opt" data-tip="Gli IBAN sono verificati col calcolo di controllo e le carte di pagamento con quello di Luhn, così un codice a caso non viene scambiato per un conto corrente.">
                             <input type="checkbox" id="privacy-fiscal" checked>
-                            <span class="opt-text"><span class="opt-title">Codici fiscali e bancari</span><span class="opt-desc">Codice fiscale, P.IVA, IBAN</span></span>
+                            <span class="opt-text"><span class="opt-title">Codici fiscali e bancari</span><span class="opt-desc">Codice fiscale, P.IVA, IBAN, carte</span></span>
+                        </label>
+                        <label class="opt" data-tip="Chiavi API, token, password scritte accanto alla loro etichetta e blocchi di chiave privata. Sono i dati che non ci si accorge di aver incollato.">
+                            <input type="checkbox" id="privacy-secrets" checked>
+                            <span class="opt-text"><span class="opt-title">Chiavi e password</span><span class="opt-desc">Token, API key, credenziali</span></span>
+                        </label>
+                        <label class="opt" data-tip="Spento di default: verrebbero tolte anche le date che servono. Attivo, sostituisce solo le date scritte accanto a «nato il», «data di nascita» e simili.">
+                            <input type="checkbox" id="privacy-dates">
+                            <span class="opt-text"><span class="opt-title">Date di nascita</span><span class="opt-desc">Solo con contesto di nascita</span></span>
                         </label>
                         <label class="opt" data-tip="Spento di default: nelle fatture gli importi di solito servono. Attivalo se vuoi condividere un documento senza mostrarne le cifre.">
                             <input type="checkbox" id="privacy-amounts">
@@ -189,7 +209,7 @@
                             <input type="checkbox" id="include-frontmatter" checked>
                             <span class="opt-text"><span class="opt-title">Scheda informativa in cima</span><span class="opt-desc">Origine, data, sostituzioni fatte</span></span>
                         </label>
-                        <label class="opt" data-tip="Toglie note a piè di pagina e commenti tecnici, lasciando solo il contenuto. Comodo quando il testo va incollato in ChatGPT o simili.">
+                        <label class="opt" data-tip="Toglie note a piè di pagina e commenti tecnici, lasciando solo il contenuto. Comodo quando il testo va incollato in un assistente AI.">
                             <input type="checkbox" id="clean-output">
                             <span class="opt-text"><span class="opt-title">Togli le note tecniche</span><span class="opt-desc">Solo il contenuto, niente commenti</span></span>
                         </label>
@@ -228,7 +248,7 @@
                     <button type="button" class="btn" id="copy-btn"
                             data-tip="Copia tutto negli appunti, scheda informativa compresa.">Copia</button>
                     <button type="button" class="btn" id="copy-clean-btn"
-                            data-tip="Copia solo il contenuto: via la scheda informativa in cima e le note tecniche. È la versione da incollare in ChatGPT o in una mail.">Copia solo il testo</button>
+                            data-tip="Copia solo il contenuto: via la scheda informativa in cima e le note tecniche. È la versione da incollare in un assistente AI o in una mail.">Copia solo il testo</button>
                     <button type="button" class="btn" id="download-txt-btn"
                             data-tip="Scarica come testo semplice .txt, senza formattazione Markdown.">.txt</button>
                     <button type="button" class="btn btn-primary" id="download-btn" draggable="true"

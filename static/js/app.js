@@ -29,12 +29,28 @@
     return md;
   }
 
+  // Stesso elenco di privacy.FIELD_DEFAULTS lato Python. Un riconoscitore
+  // che manca qui resta al suo valore predefinito: la casella nel pannello
+  // c'e', ma non comanda niente.
+  const PRIVACY_FIELDS = [
+    "emails",
+    "phones",
+    "names",
+    "name_guess",
+    "addresses",
+    "urls",
+    "fiscal",
+    "secrets",
+    "dates",
+    "amounts",
+  ];
+
   const PROFILE_HINTS = {
     default: "Va bene per quasi tutto: dati personali protetti, tabelle estratte.",
     email_legali: "Massima protezione dei dati; testo ripulito, pronto da condividere.",
     fatture: "Tiene le tabelle e lascia visibili gli importi; nasconde CF, P.IVA e IBAN.",
     solo_ocr: "Legge il testo dalle immagini: per scansioni e foto di documenti.",
-    llm_ready: "Testo essenziale con dati protetti, da incollare in ChatGPT & simili.",
+    llm_ready: "Testo essenziale con dati protetti, da incollare in un assistente AI.",
     no_privacy: "Testo integrale, nessuna sostituzione. Usalo solo su questo computer.",
   };
 
@@ -316,7 +332,7 @@
     if (els.profileSelect) fd.append("profile", els.profileSelect.value);
     fd.append("engine", els.engineSelect.value);
     fd.append("privacy_filter", els.privacyMaster.checked);
-    ["emails", "phones", "names", "fiscal", "amounts"].forEach((k) => {
+    PRIVACY_FIELDS.forEach((k) => {
       const el = $("privacy-" + k);
       if (el) fd.append("privacy_" + k, el.checked);
     });

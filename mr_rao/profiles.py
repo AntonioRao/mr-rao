@@ -1,8 +1,14 @@
-"""Conversion presets for common workflows."""
+"""Conversion presets for common workflows.
+
+Ogni profilo elenca solo cio' che cambia rispetto ai valori predefiniti del
+motore (``privacy.FIELD_DEFAULTS``). Cosi' un riconoscitore nuovo entra in
+tutti i profili il giorno stesso in cui nasce, invece di restare spento in
+cinque preset su sei perche' qualcuno ha dimenticato una riga.
+"""
 from __future__ import annotations
 
 from mr_rao.converter import ConvertOptions
-from mr_rao.privacy import PrivacyOptions
+from mr_rao.privacy import FIELD_DEFAULTS, PrivacyOptions
 
 PROFILES: dict[str, dict] = {
     "default": {
@@ -11,11 +17,6 @@ PROFILES: dict[str, dict] = {
         "engine": "auto",
         "language": "it",
         "privacy_filter": True,
-        "privacy_emails": True,
-        "privacy_phones": True,
-        "privacy_names": True,
-        "privacy_fiscal": True,
-        "privacy_amounts": False,
         "include_tables": True,
         "include_frontmatter": True,
         "clean_output": False,
@@ -28,11 +29,8 @@ PROFILES: dict[str, dict] = {
         "engine": "auto",
         "language": "it",
         "privacy_filter": True,
-        "privacy_emails": True,
-        "privacy_phones": True,
-        "privacy_names": True,
-        "privacy_fiscal": True,
         "privacy_amounts": True,
+        "privacy_dates": True,
         "include_tables": False,
         "include_frontmatter": True,
         "clean_output": True,
@@ -45,11 +43,11 @@ PROFILES: dict[str, dict] = {
         "engine": "auto",
         "language": "it",
         "privacy_filter": True,
-        "privacy_emails": True,
-        "privacy_phones": True,
-        "privacy_names": True,
-        "privacy_fiscal": True,
         "privacy_amounts": False,
+        # Una fattura e' piena di ragioni sociali: l'euristica del cognome
+        # farebbe piu' danni che bene, e i dati che contano davvero
+        # (IBAN, P.IVA, codice fiscale) hanno un riconoscitore proprio.
+        "privacy_name_guess": False,
         "include_tables": True,
         "include_frontmatter": True,
         "clean_output": False,
@@ -62,11 +60,6 @@ PROFILES: dict[str, dict] = {
         "engine": "rapidocr",
         "language": "it",
         "privacy_filter": False,
-        "privacy_emails": False,
-        "privacy_phones": False,
-        "privacy_names": False,
-        "privacy_fiscal": False,
-        "privacy_amounts": False,
         "include_tables": True,
         "include_frontmatter": False,
         "clean_output": True,
@@ -79,11 +72,6 @@ PROFILES: dict[str, dict] = {
         "engine": "auto",
         "language": "it",
         "privacy_filter": True,
-        "privacy_emails": True,
-        "privacy_phones": True,
-        "privacy_names": True,
-        "privacy_fiscal": True,
-        "privacy_amounts": False,
         "include_tables": True,
         "include_frontmatter": False,
         "clean_output": True,
@@ -96,11 +84,6 @@ PROFILES: dict[str, dict] = {
         "engine": "auto",
         "language": "it",
         "privacy_filter": False,
-        "privacy_emails": False,
-        "privacy_phones": False,
-        "privacy_names": False,
-        "privacy_fiscal": False,
-        "privacy_amounts": False,
         "include_tables": True,
         "include_frontmatter": True,
         "clean_output": False,
@@ -121,21 +104,23 @@ def get_profile(profile_id: str) -> dict | None:
     return PROFILES.get(profile_id)
 
 
+def privacy_flags(profile: dict) -> dict[str, bool]:
+    """I flag privacy effettivi del profilo, difetti del motore compresi."""
+    if not profile.get("privacy_filter"):
+        return {k: False for k in FIELD_DEFAULTS}
+    return {
+        k: bool(profile.get("privacy_" + k, d)) for k, d in FIELD_DEFAULTS.items()
+    }
+
+
 def options_from_profile(profile_id: str) -> ConvertOptions | None:
     p = PROFILES.get(profile_id)
     if not p:
         return None
-    privacy_on = bool(p.get("privacy_filter"))
     return ConvertOptions(
         engine=p.get("engine", "auto"),
         language=p.get("language", "it"),
-        privacy=PrivacyOptions(
-            emails=bool(p.get("privacy_emails")) if privacy_on else False,
-            phones=bool(p.get("privacy_phones")) if privacy_on else False,
-            names=bool(p.get("privacy_names")) if privacy_on else False,
-            fiscal=bool(p.get("privacy_fiscal")) if privacy_on else False,
-            amounts=bool(p.get("privacy_amounts")) if privacy_on else False,
-        ),
+        privacy=PrivacyOptions(**privacy_flags(p)),
         include_tables=bool(p.get("include_tables", True)),
         include_frontmatter=bool(p.get("include_frontmatter", True)),
         clean_output=bool(p.get("clean_output", False)),
