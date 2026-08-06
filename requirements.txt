@@ -1,0 +1,8 @@
+flask>=3.0.3
+werkzeug>=3.0.3
+markitdown>=0.1.7
+pdfminer.six
+pdfplumber
+Pillow
+rapidocr_onnxruntime>=1.2.3
+scrubadub>=2.0.1
