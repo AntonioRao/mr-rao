@@ -3,7 +3,7 @@
 **Trasforma PDF, Word, Excel, scansioni ed email in Markdown pulito — con i dati personali già rimossi.**
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
-[![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest)
+[![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20150%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Versione](https://img.shields.io/badge/versione-1.6.0-3b82f6)](docs/CHANGELOG.md)
@@ -14,9 +14,10 @@
 
 **🇮🇹 Italiano** · [🇬🇧 English](README.md)
 
-### [⬇️ Scarica per Windows — nessun Python richiesto](https://github.com/AntonioRao/mr-rao/releases/latest)
+### [⬇️ Scarica per Windows — nessun Python richiesto](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 *Estrai lo zip, doppio clic su `Installa Mr Rao.bat`. Fatto.*
+<sub>Lo scaricamento parte subito. [Tutte le versioni e le note di rilascio](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
 
 ![Mr. Rao — interfaccia](docs/img/schermata.png)
 
@@ -135,7 +136,7 @@ Il riconoscimento è codice, non una rete neurale. Lo stesso documento dà **sem
 
 ### Windows, senza installare Python
 
-**[⬇️ Scarica l'ultima versione](https://github.com/AntonioRao/mr-rao/releases/latest)** — poi estrai lo zip e fai doppio clic su **`Installa Mr Rao.bat`**.
+**[⬇️ Scarica l'ultima versione](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** — poi estrai lo zip e fai doppio clic su **`Installa Mr Rao.bat`**.
 
 Non serve altro: Python, modelli OCR e dipendenze sono già dentro. Lo zip pesa ~150 MB, ~310 MB una volta installato.
 

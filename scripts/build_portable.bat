@@ -24,12 +24,12 @@ pip install -q -r requirements-build.txt
 if errorlevel 1 exit /b 1
 
 echo.
-echo [1/6] Icons...
+echo [1/7] Icons...
 python scripts\generate_icons.py
 if errorlevel 1 exit /b 1
 
 echo.
-echo [2/6] Quality gate...
+echo [2/7] Quality gate...
 call scripts\quality_gate.bat
 if errorlevel 1 (
     echo GATE FAILED
@@ -37,7 +37,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [3/6] Resti di disinstallazioni nel venv...
+echo [3/7] Resti di disinstallazioni nel venv...
 python scripts\check_venv.py
 if errorlevel 1 (
     echo.
@@ -48,7 +48,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [4/6] PyInstaller onedir...
+echo [4/7] PyInstaller onedir...
 if exist "dist\MrRao" rmdir /s /q "dist\MrRao"
 if exist "build\MrRao" rmdir /s /q "build\MrRao"
 
@@ -89,7 +89,7 @@ if not exist "dist\MrRao\MrRao.exe" (
 )
 
 echo.
-echo [5/6] Assemble portable folder...
+echo [5/7] Assemble portable folder...
 set "OUT=dist\MrRao-Portable"
 if exist "%OUT%" rmdir /s /q "%OUT%"
 mkdir "%OUT%"
@@ -129,7 +129,7 @@ echo MrRao.exe %%*
 ) > "%OUT%\MrRao-CLI.bat"
 
 echo.
-echo [6/6] Avvio dell'eseguibile e verifica...
+echo [6/7] Avvio dell'eseguibile e verifica...
 REM Un codice di uscita zero non dice niente su cosa succede al doppio
 REM clic: e' gia' capitato di produrre un pacchetto che apriva una
 REM finestra nera e si chiudeva. Se ne accorse una persona, non il build.
@@ -140,6 +140,16 @@ if errorlevel 1 (
     echo Il pacchetto e' stato costruito ma non funziona: non pubblicarlo.
     exit /b 1
 )
+
+echo.
+echo [7/7] Archivi per la release...
+REM Due archivi, stesso contenuto. Quello a nome fisso serve perche'
+REM GitHub pubblica /releases/latest/download/NOME solo se NOME non cambia
+REM da una versione all'altra: e' cio' che rende possibile il link di
+REM scaricamento diretto nei README. Creandoli qui non si puo' dimenticare
+REM il secondo -- e dimenticarlo rompe quei link in silenzio.
+python scripts\make_release_zip.py
+if errorlevel 1 exit /b 1
 
 echo.
 echo === BUILD OK ===

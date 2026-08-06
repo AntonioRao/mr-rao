@@ -3,7 +3,7 @@
 **Turn PDFs, Office files, scans and emails into clean Markdown — with the personal data already stripped out.**
 **All on your own machine, without sending anything anywhere.**
 
-[![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest)
+[![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20150%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.6.0-3b82f6)](docs/CHANGELOG.md)
@@ -14,9 +14,10 @@
 
 [🇬🇧 English](README.md) · **[🇮🇹 Italiano](README.it.md)**
 
-### [⬇️ Download for Windows — no Python required](https://github.com/AntonioRao/mr-rao/releases/latest)
+### [⬇️ Download for Windows — no Python required](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 *Extract the zip, double-click `Installa Mr Rao.bat`. That's it.*
+<sub>The download starts straight away. [All releases and release notes](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
 
 ![Mr. Rao — interface](docs/img/schermata.png)
 
@@ -133,7 +134,7 @@ The recognition is code, not a neural network. The same document always yields t
 
 ### Windows, without installing Python
 
-**[⬇️ Download the latest release](https://github.com/AntonioRao/mr-rao/releases/latest)** — then extract the zip and double-click **`Installa Mr Rao.bat`**.
+**[⬇️ Download the latest release](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** — then extract the zip and double-click **`Installa Mr Rao.bat`**.
 
 Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is ~150 MB, ~310 MB once installed.
 
