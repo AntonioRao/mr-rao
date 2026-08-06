@@ -16,9 +16,16 @@ La cartella `MrRao-Portable` (generata su un PC di build) include:
 scripts\build_portable.bat
 ```
 
-Output: `dist\MrRao-Portable\`
+Output: `dist\MrRao-Portable\` (tipicamente ~390 MB; non è in git, va copiato/zippato).
 
-Copia l’intera cartella su USB, share di rete o archivio ZIP.
+Verifica rapida dopo la build:
+
+```bat
+dist\MrRao-Portable\app\MrRao.exe health
+dist\MrRao-Portable\app\MrRao.exe convert file.txt -o out.md --no-privacy
+```
+
+Copia l'intera cartella su USB, share di rete o archivio ZIP.
 
 ## Installazione (PC utente)
 

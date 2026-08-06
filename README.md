@@ -8,20 +8,26 @@ Convertitore locale di PDF, Office, immagini (OCR), HTML, CSV e thread email `.e
 
 ---
 
-## Funzionalità
+## Funzionalità (implementate)
 
 | Area | Dettaglio |
 |------|-----------|
 | Documenti | PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, HTML, CSV, JSON, XML, TXT, RTF |
-| OCR | PNG, JPG, BMP, TIFF, WebP, GIF — **RapidOCR** offline |
-| Fallback PDF | Pagine scansionate → OCR automatico (limite pagine configurabile) |
+| OCR | PNG, JPG, BMP, TIFF, WebP, GIF — **RapidOCR** offline (script latini) |
+| Fallback PDF | Scansioni → OCR automatico (limite pagine configurabile) |
 | Tabelle PDF | Estrazione tabelle → Markdown |
-| Email | Parser `.eml` con thread IT/EN e allegati |
-| Privacy IT | Email, telefoni `+39`, CF, IBAN, P.IVA, nomi comuni + Scrubadub |
-| UX | Drag & drop multi-file, progress, annulla, Raw/Preview, cronologia sessione, Ctrl+V |
-| Export | `.md`, `.txt`, copia pulita per LLM, frontmatter YAML |
-| CLI | `convert`, `watch`, `health` |
+| Email | Parser `.eml` thread IT/EN, allegati elencati e **scaricabili** |
+| Privacy IT | Email, telefoni `+39`, CF, IBAN, P.IVA, nomi + Scrubadub + **diff privacy** |
+| Profili | Predefinito, email legali, fatture, solo OCR, LLM-ready, no redazione |
+| UX | Multi-file, merge, **confronto 2 file**, progress, annulla, Raw/Preview, cronologia, Ctrl+V |
+| Export | `.md`, `.txt`, copia pulita LLM, frontmatter YAML, **drag-out** `.md` |
+| Hotfolder | Watch da UI + CLI (`watch inbox out`) |
+| Tray | Icona system tray (Apri UI / Hotfolder / Esci) |
+| Shell Windows | Invia a + menu contestuale **Apri con Mr. Rao** |
+| CLI | `convert`, `watch`, `health` (anche via `MrRao.exe`) |
+| Portable | `dist/MrRao-Portable` — **zero Python** sul PC destinazione (~390 MB) |
 | Docker | `Dockerfile` + `docker-compose.yml` |
+| Qualità | 23 test pytest + `scripts/quality_gate.bat` |
 
 ---
 

@@ -68,7 +68,7 @@ def cmd_convert(args: argparse.Namespace) -> int:
     opts = _build_options(args)
     results = []
     for path in paths:
-        print(f"→ {path.name}…", flush=True)
+        print(f"> {path.name}...", flush=True)
         r = convert_file(path, options=opts)
         if r.error:
             print(f"  ERRORE: {r.error}", file=sys.stderr)
@@ -108,7 +108,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
     outbox.mkdir(parents=True, exist_ok=True)
     opts = _build_options(args)
     seen: set[str] = set()
-    print(f"{APP_NAME} watch: {inbox} → {outbox} (Ctrl+C per uscire)")
+    print(f"{APP_NAME} watch: {inbox} -> {outbox} (Ctrl+C per uscire)")
     try:
         while True:
             for path in sorted(inbox.iterdir()):
@@ -127,7 +127,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
                         continue
                 except OSError:
                     continue
-                print(f"→ {path.name}")
+                print(f"> {path.name}")
                 r = convert_file(path, options=opts)
                 seen.add(key)
                 if r.error:
@@ -135,7 +135,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
                     continue
                 dest = outbox / (path.stem + ".md")
                 dest.write_text(r.markdown, encoding="utf-8")
-                print(f"  → {dest}")
+                print(f"  -> {dest}")
                 if args.move_done:
                     done = inbox / "done"
                     done.mkdir(exist_ok=True)
@@ -173,7 +173,7 @@ def cmd_health(_args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="mr-rao",
-        description=f"{APP_NAME} — convertitore documenti → Markdown offline",
+        description=f"{APP_NAME} - convertitore documenti -> Markdown offline",
     )
     parser.add_argument("--version", action="version", version=f"{APP_NAME} {APP_VERSION}")
     sub = parser.add_subparsers(dest="command", required=True)

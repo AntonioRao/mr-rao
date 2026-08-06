@@ -11,8 +11,15 @@ from mr_rao import create_app
 app = create_app()
 
 
+def _safe_print(msg: str) -> None:
+    """Avoid UnicodeEncodeError on Windows cp1252 consoles."""
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        print(msg.encode("ascii", "replace").decode("ascii"))
+
+
 def _run_server():
-    # threaded=True so tray/UI and conversions can overlap
     app.run(
         debug=config.DEBUG,
         host=config.HOST,
@@ -23,25 +30,23 @@ def _run_server():
 
 
 if __name__ == "__main__":
-    print(f"{config.APP_NAME} v{config.APP_VERSION}")
-    url = f"http://{config.HOST}:{config.PORT}"
-    print(f"→ {url}")
-    print(f"   debug={config.DEBUG} tray={config.USE_TRAY} frozen={getattr(sys, 'frozen', False)}")
-
-    # CLI args: convert / watch without starting server
+    # CLI first (portable exe: convert / watch / health / dropped files)
     if len(sys.argv) > 1 and sys.argv[1] in ("convert", "watch", "health", "--help", "-h"):
         from mr_rao.cli import main as cli_main
 
         raise SystemExit(cli_main(sys.argv[1:]))
 
-    # Files dropped on the exe → convert CLI style then exit
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
-        from pathlib import Path
-
         from mr_rao.cli import main as cli_main
 
-        args = ["convert", *sys.argv[1:]]
-        raise SystemExit(cli_main(args))
+        raise SystemExit(cli_main(["convert", *sys.argv[1:]]))
+
+    url = f"http://{config.HOST}:{config.PORT}"
+    _safe_print(f"{config.APP_NAME} v{config.APP_VERSION}")
+    _safe_print(f"-> {url}")
+    _safe_print(
+        f"   debug={config.DEBUG} tray={config.USE_TRAY} frozen={getattr(sys, 'frozen', False)}"
+    )
 
     server = threading.Thread(target=_run_server, daemon=True, name="mr-rao-http")
     server.start()
@@ -58,10 +63,9 @@ if __name__ == "__main__":
         try:
             from mr_rao.tray import run_tray
 
-            # pystray wants main thread on some platforms; run tray here and server in bg
             run_tray(url, on_quit)
         except Exception as e:
-            print(f"Tray non disponibile ({e}). Server attivo su {url} — Ctrl+C per uscire.")
+            _safe_print(f"Tray unavailable ({e}). Server on {url} - Ctrl+C to exit.")
             try:
                 stop_event.wait()
             except KeyboardInterrupt:
@@ -71,4 +75,4 @@ if __name__ == "__main__":
             while server.is_alive():
                 server.join(timeout=1.0)
         except KeyboardInterrupt:
-            print("\nArresto Mr. Rao…")
+            _safe_print("Stopping Mr. Rao...")

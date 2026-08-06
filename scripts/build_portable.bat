@@ -1,42 +1,46 @@
 @echo off
+setlocal EnableExtensions
 chcp 65001 >nul 2>&1
-title Build Mr. Rao Portable (offline, no Python on target)
+title Build Mr. Rao Portable
 cd /d "%~dp0.."
 
 echo.
-echo === Mr. Rao — build pacchetto portable ===
-echo Nessun git/pip richiesto sul PC destinazione.
+echo === Mr. Rao portable build ===
+echo Target PCs need NO Python, pip, or git.
 echo.
 
-if not exist "venv\Scripts\python.exe" (
-    echo Crea venv e installa dipendenze...
-    python -m venv venv
+if exist "venv\Scripts\activate.bat" (
     call venv\Scripts\activate.bat
-    python -m pip install --upgrade pip
-    pip install -r requirements-build.txt
 ) else (
+    echo Creating venv...
+    python -m venv venv
+    if errorlevel 1 exit /b 1
     call venv\Scripts\activate.bat
-    pip install -q -r requirements-build.txt
 )
 
+echo Installing build deps...
+python -m pip install -q --upgrade pip
+pip install -q -r requirements-build.txt
+if errorlevel 1 exit /b 1
+
 echo.
-echo [1/4] Icone...
+echo [1/4] Icons...
 python scripts\generate_icons.py
+if errorlevel 1 exit /b 1
 
 echo.
 echo [2/4] Quality gate...
 call scripts\quality_gate.bat
 if errorlevel 1 (
-    echo GATE FALLITO — interrompo la build.
+    echo GATE FAILED
     exit /b 1
 )
 
 echo.
-echo [3/4] PyInstaller (onedir, tutte le dipendenze incluse)...
+echo [3/4] PyInstaller onedir...
 if exist "dist\MrRao" rmdir /s /q "dist\MrRao"
 if exist "build\MrRao" rmdir /s /q "build\MrRao"
 
-:: --console: consente CLI convert / "Apri con"; tray e UI restano disponibili
 pyinstaller --noconfirm --clean --onedir --console --name MrRao ^
   --icon "static\img\mr-rao.ico" ^
   --add-data "templates;templates" ^
@@ -63,26 +67,27 @@ pyinstaller --noconfirm --clean --onedir --console --name MrRao ^
   app.py
 
 if errorlevel 1 (
-    echo PyInstaller FALLITO
+    echo PyInstaller FAILED
+    exit /b 1
+)
+
+if not exist "dist\MrRao\MrRao.exe" (
+    echo ERROR: dist\MrRao\MrRao.exe missing
     exit /b 1
 )
 
 echo.
-echo [4/4] Assemblaggio cartella portable...
-set OUT=dist\MrRao-Portable
+echo [4/4] Assemble portable folder...
+set "OUT=dist\MrRao-Portable"
 if exist "%OUT%" rmdir /s /q "%OUT%"
 mkdir "%OUT%"
+mkdir "%OUT%\app"
 xcopy /E /I /Y "dist\MrRao\*" "%OUT%\app\" >nul
 copy /Y "static\img\mr-rao.ico" "%OUT%\mr-rao.ico" >nul
 copy /Y "scripts\portable_install.bat" "%OUT%\Installa Mr Rao.bat" >nul
 copy /Y "scripts\portable_uninstall.bat" "%OUT%\Disinstalla Mr Rao.bat" >nul
-copy /Y "docs\PORTABLE.md" "%OUT%\LEGGIMI.txt" >nul 2>nul
-if not exist "%OUT%\LEGGIMI.txt" (
-  echo Mr. Rao Portable > "%OUT%\LEGGIMI.txt"
-  echo Esegui "Installa Mr Rao.bat" — non serve Python ne' git. >> "%OUT%\LEGGIMI.txt"
-)
+copy /Y "docs\PORTABLE.md" "%OUT%\LEGGIMI.txt" >nul
 
-:: launcher console-friendly for CLI
 (
 echo @echo off
 echo cd /d "%%~dp0app"
@@ -96,9 +101,8 @@ echo MrRao.exe %%*
 ) > "%OUT%\MrRao-CLI.bat"
 
 echo.
-echo === BUILD COMPLETATA ===
-echo Cartella: %CD%\%OUT%
-echo Copia l'intera cartella su USB / rete e sul PC target esegui:
-echo   Installa Mr Rao.bat
+echo === BUILD OK ===
+echo Folder: %CD%\%OUT%
+echo Copy that folder to USB/network. On target PC run: Installa Mr Rao.bat
 echo.
 exit /b 0
