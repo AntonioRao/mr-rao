@@ -697,7 +697,13 @@
   // ── Watch + cartelle predefinite Documenti\Mr Rao\… ──
   async function loadDefaultFolders(force) {
     try {
-      const r = await fetch("/api/folders/defaults");
+      // POST: crea le cartelle se mancano. La GET è in sola lettura, perché
+      // una GET non deve modificare il disco.
+      const r = await fetch("/api/folders/defaults", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
       const d = await r.json();
       if (!r.ok || !d.ok) return d;
       if (els.watchInbox && (force || !els.watchInbox.value)) {
@@ -708,12 +714,18 @@
       }
       const hint = $("watch-defaults-hint");
       if (hint && d.inbox && d.outbox) {
-        hint.innerHTML =
+        let html =
           "Predefinite: <code>" +
           escapeHtml(d.inbox) +
           "</code> → <code>" +
           escapeHtml(d.outbox) +
           "</code>";
+        // Se i Documenti sono sincronizzati col cloud le cartelle finiscono
+        // altrove: va detto, perché contraddirebbe la promessa "zero cloud".
+        if (d.reason && /cloud/i.test(d.reason)) {
+          html += '<br><span class="warn-note">⚠️ ' + escapeHtml(d.reason) + ".</span>";
+        }
+        hint.innerHTML = html;
       }
       return d;
     } catch (_) {

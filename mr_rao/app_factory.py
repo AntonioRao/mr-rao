@@ -5,7 +5,6 @@ from flask import Flask, jsonify, request
 
 import config
 from mr_rao.routes import bp
-from mr_rao.user_folders import ensure_default_watch_folders
 
 
 def _wants_json() -> bool:
@@ -124,11 +123,9 @@ def create_app() -> Flask:
     app.config["MAX_UPLOAD_MB"] = config.MAX_UPLOAD_MB
 
     config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
-    # Documenti\Mr Rao\Da convertire + Convertiti for the automatic folder UI
-    try:
-        ensure_default_watch_folders()
-    except OSError as e:
-        app.logger.warning("Impossibile creare cartelle predefinite: %s", e)
+    # Le cartelle di lavoro NON si creano all'avvio: chi apre l'app per una
+    # conversione al volo non deve trovarsi cartelle nuove nei Documenti.
+    # Le crea la UI (POST /api/folders/defaults) o l'avvio della sorveglianza.
 
     app.register_blueprint(bp)
     _register_guards(app)

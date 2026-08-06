@@ -18,7 +18,11 @@ from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge
 from mr_rao.jobs import job_store
 from mr_rao.privacy import options_from_form
 from mr_rao.profiles import get_profile, list_profiles, options_from_profile
-from mr_rao.user_folders import browse_folder, ensure_default_watch_folders
+from mr_rao.user_folders import (
+    browse_folder,
+    describe_default_folders,
+    ensure_default_watch_folders,
+)
 from mr_rao.watch_service import get_watch_state, start_watch, stop_watch
 
 bp = Blueprint("main", __name__)
@@ -438,9 +442,20 @@ def paste_image():
 
 @bp.route("/api/folders/defaults", methods=["GET"])
 def folders_defaults():
-    """Create (if needed) and return Documenti\\Mr Rao\\Da convertire + Convertiti."""
-    paths = ensure_default_watch_folders()
-    return jsonify({"ok": True, **paths})
+    """Percorsi predefiniti, in sola lettura.
+
+    Una GET deve essere sicura (RFC 9110): prima questa creava directory, e
+    bastava un <img src> su una pagina qualsiasi per far comparire cartelle
+    nei Documenti dell'utente.
+    """
+    return jsonify({"ok": True, **describe_default_folders()})
+
+
+@bp.route("/api/folders/defaults", methods=["POST"])
+def folders_defaults_create():
+    """Crea le cartelle predefinite. Modifica lo stato, quindi è POST e passa
+    dal controllo anti-CSRF sull'header Origin."""
+    return jsonify({"ok": True, **ensure_default_watch_folders()})
 
 
 @bp.route("/api/folders/browse", methods=["POST"])
@@ -457,9 +472,11 @@ def folders_browse():
 
 @bp.route("/api/watch", methods=["GET"])
 def watch_get():
-    defaults = ensure_default_watch_folders()
+    # Nessuna creazione qui: la UI interroga questo endpoint ogni 4 secondi,
+    # e creare cartelle a ogni poll significa toccare il disco (e la sincro-
+    # nizzazione cloud) per sempre.
     state = get_watch_state()
-    state["defaults"] = defaults
+    state["defaults"] = describe_default_folders()
     return jsonify(state)
 
 
