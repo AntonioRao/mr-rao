@@ -1,6 +1,7 @@
 # Mr. Rao
 
-**Turn PDFs, Office files, scans and emails into clean Markdown — on your own machine, without sending anything anywhere.**
+**Turn PDFs, Office files, scans and emails into clean Markdown — with the personal data already stripped out.**
+**All on your own machine, without sending anything anywhere.**
 
 [![Version](https://img.shields.io/badge/version-1.3.1-3b82f6)](docs/CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-161%20passing-10b981)](tests/)

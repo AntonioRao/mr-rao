@@ -1,6 +1,7 @@
 # Mr. Rao
 
-**Trasforma PDF, Word, Excel, scansioni ed email in Markdown pulito. Sul tuo computer, senza mandare niente a nessuno.**
+**Trasforma PDF, Word, Excel, scansioni ed email in Markdown pulito — con i dati personali già rimossi.**
+**Tutto sul tuo computer, senza mandare niente a nessuno.**
 
 [![Versione](https://img.shields.io/badge/versione-1.3.1-3b82f6)](docs/CHANGELOG.md)
 [![Test](https://img.shields.io/badge/test-161%20passati-10b981)](tests/)
