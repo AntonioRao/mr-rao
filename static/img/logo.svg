@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Mr. Rao">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <!-- rounded square -->
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#g)"/>
+  <!-- monogram hat (Mr.) -->
+  <path d="M34 48h60v8H70v36h-12V56H34z" fill="#f0f4ff" opacity="0.95"/>
+  <!-- markdown chevron -->
+  <path d="M40 92 L64 100 L88 92" fill="none" stroke="#e0eaff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  <!-- small R mark -->
+  <circle cx="96" cy="36" r="14" fill="url(#g2)"/>
+  <text x="96" y="41" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="800" fill="#fff">R</text>
+</svg>

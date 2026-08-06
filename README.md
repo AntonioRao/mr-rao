@@ -1,68 +1,153 @@
-# RAOmark
+# Mr. Rao
 
-**Convertitore intelligente di documenti in Markdown — 100% offline, zero API.**
+**Dal documento al Markdown. Offline. Firmato Rao.**
 
-Trasforma PDF, DOCX, XLSX, PPTX, HTML, CSV, TXT e immagini in Markdown puro con un semplice drag & drop. Include OCR integrato per documenti scansionati e un parser dedicato per thread email `.eml` con anonimizzazione automatica dei dati sensibili.
+Convertitore locale di PDF, Office, immagini (OCR), HTML, CSV e thread email `.eml` in Markdown puro. Privacy-first con detector italiani (email, telefoni, CF, P.IVA, IBAN, nomi). Nessun cloud.
 
----
-
-## ✨ Funzionalità
-
-| Feature | Dettaglio |
-|---------|-----------|
-| 📄 **Documenti** | PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, HTML, CSV, JSON, XML, TXT, RTF |
-| 👁️ **OCR immagini** | PNG, JPG, BMP, TIFF, WebP — via RapidOCR (offline, no GPU) |
-| 🔄 **Fallback automatico** | PDF scansionati → OCR pagina per pagina automatico |
-| 📧 **Thread email** | Parse .eml completo con separazione reply-chain |
-| 🛡️ **Privacy filter** | Anonimizza email, telefoni, nomi (Scrubadub, locale) |
-| ⚡ **Zero cloud** | Tutto gira in locale, nessun dato inviato a server esterni |
+![Mr. Rao](static/img/logo.svg)
 
 ---
 
-## 🚀 Installazione (nuovo PC)
+## Funzionalità
 
-Fai doppio clic su:
-```
-Installa MarkItDown.bat
-```
-
-Lo script verifica Python, crea un ambiente virtuale e installa tutte le dipendenze.
-
-## ▶️ Avvio
-
-Fai doppio clic su:
-```
-Avvia MarkItDown.bat
-```
-
-L'app si avvia su **http://127.0.0.1:5000** e apre il browser automaticamente.
+| Area | Dettaglio |
+|------|-----------|
+| Documenti | PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, HTML, CSV, JSON, XML, TXT, RTF |
+| OCR | PNG, JPG, BMP, TIFF, WebP, GIF — **RapidOCR** offline |
+| Fallback PDF | Pagine scansionate → OCR automatico (limite pagine configurabile) |
+| Tabelle PDF | Estrazione tabelle → Markdown |
+| Email | Parser `.eml` con thread IT/EN e allegati |
+| Privacy IT | Email, telefoni `+39`, CF, IBAN, P.IVA, nomi comuni + Scrubadub |
+| UX | Drag & drop multi-file, progress, annulla, Raw/Preview, cronologia sessione, Ctrl+V |
+| Export | `.md`, `.txt`, copia pulita per LLM, frontmatter YAML |
+| CLI | `convert`, `watch`, `health` |
+| Docker | `Dockerfile` + `docker-compose.yml` |
 
 ---
 
-## 🏗️ Stack
+## Installazione (Windows)
 
-- **Backend**: Python 3.x + Flask
-- **Conversione documenti**: [MarkItDown](https://github.com/microsoft/markitdown) (Microsoft)
-- **OCR**: [RapidOCR](https://github.com/RapidAI/RapidOCR) via `rapidocr_onnxruntime`
-- **PDF OCR fallback**: pdfplumber + Pillow
-- **Privacy**: [Scrubadub](https://github.com/LeapBeyond/scrubadub)
-- **Email parser**: stdlib `email` + BeautifulSoup4
+Doppio clic su:
+
+```
+Installa Mr Rao.bat
+```
+
+Lo script:
+
+1. Verifica Python  
+2. Crea `venv`  
+3. Installa `requirements.txt` (**include beautifulsoup4**)  
+4. Esegue i test (gate)  
+5. Crea il collegamento **Mr Rao** sul Desktop  
+
+### BeautifulSoup4 — a cosa serve?
+
+Serve a convertire il **corpo HTML delle email** in testo leggibile (rimuove tag, script, stili). Senza di essa i file `.eml` HTML resterebbero pieni di markup. Dettagli: [docs/BEAUTIFULSOUP.md](docs/BEAUTIFULSOUP.md).
 
 ---
 
-## 📁 Struttura
+## Avvio web
 
 ```
-raomark/
-├── app.py                   ← Server Flask
-├── requirements.txt         ← Dipendenze
-├── Avvia RAOmark.bat        ← Launcher
-├── Installa RAOmark.bat     ← Installer
-├── templates/
-│   └── index.html           ← UI
-└── uploads/                 ← Temp (auto-pulita)
+Avvia Mr Rao.bat
+```
+
+Apre **http://127.0.0.1:5000**
+
+Variabili opzionali:
+
+| Variabile | Default | Significato |
+|-----------|---------|-------------|
+| `MR_RAO_DEBUG` | `0` | `1` abilita debug Flask |
+| `MR_RAO_PORT` | `5000` | Porta |
+| `MR_RAO_MAX_UPLOAD_MB` | `50` | Limite upload |
+| `MR_RAO_MAX_OCR_PAGES` | `50` | Max pagine OCR PDF |
+
+---
+
+## CLI
+
+```bat
+venv\Scripts\activate
+python -m mr_rao.cli health
+python -m mr_rao.cli convert documento.pdf -o out.md
+python -m mr_rao.cli convert cartella\*.pdf --merge -o tutto.md
+python -m mr_rao.cli watch .\inbox .\out --move-done
 ```
 
 ---
 
-*RAOmark — by RAO*
+## API
+
+| Endpoint | Descrizione |
+|----------|-------------|
+| `GET /api/health` | Healthcheck |
+| `POST /api/convert` | Job asincrono (singolo file) → `{job_id}` |
+| `POST /api/convert/batch` | Batch / merge |
+| `POST /api/convert/sync` | Conversione sincrona |
+| `GET /api/jobs/<id>` | Stato, progress, risultato |
+| `POST /api/jobs/<id>/cancel` | Annulla job |
+
+---
+
+## Test e quality gate
+
+```bat
+scripts\quality_gate.bat
+```
+
+Oppure:
+
+```bat
+venv\Scripts\python -m pytest tests -q
+```
+
+Il gate (compileall + health + pytest) viene eseguito anche da `Installa Mr Rao.bat` e **prima del commit**.
+
+---
+
+## Docker
+
+```bat
+docker compose up --build
+```
+
+---
+
+## Struttura
+
+```
+markitdown-webapp/
+├── app.py                 # Entry server
+├── config.py              # Config / brand
+├── mr_rao/
+│   ├── app_factory.py
+│   ├── routes.py
+│   ├── converter.py
+│   ├── eml_parser.py      # usa BeautifulSoup4
+│   ├── ocr_service.py
+│   ├── privacy.py
+│   ├── jobs.py
+│   └── cli.py
+├── static/img/            # logo + favicon
+├── templates/index.html
+├── tests/
+├── docs/
+├── scripts/quality_gate.*
+├── Installa Mr Rao.bat
+└── Avvia Mr Rao.bat
+```
+
+---
+
+## Documentazione
+
+- [BeautifulSoup4](docs/BEAUTIFULSOUP.md)
+- [Architettura](docs/ARCHITECTURE.md)
+- [Privacy](docs/PRIVACY.md)
+- [Changelog](docs/CHANGELOG.md)
+
+---
+
+*Mr. Rao — by Rao · Powered by MarkItDown, RapidOCR, Scrubadub, BeautifulSoup4*
