@@ -144,7 +144,13 @@ Copyright © 2026 Rao
 Mr. Rao is **free software** under the **[GNU Affero General Public License v3.0](LICENSE)**.
 You may use, study, modify and redistribute it — including commercially — under the terms of that licence.
 
-The one obligation that matters in practice: **if you offer Mr. Rao to others over a network** (turn it into a web service, put it behind a company portal), section 13 of the AGPL requires you to make the source of your version, modifications included, available to those users. Used locally as intended, nothing changes.
+**With no further obligation you may**: use it in your firm or company, including for paid work; install it on your clients' machines; build paid consulting, training or support around it.
+
+**Section 13 only bites when two things happen together**: you *modify* Mr. Rao **and** you make it usable by others *over a network* (a web service, a company portal). Then you must offer the source of **your** version to the users of that service — not to the author. Whether you charge for it or not makes no difference: the AGPL does not look at price.
+
+That is the gap the plain GPL leaves open: putting software on a server is not distributing copies, so without section 13 you could keep your changes to yourself. For a tool that lives on trust, that gap was worth closing.
+
+This is a good-faith summary, not legal advice — the text that governs is [LICENSE](LICENSE).
 
 Distributed **without any warranty**, in the hope that it will be useful.
 Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_PARTY.md).
