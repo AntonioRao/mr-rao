@@ -86,6 +86,20 @@ A filter that redacts everything is as useless as one that redacts nothing. The 
 
 Two things hold the second one up: a vocabulary of Italian words that turn up capitalised, and a suffix check — "Industriale" and "Tecnico" end the way words end, not the way surnames end.
 
+### And what it cannot remove, it flags
+
+The detectors look for **valid** shapes. A scan produces **almost** valid ones: `A01` read as `AD1`, `IT60` read as `lT60`. The structure fails, the data stays in the text — and stays readable by a person.
+
+Replacing without certainty would mean redacting half the document. But saying nothing is worse, because **"3 redactions" on a clean document and "3 redactions" on a document the detector could not read are the same number and two opposite situations.**
+
+So the result tells them apart:
+
+```
+🛡️ 3 redazioni · ⚠️ 2 da controllare
+```
+
+Suspects are masked — `RS••••••••••••2S` — enough to find them in the document, not to read them. And an administrative record full of protocol, resolution and tender numbers produces **zero** of them: if every number raised a flag, the flag would stop being worth reading.
+
 ### No model
 
 The recognition is code, not a neural network. The same document always yields the same result, and every replacement can be explained by pointing at the rule that produced it. Nothing to download, nothing to train, nothing that behaves differently between two runs.

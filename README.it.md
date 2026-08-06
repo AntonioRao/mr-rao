@@ -86,6 +86,20 @@ Un filtro che redige tutto è inutile esattamente come uno che non redige niente
 
 Due presidi tengono in piedi il secondo: un vocabolario di parole italiane che capita di trovare maiuscole, e un controllo sulle terminazioni — «Industriale» e «Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
 
+### E quello che non riesce a togliere, lo dice
+
+I riconoscitori cercano forme **valide**. Una scansione produce forme **quasi** valide: `A01` letto `AD1`, `IT60` letto `lT60`. La struttura non torna, il dato resta nel testo — e resta leggibile da una persona.
+
+Sostituire senza certezza vorrebbe dire redigere mezzo documento. Ma tacere è peggio, perché **«3 redazioni» su un documento pulito e «3 redazioni» su un documento che il riconoscitore non ha saputo leggere sono lo stesso numero e due situazioni opposte.**
+
+Per questo il risultato distingue le due cose:
+
+```
+🛡️ 3 redazioni · ⚠️ 2 da controllare
+```
+
+I sospetti sono mascherati — `RS••••••••••••2S` — quanto basta a ritrovarli nel documento, non a leggerli. E un verbale pieno di protocolli, delibere e codici gara ne produce **zero**: se ogni numero diventasse un avviso, l'avviso non varrebbe più niente.
+
 ### Nessun modello
 
 Il riconoscimento è codice, non una rete neurale. Lo stesso documento dà **sempre** lo stesso risultato, e ogni sostituzione si spiega indicando la regola che l'ha prodotta. Niente da scaricare, niente da addestrare, niente che cambi comportamento fra due esecuzioni.
