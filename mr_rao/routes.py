@@ -16,8 +16,19 @@ from config import (
 )
 from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
 from mr_rao.jobs import job_store
-from mr_rao.privacy import options_from_form
-from mr_rao.profiles import get_profile, list_profiles, options_from_profile
+from mr_rao.privacy import (
+    FIELD_DEFAULTS,
+    PrivacyOptions,
+    no_redaction,
+    options_from_form,
+)
+from mr_rao.profiles import (
+    PROFILES,
+    get_profile,
+    list_profiles,
+    options_from_profile,
+    privacy_flags,
+)
 from mr_rao.user_folders import (
     browse_folder,
     describe_default_folders,
@@ -49,13 +60,42 @@ def _truthy(val, default: bool = False) -> bool:
     return str(val).lower() in ("1", "true", "yes", "on")
 
 
+def _merge_privacy(form, profile: dict) -> PrivacyOptions:
+    """Flag privacy del profilo, con sopra quelli presenti nel modulo.
+
+    Un campo assente resta quello del profilo: un client che manda solo
+    ``profile`` continua ad avere esattamente il preset. Un campo presente
+    vince sempre, perche' e' una scelta esplicita di chi sta convertendo.
+    """
+    if "privacy_filter" in form:
+        master = _truthy(form.get("privacy_filter"), True)
+    else:
+        master = bool(profile.get("privacy_filter"))
+    if not master:
+        return no_redaction()
+
+    # Se il profilo aveva la redazione spenta non ci sono flag da cui
+    # partire: la base tornano a essere i valori predefiniti del motore.
+    base = privacy_flags(profile) if profile.get("privacy_filter") else dict(FIELD_DEFAULTS)
+    return PrivacyOptions(
+        **{
+            k: (_truthy(form.get("privacy_" + k), v) if "privacy_" + k in form else v)
+            for k, v in base.items()
+        }
+    )
+
+
 def _parse_options_from_request() -> ConvertOptions:
     form = request.form
     profile_id = form.get("profile") or form.get("preset")
     if profile_id:
         opts = options_from_profile(profile_id)
         if opts:
-            # Allow form overrides on top of profile for a few keys
+            # Il profilo e' il punto di partenza, non l'ultima parola: quello
+            # che l'utente ha toccato vince. Prima il profilo vinceva su
+            # tutto, e siccome l'interfaccia manda sempre il profilo, l'intero
+            # pannello «Quali dati nascondere» — interruttore generale
+            # compreso — non comandava nulla.
             if form.get("engine"):
                 eng = form.get("engine")
                 if eng == "paddleocr":
@@ -63,6 +103,17 @@ def _parse_options_from_request() -> ConvertOptions:
                 opts.engine = eng
             if form.get("language"):
                 opts.language = form.get("language", opts.language)
+            opts.privacy = _merge_privacy(form, PROFILES[profile_id])
+            for attr, key in (
+                ("include_tables", "include_tables"),
+                ("include_frontmatter", "include_frontmatter"),
+                ("clean_output", "clean_output"),
+                ("force_ocr_pdf", "force_ocr_pdf"),
+                ("include_raw", "include_raw"),
+                ("extract_attachments", "extract_attachments"),
+            ):
+                if key in form:
+                    setattr(opts, attr, _truthy(form.get(key), getattr(opts, attr)))
             return opts
 
     engine = form.get("engine", "auto")
