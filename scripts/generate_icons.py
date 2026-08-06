@@ -246,6 +246,14 @@ def main() -> None:
     ico_master.save(OUT / "favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)])
     print(f"  wrote {ico_path}")
     print(f"  wrote {OUT / 'favicon.ico'}")
+    # Prefer raster derived from final logo.png so ICO == site mark
+    try:
+        from scripts.sync_icons_from_logo import main as sync_main
+
+        print("Syncing ICO/favicon from logo.png …")
+        sync_main()
+    except Exception as e:
+        print(f"  (sync_icons_from_logo skipped: {e})")
     print("Done.")
 
 
