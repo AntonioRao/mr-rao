@@ -1,7 +1,74 @@
 from pathlib import Path
 
-from mr_rao.converter import ConvertOptions, convert_file, merge_markdowns, ConvertResult
+import pytest
+
+from mr_rao.converter import (
+    ConvertOptions,
+    ConvertResult,
+    _frontmatter,
+    convert_file,
+    merge_markdowns,
+)
 from mr_rao.privacy import PrivacyOptions, RedactionReport
+
+
+def _parse_frontmatter(blocco: str) -> dict:
+    """Estrae e valida il blocco YAML tra i due '---'."""
+    yaml = pytest.importorskip("yaml")
+    righe = blocco.strip().splitlines()
+    assert righe[0] == "---" and righe[-1] == "---"
+    return yaml.safe_load("\n".join(righe[1:-1]))
+
+
+def test_frontmatter_e_yaml_valido_senza_redazioni():
+    dati = _parse_frontmatter(
+        _frontmatter("nota.txt", ".txt", "markitdown", "abc123", RedactionReport())
+    )
+    assert dati["source"] == "nota.txt"
+    assert dati["format"] == "txt"
+    assert dati["engine"] == "markitdown"
+
+
+def test_frontmatter_e_yaml_valido_con_redazioni():
+    """'redactions: 5' seguito da chiavi indentate non è YAML valido:
+    va annidato come mappa."""
+    report = RedactionReport()
+    report.add("emails", 2)
+    report.add("phones", 3)
+    dati = _parse_frontmatter(_frontmatter("a.pdf", ".pdf", "markitdown", "h", report))
+    assert dati["redactions"] == {"total": 5, "emails": 2, "phones": 3}
+
+
+@pytest.mark.parametrize(
+    "nome",
+    [
+        "verbale: seduta 12.pdf",
+        'preventivo "definitivo".pdf',
+        "#bozza.pdf",
+        "note - 50% sconto.pdf",
+        "C:\\percorso\\file.pdf",
+    ],
+)
+def test_frontmatter_regge_nomi_file_ostili(nome):
+    dati = _parse_frontmatter(_frontmatter(nome, ".pdf", "markitdown", "h", RedactionReport()))
+    assert dati["source"] == nome
+
+
+def test_frontmatter_nel_markdown_resta_parsabile(tmp_path):
+    """Controllo end-to-end: il documento prodotto ha un frontmatter valido."""
+    p = tmp_path / "contatti.txt"
+    p.write_text("scrivi a mario.rossi@example.com", encoding="utf-8")
+    r = convert_file(
+        p,
+        options=ConvertOptions(
+            include_frontmatter=True,
+            privacy=PrivacyOptions(use_scrubadub=False),
+        ),
+    )
+    assert r.redaction.total >= 1
+    fine = r.markdown.index("\n---", 3)
+    dati = _parse_frontmatter(r.markdown[: fine + 4])
+    assert dati["redactions"]["total"] == r.redaction.total
 
 
 def test_convert_txt(tmp_path):

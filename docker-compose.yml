@@ -2,11 +2,18 @@ services:
   mr-rao:
     build: .
     ports:
-      - "5000:5000"
+      # Pubblicato SOLO su localhost: Mr. Rao non ha autenticazione e
+      # /api/watch scrive .md su percorsi arbitrari del container.
+      # Per esporlo in rete: togli "127.0.0.1:", metti il servizio dietro un
+      # reverse proxy con auth e imposta MR_RAO_ALLOWED_HOSTS.
+      - "127.0.0.1:5000:5000"
     environment:
+      # 0.0.0.0 serve dentro il container; l'esposizione la decide "ports".
       MR_RAO_HOST: "0.0.0.0"
       MR_RAO_PORT: "5000"
       MR_RAO_DEBUG: "0"
+      # Host ammessi negli header (anti DNS-rebinding). "*" = qualunque.
+      MR_RAO_ALLOWED_HOSTS: "127.0.0.1,localhost"
     volumes:
       - ./uploads:/app/uploads
     restart: unless-stopped

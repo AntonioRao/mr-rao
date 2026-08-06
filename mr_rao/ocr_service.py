@@ -1,24 +1,27 @@
 """OCR helpers: RapidOCR images + PDF page fallback + table extraction."""
 from __future__ import annotations
 
-import io
-import os
-import uuid
+import tempfile
+import threading
 from pathlib import Path
 from typing import Callable
 
-from config import MAX_OCR_PAGES, OCR_DPI, UPLOAD_FOLDER
+from config import MAX_OCR_PAGES, OCR_DPI
 
-# Lazy singleton
+# Lazy singleton. The lock matters: two concurrent requests would otherwise
+# each build a RapidOCR instance (hundreds of MB of ONNX models).
 _ocr = None
+_ocr_lock = threading.Lock()
 
 
 def get_ocr():
     global _ocr
     if _ocr is None:
-        from rapidocr_onnxruntime import RapidOCR
+        with _ocr_lock:
+            if _ocr is None:
+                from rapidocr_onnxruntime import RapidOCR
 
-        _ocr = RapidOCR()
+                _ocr = RapidOCR()
     return _ocr
 
 
@@ -96,44 +99,40 @@ def ocr_pdf_fallback(
         return None
 
     max_pages = max_pages if max_pages is not None else MAX_OCR_PAGES
-    upload = Path(UPLOAD_FOLDER)
-    upload.mkdir(parents=True, exist_ok=True)
 
     all_text: list[str] = []
     tables_md = extract_pdf_tables(filepath) if include_tables else ""
 
     try:
-        with pdfplumber.open(str(filepath)) as pdf:
-            total = min(len(pdf.pages), max_pages)
-            if len(pdf.pages) > max_pages and progress:
-                progress(0, total, f"Limite {max_pages} pagine OCR (PDF ne ha {len(pdf.pages)})")
+        # Page rasters are intermediate data of a "100% local, minimal disk
+        # dwell" pipeline: they belong in the OS temp dir, not next to the exe
+        # (uploads/ may be read-only, and leftovers survive a crash).
+        with tempfile.TemporaryDirectory(prefix="mrrao_ocr_") as tmpdir:
+            tmp = Path(tmpdir)
+            with pdfplumber.open(str(filepath)) as pdf:
+                total = min(len(pdf.pages), max_pages)
+                if len(pdf.pages) > max_pages and progress:
+                    progress(0, total, f"Limite {max_pages} pagine OCR (PDF ne ha {len(pdf.pages)})")
 
-            for i, page in enumerate(pdf.pages[:max_pages]):
-                if should_cancel and should_cancel():
-                    return None
-                if progress:
-                    progress(i + 1, total, f"OCR pagina {i + 1}/{total}…")
+                for i, page in enumerate(pdf.pages[:max_pages]):
+                    if should_cancel and should_cancel():
+                        return None
+                    if progress:
+                        progress(i + 1, total, f"OCR pagina {i + 1}/{total}…")
 
-                try:
-                    img = page.to_image(resolution=OCR_DPI)
-                    img_bytes = io.BytesIO()
-                    img.original.save(img_bytes, format="PNG")
-                    img_bytes.seek(0)
-
-                    temp_img_path = upload / f"_ocr_page_{i}_{uuid.uuid4().hex[:8]}.png"
-                    temp_img_path.write_bytes(img_bytes.read())
+                    temp_img_path = tmp / f"page_{i}.png"
                     try:
+                        page.to_image(resolution=OCR_DPI).original.save(
+                            temp_img_path, format="PNG"
+                        )
                         page_text = ocr_image(temp_img_path, language=language)
                         if page_text:
                             all_text.append(f"<!-- Pagina {i + 1} -->\n\n{page_text}")
+                    except Exception as page_err:
+                        print(f"OCR page {i + 1} error: {page_err}")
+                        continue
                     finally:
-                        try:
-                            os.remove(temp_img_path)
-                        except OSError:
-                            pass
-                except Exception as page_err:
-                    print(f"OCR page {i + 1} error: {page_err}")
-                    continue
+                        temp_img_path.unlink(missing_ok=True)
     except Exception as e:
         print(f"OCR PDF fallback error: {e}")
         return None

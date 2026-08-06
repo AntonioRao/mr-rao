@@ -16,6 +16,7 @@ from pathlib import Path
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION
 from mr_rao.converter import ConvertOptions, convert_file, merge_markdowns
 from mr_rao.privacy import PrivacyOptions
+from mr_rao.watch_service import output_path_for
 
 
 def _build_options(args: argparse.Namespace) -> ConvertOptions:
@@ -133,7 +134,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
                 if r.error:
                     print(f"  ERRORE: {r.error}")
                     continue
-                dest = outbox / (path.stem + ".md")
+                dest = output_path_for(outbox, path)
                 dest.write_text(r.markdown, encoding="utf-8")
                 print(f"  -> {dest}")
                 if args.move_done:

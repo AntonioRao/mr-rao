@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import tempfile
-import uuid
-from dataclasses import dataclass, field
+import threading
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -18,15 +19,27 @@ ProgressCb = Callable[[int, int, str], None]
 CancelCb = Callable[[], bool]
 
 _md = None
+_md_lock = threading.Lock()
 
 
 def get_markitdown():
     global _md
     if _md is None:
-        from markitdown import MarkItDown
+        with _md_lock:  # two concurrent uploads must not build two instances
+            if _md is None:
+                from markitdown import MarkItDown
 
-        _md = MarkItDown()
+                _md = MarkItDown()
     return _md
+
+
+class Cancelled(Exception):
+    """Raised at a pipeline stage boundary when the user cancelled the job."""
+
+
+def _stop_if_cancelled(should_cancel: CancelCb | None) -> None:
+    if should_cancel and should_cancel():
+        raise Cancelled()
 
 
 @dataclass
@@ -76,12 +89,39 @@ def _empty_message() -> str:
 
 def _strip_noise(text: str) -> str:
     """Clean copy for LLM paste: drop HTML comments and trailing privacy notes."""
-    import re
-
     text = re.sub(r"<!--.*?-->\n?", "", text, flags=re.DOTALL)
     text = re.sub(r"\n?> 🛡️ \*.*$", "", text, flags=re.MULTILINE)
     text = re.sub(r"\n?> ℹ️ \*.*$", "", text, flags=re.MULTILINE)
     return text.strip()
+
+
+_RE_YAML_KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_\-]*\s*:")
+
+
+def strip_frontmatter(markdown: str) -> str:
+    """Remove the leading YAML block, if there really is one.
+
+    "starts with ---" is not enough: a document whose first line is a Markdown
+    horizontal rule would lose everything up to the next '---'. The second line
+    must also look like a YAML key.
+    """
+    if not markdown.startswith("---"):
+        return markdown
+    lines = markdown.split("\n")
+    if len(lines) < 3 or lines[0].strip() != "---":
+        return markdown
+    if not _RE_YAML_KEY.match(lines[1]):
+        return markdown
+    for i in range(1, len(lines)):
+        if lines[i].strip() in ("---", "..."):
+            return "\n".join(lines[i + 1 :]).lstrip("\n")
+    return markdown
+
+
+def _yaml_str(value: str) -> str:
+    """Quote a scalar so any filename is valid YAML (colons, quotes, #, ...)."""
+    escaped = str(value).replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 def _frontmatter(
@@ -94,15 +134,17 @@ def _frontmatter(
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
         "---",
-        f"generator: {APP_NAME} {APP_VERSION}",
-        f"source: {source_name}",
-        f"format: {source_ext.lstrip('.')}",
-        f"engine: {engine_used}",
+        f"generator: {_yaml_str(f'{APP_NAME} {APP_VERSION}')}",
+        f"source: {_yaml_str(source_name)}",
+        f"format: {_yaml_str(source_ext.lstrip('.'))}",
+        f"engine: {_yaml_str(engine_used)}",
         f"converted_at: {now}",
-        f"source_hash: {file_hash}",
+        f"source_hash: {_yaml_str(file_hash)}",
     ]
     if redaction.total:
-        lines.append(f"redactions: {redaction.total}")
+        # Nested mapping — "redactions: 5" followed by indented keys is not valid YAML.
+        lines.append("redactions:")
+        lines.append(f"  total: {redaction.total}")
         for k, v in sorted(redaction.counts.items()):
             lines.append(f"  {k}: {v}")
     lines.append("---\n")
@@ -116,7 +158,9 @@ def convert_file(
     progress: ProgressCb | None = None,
     should_cancel: CancelCb | None = None,
 ) -> ConvertResult:
-    opts = options or ConvertOptions()
+    # Shallow copy: callers (batch, hotfolder) reuse a single ConvertOptions
+    # across files, so this function must never write back into it.
+    opts = replace(options) if options is not None else ConvertOptions()
     path = Path(filepath)
     original_name = original_name or path.name
     ext = path.suffix.lower()
@@ -129,14 +173,7 @@ def convert_file(
     attachments: list[dict] = []
 
     try:
-        if should_cancel and should_cancel():
-            return ConvertResult(
-                markdown="",
-                engine_used="cancelled",
-                source_name=original_name,
-                source_ext=ext,
-                error="Conversione annullata",
-            )
+        _stop_if_cancelled(should_cancel)
 
         if ext == ".eml":
             if progress:
@@ -150,29 +187,22 @@ def convert_file(
                     attachments = extract_attachments(path)
                 except Exception as e:
                     print(f"EML attachments error: {e}")
-            # EML always applies privacy if any privacy flag is on; default on for emails
-            if not any(
-                [
-                    opts.privacy.emails,
-                    opts.privacy.phones,
-                    opts.privacy.names,
-                    opts.privacy.fiscal,
-                    opts.privacy.amounts,
-                    opts.privacy.use_scrubadub,
-                ]
-            ):
-                # Force sensible defaults for EML if master was off but it's email
-                opts.privacy = PrivacyOptions()
+            # NOTE: no privacy override here. Whether an .eml defaults to redacted
+            # is decided once at the boundary (options_from_form / CLI defaults);
+            # forcing it here would both ignore an explicit "no redaction" choice
+            # and leak that choice into the next file of a batch.
 
-        elif opts.engine == "rapidocr" or (
-            opts.engine == "auto" and ext in IMAGE_EXTENSIONS
-        ):
+        elif ext in IMAGE_EXTENSIONS and opts.engine in ("auto", "rapidocr"):
             if progress:
                 progress(1, 1, "OCR immagine…")
             final_text = ocr_image(path, language=opts.language)
             engine_used = "rapidocr"
 
-        elif opts.engine == "rapidocr" and ext == ".pdf":
+        elif ext == ".pdf" and opts.engine == "rapidocr":
+            # Must stay ahead of the generic branch: a PDF is not an image,
+            # feeding it to ocr_image() fails with "cannot identify image file".
+            if progress:
+                progress(0, 1, "OCR PDF…")
             final_text = ocr_pdf_fallback(
                 path,
                 language=opts.language,
@@ -208,11 +238,9 @@ def convert_file(
                 except Exception as e:
                     print(f"Table extract error: {e}")
 
+            # engine == "rapidocr" never reaches here: it is dispatched above.
             needs_ocr = ext == ".pdf" and (
-                opts.force_ocr_pdf
-                or opts.engine == "rapidocr"
-                or not final_text
-                or not str(final_text).strip()
+                opts.force_ocr_pdf or not final_text or not str(final_text).strip()
             )
             if needs_ocr and ext == ".pdf":
                 if progress:
@@ -233,6 +261,11 @@ def convert_file(
             elif tables_extra and not final_text:
                 final_text = tables_extra
                 engine_used = "pdf_tables"
+
+        # Cancel is honoured at every stage boundary. A single markitdown call
+        # is not interruptible from outside, so the earliest we can stop is
+        # here — before the (often much slower) privacy pass over the text.
+        _stop_if_cancelled(should_cancel)
 
         redaction = RedactionReport()
         markdown_raw: str | None = None
@@ -257,6 +290,8 @@ def convert_file(
             final_text = _empty_message()
             empty = True
 
+        _stop_if_cancelled(should_cancel)
+
         if opts.clean_output and final_text:
             final_text = _strip_noise(final_text)
             if markdown_raw:
@@ -277,6 +312,14 @@ def convert_file(
             empty=empty,
             markdown_raw=markdown_raw,
             attachments=attachments,
+        )
+    except Cancelled:
+        return ConvertResult(
+            markdown="",
+            engine_used="cancelled",
+            source_name=original_name,
+            source_ext=ext,
+            error="Conversione annullata",
         )
     except Exception as e:
         print(f"convert_file error: {e}")
@@ -351,22 +394,5 @@ def merge_markdowns(
         if r.error:
             parts.append(f"> Errore: {r.error}\n")
         else:
-            body = r.markdown
-            if body.startswith("---"):
-                end = body.find("\n---", 3)
-                if end != -1:
-                    body = body[end + 4 :].lstrip("\n")
-            parts.append(body)
+            parts.append(strip_frontmatter(r.markdown))
     return "\n".join(parts)
-
-
-def unique_upload_path(upload_dir: Path, original_filename: str) -> tuple[Path, str]:
-    """Return (path, safe_original_basename) with UUID prefix to avoid collisions."""
-    from werkzeug.utils import secure_filename
-
-    original_ext = Path(original_filename).suffix.lower() if "." in original_filename else ""
-    safe = secure_filename(original_filename)
-    if not safe:
-        safe = f"file{original_ext}"
-    name = f"{uuid.uuid4().hex[:12]}_{safe}"
-    return upload_dir / name, Path(original_filename).name

@@ -19,14 +19,40 @@ def _safe_print(msg: str) -> None:
         print(msg.encode("ascii", "replace").decode("ascii"))
 
 
-def _run_server():
+def _run_server(port: int):
     app.run(
         debug=config.DEBUG,
         host=config.HOST,
-        port=config.PORT,
+        port=port,
         use_reloader=False,
         threaded=True,
     )
+
+
+def _resolve_port() -> int:
+    """Scegli una porta libera e dillo, invece di sovrapporsi in silenzio.
+
+    Su Windows il bind su una porta occupata riesce comunque (SO_REUSEADDR):
+    senza questo controllo l'app apre il browser su un server altrui — tipico
+    caso: una vecchia versione installata ancora in esecuzione.
+    """
+    from mr_rao.portcheck import describe_occupant, find_free_port, port_in_use
+
+    port = config.PORT
+    if not port_in_use(config.HOST, port):
+        return port
+
+    occupante = describe_occupant(config.HOST, port) or "un altro programma"
+    libera = find_free_port(config.HOST, port + 1)
+    _safe_print("")
+    _safe_print(f"!! La porta {port} e' gia' occupata da: {occupante}")
+    if libera is None:
+        _safe_print("!! Nessuna porta libera trovata. Chiudi l'altra istanza e riprova.")
+        raise SystemExit(1)
+    _safe_print(f"!! Se volevi usare quella, chiudi prima l'altra istanza.")
+    _safe_print(f"-> Questa istanza parte sulla porta {libera}.")
+    _safe_print("")
+    return libera
 
 
 if __name__ == "__main__":
@@ -41,14 +67,19 @@ if __name__ == "__main__":
 
         raise SystemExit(cli_main(["convert", *sys.argv[1:]]))
 
-    url = f"http://{config.HOST}:{config.PORT}"
     _safe_print(f"{config.APP_NAME} v{config.APP_VERSION}")
+    port = _resolve_port()
+    from mr_rao.portcheck import connect_host
+
+    url = f"http://{connect_host(config.HOST)}:{port}"
     _safe_print(f"-> {url}")
     _safe_print(
         f"   debug={config.DEBUG} tray={config.USE_TRAY} frozen={getattr(sys, 'frozen', False)}"
     )
 
-    server = threading.Thread(target=_run_server, daemon=True, name="mr-rao-http")
+    server = threading.Thread(
+        target=_run_server, args=(port,), daemon=True, name="mr-rao-http"
+    )
     server.start()
 
     if config.OPEN_BROWSER:
