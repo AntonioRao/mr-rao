@@ -136,6 +136,19 @@ function Install-Shell {
         $falliti += 'menu contestuale'
     }
 
+    # Aggiornando una versione precedente il file .ico cambia contenuto
+    # restando allo stesso percorso, ed e' esattamente il caso in cui
+    # Windows continua a disegnare quello che ha in cache: il collegamento
+    # c'e', funziona, e mostra un riquadro bianco. Capita a ogni
+    # aggiornamento, non solo facendo prove.
+    try {
+        & "$env:SystemRoot\System32\ie4uinit.exe" -show 2>&1 | Out-Null
+        Write-Host '  OK      cache delle icone aggiornata'
+    } catch {
+        Write-Host '  nota:   cache delle icone non aggiornata; se il'
+        Write-Host '          collegamento appare bianco, premi F5 sul desktop'
+    }
+
     if ($falliti.Count -gt 0) {
         Write-Host ''
         Write-Host ("ATTENZIONE: collegamenti non creati -> {0}" -f ($falliti -join ', '))
