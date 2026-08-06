@@ -5,7 +5,12 @@
 
 Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze.
 Le loro licenze restano integre e **prevalgono** sui rispettivi file.
-La [LICENSE](LICENSE) di Mr. Rao **non** limita i diritti sulle librerie qui elencate.
+
+Mr. Rao è distribuito sotto **[AGPL-3.0](LICENSE)**. Tutte le licenze qui
+elencate sono compatibili con l'AGPL-3.0: permissive (MIT, BSD, Apache-2.0,
+PSF), copyleft di file (MPL-2.0, esplicitamente compatibile) e LGPL, che
+l'AGPL può incorporare. La licenza di Mr. Rao **non** limita i diritti che
+queste librerie concedono.
 
 Pacchetti nell'ambiente: **70** — di cui **6** con obblighi
 oltre la semplice attribuzione (copyleft o eccezioni).

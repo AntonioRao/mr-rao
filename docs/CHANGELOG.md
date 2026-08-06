@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.3.1 — Software libero sotto AGPL-3.0, README bilingue
+
+### Licenza: da «source available» ad AGPL-3.0
+
+La licenza non commerciale su misura stava costando più di quanto proteggesse:
+GitHub non la riconosce (nessuna corrispondenza SPDX), non si poteva chiamare
+open source senza essere smentiti, e gli uffici legali di studi e PMI — cioè
+il pubblico a cui l'app serve di più — tendono a bloccare le licenze atipiche.
+
+Mr. Rao è ora **software libero sotto GNU AGPL-3.0**. Uso commerciale incluso.
+L'unico obbligo serio scatta per chi lo offre ad altri **attraverso una rete**:
+l'articolo 13 impone di rendere disponibile il sorgente della propria versione.
+È esattamente la protezione che serviva, senza chiudere l'uso professionale.
+
+Effetto collaterale positivo sulla conformità LGPL: distribuendo il sorgente
+completo, l'obbligo di consentire la sostituzione di pystray e python-stdnum è
+soddisfatto di conseguenza, non più per analogia.
+
+- `LICENSE` — testo AGPL-3.0 integrale (fonte: gnu.org)
+- Avviso di copyright e non-garanzia in `app.py` e `mr_rao/__init__.py`
+- Footer e modal informazioni riscritti (obbligo AGPL sulle interfacce interattive)
+- Verificata la compatibilità: tutte le dipendenze (MIT, BSD, Apache-2.0,
+  MPL-2.0, LGPL, PSF) sono compatibili con AGPL-3.0
+
+### Documentazione
+
+- **README bilingue**: `README.md` in inglese, `README.it.md` in italiano,
+  con selettore di lingua in testa a entrambi
+- **Screenshot reale** dell'interfaccia in `docs/img/`, prodotto con Chrome
+  headless su una conversione vera (non un mockup), più immagine 1280×640
+  per l'anteprima social
+
 ## 1.3.0 — Audit: privacy dei default, GET sicure, licenze verificabili (161 test)
 
 Release nata da un audit completo. Tutti i punti sotto erano **verificati

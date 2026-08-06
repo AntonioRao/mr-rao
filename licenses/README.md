@@ -33,8 +33,9 @@ Conformità LGPL (in sintesi, non parere legale):
 4. **Sostituzione della libreria** — Mr. Rao importa `pystray` come modulo Python
    standard; puoi installare un’altra versione o un fork compatibile nell’ambiente
    Python / nel bundle (vedi `docs/LGPL_PYSTRAY.md`).  
-5. **Nessuna restrizione aggiuntiva su pystray** — la licenza commerciale di
-   Mr. Rao **non** si applica a pystray.
+5. **Nessuna restrizione aggiuntiva su pystray.** Mr. Rao è distribuito sotto
+   AGPL-3.0, compatibile con la LGPL: distribuendo il sorgente, l'obbligo di
+   consentire la sostituzione della libreria è soddisfatto di conseguenza.
 
 ## python-stdnum (LGPL-2.1+)
 

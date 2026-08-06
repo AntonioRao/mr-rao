@@ -27,7 +27,7 @@ def _writable_dir() -> Path:
 APP_NAME = "Mr. Rao"
 APP_SLUG = "mr-rao"
 APP_TAGLINE = "Dal documento al Markdown. Offline. Firmato Rao."
-APP_VERSION = "1.3.0"
+APP_VERSION = "1.3.1"
 
 # Paths
 BASE_DIR = _base_dir()
