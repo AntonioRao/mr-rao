@@ -1,4 +1,11 @@
-"""Privacy / PII scrubbing — Scrubadub + Italian detectors + granular filters."""
+"""Riconoscimento e sostituzione dei dati personali (formati italiani).
+
+Ogni riconoscitore e' un'espressione regolare accompagnata da un validatore:
+il pattern propone, il validatore decide. E' quello che tiene bassi i falsi
+positivi senza rinunciare alla copertura — un IBAN si accetta solo se il
+mod-97 torna, un numero e' un telefono solo con prefisso, separatore o
+parola di contesto.
+"""
 from __future__ import annotations
 
 import re
@@ -100,7 +107,6 @@ class PrivacyOptions:
     names: bool = True
     fiscal: bool = True  # CF, P.IVA, IBAN
     amounts: bool = False
-    use_scrubadub: bool = True
 
 
 @dataclass
@@ -249,26 +255,6 @@ def apply_privacy_filter(
     if opts.names:
         out = _scrub_italian_names(out, report)
 
-    if opts.use_scrubadub:
-        try:
-            import scrubadub
-
-            before = out
-            out = scrubadub.clean(out)
-            # Approximate: count placeholder-like changes
-            if out != before:
-                # scrubadub uses {{EMAIL}}, {{PHONE}}, {{NAME}} etc.
-                for kind, token in (
-                    ("emails", "{{EMAIL}}"),
-                    ("phones", "{{PHONE}}"),
-                    ("names", "{{NAME}}"),
-                ):
-                    delta = out.count(token) - before.count(token)
-                    if delta > 0:
-                        report.add(kind, delta)
-        except Exception:
-            pass
-
     return out, report
 
 
@@ -292,7 +278,6 @@ def options_from_form(form) -> PrivacyOptions:
             names=False,
             fiscal=False,
             amounts=False,
-            use_scrubadub=False,
         )
 
     return PrivacyOptions(
@@ -301,7 +286,6 @@ def options_from_form(form) -> PrivacyOptions:
         names=flag("privacy_names", True),
         fiscal=flag("privacy_fiscal", True),
         amounts=flag("privacy_amounts", False),
-        use_scrubadub=flag("privacy_scrubadub", True),
     )
 
 
@@ -314,7 +298,6 @@ def options_from_dict(data: dict | None) -> PrivacyOptions:
             names=False,
             fiscal=False,
             amounts=False,
-            use_scrubadub=False,
         )
     return PrivacyOptions(
         emails=bool(data.get("privacy_emails", True)),
@@ -322,5 +305,4 @@ def options_from_dict(data: dict | None) -> PrivacyOptions:
         names=bool(data.get("privacy_names", True)),
         fiscal=bool(data.get("privacy_fiscal", True)),
         amounts=bool(data.get("privacy_amounts", False)),
-        use_scrubadub=bool(data.get("privacy_scrubadub", True)),
     )

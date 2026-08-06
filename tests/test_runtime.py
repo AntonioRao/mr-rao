@@ -13,7 +13,7 @@ from mr_rao.watch_service import output_path_for
 
 NO_PRIVACY = PrivacyOptions(
     emails=False, phones=False, names=False, fiscal=False,
-    amounts=False, use_scrubadub=False,
+    amounts=False,
 )
 
 
@@ -158,7 +158,7 @@ def test_avviso_quando_la_redazione_lavora_su_testo_ocr(tmp_path, monkeypatch):
 
     r = convert_file(
         p,
-        options=ConvertOptions(engine="rapidocr", privacy=PrivacyOptions(use_scrubadub=False)),
+        options=ConvertOptions(engine="rapidocr", privacy=PrivacyOptions()),
     )
     assert "rapidocr" in r.engine_used
     assert "OCR" in r.markdown and "confronto prima/dopo" in r.markdown
@@ -168,7 +168,7 @@ def test_nessun_avviso_ocr_sui_documenti_nativi(tmp_path):
     """Su un documento con testo nativo l'avviso sarebbe rumore."""
     p = tmp_path / "nota.txt"
     p.write_text("CF RSSMRA80A01H501U", encoding="utf-8")
-    r = convert_file(p, options=ConvertOptions(privacy=PrivacyOptions(use_scrubadub=False)))
+    r = convert_file(p, options=ConvertOptions(privacy=PrivacyOptions()))
     assert "{{CODICE_FISCALE}}" in r.markdown
     assert "confronto prima/dopo" not in r.markdown
 

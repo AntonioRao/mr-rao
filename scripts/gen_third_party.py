@@ -1,9 +1,9 @@
 """Genera THIRD_PARTY.md dai metadati dei pacchetti realmente installati.
 
 Perché uno script e non un elenco scritto a mano: un elenco a mano invecchia
-in silenzio e sbaglia. La prima stesura di questo file dichiarava Scrubadub
-come MIT (è Apache-2.0) e ometteva del tutto python-stdnum, che è LGPL —
-cioè proprio la categoria che impone obblighi.
+in silenzio e sbaglia. Una stesura manuale aveva già attribuito una licenza
+sbagliata a una dipendenza e ne aveva omessa un'altra con obblighi reali —
+proprio la categoria che non si può permettere di sbagliare.
 
 Uso:
     venv\\Scripts\\python scripts\\gen_third_party.py            # scrive THIRD_PARTY.md
@@ -26,7 +26,6 @@ RUOLI = {
     "flask": "Server web locale",
     "werkzeug": "Livello WSGI",
     "beautifulsoup4": "Corpo HTML delle email → testo",
-    "scrubadub": "Redazione PII (in aggiunta ai riconoscitori italiani)",
     "pdfplumber": "Estrazione testo e tabelle da PDF",
     "pdfminer.six": "Parsing PDF (usato da pdfplumber)",
     "pillow": "Immagini",
@@ -42,7 +41,6 @@ COPYLEFT = ("LGPL", "GPL", "MPL", "MOZILLA", "EUPL", "CDDL")
 
 NOTICE_LOCALI = {
     "pystray": "licenses/pystray/",
-    "python-stdnum": "licenses/python-stdnum/",
 }
 
 
@@ -149,17 +147,17 @@ def genera() -> str:
     for v in copyleft:
         a(riga(v, con_ruolo=False))
     a("")
-    a("**pystray** (LGPL-3.0) e **python-stdnum** (LGPL-2.1+) sono le uniche due")
-    a("librerie LGPL del pacchetto. Per entrambe: testo di licenza, NOTICE e")
-    a("istruzioni di sostituzione in `licenses/`. Mr. Rao non impone restrizioni")
-    a("aggiuntive su di esse — vedi `LICENSE` §5.")
+    a("**pystray** (LGPL-3.0) è l'unica libreria LGPL del pacchetto: testo di")
+    a("licenza, NOTICE e istruzioni di sostituzione in `licenses/pystray/`.")
+    a("Essendo Mr. Rao distribuito sotto AGPL-3.0 con il sorgente completo,")
+    a("l'obbligo LGPL di consentirne la sostituzione è soddisfatto di conseguenza.")
     a("")
     a("**PyInstaller** è GPLv2-or-later **con eccezione esplicita** che consente di")
     a("costruire e distribuire programmi non liberi: è ciò che rende lecito")
     a("distribuire `MrRao.exe`, il cui bootloader deriva da PyInstaller.")
     a("Serve solo per costruire il pacchetto portable, non a runtime.")
     a("")
-    a("**MPL-2.0** (certifi, tqdm) è copyleft *per file*: obbliga a rendere")
+    a("**MPL-2.0** (certifi) è copyleft *per file*: obbliga a rendere")
     a("disponibile il sorgente dei soli file MPL eventualmente modificati.")
     a("Mr. Rao non li modifica.")
     a("")
@@ -198,12 +196,11 @@ def genera() -> str:
     a("La build portable (`scripts/build_portable.bat`) li copia già nel pacchetto.")
     a("")
 
-    a("## Se non vuoi dipendenze LGPL")
+    a("## Se non vuoi nemmeno la dipendenza LGPL")
     a("")
-    a("Disinstalla Scrubadub: sparisce anche python-stdnum, e Mr. Rao continua a")
-    a("funzionare con i riconoscitori italiani propri (email, telefoni, codice")
-    a("fiscale, P.IVA, IBAN con verifica mod-97, nomi). Per l'icona nella barra")
-    a("di sistema, disinstalla pystray: l'app resta utilizzabile dal browser.")
+    a("Disinstalla pystray: si perde solo l'icona nella barra di sistema, e")
+    a("l'applicazione resta pienamente utilizzabile dal browser e da riga di")
+    a("comando. Il riconoscimento dei dati personali non ne dipende.")
     a("")
     return "\n".join(r) + "\n"
 

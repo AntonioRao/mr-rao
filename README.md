@@ -4,7 +4,7 @@
 **All on your own machine, without sending anything anywhere.**
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.3.2-3b82f6)](docs/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.3-3b82f6)](docs/CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-164%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
@@ -127,13 +127,13 @@ Not a slogan — something you can check:
 
 Mr. Rao is **not** a fork of any of these projects: it uses them as dependencies, and their licences stay intact.
 
-The conversion core is **[MarkItDown](https://github.com/microsoft/markitdown)** by Microsoft (MIT). OCR is **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) on **[ONNX Runtime](https://onnxruntime.ai/)**. Everything else — Flask, BeautifulSoup, pdfplumber, Pillow, Scrubadub — is listed in full in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
+The conversion core is **[MarkItDown](https://github.com/microsoft/markitdown)** by Microsoft (MIT). OCR is **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) on **[ONNX Runtime](https://onnxruntime.ai/)**. Everything else — Flask, BeautifulSoup, pdfplumber, Pillow — is listed in full in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
 
 > *Mr. Rao is not affiliated with or endorsed by Microsoft or any of the projects mentioned.*
 
 That list is not maintained by hand: [`scripts/gen_third_party.py`](scripts/gen_third_party.py) **generates** it from the metadata of the packages actually installed, and the quality gate fails if it ever drifts from them. So it cannot quietly go stale.
 
-Two libraries are **LGPL** (pystray and python-stdnum): licence texts, notices and replacement instructions live in [`licenses/`](licenses/).
+One library is **LGPL** (pystray, for the system tray icon): its licence text, notice and replacement instructions live in [`licenses/`](licenses/).
 
 ---
 

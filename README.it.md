@@ -4,7 +4,7 @@
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.3.2-3b82f6)](docs/CHANGELOG.md)
+[![Versione](https://img.shields.io/badge/versione-1.3.3-3b82f6)](docs/CHANGELOG.md)
 [![Test](https://img.shields.io/badge/test-164%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
@@ -129,13 +129,13 @@ Non è uno slogan, è verificabile:
 
 Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze, e le loro licenze restano intatte.
 
-Il cuore della conversione è **[MarkItDown](https://github.com/microsoft/markitdown)** di Microsoft (MIT). L'OCR è **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) su **[ONNX Runtime](https://onnxruntime.ai/)**. Il resto — Flask, BeautifulSoup, pdfplumber, Pillow, Scrubadub — è elencato per intero in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
+Il cuore della conversione è **[MarkItDown](https://github.com/microsoft/markitdown)** di Microsoft (MIT). L'OCR è **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) su **[ONNX Runtime](https://onnxruntime.ai/)**. Il resto — Flask, BeautifulSoup, pdfplumber, Pillow — è elencato per intero in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
 
 > *Mr. Rao non è affiliato né sponsorizzato da Microsoft o dagli altri progetti citati.*
 
 Quell'elenco non è scritto a mano: lo **genera** [`scripts/gen_third_party.py`](scripts/gen_third_party.py) leggendo i metadati dei pacchetti realmente installati, e il quality gate fallisce se si discosta da quelli. Così non può invecchiare in silenzio.
 
-Due librerie sono **LGPL** (pystray e python-stdnum): testi di licenza, notice e istruzioni per sostituirle sono in [`licenses/`](licenses/). La licenza di Mr. Rao non impone restrizioni aggiuntive su di esse.
+Una sola libreria è **LGPL** (pystray, per l'icona nella barra di sistema): testo di licenza, notice e istruzioni per sostituirla sono in [`licenses/`](licenses/).
 
 ---
 
