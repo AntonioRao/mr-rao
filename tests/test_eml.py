@@ -40,3 +40,44 @@ def test_parse_eml_file(tmp_path):
     assert "Test Mr Rao" in md
     assert "Ciao dal test" in md
     assert "Ultimo messaggio" in md
+
+
+def test_la_nota_non_passa_dal_filtro_privacy(tmp_path):
+    """Mr. Rao non deve anonimizzare se stesso.
+
+    La nota in fondo alle email diceva «Documento elaborato da Mr. Rao», e
+    «Mr.» e' un titolo esattamente come «Dott.» o «Ing.»: usciva
+    «Mr. {{NAME}}». Buffo, ma il danno vero era un altro — quella
+    sostituzione **entrava nel conteggio**, e il numero di redazioni che
+    chiediamo all'utente di controllare risultava gonfiato di uno su ogni
+    singola email convertita.
+    """
+    from email.message import EmailMessage
+
+    from mr_rao.converter import ConvertOptions, convert_file
+
+    msg = EmailMessage()
+    msg["Subject"] = "Prova"
+    msg["From"] = "Mario Rossi <m.rossi@example.it>"
+    msg["To"] = "destinatario@example.it"
+    msg.set_content("Ciao, scrivimi a m.rossi@example.it")
+    percorso = tmp_path / "prova.eml"
+    percorso.write_bytes(msg.as_bytes())
+
+    r = convert_file(percorso, options=ConvertOptions(include_frontmatter=False))
+
+    assert "Mr. Rao." in r.markdown
+    assert "Mr. {{NAME}}" not in r.markdown
+    # Un solo nome nel documento: quello del mittente. Non due.
+    assert r.redaction.counts.get("names", 0) == 1
+
+
+def test_il_parser_non_aggiunge_piu_la_nota():
+    """La nota la mette convert_file a valle. Se tornasse dentro parse_eml
+    tornerebbe anche il conteggio sbagliato, senza che nulla si rompa."""
+    import inspect
+
+    from mr_rao import eml_parser
+
+    assert "Documento elaborato" not in inspect.getsource(eml_parser.parse_eml)
+    assert "Documento elaborato" in eml_parser.nota_elaborazione()

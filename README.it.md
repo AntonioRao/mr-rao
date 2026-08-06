@@ -7,7 +7,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Versione](https://img.shields.io/badge/versione-1.7.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-352%20passati-10b981)](tests/)
+[![Test](https://img.shields.io/badge/test-355%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -82,7 +82,7 @@ Nessun elenco di cognomi è completo. Per questo valgono anche le regole di cont
 
 Solo la quarta può sbagliare, ed è l'unica che si può spegnere da sola.
 
-### Il presidio che conta di più
+### Il controllo che conta di più
 
 Un filtro che redige tutto è inutile esattamente come uno che non redige niente. Il banco di prova sono **due** testi, e sono entrambi dei test:
 
@@ -91,7 +91,7 @@ Un filtro che redige tutto è inutile esattamente come uno che non redige niente
 | Una mail italiana con dieci categorie di dati personali | tutto | **29 sostituzioni, niente in chiaro** |
 | Un verbale con «Comitato Tecnico», «Piano Industriale», «Fase Uno», protocolli e codici gara | niente | **0 sostituzioni** |
 
-Due presidi tengono in piedi il secondo: un vocabolario di parole italiane che capita di trovare maiuscole, e un controllo sulle terminazioni — «Industriale» e «Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
+Due cose tengono in piedi il secondo: un vocabolario di parole italiane che capita di trovare maiuscole, e un controllo sulle terminazioni — «Industriale» e «Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
 
 ### E quello che non riesce a togliere, lo dice
 

@@ -59,7 +59,7 @@ backup e nello zip che passa a un collega.
 Quella che si guadagna il posto è la prima: impedisce di incorniciare
 l'applicazione in un'altra pagina. Il contenuto non sarebbe comunque
 leggibile — c'è la same-origin policy — ma il **clic** sì, e qui un clic
-accende la sorveglianza di una cartella. `nosniff` ha poco da mordere finché
+accende il monitoraggio di una cartella. `nosniff` ha poco da mordere finché
 ogni endpoint risponde JSON: vale come rete per quelli che verranno.
 
 ### Un OCR non tiene più occupato un worker per mezz'ora
@@ -118,7 +118,7 @@ un'archiviazione:
   con `../../../etc/passwd`, `a.pdf/../../x`, `..\..\win.ini` — e il nome
   del file lo sceglie `tempfile.mkstemp` nella cartella temporanea. Sopra
   c'è una seconda barriera indipendente: `ALLOWED_EXTENSIONS`;
-- **cinque scelte consapevoli.** I percorsi della sorveglianza non sono
+- **cinque scelte consapevoli.** I percorsi del monitoraggio non sono
   confinati perché la hotfolder deve poter stare dove serve; il bind largo
   è la sonda che controlla se la porta è libera; il tooltip usa `innerHTML`
   perché sei di essi contengono `<b>` e la sorgente è un template.
@@ -168,6 +168,7 @@ riletto da nessuno.
 | «due **confusions** tipiche» | «due confusioni tipiche» | parola inglese rimasta in mezzo |
 | «classificazione automatica **a scala**» | «su larga scala» | *at scale* |
 | «quasi-**identifier**» | «quasi-identificatori» | il termine italiano esiste ed è quello |
+| «Avvia **sorveglianza**» | «Attiva **monitoraggio**» | vedi sotto |
 
 E una frase proprio sgrammaticata, in `SECURITY.md`: «i parser che legge sono
 gli stessi **che gira** qualunque altro programma».
@@ -175,9 +176,71 @@ gli stessi **che gira** qualunque altro programma».
 Ridotto anche l'uso di «presidio»: è gergo legittimo, ma dodici volte in sei
 pagine è un tic, non un termine.
 
+### «Avvia sorveglianza» → «Attiva monitoraggio»
+
+*Sorvegliare*, in italiano, ha addosso la polizia: sorveglianza speciale,
+videosorveglianza. In un tool il cui argomento è **proteggere i dati delle
+persone**, un bottone «Avvia sorveglianza» manda il segnale opposto.
+
+«Attiva» e non «Avvia» perché lo stato lì accanto diceva già «non attiva»:
+il registro c'era, era il bottone a non seguirlo. Di conseguenza «Ferma» è
+diventato «Disattiva», che è la parola che fa coppia.
+
+La rinomina ha tirato dietro una cosa che un cerca-e-sostituisci avrebbe
+lasciato lì: gli stati erano al **femminile** perché concordavano con
+«sorveglianza» — `"non attiva"`, `"ferma"`. Con «monitoraggio» restavano
+sgrammaticati. Nove punti fra interfaccia, messaggi Python e documenti.
+
+### Mr. Rao anonimizzava se stesso
+
+In fondo a ogni email convertita c'era:
+
+```
+> 🛡️ *Documento elaborato da Mr. {{NAME}}.*
+```
+
+«Mr.» è un titolo esattamente come «Dott.» o «Ing.», e quella nota veniva
+scritta **prima** del filtro privacy, quindi il filtro la leggeva come
+contenuto dell'utente.
+
+La battuta si racconta da sola. Il danno no: quella sostituzione **entrava
+nel conteggio**. Su ogni singola email il numero di redazioni che chiediamo
+all'utente di controllare era gonfiato di uno — e «🛡️ 3 redazioni» su un
+documento che ne aveva davvero 2 è esattamente il tipo di numero su cui
+questo progetto ha costruito il resto del discorso.
+
+Ora la nota si aggiunge a valle della sostituzione: è testo nostro, non ha
+niente da farsi riconoscere dentro.
+
+### Word ed Excel: il pacchetto giusto, non quello ovvio
+
+Una release fa, un commit intitolato *«Word, Excel and PowerPoint never
+worked»* dichiarava risolti i formati Office aggiungendo `python-docx` alle
+dipendenze. Su una macchina pulita **non funzionavano lo stesso**: per il
+`.docx` MarkItDown importa **`mammoth`**, e `python-docx` non lo usa
+nessuno. Mancava anche `pandas`, che serve a `.xlsx` e `.xls` insieme a
+openpyxl e xlrd.
+
+In locale era verde perché il venv di sviluppo aveva già mammoth e pandas
+da un'installazione precedente. L'ha vista la CI, che parte pulita — ed è
+tutto quello che la CI deve fare.
+
+La conseguenza peggiore non era la build rossa. `FORMAT_DEPENDENCIES`
+diceva `".docx": ("docx", "python-docx")`, quindi su quella macchina
+rispondeva **«non manca niente» mentre mancava tutto**; e se avesse
+parlato, avrebbe consigliato di installare un pacchetto che non c'entra.
+Un suggerimento sbagliato è peggio di nessun suggerimento.
+
+Adesso i nomi sono presi dai sorgenti dei converter, con scritto accanto
+quale file li importa, un formato può dichiarare più dipendenze, e un test
+nuovo controlla che ogni pacchetto dichiarato necessario sia anche in
+`requirements.txt`. Verificato dove conta: venv vuoto, `pip install -r
+requirements.txt`, **355 test verdi** e `python-docx` mai installato — poi
+tolto `mammoth` per vedere cadere i quattro test giusti.
+
 ### Cosa è stato valutato e scartato
 
-- **Confinare i percorsi della sorveglianza.** Romperebbe la funzione: la
+- **Confinare i percorsi del monitoraggio.** Romperebbe la funzione: la
   hotfolder deve poter stare nei Documenti o su un disco di rete, e c'è un
   selettore di cartelle nativo apposta. Il danno massimo resta comunque
   qualche cartella e dei file `.md` nuovi, mai una sovrascrittura.
@@ -187,7 +250,7 @@ pagine è un tic, non un termine.
   proteggerebbe da niente. Il threat model adesso lo dichiara esplicitamente
   in [SECURITY.md](../SECURITY.md), che vale di più.
 
-**352 test** (erano 315).
+**355 test** (erano 315).
 
 ## 1.6.0 — Il checksum come garanzia, non come filtro
 
@@ -749,7 +812,7 @@ versione controllata.
 ## 1.2.2 — Cartella automatica: Sfoglia… + cartelle predefinite in Documenti
 
 ### Cartelle di default (create all'avvio se mancano)
-- `Documenti\Mr Rao\Da convertire` — da sorvegliare  
+- `Documenti\Mr Rao\Da convertire` — da monitorare  
 - `Documenti\Mr Rao\Convertiti` — output `.md`  
 
 ### UI
@@ -815,7 +878,7 @@ singolo riquadro riposizionato, che si apre anche col focus e si chiude con Esc.
 
 ### Parole al posto del gergo
 - **«Hotfolder (watch)» → «Cartella automatica»**, con una riga che spiega cosa
-  fa davvero: sorveglia una cartella e converte da solo i file che ci metti dentro.
+  fa davvero: monitora una cartella e converte da solo i file che ci metti dentro.
 - Le lingue OCR non dicono più «(latino)»: era il nome dell'alfabeto, non della
   lingua, e non aggiungeva niente per chi legge. Ora sono «Italiano», «Inglese»,
   «Più lingue insieme».

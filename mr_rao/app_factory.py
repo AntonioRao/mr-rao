@@ -90,7 +90,7 @@ def _register_guards(app: Flask) -> None:
         frame-ancestors è quella che si guadagna il posto: impedisce di
         incorniciare l'applicazione in un'altra pagina. Il contenuto non
         sarebbe comunque leggibile (same-origin policy), ma il *clic* sì — e
-        qui un clic accende la sorveglianza di una cartella.
+        qui un clic accende il monitoraggio di una cartella.
 
         nosniff qui ha poco da mordere, perché nessun endpoint restituisce
         contenuto dell'utente con un tipo indovinabile: è tutto JSON e static.
@@ -164,7 +164,7 @@ def create_app() -> Flask:
     config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
     # Le cartelle di lavoro NON si creano all'avvio: chi apre l'app per una
     # conversione al volo non deve trovarsi cartelle nuove nei Documenti.
-    # Le crea la UI (POST /api/folders/defaults) o l'avvio della sorveglianza.
+    # Le crea la UI (POST /api/folders/defaults) o l'attivazione del monitoraggio.
 
     app.register_blueprint(bp)
     _register_guards(app)

@@ -117,3 +117,32 @@ def test_senza_causa_nota_resta_il_messaggio_di_prima(tmp_path):
     from mr_rao.converter import _empty_message
 
     assert "non contiene testo riconoscibile" in _empty_message(None)
+
+
+def test_ogni_dipendenza_dichiarata_e_anche_nel_requirements():
+    """Chi arriva col repo pulito installa da requirements.txt e basta.
+
+    Se FORMAT_DEPENDENCIES nomina un pacchetto che quel file non chiede, il
+    formato funziona solo sulle macchine dove qualcosa l'ha portato per
+    conto suo -- ed e' quello che e' successo con `mammoth`: c'era nel venv
+    di sviluppo da un'installazione precedente, non nel requirements. In
+    locale tutto verde, sulla CI (che parte pulita) Word non si apriva.
+    """
+    from pathlib import Path
+
+    requisiti = (
+        Path(__file__).resolve().parents[1] / "requirements.txt"
+    ).read_text(encoding="utf-8").lower()
+
+    mancanti = sorted(
+        {
+            pacchetto
+            for dipendenze in FORMAT_DEPENDENCIES.values()
+            for _modulo, pacchetto in dipendenze
+            if pacchetto.lower() not in requisiti
+        }
+    )
+    assert not mancanti, (
+        f"dichiarati come necessari ma non richiesti in requirements.txt: "
+        f"{mancanti}. Su una macchina pulita quel formato non funziona."
+    )

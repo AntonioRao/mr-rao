@@ -811,7 +811,7 @@
           (d.processed || 0) === 1 ? "1 file convertito" : (d.processed || 0) + " file convertiti";
         els.watchStatus.textContent = d.running
           ? "in ascolto · " + (d.message || "") + " · " + convertiti
-          : d.message || "non attiva";
+          : d.message || "non attivo";
       }
       if (d.running) {
         if (els.watchInbox && d.inbox) els.watchInbox.value = d.inbox;
@@ -825,7 +825,7 @@
 
   if (els.watchBrowseInbox) {
     els.watchBrowseInbox.addEventListener("click", () =>
-      browseFolderInto(els.watchInbox, "Cartella da sorvegliare")
+      browseFolderInto(els.watchInbox, "Cartella da monitorare")
     );
   }
   if (els.watchBrowseOutbox) {
@@ -861,7 +861,7 @@
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || "Watch fallito");
-        showToast("Sorveglianza avviata");
+        showToast("Monitoraggio attivo");
         refreshWatch();
       } catch (e) {
         showToast(e.message, "error");
@@ -871,7 +871,7 @@
   if (els.watchStop) {
     els.watchStop.addEventListener("click", async () => {
       await fetch("/api/watch", { method: "DELETE" });
-      showToast("Sorveglianza fermata");
+      showToast("Monitoraggio disattivato");
       refreshWatch();
     });
   }

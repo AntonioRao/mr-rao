@@ -6,12 +6,20 @@ markitdown>=0.1.7
 # essi DOCX, XLSX, XLS e PPTX non si convertono affatto: MarkItDown alza
 # MissingDependencyException e il documento sembra vuoto. Erano dichiarati
 # nella pagina, nei badge e nel menu contestuale, e non hanno mai
-# funzionato. I pacchetti sono elencati per nome, non come extra: dipendere
-# dall'extra non basta -- markitdown[docx] non ha portato python-docx.
-python-docx>=1.1.0
-python-pptx>=0.6.23
-openpyxl>=3.1.0
-xlrd>=2.0.1
+# funzionato. I pacchetti sono elencati per nome, non come extra.
+#
+# ATTENZIONE, lezione pagata: questi nomi vanno letti dai sorgenti di
+# MarkItDown, non indovinati dall'estensione. Il primo tentativo aveva messo
+# python-docx, che sembra ovvio ed e' sbagliato: per il .docx MarkItDown
+# importa **mammoth**. Qui in locale non se n'e' accorto nessuno perche' il
+# venv aveva gia' mammoth da un'installazione precedente -- l'ha trovato la
+# CI, che parte pulita. Se cambi questa lista, guarda cosa importano davvero
+# i converter in markitdown/converters/.
+mammoth>=1.6.0          # .docx  -> _docx_converter.py
+python-pptx>=0.6.23     # .pptx  -> _pptx_converter.py (import pptx)
+pandas>=2.0.0           # .xlsx e .xls -> _xlsx_converter.py, insieme a:
+openpyxl>=3.1.0         # .xlsx
+xlrd>=2.0.1             # .xls
 pdfminer.six>=20231228
 pdfplumber>=0.11.0
 Pillow>=10.0.0

@@ -18,9 +18,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # v4/v5 giravano su Node 20, che i runner ora forzano su Node 24 con un
+      # avviso di deprecazione a ogni esecuzione. Un avviso permanente in cima
+      # al log e' rumore che insegna a non leggere il log.
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip

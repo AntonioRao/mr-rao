@@ -106,30 +106,38 @@ def _empty_message(reason: str | None = None) -> str:
     )
 
 
-# Pacchetto necessario per ogni formato che dichiariamo di leggere. Serve
-# a due cose: dire all'utente cosa manca invece di dare la colpa al file,
-# e far fallire i test quando un formato annunciato non e' installabile.
-FORMAT_DEPENDENCIES: dict[str, tuple[str, str]] = {
-    ".docx": ("docx", "python-docx"),
-    ".doc": ("docx", "python-docx"),
-    ".pptx": ("pptx", "python-pptx"),
-    ".ppt": ("pptx", "python-pptx"),
-    ".xlsx": ("openpyxl", "openpyxl"),
-    ".xls": ("xlrd", "xlrd"),
-    ".pdf": ("pdfminer", "pdfminer.six"),
+# Pacchetti necessari per ogni formato che dichiariamo di leggere: (modulo
+# da importare, nome pip). Serve a due cose: dire all'utente cosa manca
+# invece di dare la colpa al file, e far fallire i test quando un formato
+# annunciato non e' installabile.
+#
+# I nomi vanno letti dai sorgenti di MarkItDown, mai indovinati
+# dall'estensione. Qui c'era ("docx", "python-docx") -- ovvio e sbagliato:
+# per il .docx MarkItDown importa **mammoth**. La conseguenza non era solo
+# una dipendenza mancante nel requirements: era che questa funzione
+# rispondeva "non manca niente" quando invece mancava tutto, e che il
+# messaggio d'aiuto avrebbe consigliato di installare un pacchetto che non
+# c'entra. Un consiglio sbagliato e' peggio di nessun consiglio.
+#
+# Un formato puo' averne piu' d'uno: xlsx vuole pandas *e* openpyxl.
+FORMAT_DEPENDENCIES: dict[str, tuple[tuple[str, str], ...]] = {
+    ".docx": (("mammoth", "mammoth"),),
+    ".doc": (("mammoth", "mammoth"),),
+    ".pptx": (("pptx", "python-pptx"),),
+    ".ppt": (("pptx", "python-pptx"),),
+    ".xlsx": (("pandas", "pandas"), ("openpyxl", "openpyxl")),
+    ".xls": (("pandas", "pandas"), ("xlrd", "xlrd")),
+    ".pdf": (("pdfminer", "pdfminer.six"),),
 }
 
 
 def missing_dependency_for(ext: str) -> str | None:
-    """Il pacchetto mancante per questa estensione, se manca."""
-    entry = FORMAT_DEPENDENCIES.get(ext.lower())
-    if not entry:
-        return None
-    module, package = entry
-    try:
-        __import__(module)
-    except ImportError:
-        return package
+    """Il primo pacchetto mancante per questa estensione, se ne manca uno."""
+    for module, package in FORMAT_DEPENDENCIES.get(ext.lower(), ()):
+        try:
+            __import__(module)
+        except ImportError:
+            return package
     return None
 
 
@@ -398,6 +406,13 @@ def convert_file(
             final_text, redaction = apply_privacy_filter(final_text, opts.privacy)
             if _is_ocr(engine_used):
                 final_text = final_text.rstrip() + "\n\n" + _ocr_privacy_warning()
+
+        # Le note che scriviamo noi si aggiungono qui, a valle: il filtro ha
+        # gia' finito e non puo' piu' riconoscerci dentro qualcosa.
+        if engine_used == "eml_parser" and final_text:
+            from mr_rao.eml_parser import nota_elaborazione
+
+            final_text = final_text.rstrip() + "\n" + nota_elaborazione()
 
         empty = not final_text or not str(final_text).strip()
         if empty:

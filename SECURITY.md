@@ -8,7 +8,7 @@ l'interfaccia sta nel browser, non perché sia un servizio di rete.
 Cosa questo comporta:
 
 - **Non c'è autenticazione.** Chiunque raggiunga la porta può convertire file
-  e avviare la sorveglianza di una cartella.
+  e attivare il monitoraggio di una cartella.
 - **Va tenuto su `127.0.0.1`.** È il default. `docker-compose.yml` pubblica la
   porta solo su localhost apposta.
 - **Esporlo in rete è una scelta consapevole** e richiede un reverse proxy con
@@ -28,10 +28,10 @@ browser dell'utente. Attacchi distinti, controlli distinti:
 | Attacco | Difesa |
 |---------|--------|
 | **DNS rebinding** — un dominio dell'attaccante che risolve a `127.0.0.1` per leggere le risposte | Header `Host` in allow-list (`MR_RAO_ALLOWED_HOSTS`), **anche quando si ascolta su `0.0.0.0`** |
-| **CSRF** — una POST cross-site (multipart non richiede preflight CORS) che avvia una conversione o una sorveglianza | `Sec-Fetch-Site` esterno rifiutato sui metodi che modificano stato, con `Origin` come ripiego |
+| **CSRF** — una POST cross-site (multipart non richiede preflight CORS) che avvia una conversione o il monitoraggio di una cartella | `Sec-Fetch-Site` esterno rifiutato sui metodi che modificano stato, con `Origin` come ripiego |
 | **Vicini di porta** — un'altra pagina su `127.0.0.1`, porta diversa: per `Origin` è lo stesso hostname | `Sec-Fetch-Site: same-site` rifiutato |
 | **Effetti collaterali da GET** — `<img src="http://127.0.0.1:5000/...">` su una pagina qualsiasi | Le GET sono in sola lettura: nessuna crea file o cartelle |
-| **Clickjacking** — l'app incorniciata in un'altra pagina per far cliccare «avvia sorveglianza» | `Content-Security-Policy: frame-ancestors 'none'` |
+| **Clickjacking** — l'app incorniciata in un'altra pagina per far cliccare «attiva monitoraggio» | `Content-Security-Policy: frame-ancestors 'none'` |
 | **Occupazione di un worker** — una scansione lunghissima che tiene impegnato l'OCR | Tetto di pagine, di tempo (`MR_RAO_OCR_TIMEOUT`) e di dimensione dell'invio |
 
 Perché **due** controlli anti-CSRF e non uno: il controllo su `Origin` è
@@ -104,7 +104,7 @@ indovinare.
   limite di tempo dell'OCR: ferma le pagine successive, non la pagina in corso.
 - **Un OCR troncato per tempo produce un risultato parziale**, e quindi
   un'anonimizzazione parziale. Il documento lo dichiara in cima, non in fondo.
-- **I percorsi della sorveglianza non sono confinati.** Chi usa l'interfaccia
+- **I percorsi del monitoraggio non sono confinati.** Chi usa l'interfaccia
   sceglie inbox e outbox dove vuole — è la funzione, non una svista: la
   hotfolder deve poter stare nei Documenti o su un disco di rete. La difesa è
   che nessuna pagina esterna possa avviarla (vedi sopra), e che la scrittura

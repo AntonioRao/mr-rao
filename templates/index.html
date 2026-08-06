@@ -294,7 +294,7 @@
                     <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                     Cartella automatica
                     <span class="panel-sub" id="watch-status"
-                          data-tip="Stato della sorveglianza e quanti file sono stati convertiti finora.">non attiva</span>
+                          data-tip="Stato del monitoraggio e quanti file sono stati convertiti finora.">non attiva</span>
                 </summary>
                 <div class="panel-body">
                     <p class="muted" style="margin-top:0.15rem">
@@ -309,13 +309,13 @@
                     </p>
                     <div class="settings-row">
                         <div class="field">
-                            <span class="field-label" data-tip="Ogni file che compare in questa cartella viene convertito.">Cartella da sorvegliare</span>
+                            <span class="field-label" data-tip="Ogni file che compare in questa cartella viene convertito.">Cartella da monitorare</span>
                             <div class="path-row">
                                 <input type="text" id="watch-inbox" class="input-text" readonly
                                        placeholder="Scegli o usa la cartella predefinita"
                                        data-tip="Percorso della cartella dove metterai i documenti da convertire. Usa «Sfoglia…» per sceglierla.">
                                 <button type="button" class="btn" id="watch-browse-inbox"
-                                        data-tip="Apre la finestra di Windows per scegliere la cartella da sorvegliare.">Sfoglia…</button>
+                                        data-tip="Apre la finestra di Windows per scegliere la cartella da monitorare.">Sfoglia…</button>
                             </div>
                         </div>
                         <div class="field">
@@ -330,16 +330,16 @@
                         </div>
                     </div>
                     <div class="opt-grid">
-                        <label class="opt" data-tip="A conversione fatta, sposta il documento originale in una sottocartella «done», così la cartella sorvegliata resta pulita e vedi a colpo d'occhio cosa manca ancora.">
+                        <label class="opt" data-tip="A conversione fatta, sposta il documento originale in una sottocartella «done», così la cartella monitorata resta pulita e vedi a colpo d'occhio cosa manca ancora.">
                             <input type="checkbox" id="watch-move">
-                            <span class="opt-text"><span class="opt-title">Sposta gli originali in «done»</span><span class="opt-desc">Tiene pulita la cartella sorvegliata</span></span>
+                            <span class="opt-text"><span class="opt-title">Sposta gli originali in «done»</span><span class="opt-desc">Tiene pulita la cartella monitorata</span></span>
                         </label>
                     </div>
                     <div class="watch-actions">
                         <button type="button" class="btn btn-primary" id="watch-start"
-                                data-tip="Comincia a sorvegliare, usando il profilo e le opzioni impostati qui sopra.">Avvia sorveglianza</button>
+                                data-tip="Comincia a monitorare, usando il profilo e le opzioni impostati qui sopra.">Attiva monitoraggio</button>
                         <button type="button" class="btn" id="watch-stop"
-                                data-tip="Smette di sorvegliare. I file già convertiti restano dove sono.">Ferma</button>
+                                data-tip="Smette di monitorare. I file già convertiti restano dove sono.">Disattiva</button>
                     </div>
                 </div>
             </details>

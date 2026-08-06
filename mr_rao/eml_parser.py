@@ -228,10 +228,24 @@ def parse_eml(filepath: str | Path) -> str:
     else:
         md_lines.append("> ⚠️ *Nessun contenuto testuale trovato nel file .eml.*")
 
-    md_lines.append("\n---\n")
-    md_lines.append(
-        "> 🛡️ *Documento elaborato da Mr. Rao. "
-        "Se il filtro privacy è attivo, i dati personali sono stati sostituiti con segnaposto.*"
-    )
-
+    # La nota in fondo NON si aggiunge qui. Questo testo passa dal filtro
+    # privacy, e «Mr.» è un titolo esattamente come «Dott.» o «Ing.»: il
+    # risultato era «Mr. {{NAME}}» — il tool che anonimizza se stesso — e
+    # soprattutto **una redazione in più nel conteggio**, su ogni email.
+    # Il numero che chiediamo all'utente di controllare non può contenere noi.
+    # La nota la mette convert_file a valle: vedi nota_elaborazione().
     return "\n".join(md_lines)
+
+
+def nota_elaborazione() -> str:
+    """La riga in fondo alle email convertite.
+
+    Va aggiunta **dopo** il filtro privacy, mai prima: è testo nostro, non
+    contenuto dell'utente, e non ha niente da farsi riconoscere dentro.
+    """
+    return (
+        "\n---\n\n"
+        "> 🛡️ *Documento elaborato da Mr. Rao. "
+        "Se il filtro privacy è attivo, i dati personali sono stati sostituiti "
+        "con segnaposto.*"
+    )

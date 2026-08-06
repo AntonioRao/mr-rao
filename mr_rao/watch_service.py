@@ -22,7 +22,7 @@ class WatchState:
     processed: int = 0
     last_file: str = ""
     last_error: str = ""
-    message: str = "non attiva"
+    message: str = "non attivo"
     options: ConvertOptions = field(default_factory=ConvertOptions)
     _thread: threading.Thread | None = field(default=None, repr=False)
     _stop: threading.Event = field(default_factory=threading.Event, repr=False)
@@ -104,7 +104,7 @@ def start_watch(
     stop_watch()
     # CodeQL py/path-injection (alert 9 e 10): questi percorsi arrivano dalla
     # richiesta e non sono confinati. Non e' una svista, e' la funzione: la
-    # cartella sorvegliata deve poter stare nei Documenti o su un disco di
+    # cartella monitorata deve poter stare nei Documenti o su un disco di
     # rete, e l'interfaccia ha un selettore di cartelle nativo apposta.
     #
     # Il presidio non e' un recinto sul percorso -- che romperebbe l'uso -- ma
@@ -143,7 +143,7 @@ def stop_watch() -> dict[str, Any]:
     with _state._lock:
         _state._stop.set()
         _state.running = False
-        _state.message = "ferma"
+        _state.message = "non attivo"
         t = _state._thread
     if t and t.is_alive():
         t.join(timeout=3.0)
@@ -162,8 +162,8 @@ def _loop() -> None:
                 move_done = _state.move_done
             if not inbox.is_dir():
                 with _state._lock:
-                    _state.last_error = "La cartella da sorvegliare non esiste piu'"
-                    _state.message = "cartella da sorvegliare non valida"
+                    _state.last_error = "La cartella da monitorare non esiste piu'"
+                    _state.message = "cartella da monitorare non valida"
             else:
                 for path in sorted(inbox.iterdir()):
                     if _state._stop.is_set():
@@ -218,7 +218,7 @@ def _loop() -> None:
         except Exception as e:
             with _state._lock:
                 _state.last_error = str(e)
-                _state.message = "errore durante la sorveglianza"
+                _state.message = "errore durante il monitoraggio"
         # sleep in chunks for responsive stop
         for _ in range(int(_state.interval * 10)):
             if _state._stop.is_set():
@@ -226,4 +226,4 @@ def _loop() -> None:
             time.sleep(0.1)
     with _state._lock:
         _state.running = False
-        _state.message = "ferma"
+        _state.message = "non attivo"
