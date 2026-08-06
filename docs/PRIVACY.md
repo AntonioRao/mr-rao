@@ -142,6 +142,10 @@ e, soprattutto, cosa è sfuggito.
   casi si chiudono; ma un telefono non ha cifra di controllo, un nome nemmeno,
   e tre caratteri storpiati sono troppi. Quello che resta viene **segnalato**,
   non sostituito: è lì che il confronto «prima / dopo» va guardato davvero.
+- **Un OCR troncato produce una schermatura troncata.** Se una scansione supera
+  il tetto di tempo (`MR_RAO_OCR_TIMEOUT`, 15 minuti di serie), l'estrazione si
+  ferma e il motore ha visto solo le pagine lette. Il documento lo dichiara in
+  cima, prima del testo: chi legge deve saperlo *prima* di fidarsi.
 - **Il banco di prova è sintetico.** I casi OCR sono stringhe scritte a mano
   immaginando come sbaglia un riconoscitore ottico, non scansioni vere. Finché
   non esiste un corpus di documenti passati davvero da uno scanner, l'efficacia

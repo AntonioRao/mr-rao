@@ -1,5 +1,100 @@
 # Changelog
 
+## 1.7.0 — Le difese che c'erano, dove non arrivavano
+
+Nessuna funzione nuova: cinque punti in cui i presidi esistenti si fermavano
+un passo prima. Ognuno è stato verificato disattivandolo, per controllare che
+il suo test diventasse rosso invece di restare verde per caso.
+
+### Il controllo anti-CSRF non scattava sempre
+
+```python
+origin = request.headers.get("Origin")
+if origin and request.method not in ("GET", "HEAD", "OPTIONS"):
+```
+
+**`if origin`.** Niente header, niente controllo — e una navigazione da
+`<form>` cross-site può arrivarci senza. Gli endpoint accettano
+`multipart/form-data`, che è CORS-safelisted: nessun preflight a fermarla.
+
+Adesso si guarda prima `Sec-Fetch-Site`, che i browser attuali mandano su
+ogni richiesta. `Origin` resta come ripiego per chi non lo manda: curl, la
+CLI, un browser vecchio.
+
+Ne è uscito un secondo caso, che non era in preventivo. Per `localhost` i
+browser considerano **stessa site** anche una porta diversa: una pagina
+servita da un altro programma su `127.0.0.1:8080` ha il nostro stesso
+hostname, quindi il controllo su `Origin` la lasciava passare. Ora è
+rifiutato anche `same-site`.
+
+### Esporsi in rete non deve spegnere la difesa anti-rebinding
+
+Con `MR_RAO_HOST=0.0.0.0` l'allow-list degli host diventava `*`: la difesa
+spariva **esattamente quando l'app si esponeva**. Una pagina ostile che si
+faceva risolvere sull'IP della macchina tornava a poter *leggere* le risposte
+— cioè i documenti convertiti, che è tutto ciò che c'è da proteggere qui.
+
+Adesso l'allow-list contiene gli indirizzi e i nomi di questa macchina.
+L'accesso legittimo per IP o per nome passa; il dominio dell'attaccante, che
+nell'header `Host` porta il proprio, no. Dietro un reverse proxy serve
+`MR_RAO_ALLOWED_HOSTS`, e il 403 lo dice invece di lasciare indovinare.
+
+### Una chiave di firma che nessuno userà per sbaglio
+
+`SECRET_KEY` era la costante `"mr-rao-local-dev-only"`, scritta in un
+repository pubblico. Oggi non la usa niente — nessuna sessione, nessun
+cookie firmato — ed è proprio questo il problema: il giorno che qualcuno
+scrive `session[...]`, che in Flask è una riga, quella costante diventa la
+chiave con cui si firmano i cookie, e **non si rompe niente** che lo faccia
+notare.
+
+Ora è casuale a ogni avvio e non tocca il disco. Un file sarebbe stato
+peggio della costante: seguirebbe l'eseguibile portable dentro OneDrive, nei
+backup e nello zip che passa a un collega.
+
+### Intestazioni, con aspettative oneste
+
+`frame-ancestors 'none'`, `nosniff`, `no-referrer` su ogni risposta.
+
+Quella che si guadagna il posto è la prima: impedisce di incorniciare
+l'applicazione in un'altra pagina. Il contenuto non sarebbe comunque
+leggibile — c'è la same-origin policy — ma il **clic** sì, e qui un clic
+accende la sorveglianza di una cartella. `nosniff` ha poco da mordere finché
+ogni endpoint risponde JSON: vale come rete per quelli che verranno.
+
+### Un OCR non tiene più occupato un worker per mezz'ora
+
+`MR_RAO_OCR_TIMEOUT`, 15 minuti di serie, `0` per toglierlo.
+
+Un thread Python non si uccide dall'esterno, quindi il limite si è messo
+dove già si legge il flag di annullamento: **fra una pagina e l'altra**.
+Ferma le pagine successive, non quella in corso.
+
+Allo scadere il testo letto fin lì si restituisce, con un avviso **in cima**:
+
+> ⚠️ **OCR interrotto dopo 12 pagine su 50:** superato il limite di tempo.
+> Il testo qui sotto è parziale, e con esso la rimozione dei dati personali.
+
+In cima e non in fondo perché un documento troncato in silenzio è peggio di
+nessun documento: la schermatura ha visto solo le pagine lette, e chi legge
+deve saperlo *prima* di fidarsi. Per la stessa ragione un OCR scaduto senza
+aver letto niente non dice più «nessun testo riconoscibile», che manderebbe
+a cercare il problema nel documento invece che nel tempo.
+
+### Cosa è stato valutato e scartato
+
+- **Confinare i percorsi della sorveglianza.** Romperebbe la funzione: la
+  hotfolder deve poter stare nei Documenti o su un disco di rete, e c'è un
+  selettore di cartelle nativo apposta. Il danno massimo resta comunque
+  qualche cartella e dei file `.md` nuovi, mai una sovrascrittura.
+- **Token CSRF double-submit.** Con Host, `Sec-Fetch-Site` e `Origin` non gli
+  resta niente da intercettare, e aggiungerebbe un modo nuovo di fallire.
+- **Sandbox dei parser.** Una seria su Windows è un progetto a sé; una finta
+  proteggerebbe da niente. Il threat model adesso lo dichiara esplicitamente
+  in [SECURITY.md](../SECURITY.md), che vale di più.
+
+**332 test** (erano 315).
+
 ## 1.6.0 — Il checksum come garanzia, non come filtro
 
 La 1.5.0 aveva imparato a **dire** quello che non riusciva a togliere. Questa

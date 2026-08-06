@@ -51,6 +51,26 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 
 ---
 
+## P2-ter — Irrobustimento del server locale (1.7.0)
+
+| ID | Item | Stato |
+|----|------|--------|
+| P2.5 | `Sec-Fetch-Site` rifiutato su mutazioni — copre il ramo in cui `Origin` manca, e i vicini di porta su localhost | **DONE** (1.7.0) |
+| P2.6 | Allow-list host reale anche con `MR_RAO_HOST=0.0.0.0`, invece di `*` | **DONE** (1.7.0) |
+| P2.7 | `SECRET_KEY` casuale in memoria invece di una costante pubblicata | **DONE** (1.7.0) |
+| P2.8 | `frame-ancestors 'none'`, `nosniff`, `no-referrer` | **DONE** (1.7.0) |
+| P2.9 | Tetto di tempo sull'OCR, con troncamento dichiarato nel documento | **DONE** (1.7.0) |
+
+### Valutati e scartati, con la ragione
+
+| Proposta | Perché no |
+|----------|-----------|
+| Path policy sui percorsi della sorveglianza (allow-list, confinamento sotto la root dell'app) | Romperebbe la funzione: la hotfolder deve poter stare nei Documenti o su un disco di rete, e c'è un selettore nativo apposta. Il danno massimo è qualche cartella e dei `.md` nuovi — `output_path_for` non sovrascrive mai |
+| Token CSRF double-submit | Con `Host` + `Sec-Fetch-Site` + `Origin` non gli resta niente da intercettare; aggiungerebbe stato e un modo nuovo di fallire su un'app monoutente |
+| Sandbox dei parser (processo a diritti ridotti) | Una seria su Windows (job object, AppContainer) è un progetto a sé; una finta non protegge da niente. Il threat model lo dichiara invece di simularlo |
+
+---
+
 ## P3 — Feature di profondità (no bloat)
 
 | ID | Item | Note | Stato |

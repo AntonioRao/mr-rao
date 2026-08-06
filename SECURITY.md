@@ -15,19 +15,67 @@ Cosa questo comporta:
   autenticazione davanti. Senza, stai dando a chiunque un convertitore che
   scrive file sul tuo disco.
 
+Un avvertimento su cosa Mr. Rao **non** è: non è un contenitore per aprire
+allegati sospetti. I parser che legge (PDF, Office, immagini) sono gli stessi
+che gira qualunque altro programma, senza sandbox. Aprici i documenti che
+apriresti comunque — non quelli che non apriresti.
+
 ## Difese presenti
 
 Un server su localhost è raggiungibile da **qualunque pagina** aperta nel
-browser dell'utente. Due attacchi distinti, due controlli distinti:
+browser dell'utente. Attacchi distinti, controlli distinti:
 
 | Attacco | Difesa |
 |---------|--------|
-| **DNS rebinding** — un dominio dell'attaccante che risolve a `127.0.0.1` per leggere le risposte | Header `Host` in allow-list (`MR_RAO_ALLOWED_HOSTS`) |
-| **CSRF** — una POST cross-site (multipart non richiede preflight CORS) che avvia una conversione o una sorveglianza | Rifiuto di `Origin` cross-site sui metodi che modificano stato |
+| **DNS rebinding** — un dominio dell'attaccante che risolve a `127.0.0.1` per leggere le risposte | Header `Host` in allow-list (`MR_RAO_ALLOWED_HOSTS`), **anche quando si ascolta su `0.0.0.0`** |
+| **CSRF** — una POST cross-site (multipart non richiede preflight CORS) che avvia una conversione o una sorveglianza | `Sec-Fetch-Site` esterno rifiutato sui metodi che modificano stato, con `Origin` come ripiego |
+| **Vicini di porta** — un'altra pagina su `127.0.0.1`, porta diversa: per `Origin` è lo stesso hostname | `Sec-Fetch-Site: same-site` rifiutato |
 | **Effetti collaterali da GET** — `<img src="http://127.0.0.1:5000/...">` su una pagina qualsiasi | Le GET sono in sola lettura: nessuna crea file o cartelle |
+| **Clickjacking** — l'app incorniciata in un'altra pagina per far cliccare «avvia sorveglianza» | `Content-Security-Policy: frame-ancestors 'none'` |
+| **Occupazione di un worker** — una scansione lunghissima che tiene impegnato l'OCR | Tetto di pagine, di tempo (`MR_RAO_OCR_TIMEOUT`) e di dimensione dell'invio |
 
-Ogni difesa ha il suo test in [`tests/test_security.py`](tests/test_security.py)
-e [`tests/test_user_folders.py`](tests/test_user_folders.py).
+Perché **due** controlli anti-CSRF e non uno: il controllo su `Origin` è
+condizionato alla presenza dell'header, e una navigazione da `<form>`
+cross-site può arrivare senza. `Sec-Fetch-Site` lo mandano tutti i browser
+attuali su ogni richiesta, quindi copre quel ramo; `Origin` resta per chi non
+lo manda (curl, la CLI, un browser vecchio).
+
+Ogni difesa ha il suo test in [`tests/test_security.py`](tests/test_security.py),
+[`tests/test_limiti_ocr.py`](tests/test_limiti_ocr.py) e
+[`tests/test_user_folders.py`](tests/test_user_folders.py). Non sono test
+decorativi: disattivando una difesa il suo test diventa rosso — verificato
+disattivandole una per una.
+
+## Chiave di firma
+
+`SECRET_KEY` è casuale a ogni avvio, e **non viene scritta su disco**.
+
+Oggi non la usa niente: nessuna sessione, nessun cookie firmato. La ragione
+del cambiamento è futura — il giorno che qualcuno scrive `session[...]`, che
+in Flask è una riga, una costante scritta in un repository pubblico
+diventerebbe la chiave con cui si firmano i cookie, e non si romperebbe nulla
+che lo facesse notare.
+
+Un file locale sarebbe stato peggio della costante: seguirebbe l'eseguibile
+portable dentro OneDrive, nei backup e nello zip che passa a un collega.
+Diventerà necessario solo quando serviranno sessioni che sopravvivono al
+riavvio. `MR_RAO_SECRET` permette di fissarla, se quel giorno arriva prima.
+
+## Esporre l'app in rete
+
+Con `MR_RAO_HOST=0.0.0.0` l'allow-list degli host **non** diventa `*`: contiene
+gli indirizzi e i nomi di questa macchina. L'accesso legittimo per IP o per
+nome funziona; il dominio dell'attaccante, che nell'header `Host` porta il
+proprio nome, no.
+
+Dietro un reverse proxy con un nome pubblico serve dichiararlo:
+
+```bash
+MR_RAO_ALLOWED_HOSTS="mr-rao.azienda.it"
+```
+
+Senza, la risposta è un 403 che nomina la variabile invece di lasciare
+indovinare.
 
 ## Trattamento dei file
 
@@ -52,7 +100,19 @@ e [`tests/test_user_folders.py`](tests/test_user_folders.py).
   deformato ma spesso ancora identificante. Il risultato porta un avviso esplicito.
 - **Annullare una conversione non la interrompe istantaneamente.** Il flag
   viene letto a ogni confine di stadio; una singola chiamata alla libreria di
-  conversione non è interrompibile dall'esterno.
+  conversione non è interrompibile dall'esterno. Vale anche per il limite di
+  tempo dell'OCR: ferma le pagine successive, non la pagina in corso.
+- **Un OCR troncato per tempo produce un risultato parziale**, e quindi una
+  schermatura parziale. Il documento lo dichiara in cima, non in fondo.
+- **I percorsi della sorveglianza non sono confinati.** Chi usa l'interfaccia
+  sceglie inbox e outbox dove vuole — è la funzione, non una svista: la
+  hotfolder deve poter stare nei Documenti o su un disco di rete. Il presidio
+  è che nessuna pagina esterna possa avviarla (vedi sopra), e che la scrittura
+  produca **solo** file `.md` senza mai sovrascriverne di esistenti.
+- **Nessuna sandbox.** Il threat model non include documenti costruiti per
+  attaccare i parser. Una sandbox seria su Windows (job object, AppContainer)
+  è un progetto a sé; una finta non proteggerebbe da niente, e prometterla
+  sarebbe peggio che non averla.
 
 ## Segnalare un problema
 

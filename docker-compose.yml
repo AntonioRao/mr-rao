@@ -12,7 +12,10 @@ services:
       MR_RAO_HOST: "0.0.0.0"
       MR_RAO_PORT: "5000"
       MR_RAO_DEBUG: "0"
-      # Host ammessi negli header (anti DNS-rebinding). "*" = qualunque.
+      # Host ammessi negli header (anti DNS-rebinding). "*" = qualunque, ed e'
+      # una scelta da fare in piena coscienza: disattiva quella difesa.
+      # Questa riga va tenuta: senza, il default sono gli indirizzi del
+      # *container*, che dietro a "ports" non sono quelli con cui lo raggiungi.
       MR_RAO_ALLOWED_HOSTS: "127.0.0.1,localhost"
     volumes:
       - ./uploads:/app/uploads

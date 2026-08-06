@@ -63,10 +63,17 @@ Tray ──► open browser / quit
 ## Sicurezza locale
 
 - Bind default `127.0.0.1`  
-- Allow-list header `Host` (anti DNS rebinding)  
-- Check `Origin` su mutazioni (anti CSRF basico)  
+- Allow-list header `Host` (anti DNS rebinding), **anche su `0.0.0.0`**: gli
+  indirizzi di questa macchina, non `*`  
+- `Sec-Fetch-Site` esterno rifiutato sulle mutazioni, con `Origin` come ripiego
+  per chi non lo manda (anti CSRF)  
+- `frame-ancestors 'none'`, `nosniff`, `no-referrer` su ogni risposta  
+- Tetto di tempo sull'OCR (`MR_RAO_OCR_TIMEOUT`), controllato fra una pagina e
+  l'altra come l'annullamento  
 - `debug` solo con `MR_RAO_DEBUG=1`  
 - Nessuna autenticazione (single-user locale)  
+
+Dettaglio e ragioni in [SECURITY.md](../SECURITY.md).
 
 ## Gap noti (vedi BACKLOG)
 

@@ -270,9 +270,11 @@ The tests do not just cover the happy path. They cover the defects that cost the
 | `MR_RAO_PORT` | `5000` | Local server port |
 | `MR_RAO_MAX_UPLOAD_MB` | `50` | Limit for the **whole request**, not per file |
 | `MR_RAO_MAX_OCR_PAGES` | `50` | Maximum OCR pages per PDF |
+| `MR_RAO_OCR_TIMEOUT` | `900` | Seconds a single OCR run may take (`0` = no limit) |
 | `MR_RAO_MAX_WORKERS` | `2` | Concurrent conversions; the rest queue |
 | `MR_RAO_FOLDER_ROOT` | automatic | Where to create the working folders |
-| `MR_RAO_ALLOWED_HOSTS` | `127.0.0.1,localhost` | Hosts accepted in the `Host` header |
+| `MR_RAO_ALLOWED_HOSTS` | this machine's own addresses | Hosts accepted in the `Host` header |
+| `MR_RAO_SECRET` | random at each start | Signing key; nothing uses it today ([why](SECURITY.md#chiave-di-firma)) |
 
 ---
 

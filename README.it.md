@@ -288,9 +288,11 @@ I test non coprono solo il caso felice. Coprono i difetti che sono costati caro:
 | `MR_RAO_PORT` | `5000` | Porta del server locale |
 | `MR_RAO_MAX_UPLOAD_MB` | `50` | Limite per l'**intero invio**, non per singolo file |
 | `MR_RAO_MAX_OCR_PAGES` | `50` | Massimo pagine OCR per PDF |
+| `MR_RAO_OCR_TIMEOUT` | `900` | Secondi massimi per un OCR (`0` = nessun limite) |
 | `MR_RAO_MAX_WORKERS` | `2` | Conversioni in parallelo; le altre restano in coda |
 | `MR_RAO_FOLDER_ROOT` | automatico | Dove creare le cartelle di lavoro |
-| `MR_RAO_ALLOWED_HOSTS` | `127.0.0.1,localhost` | Host ammessi nell'header `Host` |
+| `MR_RAO_ALLOWED_HOSTS` | gli indirizzi di questa macchina | Host ammessi nell'header `Host` |
+| `MR_RAO_SECRET` | casuale a ogni avvio | Chiave di firma; oggi non la usa niente ([perché](SECURITY.md#chiave-di-firma)) |
 
 ---
 

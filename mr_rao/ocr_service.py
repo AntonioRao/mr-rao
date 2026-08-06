@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import tempfile
 import threading
+import time
 from pathlib import Path
 from typing import Callable
 
-from config import MAX_OCR_PAGES, OCR_DPI
+from config import MAX_OCR_PAGES, MAX_OCR_SECONDS, OCR_DPI
 
 # Lazy singleton. The lock matters: two concurrent requests would otherwise
 # each build a RapidOCR instance (hundreds of MB of ONNX models).
@@ -90,8 +91,17 @@ def ocr_pdf_fallback(
     should_cancel: CancelCb | None = None,
     max_pages: int | None = None,
     include_tables: bool = True,
+    max_seconds: float | None = None,
 ) -> str | None:
-    """Rasterize PDF pages and OCR each. Optionally prepend extracted tables."""
+    """Rasterize PDF pages and OCR each. Optionally prepend extracted tables.
+
+    ``max_seconds`` limita il tempo complessivo (0 o None → il valore di
+    configurazione; 0 in configurazione → nessun limite). Il controllo sta
+    accanto a quello di annullamento, cioè **fra una pagina e l'altra**: è
+    l'unico punto interrompibile, perché un thread Python non si uccide da
+    fuori. Allo scadere si restituisce ciò che si è letto finora, dicendolo
+    nel testo — un risultato troncato in silenzio sarebbe peggio di nessuno.
+    """
     try:
         import pdfplumber
     except ImportError as e:
@@ -99,8 +109,15 @@ def ocr_pdf_fallback(
         return None
 
     max_pages = max_pages if max_pages is not None else MAX_OCR_PAGES
+    limite = MAX_OCR_SECONDS if max_seconds is None else max_seconds
+    scadenza = (time.monotonic() + limite) if limite and limite > 0 else None
+    # None = mai scaduto. Un contatore da solo non basterebbe: se il tempo
+    # finisce prima della prima pagina il conteggio è 0, che è indistinguibile
+    # da "tutto bene" — e l'avviso non comparirebbe proprio nel caso peggiore.
+    interrotto_per_tempo: int | None = None
 
     all_text: list[str] = []
+    total = 0
     tables_md = extract_pdf_tables(filepath) if include_tables else ""
 
     try:
@@ -117,6 +134,11 @@ def ocr_pdf_fallback(
                 for i, page in enumerate(pdf.pages[:max_pages]):
                     if should_cancel and should_cancel():
                         return None
+                    if scadenza is not None and time.monotonic() > scadenza:
+                        interrotto_per_tempo = i
+                        if progress:
+                            progress(i, total, f"Limite di tempo OCR a pagina {i}/{total}")
+                        break
                     if progress:
                         progress(i + 1, total, f"OCR pagina {i + 1}/{total}…")
 
@@ -137,12 +159,24 @@ def ocr_pdf_fallback(
         print(f"OCR PDF fallback error: {e}")
         return None
 
-    if not all_text and not tables_md:
+    if not all_text and not tables_md and interrotto_per_tempo is None:
         return None
+    # Scaduto senza aver letto niente si restituisce comunque l'avviso: il
+    # messaggio "nessun testo riconoscibile" manderebbe a cercare il problema
+    # nel documento, che invece era solo lento.
 
     header = (
         "> ℹ️ *Testo estratto tramite OCR (PDF scansionato o con poco testo nativo).*\n\n---\n\n"
     )
+    if interrotto_per_tempo is not None:
+        # In cima, non in fondo: chi legge un documento troncato deve saperlo
+        # prima di fidarsi di quello che c'è scritto — e prima di credere che
+        # la schermatura dei dati personali abbia visto tutto il documento.
+        header = (
+            f"> ⚠️ **OCR interrotto dopo {interrotto_per_tempo} pagine su {total}:**\n"
+            "> superato il limite di tempo. Il testo qui sotto è **parziale**, e con esso\n"
+            "> la rimozione dei dati personali. Alza `MR_RAO_OCR_TIMEOUT` per completarlo.\n\n"
+        ) + header
     parts: list[str] = []
     if tables_md:
         parts.append("## Tabelle estratte\n\n" + tables_md)

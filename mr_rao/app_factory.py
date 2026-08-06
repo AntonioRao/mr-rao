@@ -25,15 +25,27 @@ def _hostname(value: str) -> str:
     return host.rsplit(":", 1)[0] if host.count(":") == 1 else host
 
 
+METODI_SICURI = ("GET", "HEAD", "OPTIONS")
+
+# Valori di Sec-Fetch-Site che non devono poter modificare stato.
+# "same-site" c'è di proposito: per localhost i browser considerano *stessa
+# site* anche una porta diversa, quindi una pagina servita da un altro
+# programma su 127.0.0.1:8080 supererebbe il controllo di Origin (stesso
+# hostname) pur non essendo questa applicazione.
+SITE_RIFIUTATI = ("cross-site", "same-site")
+
+
 def _register_guards(app: Flask) -> None:
     """A server on localhost is reachable by every page the browser has open.
 
-    Two distinct attacks, two distinct checks:
-    - DNS rebinding: an attacker domain resolving to 127.0.0.1 would read
-      responses. Defeated by pinning the Host header.
-    - CSRF: a cross-site POST (multipart is CORS-safelisted, so no preflight)
-      could start a hotfolder or convert files. Defeated by refusing a
-      cross-site Origin on state-changing methods.
+    Tre attacchi distinti, tre controlli distinti:
+    - DNS rebinding: un dominio dell'attaccante che risolve a 127.0.0.1
+      leggerebbe le risposte. Si blocca fissando l'header Host.
+    - CSRF: una POST cross-site (multipart è CORS-safelisted, quindi niente
+      preflight) potrebbe avviare un hotfolder o convertire file. Si blocca
+      rifiutando Sec-Fetch-Site esterni e Origin esterne.
+    - Vicini di porta: un'altra pagina su 127.0.0.1, porta diversa. Origin non
+      la distingue (stesso hostname); Sec-Fetch-Site sì.
     """
 
     @app.before_request
@@ -53,14 +65,41 @@ def _register_guards(app: Flask) -> None:
                 403,
             )
 
+        if request.method in METODI_SICURI:
+            return None
+
+        # Sec-Fetch-Site va guardato PRIMA di Origin perché copre il caso che
+        # Origin non copre: una navigazione da <form> cross-site può arrivare
+        # senza Origin, e allora il controllo sotto non scatta affatto. Questo
+        # header i browser attuali lo mandano su ogni richiesta.
+        site = (request.headers.get("Sec-Fetch-Site") or "").strip().lower()
+        if site in SITE_RIFIUTATI:
+            return jsonify({"error": "Richiesta cross-site rifiutata"}), 403
+
+        # Chi non manda Sec-Fetch-Site (curl, la CLI, un browser vecchio)
+        # ricade qui: è il controllo che c'era prima, non sostituito.
         origin = request.headers.get("Origin")
-        if origin and request.method not in ("GET", "HEAD", "OPTIONS"):
-            if _hostname(origin) != host:
-                return (
-                    jsonify({"error": "Richiesta cross-site rifiutata"}),
-                    403,
-                )
+        if origin and _hostname(origin) != host:
+            return jsonify({"error": "Richiesta cross-site rifiutata"}), 403
         return None
+
+    @app.after_request
+    def _intestazioni_di_sicurezza(response):
+        """Due righe che costano zero, con aspettative oneste su cosa fanno.
+
+        frame-ancestors è quella che si guadagna il posto: impedisce di
+        incorniciare l'applicazione in un'altra pagina. Il contenuto non
+        sarebbe comunque leggibile (same-origin policy), ma il *clic* sì — e
+        qui un clic accende la sorveglianza di una cartella.
+
+        nosniff qui ha poco da mordere, perché nessun endpoint restituisce
+        contenuto dell'utente con un tipo indovinabile: è tutto JSON e static.
+        Vale come rete per gli endpoint che verranno.
+        """
+        response.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        return response
 
 
 def _register_error_handlers(app: Flask) -> None:
