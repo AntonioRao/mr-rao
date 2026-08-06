@@ -13,7 +13,6 @@
 </head>
 <body>
 
-<!-- Ambient stage -->
 <div class="stage" aria-hidden="true">
     <div class="orb orb--a"></div>
     <div class="orb orb--b"></div>
@@ -24,7 +23,7 @@
 
 <div class="page">
 
-    <!-- ── Hero ── -->
+    {# ═══════════════ HERO ═══════════════ #}
     <header class="hero reveal">
         <div class="hero__logo">
             <div class="hero__mark">
@@ -46,251 +45,284 @@
         </div>
     </header>
 
-    <!-- ── Drop (primary action) ── -->
-    <div class="drop-zone reveal" id="drop-zone" role="button" tabindex="0"
-         aria-label="Carica file"
-         data-tip="Trascina uno o più file, clicca per sceglierli, oppure <b>Ctrl+V</b> per incollare un'immagine.">
-        <div class="drop-icon">
-            <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="48" height="48">
-        </div>
-        <div class="drop-title">Trascina qui i file</div>
-        <div class="drop-subtitle">oppure clicca · multi-file · Ctrl+V per incollare un'immagine</div>
-        <div class="drop-formats">
-            <span class="fmt-badge">PDF</span>
-            <span class="fmt-badge">DOCX</span>
-            <span class="fmt-badge">XLSX</span>
-            <span class="fmt-badge">PPTX</span>
-            <span class="fmt-badge">HTML</span>
-            <span class="fmt-badge">CSV</span>
-            <span class="fmt-badge">TXT</span>
-            <span class="fmt-badge highlight">EML</span>
-            <span class="fmt-badge highlight">PNG</span>
-            <span class="fmt-badge highlight">JPG</span>
-            <span class="fmt-badge highlight">TIFF</span>
-            <span class="fmt-badge highlight">WEBP</span>
-        </div>
-        <input type="file" id="file-input" multiple
-               accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.html,.htm,.csv,.json,.xml,.txt,.rtf,.eml,.png,.jpg,.jpeg,.bmp,.tiff,.tif,.gif,.webp">
+    {# ═══════════════ 1. CARICA ═══════════════ #}
+    <section class="flow-section reveal" aria-labelledby="step-load">
+        <div class="flow-label" id="step-load"><span class="flow-num">1</span> Carica</div>
 
-        <div class="loading-overlay" id="loading">
-            <div class="spinner-wrap">
-                <div class="spinner-outer"></div>
-                <div class="spinner-inner"></div>
+        <div class="drop-zone" id="drop-zone" role="button" tabindex="0"
+             aria-label="Carica file"
+             data-tip="Trascina qui uno o più file, oppure clicca per sceglierli. Funziona anche da tastiera con Invio, e con <b>Ctrl+V</b> per incollare un'immagine copiata (uno screenshot, per esempio).">
+            <div class="drop-icon">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="48" height="48">
             </div>
-            <div class="loading-label" id="loading-text">Conversione in corso…</div>
-            <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
-            <span class="progress-pct" id="progress-pct"></span>
-            <button type="button" class="btn btn-danger" id="cancel-btn" style="display:none"
-                    data-tip="Interrompe la conversione in corso.">Annulla</button>
-        </div>
-    </div>
-
-    <!-- ── Quick controls ── -->
-    <div class="glass control-bar reveal">
-        <div class="field">
-            <span class="field-label" data-tip="Combinazione pronta di opzioni. Ritocca in Opzioni avanzate se serve.">Profilo</span>
-            <select id="profile" aria-label="Profilo"
-                    data-tip="<b>Predefinito</b> — bilanciato.<br><b>Email legali</b> — privacy massima.<br><b>Fatture</b> — tabelle + importi.<br><b>Solo OCR</b> — scansioni.<br><b>LLM</b> — testo pulito.<br><b>Nessuna redazione</b> — testo integrale.">
-                <option value="default">Predefinito</option>
-                <option value="email_legali">Email legali</option>
-                <option value="fatture">Fatture / contabili</option>
-                <option value="solo_ocr">Solo OCR</option>
-                <option value="llm_ready">Pronto per LLM</option>
-                <option value="no_privacy">Nessuna redazione</option>
-            </select>
-            <span class="field-hint" id="profile-hint">Va bene per quasi tutto: dati protetti, tabelle estratte.</span>
-        </div>
-        <div class="toggle-row" id="privacy-row"
-             data-tip="Sostituisce i dati personali con segnaposto tipo <b>{{ '{{EMAIL}}' }}</b>. Utile prima di condividere o incollare in un LLM.">
-            <div class="toggle-info">
-                <span class="toggle-title">Nascondi i dati personali</span>
-                <span class="toggle-desc">Email, telefoni, CF, IBAN, nomi</span>
+            <div class="drop-title">Trascina qui i file</div>
+            <div class="drop-subtitle">oppure clicca per sceglierli · anche più file insieme · incolla un'immagine con Ctrl+V</div>
+            <div class="drop-formats">
+                <span class="fmt-badge">PDF</span>
+                <span class="fmt-badge">DOCX</span>
+                <span class="fmt-badge">XLSX</span>
+                <span class="fmt-badge">PPTX</span>
+                <span class="fmt-badge">HTML</span>
+                <span class="fmt-badge">CSV</span>
+                <span class="fmt-badge">TXT</span>
+                <span class="fmt-badge highlight">EML</span>
+                <span class="fmt-badge highlight">PNG</span>
+                <span class="fmt-badge highlight">JPG</span>
+                <span class="fmt-badge highlight">TIFF</span>
+                <span class="fmt-badge highlight">WEBP</span>
             </div>
-            <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
-                <input type="checkbox" id="privacy-filter" checked>
-                <span class="switch-track"></span>
-                <span class="switch-thumb"></span>
-            </label>
-        </div>
-    </div>
+            <input type="file" id="file-input" multiple
+                   accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.html,.htm,.csv,.json,.xml,.txt,.rtf,.eml,.png,.jpg,.jpeg,.bmp,.tiff,.tif,.gif,.webp">
 
-    <!-- ── Advanced options ── -->
-    <details class="glass panel reveal">
-        <summary>
-            <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-            Opzioni avanzate
-            <span class="panel-sub">lettura · privacy · multi-file</span>
-        </summary>
-        <div class="panel-body">
-            <div class="group">
-                <div class="eyebrow">Come viene letto il file</div>
-                <div class="settings-row">
-                    <div class="field">
-                        <span class="field-label" data-tip="Nel dubbio lascia Automatico.">Metodo di lettura</span>
-                        <select id="engine" aria-label="Metodo di lettura"
-                                data-tip="<b>Automatico</b> — sceglie da solo.<br><b>Forza OCR</b> — scansioni e foto.<br><b>Solo testo nativo</b> — niente OCR.">
-                            <option value="auto">Automatico (consigliato)</option>
-                            <option value="rapidocr">Forza OCR — scansioni e foto</option>
-                            <option value="markitdown">Solo testo nativo — mai OCR</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <span class="field-label" data-tip="Conta soprattutto con l'OCR.">Lingua da riconoscere</span>
-                        <select id="language" aria-label="Lingua da riconoscere">
-                            <option value="it">Italiano</option>
-                            <option value="en">Inglese</option>
-                            <option value="multi">Più lingue insieme</option>
-                        </select>
-                    </div>
+            <div class="loading-overlay" id="loading">
+                <div class="spinner-wrap">
+                    <div class="spinner-outer"></div>
+                    <div class="spinner-inner"></div>
                 </div>
-                <span class="field-hint">Tutto locale: nessun file esce da questo computer.</span>
+                <div class="loading-label" id="loading-text">Conversione in corso…</div>
+                <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
+                <span class="progress-pct" id="progress-pct"></span>
+                <button type="button" class="btn btn-danger" id="cancel-btn" style="display:none"
+                        data-tip="Interrompe la conversione in corso. Su un file singolo già avviato può volerci qualche istante prima che si fermi davvero.">Annulla</button>
             </div>
+        </div>
+    </section>
 
-            <div class="group">
-                <div class="eyebrow">Quali dati nascondere</div>
-                <div class="opt-grid" id="privacy-panel" style="display:none">
-                    <label class="opt" data-tip="Ogni email diventa {{ '{{EMAIL}}' }}.">
-                        <input type="checkbox" id="privacy-emails" checked>
-                        <span class="opt-text"><span class="opt-title">Email</span><span class="opt-desc">Indirizzi di posta</span></span>
-                    </label>
-                    <label class="opt">
-                        <input type="checkbox" id="privacy-phones" checked>
-                        <span class="opt-text"><span class="opt-title">Telefoni</span><span class="opt-desc">Fissi e cellulari</span></span>
-                    </label>
-                    <label class="opt">
-                        <input type="checkbox" id="privacy-names" checked>
-                        <span class="opt-text"><span class="opt-title">Nomi</span><span class="opt-desc">Nomi e cognomi italiani</span></span>
-                    </label>
-                    <label class="opt">
-                        <input type="checkbox" id="privacy-fiscal" checked>
-                        <span class="opt-text"><span class="opt-title">Codici fiscali e bancari</span><span class="opt-desc">CF, P.IVA, IBAN</span></span>
-                    </label>
-                    <label class="opt">
-                        <input type="checkbox" id="privacy-amounts">
-                        <span class="opt-text"><span class="opt-title">Importi in euro</span><span class="opt-desc">Cifre e totali</span></span>
-                    </label>
-                    <label class="opt" data-tip="Abilita la scheda Confronto privacy.">
-                        <input type="checkbox" id="include-raw" checked>
-                        <span class="opt-text"><span class="opt-title">Confronto prima/dopo</span><span class="opt-desc">Scheda di verifica</span></span>
-                    </label>
+    {# ═══════════════ 2. IMPOSTA ═══════════════ #}
+    <section class="flow-section reveal" aria-labelledby="step-setup">
+        <div class="flow-label" id="step-setup"><span class="flow-num">2</span> Imposta</div>
+
+        <div class="glass control-bar">
+            <div class="field">
+                <span class="field-label"
+                      data-tip="Una combinazione già pronta di tutte le opzioni. Scegli il profilo che assomiglia al tuo lavoro e non pensare al resto: se serve puoi ritoccare le singole voci in «Opzioni avanzate».">Profilo</span>
+                <select id="profile" aria-label="Profilo"
+                        data-tip="<b>Predefinito</b> — buono per quasi tutto.<br><b>Email legali</b> — massima protezione dei dati personali, testo pulito.<br><b>Fatture</b> — tiene le tabelle e lascia visibili gli importi.<br><b>Solo OCR</b> — per scansioni e foto di documenti.<br><b>Pronto per LLM</b> — testo da incollare in ChatGPT &amp; simili.<br><b>Nessuna redazione</b> — testo integrale, niente sostituzioni.">
+                    <option value="default">Predefinito</option>
+                    <option value="email_legali">Email legali</option>
+                    <option value="fatture">Fatture / contabili</option>
+                    <option value="solo_ocr">Solo OCR</option>
+                    <option value="llm_ready">Pronto per LLM</option>
+                    <option value="no_privacy">Nessuna redazione</option>
+                </select>
+                <span class="field-hint" id="profile-hint">Va bene per quasi tutto: dati personali protetti, tabelle estratte.</span>
+            </div>
+            <div class="toggle-row" id="privacy-row"
+                 data-tip="Sostituisce i dati personali con segnaposto tipo <b>{{ '{{EMAIL}}' }}</b> prima di consegnarti il Markdown. Serve soprattutto se poi incolli il testo in un servizio online: quello che è stato tolto lo vedi nella scheda «Confronto privacy».">
+                <div class="toggle-info">
+                    <span class="toggle-title">Nascondi i dati personali</span>
+                    <span class="toggle-desc">Email, telefoni, codici fiscali, IBAN, nomi</span>
                 </div>
-                <span class="field-hint" id="privacy-off-hint">Il filtro è spento: i dati personali restano nel Markdown.</span>
-            </div>
-
-            <div class="group">
-                <div class="eyebrow">Cosa mettere nel Markdown</div>
-                <div class="opt-grid">
-                    <label class="opt">
-                        <input type="checkbox" id="include-tables" checked>
-                        <span class="opt-text"><span class="opt-title">Tabelle dai PDF</span><span class="opt-desc">Ricostruite in Markdown</span></span>
-                    </label>
-                    <label class="opt">
-                        <input type="checkbox" id="include-frontmatter" checked>
-                        <span class="opt-text"><span class="opt-title">Scheda informativa</span><span class="opt-desc">Origine, data, redazioni</span></span>
-                    </label>
-                    <label class="opt">
-                        <input type="checkbox" id="clean-output">
-                        <span class="opt-text"><span class="opt-title">Solo contenuto</span><span class="opt-desc">Niente note tecniche</span></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="group">
-                <div class="eyebrow">Quando carichi più file</div>
-                <div class="opt-grid">
-                    <label class="opt">
-                        <input type="checkbox" id="merge-batch">
-                        <span class="opt-text"><span class="opt-title">Unisci in un documento</span><span class="opt-desc">Un solo .md</span></span>
-                    </label>
-                    <label class="opt">
-                        <input type="checkbox" id="compare-mode">
-                        <span class="opt-text"><span class="opt-title">Confronta 2 file</span><span class="opt-desc">Documento A / B</span></span>
-                    </label>
-                </div>
+                <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
+                    <input type="checkbox" id="privacy-filter" checked>
+                    <span class="switch-track"></span>
+                    <span class="switch-thumb"></span>
+                </label>
             </div>
         </div>
-    </details>
 
-    <!-- ── Result ── -->
-    <div class="glass result-card" id="result-card">
-        <div class="result-header">
-            <span class="result-title">Risultato Markdown
-                <span class="badge" id="redaction-badge" data-tip="Dati personali sostituiti. Apri Confronto privacy per i dettagli."></span>
-            </span>
-            <div class="btn-group">
-                <button type="button" class="btn" id="copy-btn" data-tip="Copia tutto negli appunti.">Copia</button>
-                <button type="button" class="btn" id="copy-clean-btn" data-tip="Solo contenuto, pronto per LLM.">Copia testo</button>
-                <button type="button" class="btn" id="download-txt-btn">.txt</button>
-                <button type="button" class="btn btn-primary" id="download-btn" draggable="true"
-                        data-tip="Scarica .md oppure <b>trascina</b> sul Desktop.">Scarica .md</button>
-            </div>
-        </div>
-        <div class="tabs">
-            <button type="button" class="tab active" id="tab-raw">Markdown</button>
-            <button type="button" class="tab" id="tab-preview">Anteprima</button>
-            <button type="button" class="tab" id="tab-diff" style="display:none">Confronto privacy</button>
-        </div>
-        <div id="attachments-bar"></div>
-        <div class="output-box">
-            <div class="output-topbar">
-                <span class="dot dot-r"></span>
-                <span class="dot dot-y"></span>
-                <span class="dot dot-g"></span>
-                <span class="output-lang">markdown · drag .md sul Desktop</span>
-            </div>
-            <div class="markdown-output" id="markdown-output" draggable="true"></div>
-            <div class="preview-output" id="preview-output"></div>
-            <div class="markdown-output" id="diff-output" style="display:none"></div>
-        </div>
-    </div>
-
-    <!-- ── Secondary: history + watch ── -->
-    <div class="secondary-grid">
-        <div class="glass side-card reveal">
-            <h3 data-tip="Conversioni di questa sessione (solo in memoria).">Sessione</h3>
-            <div id="history-list"><p class="muted">Nessuna conversione ancora.</p></div>
-            <p class="muted" style="margin-top:0.65rem">Scompare chiudendo la pagina. Niente su disco.</p>
-        </div>
-
-        <details class="glass panel reveal" id="watch">
+        <details class="glass panel">
             <summary>
                 <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                Cartella automatica
-                <span class="panel-sub" id="watch-status">non attiva</span>
+                Opzioni avanzate
+                <span class="panel-sub">lettura del file · dettaglio privacy · più file insieme</span>
             </summary>
             <div class="panel-body">
-                <p class="muted">
-                    Ogni file nella cartella di ingresso viene convertito da solo.
-                    Il <code>.md</code> finisce in uscita. Usa profilo e opzioni attuali.
-                </p>
-                <div class="settings-row">
-                    <div class="field">
-                        <span class="field-label">Cartella da sorvegliare</span>
-                        <input type="text" id="watch-inbox" class="input-text"
-                               placeholder="C:\Users\...\Da convertire">
+
+                <div class="group">
+                    <div class="eyebrow">Come viene letto il file</div>
+                    <div class="settings-row">
+                        <div class="field">
+                            <span class="field-label" data-tip="Nel dubbio lascia Automatico: sceglie da solo e usa l'OCR solo quando serve.">Metodo di lettura</span>
+                            <select id="engine" aria-label="Metodo di lettura"
+                                    data-tip="<b>Automatico</b> — legge il testo del documento; se non ne trova (PDF scansionato) passa da solo all'OCR.<br><b>Forza OCR</b> — legge sempre l'immagine, riconoscendo il testo. Più lento, ma è l'unica strada per scansioni e foto.<br><b>Solo testo nativo</b> — non usa mai l'OCR: se il documento non contiene testo, il risultato è vuoto.">
+                                <option value="auto">Automatico (consigliato)</option>
+                                <option value="rapidocr">Forza OCR — scansioni e foto</option>
+                                <option value="markitdown">Solo testo nativo — mai OCR</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <span class="field-label" data-tip="Conta solo quando entra in gioco l'OCR: sui documenti con testo nativo non cambia nulla.">Lingua da riconoscere</span>
+                            <select id="language" aria-label="Lingua da riconoscere"
+                                    data-tip="Aiuta il riconoscimento a scegliere le parole giuste. <b>Più lingue</b> se il documento le mescola (es. contratto bilingue).">
+                                <option value="it">Italiano</option>
+                                <option value="en">Inglese</option>
+                                <option value="multi">Più lingue insieme</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="field">
-                        <span class="field-label">Dove salvare i .md</span>
-                        <input type="text" id="watch-outbox" class="input-text"
-                               placeholder="C:\Users\...\Convertiti">
+                    <span class="field-hint">Il riconoscimento avviene sul tuo computer: nessun file esce da qui, nessun modello viene scaricato.</span>
+                </div>
+
+                <div class="group">
+                    <div class="eyebrow">Quali dati nascondere</div>
+                    <div class="opt-grid" id="privacy-panel" style="display:none">
+                        <label class="opt" data-tip="Ogni indirizzo email diventa {{ '{{EMAIL}}' }}.">
+                            <input type="checkbox" id="privacy-emails" checked>
+                            <span class="opt-text"><span class="opt-title">Email</span><span class="opt-desc">Indirizzi di posta</span></span>
+                        </label>
+                        <label class="opt" data-tip="Numeri di telefono fissi e cellulari. I numeri che non sembrano telefoni (protocolli, codici) vengono lasciati stare.">
+                            <input type="checkbox" id="privacy-phones" checked>
+                            <span class="opt-text"><span class="opt-title">Telefoni</span><span class="opt-desc">Fissi e cellulari</span></span>
+                        </label>
+                        <label class="opt" data-tip="Nomi e cognomi italiani riconosciuti. È la voce meno precisa delle sei: si basa su un elenco di nomi comuni, quindi può lasciar passare un cognome raro.">
+                            <input type="checkbox" id="privacy-names" checked>
+                            <span class="opt-text"><span class="opt-title">Nomi</span><span class="opt-desc">Nomi e cognomi italiani</span></span>
+                        </label>
+                        <label class="opt" data-tip="Gli IBAN vengono verificati col calcolo di controllo, così un codice a caso non viene scambiato per un conto corrente.">
+                            <input type="checkbox" id="privacy-fiscal" checked>
+                            <span class="opt-text"><span class="opt-title">Codici fiscali e bancari</span><span class="opt-desc">Codice fiscale, P.IVA, IBAN</span></span>
+                        </label>
+                        <label class="opt" data-tip="Spento di default: nelle fatture gli importi di solito servono. Attivalo se vuoi condividere un documento senza mostrarne le cifre.">
+                            <input type="checkbox" id="privacy-amounts">
+                            <span class="opt-text"><span class="opt-title">Importi in euro</span><span class="opt-desc">Cifre e totali</span></span>
+                        </label>
+                        <label class="opt" data-tip="Conserva anche il testo originale, così nella scheda «Confronto privacy» puoi vedere esattamente cosa è stato sostituito. Se lo spegni risparmi memoria ma perdi quel controllo.">
+                            <input type="checkbox" id="include-raw" checked>
+                            <span class="opt-text"><span class="opt-title">Permetti il confronto prima/dopo</span><span class="opt-desc">Abilita la scheda di verifica</span></span>
+                        </label>
+                    </div>
+                    <span class="field-hint" id="privacy-off-hint">Il filtro è spento: il Markdown conterrà i dati personali così come sono nel documento.</span>
+                </div>
+
+                <div class="group">
+                    <div class="eyebrow">Cosa mettere nel Markdown</div>
+                    <div class="opt-grid">
+                        <label class="opt" data-tip="Cerca le tabelle dentro i PDF e le riscrive come tabelle Markdown, invece di sfilacciarle in righe di testo. Su PDF molto lunghi rallenta un po'.">
+                            <input type="checkbox" id="include-tables" checked>
+                            <span class="opt-text"><span class="opt-title">Estrai le tabelle dai PDF</span><span class="opt-desc">Le ricostruisce come tabelle vere</span></span>
+                        </label>
+                        <label class="opt" data-tip="Utile per archiviare, inutile se devi solo incollare il testo da qualche parte.">
+                            <input type="checkbox" id="include-frontmatter" checked>
+                            <span class="opt-text"><span class="opt-title">Scheda informativa in cima</span><span class="opt-desc">Origine, data, sostituzioni fatte</span></span>
+                        </label>
+                        <label class="opt" data-tip="Toglie note a piè di pagina e commenti tecnici, lasciando solo il contenuto. Comodo quando il testo va incollato in ChatGPT o simili.">
+                            <input type="checkbox" id="clean-output">
+                            <span class="opt-text"><span class="opt-title">Togli le note tecniche</span><span class="opt-desc">Solo il contenuto, niente commenti</span></span>
+                        </label>
                     </div>
                 </div>
-                <div class="opt-grid">
-                    <label class="opt">
-                        <input type="checkbox" id="watch-move">
-                        <span class="opt-text"><span class="opt-title">Sposta originali in done/</span><span class="opt-desc">Cartella ingresso pulita</span></span>
-                    </label>
+
+                <div class="group">
+                    <div class="eyebrow">Quando carichi più file insieme</div>
+                    <div class="opt-grid">
+                        <label class="opt" data-tip="Senza questa spunta ottieni un risultato separato per ciascun file.">
+                            <input type="checkbox" id="merge-batch">
+                            <span class="opt-text"><span class="opt-title">Unisci in un solo documento</span><span class="opt-desc">Invece di uno per file</span></span>
+                        </label>
+                        <label class="opt" data-tip="Prende esattamente 2 file e li mette uno sotto l'altro come «Documento A» e «Documento B», per confrontarli a colpo d'occhio.">
+                            <input type="checkbox" id="compare-mode">
+                            <span class="opt-text"><span class="opt-title">Metti 2 file a confronto</span><span class="opt-desc">Esattamente due, uno sotto l'altro</span></span>
+                        </label>
+                    </div>
                 </div>
-                <div class="watch-actions">
-                    <button type="button" class="btn btn-primary" id="watch-start">Avvia</button>
-                    <button type="button" class="btn" id="watch-stop">Ferma</button>
-                </div>
+
             </div>
         </details>
-    </div>
+    </section>
+
+    {# ═══════════════ 3. RISULTATO ═══════════════ #}
+    <section class="flow-section" aria-labelledby="step-result" id="result-section">
+        <div class="flow-label" id="step-result" style="display:none"><span class="flow-num">3</span> Risultato</div>
+
+        <div class="glass result-card" id="result-card">
+            <div class="result-header">
+                <span class="result-title">Risultato Markdown
+                    <span class="badge" id="redaction-badge"
+                          data-tip="Quanti dati personali sono stati sostituiti con segnaposto. Apri «Confronto privacy» per vedere quali."></span>
+                </span>
+                <div class="btn-group">
+                    <button type="button" class="btn" id="copy-btn"
+                            data-tip="Copia tutto negli appunti, scheda informativa compresa.">Copia</button>
+                    <button type="button" class="btn" id="copy-clean-btn"
+                            data-tip="Copia solo il contenuto: via la scheda informativa in cima e le note tecniche. È la versione da incollare in ChatGPT o in una mail.">Copia solo il testo</button>
+                    <button type="button" class="btn" id="download-txt-btn"
+                            data-tip="Scarica come testo semplice .txt, senza formattazione Markdown.">.txt</button>
+                    <button type="button" class="btn btn-primary" id="download-btn" draggable="true"
+                            data-tip="Scarica il file Markdown. Puoi anche <b>trascinare questo pulsante</b> direttamente sul Desktop o in una cartella.">Scarica .md</button>
+                </div>
+            </div>
+            <div class="tabs">
+                <button type="button" class="tab active" id="tab-raw"
+                        data-tip="Il Markdown come viene salvato nel file, simboli compresi.">Testo Markdown</button>
+                <button type="button" class="tab" id="tab-preview"
+                        data-tip="Come apparirà una volta formattato, con titoli e grassetti al posto dei simboli.">Anteprima</button>
+                <button type="button" class="tab" id="tab-diff" style="display:none"
+                        data-tip="Mostra il testo prima e dopo la protezione dei dati, con i segnaposto evidenziati: così controlli cosa è stato tolto — e cosa è sfuggito.">Confronto privacy</button>
+            </div>
+            <div id="attachments-bar"></div>
+            <div class="output-box">
+                <div class="output-topbar">
+                    <span class="dot dot-r"></span>
+                    <span class="dot dot-y"></span>
+                    <span class="dot dot-g"></span>
+                    <span class="output-lang">markdown · trascina il bottone .md sul Desktop</span>
+                </div>
+                <div class="markdown-output" id="markdown-output" draggable="true"></div>
+                <div class="preview-output" id="preview-output"></div>
+                <div class="markdown-output" id="diff-output" style="display:none"></div>
+            </div>
+        </div>
+    </section>
+
+    {# ═══════════════ 4. EXTRA (sessione + cartella) ═══════════════ #}
+    <section class="flow-section reveal" aria-labelledby="step-extra">
+        <div class="flow-label" id="step-extra"><span class="flow-num">4</span> Extra</div>
+
+        <div class="secondary-grid">
+            <div class="glass side-card">
+                <h3 data-tip="Le conversioni fatte da quando hai aperto questa pagina. Clicca una voce per rivederne il risultato.">Conversioni di questa sessione</h3>
+                <div id="history-list"><p class="muted">Nessuna conversione in questa sessione.</p></div>
+                <p class="muted" style="margin-top:0.65rem">Restano solo finché la pagina è aperta: niente viene salvato sul disco.</p>
+            </div>
+
+            <details class="glass panel" id="watch">
+                <summary>
+                    <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                    Cartella automatica
+                    <span class="panel-sub" id="watch-status"
+                          data-tip="Stato della sorveglianza e quanti file sono stati convertiti finora.">non attiva</span>
+                </summary>
+                <div class="panel-body">
+                    <p class="muted" style="margin-top:0.15rem">
+                        Sorveglia una cartella al posto tuo: <strong>ogni file che ci trascini dentro
+                        viene convertito da solo</strong> e il <code>.md</code> compare nella cartella
+                        di uscita. Utile per convertire tanti documenti senza passare da questa pagina —
+                        ci pensa lui finché non premi «Ferma». Usa il profilo e le opzioni scelti qui sopra.
+                    </p>
+                    <div class="settings-row">
+                        <div class="field">
+                            <span class="field-label" data-tip="Ogni file che compare in questa cartella viene convertito. Incolla il percorso completo.">Cartella da sorvegliare</span>
+                            <input type="text" id="watch-inbox" class="input-text"
+                                   placeholder="C:\Users\...\Documenti\Da convertire"
+                                   data-tip="Percorso completo della cartella dove metterai i documenti da convertire.">
+                        </div>
+                        <div class="field">
+                            <span class="field-label" data-tip="Dove finiscono i Markdown convertiti. Se non esiste, viene creata.">Dove salvare i .md</span>
+                            <input type="text" id="watch-outbox" class="input-text"
+                                   placeholder="C:\Users\...\Documenti\Convertiti"
+                                   data-tip="Se due file hanno lo stesso nome ma estensione diversa, il secondo prende un nome leggermente diverso invece di sovrascrivere il primo.">
+                        </div>
+                    </div>
+                    <div class="opt-grid">
+                        <label class="opt" data-tip="A conversione fatta, sposta il documento originale in una sottocartella «done», così la cartella sorvegliata resta pulita e vedi a colpo d'occhio cosa manca ancora.">
+                            <input type="checkbox" id="watch-move">
+                            <span class="opt-text"><span class="opt-title">Sposta gli originali in «done»</span><span class="opt-desc">Tiene pulita la cartella sorvegliata</span></span>
+                        </label>
+                    </div>
+                    <div class="watch-actions">
+                        <button type="button" class="btn btn-primary" id="watch-start"
+                                data-tip="Comincia a sorvegliare, usando il profilo e le opzioni impostati qui sopra.">Avvia sorveglianza</button>
+                        <button type="button" class="btn" id="watch-stop"
+                                data-tip="Smette di sorvegliare. I file già convertiti restano dove sono.">Ferma</button>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </section>
 
     <footer class="reveal">
-        <strong>{{ app_name }}</strong> v{{ app_version }} · offline · zero cloud<br>
+        <strong>{{ app_name }}</strong> v{{ app_version }} · 100% locale · zero cloud<br>
         MarkItDown · RapidOCR · Scrubadub · BeautifulSoup ·
         <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
     </footer>
@@ -312,6 +344,17 @@ document.getElementById('privacy-row').addEventListener('click', function (e) {
     cb.checked = !cb.checked;
     cb.dispatchEvent(new Event('change'));
 });
+// Mostra etichetta step 3 quando c'è un risultato
+(function () {
+    const card = document.getElementById('result-card');
+    const label = document.getElementById('step-result');
+    if (!card || !label) return;
+    const obs = new MutationObserver(function () {
+        const visible = card.style.display === 'flex' || getComputedStyle(card).display === 'flex';
+        label.style.display = visible ? 'flex' : 'none';
+    });
+    obs.observe(card, { attributes: true, attributeFilter: ['style', 'class'] });
+})();
 </script>
 </body>
 </html>

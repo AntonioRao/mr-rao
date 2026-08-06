@@ -124,7 +124,49 @@ body {
   padding: 2.25rem 1.35rem 4.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 1.5rem;
+}
+
+/* Flow sections: clear visual order 1 → 2 → 3 → 4 */
+.flow-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.flow-label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-2);
+  user-select: none;
+}
+
+.flow-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-deep), var(--accent-deep));
+  box-shadow: 0 0 18px rgba(79, 140, 255, 0.45);
+  flex-shrink: 0;
+}
+
+.flow-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(147, 197, 253, 0.28), transparent 90%);
 }
 
 /* Staggered entrance */

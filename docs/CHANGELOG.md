@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.1 — UI 2.0 ordinata: tutte le funzioni 1.1.4 + gerarchia a step
+
+### Correzione
+La prima passata 1.2.0 aveva **sfoltito troppo** il markup rispetto alla 1.1.4
+(tooltip ricchi, microcopy italiana, opzioni complete). Questa release **ripristina
+tutta la funzionalità 1.1.4** e la dispone in un flusso pulito.
+
+### Ordine della pagina (anti-disordine)
+1. **Carica** — drop zone  
+2. **Imposta** — profilo + privacy; avanzate collassate (lettura, privacy granulare, output, multi-file)  
+3. **Risultato** — tabs, export, allegati, confronto privacy  
+4. **Extra** — sessione | cartella automatica  
+
+### Mantiene (1.1.4)
+- Tooltip su profili, metodi, privacy, export, watch, tabs  
+- Opzioni: tabelle, scheda informativa, note tecniche, merge, confronto 2 file  
+- Privacy granulare + hint se filtro spento  
+- Cartella automatica completa (path, done/, avvia/ferma)  
+- Design System 2.0 (glass / aurora / float)
+
+### Documentazione
+- Backlog P0: SendTo → UI resta prioritario
+
 ## 1.2.0 — UI Design System 2.0 + backlog di priorità
 
 ### Refactor UI (premium)
@@ -18,8 +41,9 @@
 - Nuovo [BACKLOG.md](BACKLOG.md) con piano P0–P4 (SendTo→UI prioritario)
 - README / ARCHITECTURE aggiornati alla UI 2.0
 
-### Nota nota
+### Nota
 - Menu **Invia a Mr. Rao** resta CLI-only (P0.1 in backlog): non apre ancora l'UI col risultato.
+- 1.2.0 aveva semplificato troppo il markup: corretto in **1.2.1**.
 
 ## 1.1.4 — Interfaccia comprensibile senza manuale
 

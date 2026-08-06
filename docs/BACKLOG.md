@@ -32,8 +32,9 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 | ID | Item | Perché | Stato |
 |----|------|--------|--------|
 | P1.1 | **UI Design System 2.0** (glass, aurora, float, glow) | Schermata disordinata post-feature dump | **DONE** |
-| P1.2 | Gerarchia: drop primario · controlli essenziali · avanzate collassate · secondari a griglia | Riduce carico cognitivo | **DONE** |
-| P1.3 | Empty states e microcopy coerenti | Professionalità | **DONE** (passata UI) |
+| P1.2 | Gerarchia a step 1–4: Carica → Imposta → Risultato → Extra | Riduce carico cognitivo | **DONE** (1.2.1) |
+| P1.2b | Ripristino funzionalità/tooltip 1.1.4 sul layout 2.0 (senza snellire il prodotto) | 1.2.0 aveva sfoltito troppo | **DONE** (1.2.1) |
+| P1.3 | Empty states e microcopy coerenti | Professionalità | **DONE** |
 | P1.4 | Preview Markdown più fedele (liste, tabelle) | Anteprima debole | TODO |
 | P1.5 | Mobile / narrow viewport polish | Uso da tablet | TODO |
 
