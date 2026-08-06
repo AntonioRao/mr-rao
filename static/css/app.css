@@ -1234,6 +1234,29 @@ select:focus,
   align-items: center;
 }
 
+/* Path + Browse row (cartella automatica) */
+.path-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.path-row .input-text {
+  flex: 1;
+  min-width: 0;
+  cursor: default;
+}
+
+.path-row .input-text[readonly] {
+  color: var(--text);
+  opacity: 0.95;
+}
+
+.path-row .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* ── Footer ────────────────────────────────────────────────── */
 footer {
   text-align: center;

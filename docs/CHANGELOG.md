@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.2 — Cartella automatica: Sfoglia… + cartelle predefinite in Documenti
+
+### Cartelle di default (create all'avvio se mancano)
+- `Documenti\Mr Rao\Da convertire` — da sorvegliare  
+- `Documenti\Mr Rao\Convertiti` — output `.md`  
+
+### UI
+- Pulsanti **Sfoglia…** (dialog nativo Windows via tkinter sul server locale)
+- Campi percorso in sola lettura + precompilati con i default
+- API: `GET /api/folders/defaults`, `POST /api/folders/browse`
+
 ## 1.2.1 — UI 2.0 ordinata: tutte le funzioni 1.1.4 + gerarchia a step
 
 ### Correzione

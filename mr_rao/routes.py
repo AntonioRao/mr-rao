@@ -6,14 +6,35 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, render_template, request
 
-from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
+from config import (
+    ALLOWED_EXTENSIONS,
+    APP_NAME,
+    APP_VERSION,
+    IMAGE_EXTENSIONS,
+    MAX_UPLOAD_MB,
+    MAX_WORKERS,
+)
 from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
 from mr_rao.jobs import job_store
 from mr_rao.privacy import options_from_form
 from mr_rao.profiles import get_profile, list_profiles, options_from_profile
+from mr_rao.user_folders import browse_folder, ensure_default_watch_folders
 from mr_rao.watch_service import get_watch_state, start_watch, stop_watch
 
 bp = Blueprint("main", __name__)
+
+# One thread per request would let N uploads start N OCR runs at once and
+# thrash the machine. Threads stay daemon (clean exit from the tray); the
+# semaphore is what bounds the actual work. Queued jobs stay "pending".
+_worker_slots = threading.BoundedSemaphore(MAX_WORKERS)
+
+
+def _spawn(target, *args) -> None:
+    def _runner():
+        with _worker_slots:
+            target(*args)
+
+    threading.Thread(target=_runner, daemon=True).start()
 
 
 def _truthy(val, default: bool = False) -> bool:
@@ -91,6 +112,9 @@ def index():
         "index.html",
         app_name=APP_NAME,
         app_version=APP_VERSION,
+        # The client-side size check must follow MR_RAO_MAX_UPLOAD_MB, not a
+        # hardcoded 50, or raising the server limit changes nothing.
+        max_upload_mb=MAX_UPLOAD_MB,
     )
 
 
@@ -104,6 +128,8 @@ def health():
             "engines": ["markitdown", "rapidocr", "eml_parser"],
             "image_extensions": sorted(IMAGE_EXTENSIONS),
             "allowed_extensions": sorted(ALLOWED_EXTENSIONS),
+            "max_upload_mb": MAX_UPLOAD_MB,
+            "max_workers": MAX_WORKERS,
             "profiles": list_profiles(),
             "watch": get_watch_state(),
             "frozen": bool(getattr(__import__("sys"), "frozen", False)),
@@ -116,10 +142,28 @@ def profiles():
     return jsonify({"profiles": list_profiles(), "detail": {p: get_profile(p) for p in [x["id"] for x in list_profiles()]}})
 
 
+def _fail_job(job, exc: Exception) -> None:
+    """Never leave a job in 'running': the UI would poll it forever."""
+    print(f"job {job.id} crashed: {exc!r}")
+    with job.lock:
+        if job.status in ("done", "cancelled"):
+            return
+        job.status = "error"
+        job.error = "Errore interno durante la conversione."
+        job.message = job.error
+
+
 def _run_job_single(job_id: str, data: bytes, filename: str, options: ConvertOptions) -> None:
     job = job_store.get(job_id)
     if not job:
         return
+    try:
+        _run_job_single_inner(job, data, filename, options)
+    except Exception as e:  # noqa: BLE001 — last line of defence for the worker thread
+        _fail_job(job, e)
+
+
+def _run_job_single_inner(job, data: bytes, filename: str, options: ConvertOptions) -> None:
     with job.lock:
         job.status = "running"
         job.message = "Avvio conversione…"
@@ -161,6 +205,20 @@ def _run_job_batch(
     job = job_store.get(job_id)
     if not job:
         return
+    try:
+        _run_job_batch_inner(job, items, options, merge, merge_title, compare)
+    except Exception as e:  # noqa: BLE001 — last line of defence for the worker thread
+        _fail_job(job, e)
+
+
+def _run_job_batch_inner(
+    job,
+    items: list[tuple[bytes, str]],
+    options: ConvertOptions,
+    merge: bool,
+    merge_title: str,
+    compare: bool = False,
+) -> None:
     with job.lock:
         job.status = "running"
         job.total = len(items)
@@ -244,20 +302,9 @@ def convert_api():
     if err:
         return jsonify({"error": err}), 400
 
+    # No .eml special case here: the privacy default is decided once in
+    # options_from_form(), which is fail-safe (redacts unless told otherwise).
     options = _parse_options_from_request()
-    if Path(file.filename).suffix.lower() == ".eml":
-        if request.form.get("privacy_filter", "true").lower() != "false":
-            from mr_rao.privacy import PrivacyOptions
-
-            if not any(
-                [
-                    options.privacy.emails,
-                    options.privacy.phones,
-                    options.privacy.names,
-                    options.privacy.fiscal,
-                ]
-            ):
-                options.privacy = PrivacyOptions()
 
     data = file.read()
     if not data:
@@ -266,12 +313,9 @@ def convert_api():
         return jsonify({"error": "File troppo grande"}), 400
 
     job = job_store.create()
-    t = threading.Thread(
-        target=_run_job_single,
-        args=(job.id, data, file.filename, options),
-        daemon=True,
-    )
-    t.start()
+    with job.lock:
+        job.message = "In coda…"
+    _spawn(_run_job_single, job.id, data, file.filename, options)
     return jsonify({"job_id": job.id}), 202
 
 
@@ -307,20 +351,16 @@ def convert_batch():
         return jsonify({"error": "Il confronto richiede esattamente 2 file"}), 400
 
     job = job_store.create()
-    t = threading.Thread(
-        target=_run_job_batch,
-        args=(job.id, items, options, merge, merge_title, compare),
-        daemon=True,
-    )
-    t.start()
+    with job.lock:
+        job.message = "In coda…"
+    _spawn(_run_job_batch, job.id, items, options, merge, merge_title, compare)
     return jsonify({"job_id": job.id}), 202
 
 
 @bp.route("/api/convert/compare", methods=["POST"])
 def convert_compare():
-    """Compare exactly two documents (PDF or any supported)."""
-    # Reuse batch with compare flag
-    # Accept file_a / file_b or files
+    """Compare exactly two documents. Convenience alias of /api/convert/batch
+    with compare=1, accepting file_a/file_b instead of a files[] list."""
     files = request.files.getlist("files")
     if len(files) < 2:
         a = request.files.get("file_a") or request.files.get("file1")
@@ -329,12 +369,8 @@ def convert_compare():
     if len(files) != 2:
         return jsonify({"error": "Servono esattamente 2 file (file_a e file_b)"}), 400
 
-    # inject into batch-like handling
-    from werkzeug.datastructures import ImmutableMultiDict
-
-    # Build synthetic multipart by calling logic directly
     options = _parse_options_from_request()
-    items = []
+    items: list[tuple[bytes, str]] = []
     for f in files:
         if not f.filename:
             return jsonify({"error": "Nome file mancante"}), 400
@@ -347,12 +383,17 @@ def convert_compare():
         items.append((data, f.filename))
 
     job = job_store.create()
-    t = threading.Thread(
-        target=_run_job_batch,
-        args=(job.id, items, options, True, request.form.get("merge_title", "Confronto documenti"), True),
-        daemon=True,
+    with job.lock:
+        job.message = "In coda…"
+    _spawn(
+        _run_job_batch,
+        job.id,
+        items,
+        options,
+        True,
+        request.form.get("merge_title", "Confronto documenti"),
+        True,
     )
-    t.start()
     return jsonify({"job_id": job.id}), 202
 
 
@@ -395,17 +436,40 @@ def paste_image():
     return convert_api()
 
 
+@bp.route("/api/folders/defaults", methods=["GET"])
+def folders_defaults():
+    """Create (if needed) and return Documenti\\Mr Rao\\Da convertire + Convertiti."""
+    paths = ensure_default_watch_folders()
+    return jsonify({"ok": True, **paths})
+
+
+@bp.route("/api/folders/browse", methods=["POST"])
+def folders_browse():
+    """Native OS folder picker (local app only). Body: { initial?, title? }."""
+    data = request.get_json(silent=True) or {}
+    initial = data.get("initial") or request.form.get("initial")
+    title = data.get("title") or request.form.get("title") or "Scegli cartella"
+    path = browse_folder(initial=initial, title=title)
+    if not path:
+        return jsonify({"ok": False, "cancelled": True, "path": None})
+    return jsonify({"ok": True, "cancelled": False, "path": path})
+
+
 @bp.route("/api/watch", methods=["GET"])
 def watch_get():
-    return jsonify(get_watch_state())
+    defaults = ensure_default_watch_folders()
+    state = get_watch_state()
+    state["defaults"] = defaults
+    return jsonify(state)
 
 
 @bp.route("/api/watch", methods=["POST"])
 def watch_start():
     data = request.get_json(silent=True) or {}
     # also accept form
-    inbox = data.get("inbox") or request.form.get("inbox")
-    outbox = data.get("outbox") or request.form.get("outbox")
+    defaults = ensure_default_watch_folders()
+    inbox = data.get("inbox") or request.form.get("inbox") or defaults["inbox"]
+    outbox = data.get("outbox") or request.form.get("outbox") or defaults["outbox"]
     if not inbox or not outbox:
         return jsonify({"error": "Specificare inbox e outbox"}), 400
     interval = float(data.get("interval") or request.form.get("interval") or 2)

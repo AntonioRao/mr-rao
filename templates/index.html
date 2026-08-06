@@ -290,18 +290,30 @@
                         di uscita. Utile per convertire tanti documenti senza passare da questa pagina —
                         ci pensa lui finché non premi «Ferma». Usa il profilo e le opzioni scelti qui sopra.
                     </p>
+                    <p class="muted" id="watch-defaults-hint">
+                        Di default: <code>Documenti\Mr Rao\Da convertire</code> →
+                        <code>Documenti\Mr Rao\Convertiti</code> (create all'avvio se mancano).
+                    </p>
                     <div class="settings-row">
                         <div class="field">
-                            <span class="field-label" data-tip="Ogni file che compare in questa cartella viene convertito. Incolla il percorso completo.">Cartella da sorvegliare</span>
-                            <input type="text" id="watch-inbox" class="input-text"
-                                   placeholder="C:\Users\...\Documenti\Da convertire"
-                                   data-tip="Percorso completo della cartella dove metterai i documenti da convertire.">
+                            <span class="field-label" data-tip="Ogni file che compare in questa cartella viene convertito.">Cartella da sorvegliare</span>
+                            <div class="path-row">
+                                <input type="text" id="watch-inbox" class="input-text" readonly
+                                       placeholder="Scegli o usa la cartella predefinita"
+                                       data-tip="Percorso della cartella dove metterai i documenti da convertire. Usa «Sfoglia…» per sceglierla.">
+                                <button type="button" class="btn" id="watch-browse-inbox"
+                                        data-tip="Apre la finestra di Windows per scegliere la cartella da sorvegliare.">Sfoglia…</button>
+                            </div>
                         </div>
                         <div class="field">
-                            <span class="field-label" data-tip="Dove finiscono i Markdown convertiti. Se non esiste, viene creata.">Dove salvare i .md</span>
-                            <input type="text" id="watch-outbox" class="input-text"
-                                   placeholder="C:\Users\...\Documenti\Convertiti"
-                                   data-tip="Se due file hanno lo stesso nome ma estensione diversa, il secondo prende un nome leggermente diverso invece di sovrascrivere il primo.">
+                            <span class="field-label" data-tip="Dove finiscono i Markdown convertiti.">Dove salvare i .md</span>
+                            <div class="path-row">
+                                <input type="text" id="watch-outbox" class="input-text" readonly
+                                       placeholder="Scegli o usa la cartella predefinita"
+                                       data-tip="Cartella di uscita dei file .md. Usa «Sfoglia…» per sceglierla.">
+                                <button type="button" class="btn" id="watch-browse-outbox"
+                                        data-tip="Apre la finestra di Windows per scegliere dove salvare i .md.">Sfoglia…</button>
+                            </div>
                         </div>
                     </div>
                     <div class="opt-grid">

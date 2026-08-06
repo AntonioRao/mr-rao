@@ -83,6 +83,8 @@
     watchStart: $("watch-start"),
     watchStop: $("watch-stop"),
     watchStatus: $("watch-status"),
+    watchBrowseInbox: $("watch-browse-inbox"),
+    watchBrowseOutbox: $("watch-browse-outbox"),
   };
 
   let currentMarkdown = "";
@@ -692,7 +694,57 @@
     window.addEventListener("resize", hide);
   })();
 
-  // ── Watch ──
+  // ── Watch + cartelle predefinite Documenti\Mr Rao\… ──
+  async function loadDefaultFolders(force) {
+    try {
+      const r = await fetch("/api/folders/defaults");
+      const d = await r.json();
+      if (!r.ok || !d.ok) return d;
+      if (els.watchInbox && (force || !els.watchInbox.value)) {
+        els.watchInbox.value = d.inbox || "";
+      }
+      if (els.watchOutbox && (force || !els.watchOutbox.value)) {
+        els.watchOutbox.value = d.outbox || "";
+      }
+      const hint = $("watch-defaults-hint");
+      if (hint && d.inbox && d.outbox) {
+        hint.innerHTML =
+          "Predefinite: <code>" +
+          escapeHtml(d.inbox) +
+          "</code> → <code>" +
+          escapeHtml(d.outbox) +
+          "</code>";
+      }
+      return d;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function browseFolderInto(inputEl, title) {
+    if (!inputEl) return;
+    try {
+      const r = await fetch("/api/folders/browse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initial: inputEl.value || undefined,
+          title: title || "Scegli cartella",
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Sfoglia non disponibile");
+      if (d.cancelled || !d.path) {
+        showToast("Nessuna cartella selezionata");
+        return;
+      }
+      inputEl.value = d.path;
+      showToast("Cartella impostata");
+    } catch (e) {
+      showToast(e.message || "Impossibile aprire Sfoglia…", "error");
+    }
+  }
+
   async function refreshWatch() {
     try {
       const r = await fetch("/api/watch");
@@ -705,18 +757,37 @@
           : d.message || "non attiva";
       }
       if (d.running) {
-        if (els.watchInbox && !els.watchInbox.value) els.watchInbox.value = d.inbox || "";
-        if (els.watchOutbox && !els.watchOutbox.value) els.watchOutbox.value = d.outbox || "";
+        if (els.watchInbox && d.inbox) els.watchInbox.value = d.inbox;
+        if (els.watchOutbox && d.outbox) els.watchOutbox.value = d.outbox;
+      } else if (d.defaults) {
+        if (els.watchInbox && !els.watchInbox.value) els.watchInbox.value = d.defaults.inbox || "";
+        if (els.watchOutbox && !els.watchOutbox.value) els.watchOutbox.value = d.defaults.outbox || "";
       }
     } catch (_) {}
   }
 
+  if (els.watchBrowseInbox) {
+    els.watchBrowseInbox.addEventListener("click", () =>
+      browseFolderInto(els.watchInbox, "Cartella da sorvegliare")
+    );
+  }
+  if (els.watchBrowseOutbox) {
+    els.watchBrowseOutbox.addEventListener("click", () =>
+      browseFolderInto(els.watchOutbox, "Dove salvare i file .md")
+    );
+  }
+
   if (els.watchStart) {
     els.watchStart.addEventListener("click", async () => {
-      const inbox = els.watchInbox.value.trim();
-      const outbox = els.watchOutbox.value.trim();
+      let inbox = els.watchInbox.value.trim();
+      let outbox = els.watchOutbox.value.trim();
       if (!inbox || !outbox) {
-        showToast("Indica cartelle ingresso e uscita", "error");
+        const defs = await loadDefaultFolders(true);
+        inbox = (els.watchInbox.value || (defs && defs.inbox) || "").trim();
+        outbox = (els.watchOutbox.value || (defs && defs.outbox) || "").trim();
+      }
+      if (!inbox || !outbox) {
+        showToast("Scegli le cartelle con Sfoglia…", "error");
         return;
       }
       try {
@@ -733,7 +804,7 @@
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || "Watch fallito");
-        showToast("Hotfolder avviato");
+        showToast("Sorveglianza avviata");
         refreshWatch();
       } catch (e) {
         showToast(e.message, "error");
@@ -743,10 +814,10 @@
   if (els.watchStop) {
     els.watchStop.addEventListener("click", async () => {
       await fetch("/api/watch", { method: "DELETE" });
-      showToast("Hotfolder fermato");
+      showToast("Sorveglianza fermata");
       refreshWatch();
     });
   }
-  refreshWatch();
+  loadDefaultFolders(true).then(() => refreshWatch());
   setInterval(refreshWatch, 4000);
 })();
