@@ -26,7 +26,10 @@ def _writable_dir() -> Path:
 # Brand
 APP_NAME = "Mr. Rao"
 APP_SLUG = "mr-rao"
-APP_TAGLINE = "Dal documento al Markdown. Offline. Firmato Rao."
+APP_TAGLINE = (
+    "Converti documenti, immagini e thread email in Markdown puro. "
+    "Con i dati personali già rimossi. Offline, sul tuo computer."
+)
 APP_VERSION = "1.3.1"
 
 # Paths
