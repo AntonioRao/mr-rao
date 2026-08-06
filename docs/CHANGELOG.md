@@ -1,5 +1,101 @@
 # Changelog
 
+## 1.4.0 — Su una mail vera passava troppa roba
+
+La segnalazione era circostanziata: in una mail sul desktop restavano in
+chiaro gli URL, i numeri di cellulare, gli indirizzi di casa e i nomi
+scritti accanto agli indirizzi di posta. Prima di toccare il codice ho
+misurato, su una mail italiana realistica con dieci categorie di dati:
+
+| | prima | dopo |
+|---|---|---|
+| sostituzioni | 10 | **29** |
+| persone rimaste in chiaro | 6 su 7 | **0** |
+| indirizzi rimasti in chiaro | 5 su 5 | **0** |
+| URL rimasti in chiaro | 3 su 3 | **0** |
+| numeri rimasti in chiaro | 4 su 5 | **0** |
+
+Il difetto sui numeri era di forma, non di copertura: il riconoscitore
+pretendeva le cifre finali tutte attaccate, e `335 123 4567` non lo era.
+Un cellulare scritto come lo scrive un essere umano non veniva visto.
+
+### Riconoscitori nuovi
+
+- **Indirizzi web** — `http`, `https`, `www.`. Solo questi tre: bastano a
+  riconoscerli a occhio, e non trasformano ogni `nome.it` del testo in un
+  link. La punteggiatura finale della frase resta al suo posto.
+- **Indirizzi di casa** — via, viale, piazza, corso, largo, contrada e altri
+  venti, con il nome della strada, il civico, il CAP e il comune.
+- **Chiavi e password** — token, chiavi API, blocchi di chiave privata,
+  JWT, e il caso generico `password: ...`. L'etichetta resta, il valore no:
+  così si capisce cosa è stato tolto.
+- **Carte di pagamento** — verificate con il controllo di Luhn, esattamente
+  come gli IBAN sono verificati con il mod-97. Un numero d'ordine di sedici
+  cifre non è una carta e resta dov'è.
+- **Date di nascita** — spente di default, perché toglierebbero anche le
+  date che servono. Accese, sostituiscono solo quelle scritte accanto a
+  «nato il», «data di nascita» e simili: la data della riunione resta.
+
+### I nomi: tre segnali invece di un elenco
+
+Un elenco di nomi non è mai completo — è il motivo per cui sei persone su
+sette passavano. Adesso valgono anche le regole di contesto:
+
+1. **titolo professionale** davanti (Dott., Ing., Geom., Avv.);
+2. **nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`
+   è il caso più frequente in assoluto nelle mail, ed era scoperto;
+3. **nome proprio riconosciuto** che tira dentro la parola successiva.
+
+E in più l'euristica che serviva davvero: **due parole maiuscole di fila
+che non sono parole italiane sono quasi sempre nome e cognome**, anche se
+il cognome non compare in nessun elenco. È l'unica regola che può
+sbagliare, e infatti ha un interruttore suo (`privacy_name_guess`,
+`--no-name-guess`), spento di serie nel profilo Fatture dove le
+denominazioni sociali abbondano.
+
+L'elenco dei nomi italiani è comunque cresciuto di circa dieci volte.
+
+### Il presidio contro l'entusiasmo
+
+Un filtro che redige tutto è inutile quanto uno che non redige niente. Il
+banco di prova sono due testi, non uno: la mail, dove deve sparire tutto, e
+un verbale amministrativo pieno di «Comitato Tecnico», «Piano Industriale»,
+«Fase Uno», numeri di protocollo e date, dove **non deve sparire niente**.
+Il verbale è un test come gli altri e passa con tutti i riconoscitori accesi.
+
+Due presidi lo tengono in piedi: un elenco di parole italiane che capita di
+trovare maiuscole, e un controllo sulle terminazioni — «Industriale» e
+«Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
+
+### Il pannello privacy non comandava niente
+
+Trovato mentre collegavo i riconoscitori nuovi all'interfaccia. Quando la
+richiesta portava un profilo, il server prendeva il preset e **buttava via
+tutto il resto del modulo**. Siccome la pagina manda sempre il profilo,
+l'intero pannello «Quali dati nascondere» era decorativo: si spuntava una
+casella e non cambiava nulla, senza alcun errore. Anche l'interruttore
+generale, e anche «copia pulita» e le tabelle.
+
+Adesso il profilo è il punto di partenza e la casella dell'utente vince.
+Un client che manda solo il profilo continua ad avere esattamente il preset.
+
+Non si vedeva dai test perché i test chiamavano il motore direttamente:
+quelli nuovi passano dalla stessa porta da cui passa la pagina. Due di essi
+verificano che ogni campo del motore abbia la sua casella nella pagina e
+che la pagina la spedisca — la prossima volta il difetto nasce già rotto.
+
+### Collegamenti e disinstallazione
+
+Il collegamento sul Desktop poteva non nascere senza che nessuno lo dicesse:
+la creazione non veniva verificata e il messaggio finale era «completata» in
+ogni caso. Ora installazione e disinstallazione passano da un solo script,
+che stampa il percorso di ogni collegamento e distingue `OK` da `FALLITO`;
+se manca il file `.ico` usa l'icona dell'eseguibile invece di rinunciare.
+L'elenco delle estensioni del menu contestuale, che viveva in due file
+diversi ed era già andato fuori sincrono una volta, adesso sta in uno solo.
+
+- 225 test (erano 164).
+
 ## 1.3.3 — Via Scrubadub: non faceva quello che credevamo
 
 Il pacchetto portable **non si avviava affatto**. PyInstaller installa un

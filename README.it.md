@@ -4,8 +4,8 @@
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.3.3-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-164%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.4.0-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-225%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -20,7 +20,7 @@
 
 ## Il problema
 
-Vuoi dare un documento in pasto a ChatGPT, Claude o un qualunque assistente. Ti servono due cose:
+Vuoi dare un documento in pasto a un assistente AI. Ti servono due cose:
 
 1. il testo, pulito, non un PDF;
 2. **non** consegnare al fornitore il codice fiscale del tuo cliente.
@@ -39,7 +39,7 @@ Mr. Rao fa la conversione **e** la schermatura dei dati personali sul tuo comput
 | 👁️ **Scansioni e foto** | OCR offline su PNG, JPG, TIFF, WebP, BMP, GIF — e su PDF scansionati |
 | 📊 **Tabelle PDF** | Ricostruite come tabelle Markdown, non sfilacciate in righe di testo |
 | 📧 **Email** | File `.eml` col thread separato messaggio per messaggio, allegati scaricabili |
-| 🛡️ **Dati personali** | Email, telefoni, codice fiscale, P.IVA, IBAN, nomi → sostituiti con segnaposto |
+| 🛡️ **Dati personali** | Nomi, indirizzi, telefoni, email, URL, codice fiscale, P.IVA, IBAN, carte, chiavi API → sostituiti con segnaposto |
 | 🔍 **Verifica** | Scheda «prima / dopo» che mostra esattamente cosa è stato tolto |
 | 📁 **Cartella automatica** | Butti i file in una cartella, i `.md` compaiono nell'altra |
 | ⌨️ **Riga di comando** | `convert`, `watch`, `health` — anche dall'eseguibile portable |
@@ -107,7 +107,7 @@ Ogni file può portare in cima una scheda con origine, data, motore usato e **qu
 Meglio dirlo subito:
 
 - **Non è un traduttore di layout.** Produce testo strutturato, non un clone grafico del PDF.
-- **La schermatura dei nomi non è infallibile.** Si basa su un elenco di nomi italiani comuni: un cognome raro può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
+- **La schermatura dei nomi non è infallibile.** Oltre a un elenco di nomi italiani valgono le regole di contesto — un titolo davanti, un indirizzo email accanto, due parole maiuscole che non sono parole italiane — ma un cognome che assomiglia a una parola comune può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
 - **L'OCR non fa miracoli.** Su una scansione storta e sfocata sbaglia, come tutti.
 - **Sui documenti scansionati la protezione è più debole.** I riconoscitori cercano un codice fiscale o un IBAN scritti bene: se l'OCR legge `A01` come `AD1`, il codice non viene riconosciuto e resta nel testo. Il risultato lo segnala con un avviso, ma è lì che il confronto «prima / dopo» va guardato davvero.
 - **Non ha autenticazione.** È un attrezzo locale per una persona, non un servizio multiutente.
