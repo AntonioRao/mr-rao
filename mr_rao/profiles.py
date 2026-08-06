@@ -135,7 +135,6 @@ def options_from_profile(profile_id: str) -> ConvertOptions | None:
             names=bool(p.get("privacy_names")) if privacy_on else False,
             fiscal=bool(p.get("privacy_fiscal")) if privacy_on else False,
             amounts=bool(p.get("privacy_amounts")) if privacy_on else False,
-            use_scrubadub=privacy_on,
         ),
         include_tables=bool(p.get("include_tables", True)),
         include_frontmatter=bool(p.get("include_frontmatter", True)),

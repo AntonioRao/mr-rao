@@ -320,7 +320,6 @@
       const el = $("privacy-" + k);
       if (el) fd.append("privacy_" + k, el.checked);
     });
-    fd.append("privacy_scrubadub", "true");
     fd.append("include_tables", els.includeTables.checked);
     fd.append("include_frontmatter", els.includeFrontmatter.checked);
     fd.append("clean_output", els.cleanOutput.checked);

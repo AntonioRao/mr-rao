@@ -20,7 +20,7 @@ from mr_rao.profiles import PROFILES, options_from_profile
 
 NO_PRIVACY = PrivacyOptions(
     emails=False, phones=False, names=False, fiscal=False,
-    amounts=False, use_scrubadub=False,
+    amounts=False,
 )
 
 
@@ -139,7 +139,7 @@ def test_eml_non_muta_le_opzioni_del_chiamante(tmp_path):
 
 def test_opzioni_riusate_restano_stabili_con_privacy_on(tmp_path):
     """Simmetrico: privacy ON esplicita resta ON su tutta la sequenza."""
-    opts = ConvertOptions(privacy=PrivacyOptions(use_scrubadub=False), include_frontmatter=False)
+    opts = ConvertOptions(privacy=PrivacyOptions(), include_frontmatter=False)
     eml = _make_file(tmp_path, ".eml")
     txt = tmp_path / "dopo.txt"
     txt.write_text("contatto: luigi.verdi@example.com", encoding="utf-8")

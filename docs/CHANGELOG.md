@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.3.3 — Via Scrubadub: non faceva quello che credevamo
+
+Il pacchetto portable **non si avviava affatto**. PyInstaller installa un
+runtime hook per nltk che viene eseguito prima di qualunque nostro codice:
+importa nltk, che importa scikit-learn, che legge un `.css` non incluso nel
+bundle. `FileNotFoundError`, applicazione morta prima di arrivare a Flask.
+
+Scoperto avviando l'eseguibile invece di fidarsi del codice di uscita del
+build. Caricarlo così sulla release avrebbe consegnato al primo utente 390 MB
+che aprono una finestra nera e si chiudono.
+
+### La verifica che ha deciso
+
+Scrubadub era lì «per i documenti in inglese». Misurato su un testo inglese
+con nome, telefono UK e SSN:
+
+| | risultato |
+|---|---|
+| con Scrubadub | 1 redazione (l'email, presa dal *nostro* riconoscitore) |
+| senza Scrubadub | 1 redazione — **identico** |
+| Scrubadub da solo | `Contact John {{EMAIL}}@acme.co.uk` — spezza il testo e manca nome, telefono e SSN |
+
+Non aggiungeva nulla, in nessuno dei due ambienti, e da solo danneggiava il
+testo. Rimosso.
+
+### Cosa cambia
+
+- Dipendenza e opzione `use_scrubadub` eliminate: non resta un comando che non
+  fa niente, come per il selettore di lingua OCR.
+- **51 pacchetti invece di 70**, **4 licenze con obblighi invece di 6**.
+- Sparisce `python-stdnum`: **non c'è più alcuna dipendenza LGPL a runtime**
+  oltre a pystray, che serve solo per l'icona nella barra di sistema.
+- Portable: **275 MB invece di 393**, 1737 file invece di 4244.
+- Il riconoscimento dei dati personali è interamente codice di Mr. Rao:
+  email, telefoni, codice fiscale, P.IVA, IBAN con mod-97, importi, nomi.
+
+### Menu contestuale
+
+«Apri con Mr. Rao» e «Invia a» puntavano a un eseguibile non più esistente e
+solo 4 estensioni su 10 erano registrate. Reinstallando il pacchetto le voci
+tornano corrette: tutti i file più 7 estensioni, e il collegamento in «Invia a».
+
 ## 1.3.2 — L'anonimizzazione toglie solo ciò che l'OCR ha letto bene
 
 Emerso testando il repository appena clonato su un PDF scansionato vero, non

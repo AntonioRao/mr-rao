@@ -301,7 +301,6 @@ def convert_file(
                 or opts.privacy.names
                 or opts.privacy.fiscal
                 or opts.privacy.amounts
-                or opts.privacy.use_scrubadub
             )
         )
         if privacy_on and final_text:

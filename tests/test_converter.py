@@ -62,7 +62,7 @@ def test_frontmatter_nel_markdown_resta_parsabile(tmp_path):
         p,
         options=ConvertOptions(
             include_frontmatter=True,
-            privacy=PrivacyOptions(use_scrubadub=False),
+            privacy=PrivacyOptions(),
         ),
     )
     assert r.redaction.total >= 1
@@ -82,7 +82,7 @@ def test_convert_txt(tmp_path):
                 phones=False,
                 names=False,
                 fiscal=False,
-                use_scrubadub=False,
+                
             ),
             include_frontmatter=True,
         ),
@@ -102,7 +102,7 @@ def test_convert_clean_output(tmp_path):
             include_frontmatter=False,
             clean_output=True,
             privacy=PrivacyOptions(
-                emails=False, phones=False, names=False, fiscal=False, use_scrubadub=False
+                emails=False, phones=False, names=False, fiscal=False
             ),
         ),
     )

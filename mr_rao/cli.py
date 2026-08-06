@@ -30,7 +30,6 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
             names=privacy_on,
             fiscal=privacy_on,
             amounts=getattr(args, "scrub_amounts", False),
-            use_scrubadub=privacy_on,
         )
         if privacy_on
         else PrivacyOptions(
@@ -39,7 +38,6 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
             names=False,
             fiscal=False,
             amounts=False,
-            use_scrubadub=False,
         ),
         include_tables=not getattr(args, "no_tables", False),
         include_frontmatter=not getattr(args, "no_frontmatter", False),
