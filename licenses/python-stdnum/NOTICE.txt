@@ -1,0 +1,48 @@
+python-stdnum
+=============
+
+Copyright (C) 2010-2024 Arthur de Jong e contributori
+Licenza: GNU Lesser General Public License, versione 2.1 o successiva (LGPL-2.1+)
+
+Testo della licenza: COPYING.LGPL-2.1 (in questa cartella)
+Sorgente ufficiale:  https://arthurdejong.org/python-stdnum/
+Repository:          https://github.com/arthurdejong/python-stdnum
+PyPI:                https://pypi.org/project/python-stdnum/
+
+
+PERCHE' E' QUI
+--------------
+
+python-stdnum non è usata direttamente dal codice di Mr. Rao: arriva come
+dipendenza di Scrubadub (Apache-2.0), che la impiega per riconoscere e
+validare numeri standard (codici fiscali, partite IVA, IBAN e simili).
+
+Essendo LGPL, ha gli stessi obblighi di pystray: testo di licenza, notice,
+e possibilità per l'utente di sostituire o modificare la libreria.
+
+
+COME SOSTITUIRLA O AGGIORNARLA
+------------------------------
+
+Installazione da sorgente (ambiente Python):
+
+    pip install --upgrade python-stdnum
+
+Pacchetto portable: la libreria è inclusa come moduli Python compilati
+dentro `app/_internal/`. Per sostituirla con una versione propria:
+
+1. Scaricare/compilare la versione desiderata di python-stdnum.
+2. Sostituire la cartella `stdnum/` dentro `app/_internal/`.
+3. Riavviare Mr. Rao.
+
+Mr. Rao non applica alcuna restrizione aggiuntiva su python-stdnum e non
+limita i diritti che la LGPL concede all'utente su questa libreria.
+
+
+NOTA
+----
+
+Se non si desidera alcuna dipendenza LGPL, è sufficiente disinstallare
+Scrubadub: Mr. Rao continua a funzionare con i propri riconoscitori italiani
+(email, telefoni, codice fiscale, P.IVA, IBAN con verifica mod-97, nomi).
+Il filtro Scrubadub viene semplicemente saltato.

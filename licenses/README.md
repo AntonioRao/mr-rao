@@ -10,8 +10,15 @@ redistribuzione delle librerie open source.
 | `pystray/LGPL-3.0.txt` | Copia ufficiale gnu.org (LGPL) |
 | `pystray/GPL-3.0.txt` | Copia ufficiale gnu.org (GPL) |
 | `pystray/NOTICE.txt` | Copyright e come ottenere/sostituire pystray |
+| `python-stdnum/COPYING.LGPL-2.1` | GNU **LGPL-2.1** (testo fornito col pacchetto) |
+| `python-stdnum/NOTICE.txt` | Copyright, perché è presente, come sostituirla |
 | `../LICENSE` | Licenza del **codice Mr. Rao** |
 | `../THIRD_PARTY.md` | Elenco dipendenze e link |
+
+Il pacchetto contiene **due** librerie LGPL, non una. La seconda
+(`python-stdnum`, dipendenza di Scrubadub) era sfuggita al primo giro di
+conformità: per non ripetere l'errore, l'elenco completo ora si **genera** dai
+pacchetti realmente installati con `scripts/gen_third_party.py`.
 
 ## pystray (LGPL-3.0)
 
@@ -28,6 +35,25 @@ Conformità LGPL (in sintesi, non parere legale):
    Python / nel bundle (vedi `docs/LGPL_PYSTRAY.md`).  
 5. **Nessuna restrizione aggiuntiva su pystray** — la licenza commerciale di
    Mr. Rao **non** si applica a pystray.
+
+## python-stdnum (LGPL-2.1+)
+
+Dipendenza **indiretta**: la usa Scrubadub per validare codici e numeri
+standard. Copyright © Arthur de Jong. Stessi obblighi di pystray, stessi
+adempimenti: testo, notice, sostituibilità (`python-stdnum/NOTICE.txt`),
+nessuna restrizione aggiuntiva da parte della licenza Mr. Rao.
+
+Chi non vuole alcuna dipendenza LGPL può disinstallare Scrubadub: i
+riconoscitori italiani di Mr. Rao (email, telefoni, codice fiscale, P.IVA,
+IBAN con verifica mod-97, nomi) continuano a funzionare.
+
+## PyInstaller (GPLv2 con eccezione)
+
+Usato solo per **costruire** il pacchetto portable. La sua eccezione consente
+esplicitamente di distribuire programmi non liberi costruiti con esso: è ciò
+che rende lecita la distribuzione di `MrRao.exe`, il cui bootloader ne deriva.
+
+---
 
 Se distribuisci un portable PyInstaller, **copia l’intera cartella `licenses/`**
 accanto all’applicazione (lo fa `scripts/build_portable.bat`).

@@ -64,22 +64,40 @@ Senza tale autorizzazione, l’Uso commerciale non è consentito.
 
 Il Software si appoggia a librerie open source (MarkItDown, RapidOCR, Flask,
 BeautifulSoup, Scrubadub, pdfplumber, Pillow, ONNX Runtime, Magika, pystray,
-ecc.). Ciascuna resta regolata dalla **propria** licenza, tipicamente
-permissive (MIT, Apache-2.0, BSD) o LGPL (pystray).
+ecc.). Ciascuna resta regolata dalla **propria** licenza: in prevalenza
+permissive (MIT, Apache-2.0, BSD), in due casi LGPL.
 
 - Non si può “richiedere l’autorizzazione a Rao” per usare **solo** quelle
   librerie: restano liberamente utilizzabili secondo le loro condizioni.
 - Redistribuendo Mr. Rao (sorgente o binario) si devono rispettare anche gli
   obblighi di quelle licenze (attribuzione, notice, e per LGPL le regole di
   linking/distribuzione applicabili).
-- In particolare, **pystray** è distribuito sotto GNU LGPL-3.0 (Copyright
-  Moses Palmér). I testi di licenza e il NOTICE sono in `licenses/pystray/`.
-  La presente licenza Mr. Rao **non** impone restrizioni aggiuntive su pystray
-  e non limita i diritti che la LGPL concede agli utenti rispetto a pystray
-  (incluso il diritto di sostituire o modificare la libreria). Istruzioni:
-  `docs/LGPL_PYSTRAY.md`.
+- In particolare, il pacchetto include **due** librerie sotto GNU LGPL:
 
-Un elenco orientativo è in `THIRD_PARTY.md` e nella UI (info dipendenze).
+  1. **pystray** — LGPL-3.0, Copyright Moses Palmér. Icona nella barra di
+     sistema. Testi e NOTICE in `licenses/pystray/`, istruzioni per la
+     sostituzione in `docs/LGPL_PYSTRAY.md`.
+  2. **python-stdnum** — LGPL-2.1 o successiva, Copyright Arthur de Jong.
+     Arriva come dipendenza di Scrubadub. Testi e NOTICE in
+     `licenses/python-stdnum/`.
+
+  Per **entrambe**, la presente licenza Mr. Rao **non** impone restrizioni
+  aggiuntive e **non** limita i diritti che la LGPL concede agli utenti su
+  quelle librerie, incluso il diritto di sostituirle, di modificarle e di
+  effettuare reverse engineering per correggere le proprie modifiche.
+
+- Chi non vuole dipendenze LGPL può rimuoverle: disinstallando Scrubadub
+  sparisce anche python-stdnum (Mr. Rao continua a funzionare con i propri
+  riconoscitori italiani); disinstallando pystray si perde solo l’icona nella
+  barra di sistema.
+- **PyInstaller**, usato per costruire il pacchetto portable, è GPLv2-or-later
+  **con eccezione esplicita** che consente di costruire e distribuire
+  programmi non liberi: è ciò che rende lecita la distribuzione di
+  `MrRao.exe`. Non è un componente a runtime.
+
+L’elenco completo — generato dai pacchetti realmente installati, non scritto a
+mano — è in `THIRD_PARTY.md` (script: `scripts/gen_third_party.py`) e nella UI
+(pulsante info dipendenze).
 
 ==============================================================================
 6. ESCLUSIONE DI GARANZIE
