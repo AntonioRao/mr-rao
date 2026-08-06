@@ -55,7 +55,7 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 
 | ID | Item | Note | Stato |
 |----|------|------|--------|
-| P3.1 | OCR multi-lingua reale (modelli) o togliere la claim | Oggi lingua è advisory | TODO |
+| P3.1 | OCR multi-lingua reale (modelli aggiuntivi) | Il selettore che non faceva nulla è stato **rimosso** in 1.3.2: meglio nessun comando che uno che promette e non mantiene. Il modello attuale copre gli alfabeti latini | TODO |
 | P3.2 | Diff semantico 2 PDF (non solo A/B stacked) | Compare attuale è merge etichettato | TODO |
 | P3.3 | Tray: stato job + “apri ultimo risultato” | Tray oggi minimale | TODO |
 | P3.4 | Portable firmato / zip release versionato | Distribuzione team | TODO |

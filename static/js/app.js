@@ -60,7 +60,8 @@
     toastMsg: $("toast-msg"),
     toastIcon: $("toast-icon"),
     engineSelect: $("engine"),
-    languageSelect: $("language"),
+    // niente selettore lingua: il modello OCR è unico (alfabeti latini) e il
+    // parametro non cambiava nulla — un comando che promette e non mantiene
     profileSelect: $("profile"),
     profileHint: $("profile-hint"),
     privacyMaster: $("privacy-filter"),
@@ -314,7 +315,6 @@
     const fd = new FormData();
     if (els.profileSelect) fd.append("profile", els.profileSelect.value);
     fd.append("engine", els.engineSelect.value);
-    fd.append("language", els.languageSelect.value);
     fd.append("privacy_filter", els.privacyMaster.checked);
     ["emails", "phones", "names", "fiscal", "amounts"].forEach((k) => {
       const el = $("privacy-" + k);

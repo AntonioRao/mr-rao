@@ -109,7 +109,6 @@ Better said upfront:
 - **OCR works no miracles.** On a skewed, blurry scan it gets things wrong, like everything else.
 - **Redaction is weaker on scanned documents.** The detectors look for a correctly spelled tax ID or IBAN: if OCR reads `A01` as `AD1`, the code is not recognised and stays in the text. The output flags this with a warning, but that is where the before/after view really earns its keep.
 - **There is no authentication.** It is a local tool for one person, not a multi-user service.
-- **The OCR language selector does not switch models yet.** It is already logged in the [backlog](docs/BACKLOG.md) as something to either implement properly or remove.
 
 ---
 
