@@ -1,6 +1,7 @@
 """In-process hotfolder watch (shared by CLI, API, tray)."""
 from __future__ import annotations
 
+import os
 import threading
 import time
 from dataclasses import dataclass, field
@@ -21,12 +22,14 @@ class WatchState:
     processed: int = 0
     last_file: str = ""
     last_error: str = ""
-    message: str = "idle"
+    message: str = "non attiva"
     options: ConvertOptions = field(default_factory=ConvertOptions)
     _thread: threading.Thread | None = field(default=None, repr=False)
     _stop: threading.Event = field(default_factory=threading.Event, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
-    _seen: set[str] = field(default_factory=set, repr=False)
+    # dict, not set: insertion order lets us drop the oldest keys. A long-running
+    # hotfolder would otherwise grow this forever.
+    _seen: dict[str, float] = field(default_factory=dict, repr=False)
 
     def to_dict(self) -> dict[str, Any]:
         with self._lock:
@@ -45,9 +48,50 @@ class WatchState:
 
 _state = WatchState()
 
+MAX_SEEN = 5000
+
 
 def get_watch_state() -> dict[str, Any]:
     return _state.to_dict()
+
+
+def _remember(key: str) -> None:
+    """Record a processed file, keeping the memory bounded."""
+    _state._seen[key] = time.time()
+    if len(_state._seen) > MAX_SEEN:
+        for old in list(_state._seen)[: MAX_SEEN // 2]:
+            del _state._seen[old]
+
+
+def write_atomic(dest: Path, text: str) -> None:
+    """Scrive su un file temporaneo e poi rinomina.
+
+    Una scrittura diretta lascia un .md troncato se il processo muore a metà
+    (spegnimento, chiusura forzata): chi legge la cartella di uscita non ha
+    modo di accorgersene. Col rename il file o c'è intero o non c'è.
+    """
+    tmp = dest.with_name(dest.name + ".part")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, dest)
+
+
+def output_path_for(outbox: Path, source: Path) -> Path:
+    """Pick a free .md name for a source file.
+
+    'a.pdf' and 'a.docx' both wanted 'a.md', so the second silently overwrote
+    the first. Disambiguate with the original extension, then a counter.
+    """
+    candidate = outbox / (source.stem + ".md")
+    if not candidate.exists():
+        return candidate
+    with_ext = outbox / f"{source.stem}-{source.suffix.lstrip('.').lower()}.md"
+    if not with_ext.exists():
+        return with_ext
+    for n in range(2, 1000):
+        numbered = outbox / f"{with_ext.stem}-{n}.md"
+        if not numbered.exists():
+            return numbered
+    return with_ext
 
 
 def start_watch(
@@ -72,7 +116,7 @@ def start_watch(
         _state.processed = 0
         _state.last_file = ""
         _state.last_error = ""
-        _state.message = "avviato"
+        _state.message = "in attesa di file"
         _state._seen.clear()
         _state._stop.clear()
         _state.running = True
@@ -86,7 +130,7 @@ def stop_watch() -> dict[str, Any]:
     with _state._lock:
         _state._stop.set()
         _state.running = False
-        _state.message = "fermato"
+        _state.message = "ferma"
         t = _state._thread
     if t and t.is_alive():
         t.join(timeout=3.0)
@@ -105,8 +149,8 @@ def _loop() -> None:
                 move_done = _state.move_done
             if not inbox.is_dir():
                 with _state._lock:
-                    _state.last_error = "Cartella inbox non valida"
-                    _state.message = "errore inbox"
+                    _state.last_error = "La cartella da sorvegliare non esiste piu'"
+                    _state.message = "cartella da sorvegliare non valida"
             else:
                 for path in sorted(inbox.iterdir()):
                     if _state._stop.is_set():
@@ -134,21 +178,21 @@ def _loop() -> None:
                     except OSError:
                         continue
                     with _state._lock:
-                        _state.message = f"Conversione {path.name}"
+                        _state.message = f"sto convertendo {path.name}"
                         _state.last_file = path.name
                     r = convert_file(path, options=opts)
                     with _state._lock:
-                        _state._seen.add(key)
+                        _remember(key)
                     if r.error:
                         with _state._lock:
                             _state.last_error = r.error
                             _state.message = f"Errore: {path.name}"
                         continue
-                    dest = outbox / (path.stem + ".md")
-                    dest.write_text(r.markdown, encoding="utf-8")
+                    dest = output_path_for(outbox, path)
+                    write_atomic(dest, r.markdown)
                     with _state._lock:
                         _state.processed += 1
-                        _state.message = f"OK: {path.name}"
+                        _state.message = f"fatto: {path.name}"
                         _state.last_error = ""
                     if move_done:
                         done = inbox / "done"
@@ -157,11 +201,11 @@ def _loop() -> None:
                             path.rename(done / path.name)
                         except OSError as e:
                             with _state._lock:
-                                _state.last_error = f"Move failed: {e}"
+                                _state.last_error = f"Non riesco a spostare l'originale: {e}"
         except Exception as e:
             with _state._lock:
                 _state.last_error = str(e)
-                _state.message = "errore loop"
+                _state.message = "errore durante la sorveglianza"
         # sleep in chunks for responsive stop
         for _ in range(int(_state.interval * 10)):
             if _state._stop.is_set():
@@ -169,4 +213,4 @@ def _loop() -> None:
             time.sleep(0.1)
     with _state._lock:
         _state.running = False
-        _state.message = "fermato"
+        _state.message = "ferma"

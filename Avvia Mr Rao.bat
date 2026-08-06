@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 >nul 2>&1
-title Mr. Rao — server locale
+title Mr. Rao - server locale (sviluppo)
 color 0B
 
 echo.
 echo ===================================================
-echo     Avvio di Mr. Rao in corso...
+echo     Avvio di Mr. Rao (codice progetto, UI 2.x)
 echo ===================================================
 echo.
 echo Questa finestra e' il server. Non chiuderla mentre
@@ -13,6 +13,11 @@ echo usi l'app nel browser.
 echo.
 
 cd /d "%~dp0"
+
+REM NIENTE taskkill: uccidere a forza un'istanza in corso puo' lasciare
+REM file .md troncati nella cartella di uscita (la conversione scrive su
+REM disco). Se la porta e' occupata ci pensa app.py, che dice CHI la occupa
+REM e parte sulla prima libera.
 
 if exist "venv\Scripts\activate.bat" (
     echo Uso ambiente virtuale locale...
@@ -27,8 +32,10 @@ echo Controllo health dipendenze...
 python -m mr_rao.cli health
 echo.
 
-echo Apertura browser su http://127.0.0.1:5000 ...
-start "" cmd /c "timeout /t 2 /nobreak >nul & start http://127.0.0.1:5000"
+echo Avvio server dal codice di QUESTA cartella (non da dist\ o Portable)...
+echo Se il browser mostra una versione vecchia: Ctrl+F5 e chiudi gli altri MrRao.exe
+echo.
 
 set MR_RAO_DEBUG=0
+set MR_RAO_OPEN_BROWSER=1
 python app.py
