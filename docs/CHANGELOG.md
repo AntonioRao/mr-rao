@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.4.2 — Il pacchetto spediva l'icona sbagliata
+
+Il collegamento sul Desktop funzionava, puntava al posto giusto e mostrava
+un'icona valida. Solo che non era **quella** icona: il pacchetto ne
+spediva una versione più povera — 50.050 byte invece di 65.384 — senza la
+terza tappa del gradiente, senza il bordo interno e senza la sottolineatura
+sotto «RAO».
+
+La causa era un `try/except` di troppo. Il passo 1 del build generava una
+prima serie di icone, poi provava a rigenerarle da `logo.png` con
+`sync_icons_from_logo` — ma quell'`import` falliva sempre, perché la
+cartella del progetto non era nel percorso di ricerca dei moduli. L'errore
+finiva in un `except Exception` che stampava «skipped» e proseguiva,
+lasciando in giro le icone della prima passata e sovrascrivendo per giunta
+`favicon.svg`, che era stato rifinito a mano.
+
+Un fallimento silenzioso e una riga di log che nessuno legge: la
+generazione delle icone risultava riuscita a ogni build.
+
+Adesso quel passaggio è obbligatorio, non facoltativo. La prova che conta:
+dopo aver eseguito `generate_icons.py`, `git status` su `static/img/` è
+vuoto — l'artwork committato viene riprodotto **identico**.
+
+E la verifica del pacchetto confronta l'icona spedita con quella del
+repository. Non «l'icona c'è», che era vero anche prima: **è la stessa**.
+
 ## 1.4.1 — Due difetti trovati installando, non testando
 
 Entrambi usciti dalla prova completa da zero: disinstalla, scarica dalla

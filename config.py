@@ -30,7 +30,7 @@ APP_TAGLINE = (
     "Converti documenti, immagini e thread email in Markdown puro. "
     "Con i dati personali già rimossi. Offline, sul tuo computer."
 )
-APP_VERSION = "1.4.1"
+APP_VERSION = "1.4.2"
 
 # Paths
 BASE_DIR = _base_dir()

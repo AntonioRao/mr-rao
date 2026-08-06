@@ -172,6 +172,26 @@ def main(argv: list[str]) -> int:
         totale = (esito.get("redaction") or {}).get("total", 0)
         print(f"  OK     anonimizzazione: {totale} sostituzioni")
 
+        # L'icona spedita dev'essere quella del repository. Per un po' il
+        # pacchetto ne ha portata una piu' povera, generata al passo 1 del
+        # build da un percorso che sovrascriveva l'artwork rifinito a mano:
+        # il collegamento sul Desktop funzionava, e mostrava l'icona
+        # sbagliata. Nessuno se ne accorge guardando se il file c'e'.
+        ico_pacchetto = exe.parent.parent / "mr-rao.ico"
+        ico_repo = Path(__file__).resolve().parent.parent / "static" / "img" / "mr-rao.ico"
+        if ico_pacchetto.is_file() and ico_repo.is_file():
+            if ico_pacchetto.read_bytes() != ico_repo.read_bytes():
+                print(
+                    f"FALLITO  l'icona del pacchetto ({ico_pacchetto.stat().st_size:,} B) "
+                    f"non e' quella del repository ({ico_repo.stat().st_size:,} B)",
+                    file=sys.stderr,
+                )
+                return 1
+            print(f"  OK     icona identica al repository: {ico_repo.stat().st_size:,} B")
+        else:
+            print(f"FALLITO  icona assente nel pacchetto: {ico_pacchetto}", file=sys.stderr)
+            return 1
+
         print("VERIFICA SUPERATA")
         return 0
     finally:

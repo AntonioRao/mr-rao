@@ -5,6 +5,7 @@ Run: python scripts/generate_icons.py
 """
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -92,8 +93,8 @@ def _draw_centered_text(
     return (size / 2 - total / 2, y_top, size / 2 + total / 2, y_top + th)
 
 
-def render_mark(size: int = 512, *, favicon: bool = False) -> Image.Image:
-    """App mark: big RAO, clearly readable Mr."""
+def render_mark(size: int = 512) -> Image.Image:
+    """App mark: big RAO, clearly readable Mr. Rendered once, at logo.png size."""
     base = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     px = base.load()
     c0 = (37, 99, 235, 255)
@@ -125,54 +126,42 @@ def render_mark(size: int = 512, *, favicon: bool = False) -> Image.Image:
     tile = Image.alpha_composite(tile, vignette)
     draw = ImageDraw.Draw(tile)
 
-    if size <= 20:
-        # monogram only
-        font = _font(max(10, int(size * 0.55)), bold=True)
-        _draw_centered_text(draw, "R", font, size * 0.50, size)
-    elif size <= 36:
-        # RAO only — max size for tiny icons
-        font = _font(max(12, int(size * 0.38)), bold=True)
-        _draw_centered_text(draw, "RAO", font, size * 0.52, size, tracking=size * 0.02)
-    else:
-        # Full lockup: Mr readable + RAO dominant, both inside safe padding
-        mr_px = max(18, int(size * 0.26))
-        rao_px = max(26, int(size * 0.42))
-        if favicon and size < 64:
-            mr_px = max(14, int(size * 0.24))
-            rao_px = max(18, int(size * 0.38))
-        font_mr = _font(mr_px, bold=True)
+    # Full lockup: Mr readable + RAO dominant, both inside safe padding
+    mr_px = max(18, int(size * 0.26))
+    rao_px = max(26, int(size * 0.42))
+    font_mr = _font(mr_px, bold=True)
+    font_rao = _font(rao_px, bold=True)
+
+    # Fit RAO within ~86% width (avoid clipping on rounded corners)
+    max_w = size * 0.86
+    tracking = size * 0.012
+    for _ in range(8):
+        widths = []
+        for ch in "RAO":
+            b = draw.textbbox((0, 0), ch, font=font_rao)
+            widths.append(b[2] - b[0])
+        total = sum(widths) + tracking * 2
+        if total <= max_w:
+            break
+        rao_px = max(16, int(rao_px * 0.92))
         font_rao = _font(rao_px, bold=True)
 
-        # Fit RAO within ~86% width (avoid clipping on rounded corners)
-        max_w = size * 0.86
-        tracking = size * 0.012
-        for _ in range(8):
-            widths = []
-            for ch in "RAO":
-                b = draw.textbbox((0, 0), ch, font=font_rao)
-                widths.append(b[2] - b[0])
-            total = sum(widths) + tracking * 2
-            if total <= max_w:
-                break
-            rao_px = max(16, int(rao_px * 0.92))
-            font_rao = _font(rao_px, bold=True)
-
-        cy_mr = size * 0.28
-        cy_rao = size * 0.56
-        _draw_centered_text(
-            draw, "Mr", font_mr, cy_mr, size, fill=(236, 240, 255, 250), tracking=size * 0.008
-        )
-        _draw_centered_text(
-            draw, "RAO", font_rao, cy_rao, size, fill=(255, 255, 255, 255), tracking=tracking
-        )
-        line_w = min(size * 0.40, max_w * 0.55)
-        ly = size * 0.76
-        lx0 = (size - line_w) / 2
-        draw.rounded_rectangle(
-            (lx0, ly, lx0 + line_w, ly + max(2, size * 0.014)),
-            radius=size * 0.01,
-            fill=(180, 195, 255, 170),
-        )
+    cy_mr = size * 0.28
+    cy_rao = size * 0.56
+    _draw_centered_text(
+        draw, "Mr", font_mr, cy_mr, size, fill=(236, 240, 255, 250), tracking=size * 0.008
+    )
+    _draw_centered_text(
+        draw, "RAO", font_rao, cy_rao, size, fill=(255, 255, 255, 255), tracking=tracking
+    )
+    line_w = min(size * 0.40, max_w * 0.55)
+    ly = size * 0.76
+    lx0 = (size - line_w) / 2
+    draw.rounded_rectangle(
+        (lx0, ly, lx0 + line_w, ly + max(2, size * 0.014)),
+        radius=size * 0.01,
+        fill=(180, 195, 255, 170),
+    )
 
     glow = tile.filter(ImageFilter.GaussianBlur(radius=max(1, size // 64)))
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
@@ -184,6 +173,10 @@ def render_mark(size: int = 512, *, favicon: bool = False) -> Image.Image:
 
 
 def write_svg() -> None:
+    """Write logo.svg only.
+
+    favicon.svg is owned by sync_icons_from_logo so the two never drift apart.
+    """
     logo = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mr RAO">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -206,54 +199,28 @@ def write_svg() -> None:
   <rect x="168" y="372" width="176" height="10" rx="5" fill="rgba(180,195,255,0.65)"/>
 </svg>
 """
-    favicon = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mr RAO">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2563eb"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="14" fill="url(#g)"/>
-  <text x="32" y="26" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif"
-        font-size="16" font-weight="700" fill="rgba(236,240,255,0.98)" letter-spacing="0.04em">Mr</text>
-  <text x="32" y="48" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif"
-        font-size="20" font-weight="800" fill="#ffffff" letter-spacing="0.04em">RAO</text>
-</svg>
-"""
     (OUT / "logo.svg").write_text(logo, encoding="utf-8")
-    (OUT / "favicon.svg").write_text(favicon, encoding="utf-8")
     print(f"  wrote {OUT / 'logo.svg'}")
-    print(f"  wrote {OUT / 'favicon.svg'}")
 
 
 def main() -> None:
     print("Generating Mr. Rao icons (large RAO, readable Mr)...")
     write_svg()
 
-    master = render_mark(512, favicon=False)
-    master.save(OUT / "logo.png", format="PNG", optimize=True)
+    render_mark(512).save(OUT / "logo.png", format="PNG", optimize=True)
     print(f"  wrote {OUT / 'logo.png'}")
 
-    for s in (16, 32, 48, 64, 128, 256):
-        render_mark(s, favicon=True).save(OUT / f"favicon-{s}.png", format="PNG", optimize=True)
-    render_mark(64, favicon=True).save(OUT / "favicon.png", format="PNG", optimize=True)
-    print("  wrote favicon-*.png + favicon.png")
+    # Every raster (favicon-*.png, favicon.png, mr-rao.ico, favicon.ico) and favicon.svg
+    # is downsampled from that logo.png, so the ICO matches the site mark exactly.
+    # Not optional: this step produces the committed artwork, and skipping it used to
+    # ship a poorer icon (thinner ICO, favicon.svg without the inner border,
+    # 3-stop gradient and underline).
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from scripts.sync_icons_from_logo import main as sync_main
 
-    ico_master = render_mark(256, favicon=True)
-    ico_sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
-    ico_path = OUT / "mr-rao.ico"
-    ico_master.save(ico_path, format="ICO", sizes=ico_sizes)
-    ico_master.save(OUT / "favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)])
-    print(f"  wrote {ico_path}")
-    print(f"  wrote {OUT / 'favicon.ico'}")
-    # Prefer raster derived from final logo.png so ICO == site mark
-    try:
-        from scripts.sync_icons_from_logo import main as sync_main
-
-        print("Syncing ICO/favicon from logo.png …")
-        sync_main()
-    except Exception as e:
-        print(f"  (sync_icons_from_logo skipped: {e})")
+    print("Syncing ICO/favicon from logo.png …")
+    sync_main()
     print("Done.")
 
 
