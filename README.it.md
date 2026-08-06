@@ -34,7 +34,7 @@ Vuoi dare un documento in pasto a un assistente AI. Ti servono due cose:
 
 Gli strumenti online risolvono il primo problema creando il secondo: per convertire il file glielo devi caricare. Se quel file è una fattura, una cartella clinica, un contratto o un thread email con dentro persone reali, l'hai appena spedito a un server di cui non sai nulla.
 
-Mr. Rao fa la conversione **e** la schermatura dei dati personali sul tuo computer. Il file non si muove.
+Mr. Rao fa la conversione **e** l'anonimizzazione dei dati personali sul tuo computer. Il file non si muove.
 
 ---
 
@@ -195,10 +195,10 @@ Ogni file può portare in cima una scheda con origine, data, motore usato e **qu
 Meglio dirlo subito:
 
 - **Non è un traduttore di layout.** Produce testo strutturato, non un clone grafico del PDF.
-- **La schermatura dei nomi non è infallibile.** Oltre a un elenco di nomi italiani valgono le regole di contesto — un titolo davanti, un indirizzo email accanto, due parole maiuscole che non sono parole italiane — ma un cognome che assomiglia a una parola comune può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
+- **Il riconoscimento dei nomi non è infallibile.** Oltre a un elenco di nomi italiani valgono le regole di contesto — un titolo davanti, un indirizzo email accanto, due parole maiuscole che non sono parole italiane — ma un cognome che assomiglia a una parola comune può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
 - **L'OCR non fa miracoli.** Su una scansione storta e sfocata sbaglia, come tutti.
 - **Sui documenti scansionati la protezione è più debole.** I riconoscitori cercano un codice fiscale o un IBAN scritti bene: se l'OCR legge `A01` come `AD1`, il codice non viene riconosciuto e resta nel testo. Il risultato lo segnala con un avviso, ma è lì che il confronto «prima / dopo» va guardato davvero.
-- **Non ha autenticazione.** È un attrezzo locale per una persona, non un servizio multiutente.
+- **Non ha autenticazione.** È un tool locale per una persona, non un servizio multiutente.
 
 ---
 
@@ -209,7 +209,7 @@ Non è uno slogan, è verificabile:
 - **Nel codice dell'app non c'è una sola chiamata di rete verso l'esterno.** L'unica `urlopen` presente punta a `127.0.0.1` e serve a capire chi occupa la porta. Controllabile in un comando: `grep -rn "urlopen\|requests\." mr_rao/`
 - **I modelli OCR sono nel pacchetto.** Nessun download al primo avvio.
 - **Le cartelle di lavoro non finiscono nel cloud.** Su Windows «Documenti» spesso *è* la cartella OneDrive: Mr. Rao se ne accorge e in quel caso usa una cartella locale, dicendoti perché — così uno strumento che promette che i file non escono dal computer non te li sincronizza in silenzio sul cloud aziendale.
-- **Il server locale si difende.** Header `Host` in allow-list (contro il DNS rebinding) e rifiuto delle richieste cross-site (contro la CSRF): una pagina aperta nel browser non può pilotare Mr. Rao.
+- **Il server locale si difende.** Header `Host` in allow-list contro il DNS rebinding — anche quando scegli di esporlo in rete — e rifiuto delle richieste cross-site, con `Sec-Fetch-Site` prima e `Origin` come ripiego: una pagina aperta nel browser non può pilotare Mr. Rao, nemmeno se è servita da un altro programma sulla tua stessa macchina. [Il dettaglio, con i limiti](SECURITY.md).
 
 ---
 

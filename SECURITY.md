@@ -2,7 +2,7 @@
 
 ## Modello di minaccia
 
-Mr. Rao è un **attrezzo locale monoutente**. Serve un server web perché
+Mr. Rao è un **tool locale monoutente**. Serve un server web perché
 l'interfaccia sta nel browser, non perché sia un servizio di rete.
 
 Cosa questo comporta:
@@ -15,10 +15,10 @@ Cosa questo comporta:
   autenticazione davanti. Senza, stai dando a chiunque un convertitore che
   scrive file sul tuo disco.
 
-Un avvertimento su cosa Mr. Rao **non** è: non è un contenitore per aprire
-allegati sospetti. I parser che legge (PDF, Office, immagini) sono gli stessi
-che gira qualunque altro programma, senza sandbox. Aprici i documenti che
-apriresti comunque — non quelli che non apriresti.
+Un avvertimento su cosa Mr. Rao **non** è: non è una sandbox in cui aprire
+allegati sospetti. Le librerie che usa per leggere PDF, Office e immagini sono
+le stesse di qualunque altro programma, e girano senza isolamento. Aprici i
+documenti che apriresti comunque — non quelli che non apriresti.
 
 ## Difese presenti
 
@@ -79,7 +79,7 @@ indovinare.
 
 ## Trattamento dei file
 
-- I file caricati vivono in un file temporaneo di sistema, cancellato subito
+- I file caricati finiscono in un file temporaneo di sistema, cancellato subito
   dopo la conversione.
 - Le pagine rasterizzate durante l'OCR stanno in una directory temporanea che
   si cancella da sola, anche se il processo muore a metà.
@@ -90,24 +90,24 @@ indovinare.
 
 ## Limiti noti
 
-- **La schermatura dei dati personali non è una garanzia.** I riconoscitori
-  sono buoni ma non perfetti, soprattutto sui nomi. La scheda «prima / dopo»
-  esiste perché tu possa controllare: usala prima di condividere un documento.
+- **L'anonimizzazione non è una garanzia.** I riconoscitori sono buoni ma non
+  perfetti, soprattutto sui nomi. La scheda «prima / dopo» esiste perché tu
+  possa controllare: usala prima di condividere un documento.
 - **Su testo ottenuto via OCR la protezione è sensibilmente più debole.**
   Misurato: lo stesso contenuto letto da immagine produce 3 redazioni, letto da
   PDF scansionato ne produce 1, perché l'OCR storpia i caratteri (`IBAN IT60X…`
   diventa `TBAN1TB0X…`) e il pattern non corrisponde più. Il dato resta nel testo,
   deformato ma spesso ancora identificante. Il risultato porta un avviso esplicito.
 - **Annullare una conversione non la interrompe istantaneamente.** Il flag
-  viene letto a ogni confine di stadio; una singola chiamata alla libreria di
-  conversione non è interrompibile dall'esterno. Vale anche per il limite di
-  tempo dell'OCR: ferma le pagine successive, non la pagina in corso.
-- **Un OCR troncato per tempo produce un risultato parziale**, e quindi una
-  schermatura parziale. Il documento lo dichiara in cima, non in fondo.
+  viene letto al passaggio da uno stadio all'altro; una singola chiamata alla
+  libreria di conversione non è interrompibile dall'esterno. Vale anche per il
+  limite di tempo dell'OCR: ferma le pagine successive, non la pagina in corso.
+- **Un OCR troncato per tempo produce un risultato parziale**, e quindi
+  un'anonimizzazione parziale. Il documento lo dichiara in cima, non in fondo.
 - **I percorsi della sorveglianza non sono confinati.** Chi usa l'interfaccia
   sceglie inbox e outbox dove vuole — è la funzione, non una svista: la
-  hotfolder deve poter stare nei Documenti o su un disco di rete. Il presidio
-  è che nessuna pagina esterna possa avviarla (vedi sopra), e che la scrittura
+  hotfolder deve poter stare nei Documenti o su un disco di rete. La difesa è
+  che nessuna pagina esterna possa avviarla (vedi sopra), e che la scrittura
   produca **solo** file `.md` senza mai sovrascriverne di esistenti.
 - **Nessuna sandbox.** Il threat model non include documenti costruiti per
   attaccare i parser. Una sandbox seria su Windows (job object, AppContainer)

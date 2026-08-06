@@ -80,8 +80,8 @@ Dettaglio e ragioni in [SECURITY.md](../SECURITY.md).
 - **Scansioni**: i riconoscitori cercano forme valide, l'OCR ne produce di quasi valide.
   Mitigato in due modi — recupero vincolato dal checksum per CF e IBAN, e segnalazione
   dei sospetti per il resto — ma resta il limite di efficacia principale (P0-ter).
-- **Solo formati italiani**: i riconoscitori non sono ancora innestabili per Paese (P1.7).
-- **Nessuna autenticazione**: attrezzo locale per una persona, non un servizio.
+- **Solo formati italiani**: i riconoscitori non sono ancora estendibili ad altri Paesi (P1.7).
+- **Nessuna autenticazione**: tool locale per una persona, non un servizio.
 
 ## Documentazione correlata
 

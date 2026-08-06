@@ -21,7 +21,7 @@ NO_PRIVACY = no_redaction()
 
 def test_annulla_a_meta_pipeline(tmp_path):
     """L'annullamento arriva dopo la conversione: va onorato al primo
-    confine di stadio, senza spendere tempo nel filtro privacy."""
+    passaggio da uno stadio all'altro, senza spendere tempo nel filtro privacy."""
     p = tmp_path / "nota.txt"
     p.write_text("contenuto", encoding="utf-8")
 

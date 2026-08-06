@@ -7,7 +7,7 @@ Il limite di tempo si appoggia lì.
 Due cose vanno verificate insieme, e la seconda conta quanto la prima:
 1. che si fermi;
 2. che **lo dica**. Un testo troncato in silenzio è peggio di nessun testo,
-   perché la schermatura dei dati personali ha visto solo le pagine lette e
+   perché l'anonimizzazione dei dati personali ha visto solo le pagine lette e
    nessuno se ne accorge guardando il risultato.
 """
 from __future__ import annotations

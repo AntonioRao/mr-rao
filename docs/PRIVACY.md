@@ -36,8 +36,8 @@ spiegare guardando la regola che l'ha prodotta.
 | Indirizzi | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada e altri, con civico, CAP e comune |
 | Nomi di persona | `{{NAME}}` | Vedi sotto |
 | Chiavi e password | `{{SECRET}}` | Token, chiavi API, JWT, blocchi di chiave privata, `password: ...` |
-| Date di nascita | `{{DATE}}` | **Spento di serie.** Solo con contesto di nascita accanto |
-| Importi | `{{AMOUNT}}` | **Spento di serie.** Valuta, migliaia o contesto contabile |
+| Date di nascita | `{{DATE}}` | **Spento di default.** Solo con contesto di nascita accanto |
+| Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
 
 ## I nomi di persona: quattro segnali
 
@@ -54,10 +54,10 @@ contesto, dal segnale più forte al più debole:
 
 La quarta è l'unica che può sbagliare, ed è l'unica che si può spegnere da
 sola: casella **«Deduci i cognomi sconosciuti»**, campo
-`privacy_name_guess`, opzione `--no-name-guess`. È spenta di serie nel
+`privacy_name_guess`, opzione `--no-name-guess`. È spenta di default nel
 profilo **Fatture**, dove le denominazioni sociali abbondano.
 
-Due presidi la tengono a bada: un elenco di parole italiane che capita di
+Due controlli la tengono a bada: un elenco di parole italiane che capita di
 trovare con l'iniziale maiuscola (mesi, saluti, enti, città, termini
 amministrativi) e un controllo sulle terminazioni — «Industriale» e
 «Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
@@ -142,8 +142,8 @@ e, soprattutto, cosa è sfuggito.
   casi si chiudono; ma un telefono non ha cifra di controllo, un nome nemmeno,
   e tre caratteri storpiati sono troppi. Quello che resta viene **segnalato**,
   non sostituito: è lì che il confronto «prima / dopo» va guardato davvero.
-- **Un OCR troncato produce una schermatura troncata.** Se una scansione supera
-  il tetto di tempo (`MR_RAO_OCR_TIMEOUT`, 15 minuti di serie), l'estrazione si
+- **Un OCR troncato produce un'anonimizzazione parziale.** Se una scansione supera
+  il tetto di tempo (`MR_RAO_OCR_TIMEOUT`, 15 minuti di default), l'estrazione si
   ferma e il motore ha visto solo le pagine lette. Il documento lo dichiara in
   cima, prima del testo: chi legge deve saperlo *prima* di fidarsi.
 - **Il banco di prova è sintetico.** I casi OCR sono stringhe scritte a mano

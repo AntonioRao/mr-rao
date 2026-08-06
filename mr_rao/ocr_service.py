@@ -171,7 +171,7 @@ def ocr_pdf_fallback(
     if interrotto_per_tempo is not None:
         # In cima, non in fondo: chi legge un documento troncato deve saperlo
         # prima di fidarsi di quello che c'è scritto — e prima di credere che
-        # la schermatura dei dati personali abbia visto tutto il documento.
+        # l'anonimizzazione dei dati personali abbia visto tutto il documento.
         header = (
             f"> ⚠️ **OCR interrotto dopo {interrotto_per_tempo} pagine su {total}:**\n"
             "> superato il limite di tempo. Il testo qui sotto è **parziale**, e con esso\n"

@@ -176,7 +176,7 @@ una passata di traduzione, e va fatta nell'ordine giusto.
 | ID | Item | Note | Stato |
 |----|------|------|-------|
 | P1.6 | Estrarre le stringhe della UI in un dizionario `it` / `en` + selettore lingua | ~80 stringhe fra template, JS e messaggi del server: i tooltip sono lunghi apposta | TODO |
-| P1.7 | **Prima** di P1.6: rendere i riconoscitori innestabili per Paese | Oggi riconosce solo dati italiani (CF, P.IVA, IBAN, nomi IT). Una UI inglese su un motore solo-italiano promette a un utente inglese di proteggere dati che non sa riconoscere — lo stesso errore del selettore lingua OCR | TODO |
+| P1.7 | **Prima** di P1.6: rendere i riconoscitori estendibili ad altri Paesi | Oggi riconosce solo dati italiani (CF, P.IVA, IBAN, nomi IT). Una UI inglese su un motore solo-italiano promette a un utente inglese di proteggere dati che non sa riconoscere — lo stesso errore del selettore lingua OCR | TODO |
 
 **Perché in quest'ordine.** L'inglese nell'interfaccia dice «questo strumento
 è per te» a chi parla inglese. Se poi il filtro privacy ignora un National

@@ -64,7 +64,7 @@ ogni endpoint risponde JSON: vale come rete per quelli che verranno.
 
 ### Un OCR non tiene più occupato un worker per mezz'ora
 
-`MR_RAO_OCR_TIMEOUT`, 15 minuti di serie, `0` per toglierlo.
+`MR_RAO_OCR_TIMEOUT`, 15 minuti di default, `0` per toglierlo.
 
 Un thread Python non si uccide dall'esterno, quindi il limite si è messo
 dove già si legge il flag di annullamento: **fra una pagina e l'altra**.
@@ -76,7 +76,7 @@ Allo scadere il testo letto fin lì si restituisce, con un avviso **in cima**:
 > Il testo qui sotto è parziale, e con esso la rimozione dei dati personali.
 
 In cima e non in fondo perché un documento troncato in silenzio è peggio di
-nessun documento: la schermatura ha visto solo le pagine lette, e chi legge
+nessun documento: l'anonimizzazione ha visto solo le pagine lette, e chi legge
 deve saperlo *prima* di fidarsi. Per la stessa ragione un OCR scaduto senza
 aver letto niente non dice più «nessun testo riconoscibile», che manderebbe
 a cercare il problema nel documento invece che nel tempo.
@@ -150,6 +150,30 @@ pezzi.
 Gli esempi della pagina sono sotto test, come già quelli del README: se il
 codice cambia e la pagina no, la suite lo dice prima che se ne accorga un
 lettore.
+
+### Italiano scritto da chi l'italiano lo parla
+
+Una passata su tutti i testi pubblici, dopo una segnalazione precisa: parole
+tradotte troppo alla lettera, di quelle che fanno pensare a un testo mai
+riletto da nessuno.
+
+| Prima | Dopo | Perché |
+|-------|------|--------|
+| «un **attrezzo** locale» | «un **tool** locale» | un attrezzo è da officina; «tool» si usa anche in italiano |
+| «la **schermatura** dei dati» | «l'**anonimizzazione**» | si scherma un cavo, non un dato personale |
+| «spento **di serie**» | «spento **di default**» | l'interfaccia diceva già «di default»: era il documento a essere fuori posto |
+| «a ogni **confine di stadio**» | «al passaggio da uno stadio all'altro» | *stage boundary* tradotto parola per parola |
+| «riconoscitori **innestabili** per Paese» | «estendibili ad altri Paesi» | *pluggable* tradotto parola per parola |
+| «**Chi serve** un pipeline» | «**A chi serve** una pipeline» | in italiano «chi serve» significa il contrario; e pipeline è femminile |
+| «due **confusions** tipiche» | «due confusioni tipiche» | parola inglese rimasta in mezzo |
+| «classificazione automatica **a scala**» | «su larga scala» | *at scale* |
+| «quasi-**identifier**» | «quasi-identificatori» | il termine italiano esiste ed è quello |
+
+E una frase proprio sgrammaticata, in `SECURITY.md`: «i parser che legge sono
+gli stessi **che gira** qualunque altro programma».
+
+Ridotto anche l'uso di «presidio»: è gergo legittimo, ma dodici volte in sei
+pagine è un tic, non un termine.
 
 ### Cosa è stato valutato e scartato
 
@@ -280,7 +304,7 @@ quattro parole: oltre non è un nome, è un titolo scritto in maiuscolo.
 **`spedito via Corriere Espresso` → `{{NAME}}`.** Il riconoscitore di
 indirizzi si asteneva correttamente, perché «Corriere» è nel suo elenco di
 parole di stop. Poi l'euristica dei nomi si mangiava la coppia. Un
-presidio dentro un riconoscitore non protegge gli altri: adesso quell'elenco
+un controllo dentro un riconoscitore non protegge gli altri: adesso quell'elenco
 vale per tutti.
 
 **`chiave: importante da ricordare` → `chiave: {{SECRET}}`.** In italiano
@@ -398,12 +422,12 @@ E in più l'euristica che serviva davvero: **due parole maiuscole di fila
 che non sono parole italiane sono quasi sempre nome e cognome**, anche se
 il cognome non compare in nessun elenco. È l'unica regola che può
 sbagliare, e infatti ha un interruttore suo (`privacy_name_guess`,
-`--no-name-guess`), spento di serie nel profilo Fatture dove le
+`--no-name-guess`), spento di default nel profilo Fatture dove le
 denominazioni sociali abbondano.
 
 L'elenco dei nomi italiani è comunque cresciuto di circa dieci volte.
 
-### Il presidio contro l'entusiasmo
+### Il freno all'entusiasmo
 
 Un filtro che redige tutto è inutile quanto uno che non redige niente. Il
 banco di prova sono due testi, non uno: la mail, dove deve sparire tutto, e
@@ -411,7 +435,7 @@ un verbale amministrativo pieno di «Comitato Tecnico», «Piano Industriale»,
 «Fase Uno», numeri di protocollo e date, dove **non deve sparire niente**.
 Il verbale è un test come gli altri e passa con tutti i riconoscitori accesi.
 
-Due presidi lo tengono in piedi: un elenco di parole italiane che capita di
+Due controlli lo tengono in piedi: un elenco di parole italiane che capita di
 trovare maiuscole, e un controllo sulle terminazioni — «Industriale» e
 «Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
 
@@ -447,7 +471,7 @@ Sempre da una mail vera. Il riconoscitore dei nomi pretende almeno una
 minuscola — è così che esclude in un colpo solo acronimi, numeri romani e
 i segnaposto già inseriti — e questo lo rendeva **cieco a `MARIO ROSSI`**,
 che nelle firme e nelle intestazioni è frequentissimo. Ora c'è una regola
-apposta, con gli stessi presidi: `CODICE FISCALE` e `ORDINE DEL GIORNO`
+apposta, con gli stessi controlli: `CODICE FISCALE` e `ORDINE DEL GIORNO`
 restano dove sono.
 
 E un cognome noto scritto da solo, come capita nelle firme, ora viene

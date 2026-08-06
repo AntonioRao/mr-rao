@@ -20,7 +20,7 @@ In particolare sono benvenuti:
 - **Riconoscitori per altri Paesi.** L'architettura in `mr_rao/privacy.py` è
   già a pattern + validatore: aggiungere NIF spagnoli o SIREN francesi è
   soprattutto lavoro di regole, non di impianto.
-- **Falsi positivi e falsi negativi della schermatura.** Se un dato personale
+- **Falsi positivi e falsi negativi dell'anonimizzazione.** Se un dato personale
   ti è sfuggito, o un codice prodotto è stato scambiato per un IBAN, apri una
   issue con un esempio **inventato** (mai dati reali).
 - **Anteprima Markdown più fedele** (liste annidate, tabelle) — P1.4.

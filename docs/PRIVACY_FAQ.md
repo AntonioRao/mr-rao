@@ -19,7 +19,7 @@ re-identificazione ragionevolmente impossibile. Mr. Rao fa **redazione
 assistita** (e in parte pseudonimizzazione grezza): sostituisce pezzi di
 testo con segnaposto (`{{CODICE_FISCALE}}`, `{{NAME}}`, …) e lascia il
 resto del documento intatto — ruoli, importi (se non disattivati),
-struttura, quasi-identifier.
+struttura, quasi-identificatori.
 
 Usarlo per *ridurre* l’esposizione prima di un incolla in un’AI, con
 controllo umano del prima/dopo, è lo scopo dichiarato. Usarlo per dire
@@ -46,7 +46,7 @@ Esempi nel codice:
 | Codice fiscale | struttura a 16 + carattere di controllo (informativo / recovery) |
 | Partita IVA | 11 cifre + check all’italiana (informativo) |
 | Telefono | prefisso, cellulare `3xx`, separatori o parola di contesto |
-| Importo | valuta, migliaia o contesto contabile (spento di serie) |
+| Importo | valuta, migliaia o contesto contabile (spento di default) |
 
 Lo stesso input produce sempre lo stesso output. Ogni sostituzione si può
 spiegare indicando la regola. File principale:
@@ -60,20 +60,20 @@ spiegare indicando la regola. File principale:
 
 Obiettivi vincolanti del tool:
 
-1. **100 % locale**, zero chiamate di rete nel codice applicativo  
+1. **100% locale**, zero chiamate di rete nel codice applicativo  
 2. **Deterministico** e ispezionabile da un CISO o da un collega  
 3. **Niente modello da scaricare o addestrare** oltre all’OCR già incluso  
 4. Specializzazione **documenti italiani** (CF, P.IVA, IBAN, abitudini di scrittura)
 
-Presidio + NLP o un LLM locale alzerebbero il recall sui nomi in molti
-casi, al prezzo di peso, non-determinismo, dipendenze e superficie di
-audit diversa. Qui i nomi usano **quattro segnali** (titolo, email,
-elenco, euristica spegnibile) e liste in
+Presidio + NLP o un LLM locale alzerebbero il recall sui nomi in molti casi,
+al prezzo di peso, di risultati non più ripetibili, di dipendenze in più e di
+un motore che non si verifica leggendolo. Qui i nomi usano **quattro segnali**
+(titolo, email, elenco, euristica disattivabile) e liste in
 [`mr_rao/it_names.py`](../mr_rao/it_names.py) — incompleti per definizione.
 
-Chi serve un pipeline multi-lingua enterprise guarda altrove (o estende
-questo motore: è AGPL). Chi serve un pre-filtro offline ispezionabile
-prima di ChatGPT è nel perimetro giusto.
+A chi serve una pipeline multi-lingua enterprise conviene guardare altrove
+(o estendere questo motore: è AGPL). A chi serve un pre-filtro offline e
+ispezionabile prima di ChatGPT, questo è il perimetro giusto.
 
 ---
 
@@ -108,7 +108,7 @@ Dalla 1.5.x in poi:
 - **Sospetti** — ciò che assomiglia a un dato e non è stato sostituito
   compare nel report (`suspects`) e in UI come «da controllare», con
   campione mascherato.  
-- **Recupero OCR (1.6.x)** — per CF e IBAN: fino a **due** confusions
+- **Recupero OCR (1.6.x)** — per CF e IBAN: fino a **due** confusioni
   tipiche; si sostituisce **solo** se il checksum del candidato corretto
   torna. Non decide un’euristica: decide l’aritmetica.
 
@@ -147,7 +147,7 @@ Presidi tipici:
 - elenco di parole italiane capitalizzate + suffissi morfologici
   (`-zione`, `-ale`, …) contro l’euristica nomi  
 - IBAN: almeno una lettera già presente nelle prime due posizioni nel
-  recovery OCR (regressione: un numero d’ordine diventava un IBAN
+  recupero OCR (regressione: un numero d’ordine diventava un IBAN
   «valido» al mod-97)
 
 File rilevanti: `tests/test_privacy*.py`, `tests/test_sospetti.py`,
@@ -207,7 +207,7 @@ conversione e l'altra.
 ## 9. Posso usarlo in studio / azienda come controllo privacy «ufficiale»?
 
 **Come controllo *compensativo unico*: no.  
-Come attrezzo nel processo: sì, se lo inquadrate onestamente.**
+Come tool nel processo: sì, se lo inquadrate onestamente.**
 
 Inquadramento sensato:
 
@@ -224,7 +224,7 @@ processo.
 Non sostituisce:
 
 - valutazione d’impatto / policy interne  
-- DLP enterprise, classificazione automatica a scala  
+- DLP enterprise, classificazione automatica su larga scala  
 - obblighi contrattuali con i clienti sulla minimizzazione  
 
 Licenza **AGPL-3.0**: uso interno e consulenza a pagamento sono
