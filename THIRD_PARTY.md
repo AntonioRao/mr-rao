@@ -17,8 +17,9 @@ oltre la semplice attribuzione (copyleft o eccezioni).
 
 ## Licenze con obblighi particolari
 
-Queste richiedono più della semplice attribuzione. Sono elencate per prime
-proprio perché sono quelle che si dimenticano.
+Queste impongono adempimenti concreti — testo di licenza, notice, o
+condizioni sulla ridistribuzione — e non la semplice attribuzione.
+Sono elencate per prime perché sono quelle da controllare.
 
 | Progetto | Versione | Licenza | Notice locale |
 |----------|----------|---------|---------------|
@@ -65,8 +66,8 @@ Mr. Rao non li modifica.
 
 ## Dipendenze indirette
 
-Arrivano come dipendenze delle precedenti. Elencate per intero: dire
-«vedi `pip freeze`» scarica sull'utente un obbligo che è di chi distribuisce.
+Arrivano come dipendenze delle precedenti. Sono elencate per intero perché
+l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 
 <details><summary>Elenco completo (55 pacchetti)</summary>
 

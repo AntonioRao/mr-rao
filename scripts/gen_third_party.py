@@ -140,8 +140,9 @@ def genera() -> str:
 
     a("## Licenze con obblighi particolari")
     a("")
-    a("Queste richiedono più della semplice attribuzione. Sono elencate per prime")
-    a("proprio perché sono quelle che si dimenticano.")
+    a("Queste impongono adempimenti concreti — testo di licenza, notice, o")
+    a("condizioni sulla ridistribuzione — e non la semplice attribuzione.")
+    a("Sono elencate per prime perché sono quelle da controllare.")
     a("")
     a("| Progetto | Versione | Licenza | Notice locale |")
     a("|----------|----------|---------|---------------|")
@@ -173,8 +174,8 @@ def genera() -> str:
 
     a("## Dipendenze indirette")
     a("")
-    a("Arrivano come dipendenze delle precedenti. Elencate per intero: dire")
-    a("«vedi `pip freeze`» scarica sull'utente un obbligo che è di chi distribuisce.")
+    a("Arrivano come dipendenze delle precedenti. Sono elencate per intero perché")
+    a("l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.")
     a("")
     a("<details><summary>Elenco completo ({} pacchetti)</summary>".format(len(indirette)))
     a("")
