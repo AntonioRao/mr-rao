@@ -15,10 +15,11 @@ redistribuzione delle librerie open source.
 | `../LICENSE` | Licenza del **codice Mr. Rao** |
 | `../THIRD_PARTY.md` | Elenco dipendenze e link |
 
-Il pacchetto contiene **due** librerie LGPL, non una. La seconda
-(`python-stdnum`, dipendenza di Scrubadub) era sfuggita al primo giro di
-conformità: per non ripetere l'errore, l'elenco completo ora si **genera** dai
-pacchetti realmente installati con `scripts/gen_third_party.py`.
+Il pacchetto contiene **due** librerie LGPL, non una: la seconda
+(`python-stdnum`) arriva come dipendenza di Scrubadub. L'elenco completo delle
+dipendenze si **genera** dai pacchetti realmente installati con
+`scripts/gen_third_party.py`, così non può divergere da ciò che viene
+effettivamente distribuito.
 
 ## pystray (LGPL-3.0)
 

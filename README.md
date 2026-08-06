@@ -118,7 +118,7 @@ Not a slogan — something you can check:
 
 - **There is not a single outbound network call in the app's own code.** The only `urlopen` in the codebase points at `127.0.0.1`, and it exists to identify which process holds a busy port. One command proves it: `grep -rn "urlopen\|requests\." mr_rao/`
 - **The OCR models ship with the package.** No download on first run.
-- **Working folders never land in a synced directory.** On Windows, "Documents" often *is* the OneDrive folder: Mr. Rao detects that and falls back to a local folder, telling you why. This was a real bug, fixed in [1.3.0](docs/CHANGELOG.md).
+- **Working folders never land in a synced directory.** On Windows, "Documents" often *is* the OneDrive folder: Mr. Rao detects that and falls back to a local folder, telling you why — so a tool that promises nothing leaves your machine does not quietly sync your documents to a company cloud.
 - **The local server defends itself.** `Host` header allow-list (against DNS rebinding) and rejection of cross-site requests (against CSRF), so no page open in your browser can drive Mr. Rao.
 
 ---
@@ -131,7 +131,7 @@ The conversion core is **[MarkItDown](https://github.com/microsoft/markitdown)**
 
 > *Mr. Rao is not affiliated with or endorsed by Microsoft or any of the projects mentioned.*
 
-That list is not maintained by hand: [`scripts/gen_third_party.py`](scripts/gen_third_party.py) **generates** it from the metadata of the packages actually installed, and the quality gate fails when it drifts. The hand-written version had already got one licence wrong and omitted another one that carried real obligations — hence the automation.
+That list is not maintained by hand: [`scripts/gen_third_party.py`](scripts/gen_third_party.py) **generates** it from the metadata of the packages actually installed, and the quality gate fails if it ever drifts from them. So it cannot quietly go stale.
 
 Two libraries are **LGPL** (pystray and python-stdnum): licence texts, notices and replacement instructions live in [`licenses/`](licenses/).
 
