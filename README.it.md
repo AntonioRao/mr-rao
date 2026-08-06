@@ -4,8 +4,8 @@
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.3.1-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-161%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.3.2-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-164%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -109,6 +109,7 @@ Meglio dirlo subito:
 - **Non è un traduttore di layout.** Produce testo strutturato, non un clone grafico del PDF.
 - **La schermatura dei nomi non è infallibile.** Si basa su un elenco di nomi italiani comuni: un cognome raro può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
 - **L'OCR non fa miracoli.** Su una scansione storta e sfocata sbaglia, come tutti.
+- **Sui documenti scansionati la protezione è più debole.** I riconoscitori cercano un codice fiscale o un IBAN scritti bene: se l'OCR legge `A01` come `AD1`, il codice non viene riconosciuto e resta nel testo. Il risultato lo segnala con un avviso, ma è lì che il confronto «prima / dopo» va guardato davvero.
 - **Non ha autenticazione.** È un attrezzo locale per una persona, non un servizio multiutente.
 - **La scelta della lingua OCR oggi non cambia il modello.** È già annotata nel [backlog](docs/BACKLOG.md) come cosa da implementare davvero o da togliere.
 

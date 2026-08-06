@@ -87,6 +87,30 @@ def _empty_message() -> str:
     )
 
 
+def _is_ocr(engine_used: str) -> bool:
+    return "rapidocr" in (engine_used or "")
+
+
+def _ocr_privacy_warning() -> str:
+    """Avviso da allegare quando la redazione ha lavorato su testo OCR.
+
+    I riconoscitori sono espressioni regolari: cercano un codice fiscale o un
+    IBAN scritti *bene*. Se l'OCR legge `A01` come `AD1`, o `IBAN IT60` come
+    `TBAN1TB0`, il codice non viene riconosciuto e resta nel testo — storpiato
+    ma ancora sufficiente a identificare una persona.
+
+    È il caso in cui la protezione è più debole ed è insieme quello in cui
+    serve di più, perché i documenti scansionati sono spesso i più delicati.
+    Chi legge il risultato deve saperlo.
+    """
+    return (
+        "> ⚠️ *Testo ottenuto via OCR: l'anonimizzazione riconosce solo i dati "
+        "letti correttamente. Se il riconoscimento ha sbagliato un carattere, "
+        "un codice fiscale o un IBAN può essere sfuggito. "
+        "**Controlla il confronto prima/dopo prima di condividere.***"
+    )
+
+
 def _strip_noise(text: str) -> str:
     """Clean copy for LLM paste: drop HTML comments and trailing privacy notes."""
     text = re.sub(r"<!--.*?-->\n?", "", text, flags=re.DOTALL)
@@ -284,6 +308,8 @@ def convert_file(
             if opts.include_raw:
                 markdown_raw = final_text
             final_text, redaction = apply_privacy_filter(final_text, opts.privacy)
+            if _is_ocr(engine_used):
+                final_text = final_text.rstrip() + "\n\n" + _ocr_privacy_warning()
 
         empty = not final_text or not str(final_text).strip()
         if empty:

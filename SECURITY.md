@@ -45,6 +45,11 @@ e [`tests/test_user_folders.py`](tests/test_user_folders.py).
 - **La schermatura dei dati personali non è una garanzia.** I riconoscitori
   sono buoni ma non perfetti, soprattutto sui nomi. La scheda «prima / dopo»
   esiste perché tu possa controllare: usala prima di condividere un documento.
+- **Su testo ottenuto via OCR la protezione è sensibilmente più debole.**
+  Misurato: lo stesso contenuto letto da immagine produce 3 redazioni, letto da
+  PDF scansionato ne produce 1, perché l'OCR storpia i caratteri (`IBAN IT60X…`
+  diventa `TBAN1TB0X…`) e il pattern non corrisponde più. Il dato resta nel testo,
+  deformato ma spesso ancora identificante. Il risultato porta un avviso esplicito.
 - **Annullare una conversione non la interrompe istantaneamente.** Il flag
   viene letto a ogni confine di stadio; una singola chiamata alla libreria di
   conversione non è interrompibile dall'esterno.

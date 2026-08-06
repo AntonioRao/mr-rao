@@ -4,8 +4,8 @@
 **All on your own machine, without sending anything anywhere.**
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.3.1-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-161%20passing-10b981)](tests/)
+[![Version](https://img.shields.io/badge/version-1.3.2-3b82f6)](docs/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-164%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -107,6 +107,7 @@ Better said upfront:
 - **It is not a layout translator.** It produces structured text, not a graphical clone of the PDF.
 - **Name redaction is not infallible.** It relies on a list of common Italian names, so an unusual surname can slip through. That is exactly why the before/after view exists — **always check** before sharing.
 - **OCR works no miracles.** On a skewed, blurry scan it gets things wrong, like everything else.
+- **Redaction is weaker on scanned documents.** The detectors look for a correctly spelled tax ID or IBAN: if OCR reads `A01` as `AD1`, the code is not recognised and stays in the text. The output flags this with a warning, but that is where the before/after view really earns its keep.
 - **There is no authentication.** It is a local tool for one person, not a multi-user service.
 - **The OCR language selector does not switch models yet.** It is already logged in the [backlog](docs/BACKLOG.md) as something to either implement properly or remove.
 

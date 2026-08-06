@@ -127,6 +127,27 @@ Aggiunto dopo l'audit di agosto 2026. Tutti verificati eseguendo, non ipotizzati
 | P2.7 | Verifica «HEAD è importabile» in CI | È già successo di committarne uno rotto | TODO |
 | P2.8 | Valutare la rimozione di Scrubadub | Porta 6 pacchetti (uno LGPL) per un guadagno marginale sull'italiano | TODO |
 
+## P0-ter — Riconoscimento tollerante agli errori OCR
+
+Emerso testando il repo appena clonato su un PDF scansionato vero.
+
+Stesso contenuto, due strade: letto da **immagine** produce 3 redazioni, letto
+da **PDF scansionato** ne produce 1. L'OCR storpia i caratteri — `A01` diventa
+`AD1`, `IBAN IT60X…` diventa `TBAN1TB0X…` — e le espressioni regolari non
+riconoscono più il codice, che resta nel testo deformato ma ancora identificante.
+
+| ID | Item | Note | Stato |
+|----|------|------|-------|
+| A.7 | Avviso nel risultato quando la redazione ha lavorato su testo OCR | Mitigazione immediata: chi legge sa che lì deve controllare | **DONE** (1.3.2) |
+| A.8 | Riconoscimento tollerante alle confusioni tipiche dell'OCR (`0`/`O`/`D`, `1`/`I`/`T`, `5`/`S`, `8`/`B`) sui soli formati a struttura fissa (CF, IBAN, P.IVA) | La verifica mod-97 e il carattere di controllo del CF permettono di essere tolleranti **senza** aumentare i falsi positivi: si accetta la variante solo se il checksum torna | TODO |
+| A.9 | Banco di prova con scansioni a qualità decrescente | Serve un numero, non un'impressione: quante redazioni si perdono a 300, 200, 150 DPI | TODO |
+
+**Perché A.8 è fattibile senza peggiorare i falsi positivi.** Un IBAN ha un
+checksum: si possono generare le varianti plausibili di una stringa dubbia e
+accettarne una solo se il mod-97 torna. Lo stesso vale per il codice fiscale,
+che ha un carattere di controllo. Su formati senza checksum questa strada non
+si può percorrere, e infatti non va percorsa.
+
 ## P1-bis — Interfaccia in inglese (dopo il lancio)
 
 Il README è bilingue, l'interfaccia no. Tradurla è una **funzionalità**, non

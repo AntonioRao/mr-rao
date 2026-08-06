@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.3.2 — L'anonimizzazione toglie solo ciò che l'OCR ha letto bene
+
+Emerso testando il repository appena clonato su un PDF scansionato vero, non
+su un file di prova.
+
+Stesso contenuto, due strade:
+
+| letto da | redazioni |
+|---|---|
+| immagine | 3 (`{{CODICE_FISCALE}}`, `{{IBAN}}`, `{{NAME}}`) |
+| PDF scansionato | 1 (solo il nome) |
+
+L'OCR storpia i caratteri: `A01` diventa `AD1`, `IBAN IT60X…` diventa
+`TBAN1TB0X…`. I riconoscitori sono espressioni regolari e cercano un codice
+scritto bene: se non lo trovano, il dato **resta nel testo** — deformato, ma
+spesso ancora sufficiente a identificare una persona.
+
+Non è un difetto del codice, è il limite del metodo. Ma è proprio sui
+documenti scansionati — quelli per cui uno strumento del genere serve di più —
+che la garanzia è più debole, e finora non lo diceva nessuno.
+
+- Il risultato porta un **avviso esplicito** quando la redazione ha lavorato su
+  testo OCR, con l'invito a guardare il confronto prima/dopo. Compare su
+  immagini, PDF scansionati e fallback OCR; non compare sui documenti nativi
+  (sarebbe rumore) né a privacy spenta (non c'è nulla che possa sfuggire).
+- Documentato in entrambi i README e in `SECURITY.md`, coi numeri misurati.
+- Backlog P0-ter: riconoscimento tollerante alle confusioni tipiche dell'OCR,
+  fattibile **senza** aumentare i falsi positivi perché IBAN e codice fiscale
+  hanno un checksum — si accetta la variante solo se il controllo torna.
+- 161 → 164 test.
+
 ## 1.3.1 — Software libero sotto AGPL-3.0, README bilingue
 
 ### Licenza: da «source available» ad AGPL-3.0
