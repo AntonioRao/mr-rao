@@ -24,12 +24,12 @@ pip install -q -r requirements-build.txt
 if errorlevel 1 exit /b 1
 
 echo.
-echo [1/4] Icons...
+echo [1/6] Icons...
 python scripts\generate_icons.py
 if errorlevel 1 exit /b 1
 
 echo.
-echo [2/4] Quality gate...
+echo [2/6] Quality gate...
 call scripts\quality_gate.bat
 if errorlevel 1 (
     echo GATE FAILED
@@ -37,7 +37,18 @@ if errorlevel 1 (
 )
 
 echo.
-echo [3/4] PyInstaller onedir...
+echo [3/6] Resti di disinstallazioni nel venv...
+python scripts\check_venv.py
+if errorlevel 1 (
+    echo.
+    echo Il build si fermerebbe piu' avanti con un errore che non nomina
+    echo la causa: PyInstaller importa il residuo come namespace package
+    echo e poi ne chiede il percorso, che non esiste.
+    exit /b 1
+)
+
+echo.
+echo [4/6] PyInstaller onedir...
 if exist "dist\MrRao" rmdir /s /q "dist\MrRao"
 if exist "build\MrRao" rmdir /s /q "build\MrRao"
 
@@ -78,7 +89,7 @@ if not exist "dist\MrRao\MrRao.exe" (
 )
 
 echo.
-echo [4/4] Assemble portable folder...
+echo [5/6] Assemble portable folder...
 set "OUT=dist\MrRao-Portable"
 if exist "%OUT%" rmdir /s /q "%OUT%"
 mkdir "%OUT%"
@@ -116,6 +127,19 @@ echo @echo off
 echo cd /d "%%~dp0app"
 echo MrRao.exe %%*
 ) > "%OUT%\MrRao-CLI.bat"
+
+echo.
+echo [6/6] Avvio dell'eseguibile e verifica...
+REM Un codice di uscita zero non dice niente su cosa succede al doppio
+REM clic: e' gia' capitato di produrre un pacchetto che apriva una
+REM finestra nera e si chiudeva. Se ne accorse una persona, non il build.
+python scripts/verify_build.py "%OUT%/app/MrRao.exe"
+if errorlevel 1 (
+    echo.
+    echo === BUILD RESPINTO ===
+    echo Il pacchetto e' stato costruito ma non funziona: non pubblicarlo.
+    exit /b 1
+)
 
 echo.
 echo === BUILD OK ===

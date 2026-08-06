@@ -498,6 +498,15 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
             dropped.append(tokens.pop(0))
         if not tokens:
             return m.group(0)
+        # Una sola parola maiuscola davanti a un indirizzo non basta a
+        # farne un nome: davanti a un'email ci finisce di tutto, a
+        # partire dai verbi. "Contatta mario@x.it" faceva sparire il
+        # verbo. Serve una coppia — nome e cognome — oppure una parola
+        # che negli elenchi ci sia davvero.
+        if len(tokens) == 1:
+            solo = tokens[0].lower().strip("'’-")
+            if solo not in FIRST_NAMES and solo not in SURNAMES:
+                return m.group(0)
         report.add("names")
         prefix = (" ".join(dropped) + " ") if dropped else ""
         return m.group(0).replace(name, prefix + "{{NAME}}", 1)

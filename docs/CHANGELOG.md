@@ -136,7 +136,41 @@ se manca il file `.ico` usa l'icona dell'eseguibile invece di rinunciare.
 L'elenco delle estensioni del menu contestuale, che viveva in due file
 diversi ed era già andato fuori sincrono una volta, adesso sta in uno solo.
 
-- 250 test (erano 164).
+### Il build adesso apre quello che ha costruito
+
+Un codice di uscita zero non dice niente su cosa succede al doppio clic:
+era già capitato di produrre 390 MB che aprivano una finestra nera e si
+chiudevano, e a scoprirlo fu una persona che avviava l'eseguibile, non il
+build. Adesso l'ultimo passo avvia il pacchetto, interroga `/api/health`,
+converte un `.docx` vero e controlla che l'anonimizzazione abbia lavorato.
+Se qualcosa non torna, il build **respinge il pacchetto**.
+
+Ha ripagato subito, e non per un difetto del build: `Contatta
+mario.rossi@example.it` faceva sparire **«Contatta»**. La regola «una
+parola maiuscola accanto a un indirizzo di posta è un nome» — quella che
+risolve i cognomi sconosciuti — davanti a un'email si prendeva anche i
+verbi. Ora una parola sola dev'essere un nome o un cognome che negli
+elenchi c'è davvero; una coppia continua a bastare.
+
+Nessun test l'aveva visto: passavano tutti da testo scritto per
+l'occasione, e nessuno cominciava con un verbo all'imperativo.
+
+### Un residuo di pip che rompeva il build
+
+Il primo tentativo di ricostruire il pacchetto è morto dentro PyInstaller
+con un `TypeError` che non nominava la causa. Era una cartella `scipy/`
+priva di `__init__.py`: Python la importa lo stesso come *namespace
+package*, `import scipy` riesce e `scipy.__file__` è `None`.
+
+Origine: pip su Windows, quando non riesce a cancellare un `.pyd` perché è
+in uso, lo rinomina anteponendo una tilde e conta di toglierlo dopo. La
+rimozione di Scrubadub nella 1.3.3 ha lasciato 71 MB di macerie —
+`~klearn`, `~egex`, `~cipy.libs` — che hanno rotto il build due versioni
+più tardi. `scripts/check_venv.py` adesso le nomina prima, invece di
+lasciarle comparire come un difetto di qualcun altro.
+
+- 253 test (erano 164).
+- Pacchetto portable: 311 MB (le librerie Office ne aggiungono 36).
 
 ## 1.3.3 — Via Scrubadub: non faceva quello che credevamo
 

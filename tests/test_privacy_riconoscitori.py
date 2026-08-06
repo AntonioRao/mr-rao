@@ -380,3 +380,27 @@ def test_un_cognome_noto_da_solo_viene_sostituito():
 def test_i_cognomi_che_sono_parole_non_bastano_da_soli(testo):
     out, report = apply_privacy_filter(testo, only("names"))
     assert report.total == 0, out
+
+
+def test_una_parola_sola_davanti_a_un_indirizzo_non_e_un_nome():
+    """Davanti a un'email ci finisce di tutto, a partire dai verbi.
+    Trovato dalla verifica del pacchetto: "Contatta mario@x.it" faceva
+    sparire il verbo, non il nome."""
+    out, _ = apply_privacy_filter(
+        "Contatta mario.rossi@example.it grazie", only("emails", "names")
+    )
+    assert out.startswith("Contatta ")
+    assert "{{EMAIL}}" in out
+
+
+def test_un_cognome_noto_davanti_a_un_indirizzo_resta_un_nome():
+    """La regola non deve diventare cieca al caso che serve."""
+    out, _ = apply_privacy_filter("Rao <a.rao@example.it>", only("emails", "names"))
+    assert out == "{{NAME}} <{{EMAIL}}>"
+
+
+def test_una_coppia_davanti_a_un_indirizzo_e_sempre_un_nome():
+    out, _ = apply_privacy_filter(
+        "Kwabena Osei <k.osei@example.it>", only("emails", "names")
+    )
+    assert "Osei" not in out and "{{NAME}}" in out

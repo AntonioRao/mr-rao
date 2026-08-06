@@ -518,6 +518,13 @@ banca dati carta carte libro libri conto conti cassa tesoreria
 corte torre monte ponte villa valle campo campi porta porte forte
 grande grandi piccolo piccola maggiore minore minimo medio media
 il lo la le un uno una lui lei loro noi voi essi esse
+contatta contattare contattami scrivi scrivere scrivimi chiama chiamare
+invia inviare inviato inviata inviati inviate ricevuto ricevuta ricevi
+rispondi rispondere risposta trasmetti trasmesso trasmessa allega allegare
+conferma confermare confermato confermata segnala segnalare segnalazione
+richiedi richiedere verifica verificare controlla controllare
+apri aprire chiudi chiudere leggi leggere vedi vedere trova trovare
+puoi potete devi dovete vuoi volete fai fate usa usare
 di da in con su per tra fra del dello della dei degli delle al allo alla
 ai agli alle dal dallo dalla dai dagli dalle nel nello nella nei negli
 nelle sul sullo sulla sui sugli sulle col coi
