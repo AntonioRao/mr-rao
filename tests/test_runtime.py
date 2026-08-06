@@ -143,6 +143,47 @@ def test_nomi_output_hotfolder_non_collidono(tmp_path):
     assert primo.read_text(encoding="utf-8") == "primo", "il primo file è stato sovrascritto"
 
 
+def test_avviso_quando_la_redazione_lavora_su_testo_ocr(tmp_path, monkeypatch):
+    """L'anonimizzazione toglie solo ciò che l'OCR ha letto bene.
+
+    Misurato su un PDF scansionato: `IBAN IT60X…` letto come `TBAN1TB0X…` non
+    corrisponde ad alcun pattern, quindi resta nel testo. Chi riceve il
+    risultato deve sapere che su un documento OCR la garanzia è più debole.
+    """
+    from mr_rao import converter
+
+    monkeypatch.setattr(converter, "ocr_image", lambda path, language="it": "CF RSSMRA80A01H501U")
+    p = tmp_path / "scansione.png"
+    p.write_bytes(b"\x00")
+
+    r = convert_file(
+        p,
+        options=ConvertOptions(engine="rapidocr", privacy=PrivacyOptions(use_scrubadub=False)),
+    )
+    assert "rapidocr" in r.engine_used
+    assert "OCR" in r.markdown and "confronto prima/dopo" in r.markdown
+
+
+def test_nessun_avviso_ocr_sui_documenti_nativi(tmp_path):
+    """Su un documento con testo nativo l'avviso sarebbe rumore."""
+    p = tmp_path / "nota.txt"
+    p.write_text("CF RSSMRA80A01H501U", encoding="utf-8")
+    r = convert_file(p, options=ConvertOptions(privacy=PrivacyOptions(use_scrubadub=False)))
+    assert "{{CODICE_FISCALE}}" in r.markdown
+    assert "confronto prima/dopo" not in r.markdown
+
+
+def test_nessun_avviso_ocr_se_la_privacy_e_spenta(tmp_path, monkeypatch):
+    """Senza redazione non c'è nulla che possa sfuggire alla redazione."""
+    from mr_rao import converter
+
+    monkeypatch.setattr(converter, "ocr_image", lambda path, language="it": "testo qualsiasi")
+    p = tmp_path / "scansione.png"
+    p.write_bytes(b"\x00")
+    r = convert_file(p, options=ConvertOptions(engine="rapidocr", privacy=NO_PRIVACY))
+    assert "confronto prima/dopo" not in r.markdown
+
+
 def test_scrittura_hotfolder_atomica(tmp_path):
     """Il file dev'esserci intero o non esserci: una scrittura diretta
     interrotta a metà lascia un .md troncato senza che nessuno se ne accorga."""
