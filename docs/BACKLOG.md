@@ -96,6 +96,39 @@ P0.1 → P0.2 → P0.3 → P0.4
 
 ---
 
+## P0-bis — Esito audit 1.3.0 (chiuso)
+
+Aggiunto dopo l'audit di agosto 2026. Tutti verificati eseguendo, non ipotizzati.
+
+| ID | Item | Stato |
+|----|------|-------|
+| A.1 | Il repository committato non era importabile; metà delle correzioni 1.1.2/1.1.3 viveva solo sul disco | **DONE** (1.3.0) |
+| A.2 | Cartelle predefinite dentro OneDrive → contraddiceva «zero cloud» | **DONE** (1.3.0) |
+| A.3 | `GET /api/folders/defaults` creava directory (raggiungibile con un `<img src>`) | **DONE** (1.3.0) |
+| A.4 | `THIRD_PARTY.md` sbagliava la licenza di Scrubadub e ometteva python-stdnum (LGPL) | **DONE** (1.3.0) |
+| A.5 | `taskkill /F` nel `.bat` poteva troncare i `.md` in scrittura | **DONE** (1.3.0) |
+| A.6 | `APP_VERSION` ferma a 1.2.1 col changelog già a 1.2.4 | **DONE** (1.3.0) |
+
+### Lezioni da non ripetere
+
+- **Le licenze non si scrivono a mano.** L'elenco manuale sbagliava una licenza
+  e ne ometteva un'altra con obblighi veri. Ora si genera.
+- **Un default può smentire il claim del prodotto.** Nessun bug nel codice:
+  solo una cartella predefinita nel posto sbagliato.
+- **Il changelog non è una prova.** Dichiarava rilasciate correzioni che in git
+  non c'erano.
+
+## P2-bis — Igiene di rilascio
+
+| ID | Item | Perché | Stato |
+|----|------|--------|-------|
+| P2.5 | `gen_third_party.py --check` dentro il quality gate | Le licenze scadono in silenzio | TODO |
+| P2.6 | Gate: `APP_VERSION` senza voce di changelog = errore | Ha già sbagliato una volta | TODO |
+| P2.7 | Verifica «HEAD è importabile» in CI | È già successo di committarne uno rotto | TODO |
+| P2.8 | Valutare la rimozione di Scrubadub | Porta 6 pacchetti (uno LGPL) per un guadagno marginale sull'italiano | TODO |
+
+---
+
 ## Metriche di “fatto” per P0
 
 - [ ] Click destro → Invia a Mr. Rao → browser aperto entro 3s  

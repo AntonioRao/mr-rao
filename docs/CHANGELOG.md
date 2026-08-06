@@ -1,5 +1,77 @@
 # Changelog
 
+## 1.3.0 — Audit: privacy dei default, GET sicure, licenze verificabili (161 test)
+
+Release nata da un audit completo. Tutti i punti sotto erano **verificati
+eseguendo**, non ipotizzati.
+
+### Privacy — le cartelle di lavoro non finiscono più nel cloud
+
+Su Windows con Known Folder Move la cartella «Documenti» **è** la cartella
+OneDrive. `documents_dir()` per giunta metteva OneDrive in cima ai candidati,
+quindi le cartelle predefinite della conversione automatica venivano create in
+`OneDrive\Documenti\Mr Rao\` — e ogni `.md` convertito, originali inclusi,
+finiva sincronizzato sul cloud aziendale. Per un'app il cui footer dice
+«100% locale · zero cloud» era la contraddizione più grave del prodotto.
+
+- Nuovo riconoscimento delle radici sincronizzate (OneDrive, Dropbox, Google
+  Drive, iCloud, Nextcloud…), per variabile d'ambiente **e** per nome cartella.
+- Se «Documenti» risulta sincronizzata si ripiega su `%LOCALAPPDATA%\Mr Rao`,
+  e la UI **dice perché**.
+- Override esplicito con `MR_RAO_FOLDER_ROOT`.
+- Su questa macchina: da `E:\OneDrive - …\Documenti` a `C:\Users\…\Documents`.
+
+### Sicurezza — una GET non modifica più il disco
+
+`GET /api/folders/defaults` creava directory: bastava un `<img src>` su una
+pagina qualsiasi per far comparire cartelle nei Documenti dell'utente (il
+controllo anti-CSRF si applica solo ai metodi che modificano stato, ed è
+giusto così). Ora:
+
+- `GET` è in sola lettura (RFC 9110), `POST` crea e passa dal controllo Origin;
+- `GET /api/watch` non crea più nulla — la UI lo interroga **ogni 4 secondi**;
+- `create_app()` non crea cartelle all'avvio: chi apre l'app per una conversione
+  al volo non si ritrova cartelle nuove nei Documenti.
+
+### Affidabilità
+
+- **Scrittura atomica** dell'hotfolder (file temporaneo + rename): una
+  interruzione a metà non lascia più `.md` troncati.
+- **`Avvia Mr Rao.bat` non uccide più processi**: il `taskkill /F` poteva
+  fermare una conversione in corso proprio mentre scriveva. Se la porta è
+  occupata ci pensa `app.py`, che dice chi la occupa e usa la prima libera.
+- `browse_folder()` restituisce `None` senza ambiente grafico, come prometteva
+  il suo docstring: `tkinter` fallisce alla creazione della finestra, non
+  all'import, e quella non era protetta (in container era un 500).
+
+### Licenze — da elenco a mano a documento generato
+
+L'elenco scritto a mano dichiarava **Scrubadub come MIT** (è **Apache-2.0**, che
+ha obblighi maggiori) e ometteva **python-stdnum**, che è **LGPL-2.1+**: cioè
+proprio la categoria che impone adempimenti. Era stata fatta la cerimonia
+completa per pystray e ne era sfuggita una seconda.
+
+- `scripts/gen_third_party.py` **genera** `THIRD_PARTY.md` dai metadati dei
+  pacchetti realmente installati; `--check` fallisce se è da rigenerare.
+- Tutti e 70 i pacchetti elencati, con in testa i 6 che hanno obblighi oltre
+  l'attribuzione.
+- `licenses/python-stdnum/` — testo LGPL-2.1 e NOTICE, come per pystray.
+- `LICENSE` §5 copre **entrambe** le LGPL e cita l'eccezione di PyInstaller
+  (GPLv2 con eccezione: è ciò che rende lecito distribuire `MrRao.exe`).
+- Documentato che disinstallando Scrubadub spariscono le dipendenze LGPL e i
+  riconoscitori italiani continuano a funzionare — **verificato**.
+
+### Integrità del repository
+
+Metà delle correzioni 1.1.2/1.1.3 esisteva solo sul disco: `HEAD` non era
+neppure importabile (`ImportError: cannot import name 'MAX_UPLOAD_MB'`), e il
+codice committato aveva ancora la privacy spenta di default. Ora tutto è in
+versione controllata.
+
+### Versione
+
+`APP_VERSION` era rimasta a 1.2.1 mentre il changelog arrivava a 1.2.4.
+
 ## 1.2.4 — Conformità LGPL pystray completa + footer
 
 ### LGPL (pystray) — adempimenti
