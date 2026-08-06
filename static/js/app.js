@@ -4,16 +4,38 @@
 (function () {
   "use strict";
 
-  const MAX_BYTES = (window.MR_RAO_MAX_MB || 50) * 1024 * 1024;
+  const MAX_MB = window.MR_RAO_MAX_MB || 50;
+  const MAX_BYTES = MAX_MB * 1024 * 1024;
   const POLL_MS = 400;
+  const RE_YAML_KEY = /^[A-Za-z_][A-Za-z0-9_-]*\s*:/;
+
+  /**
+   * Remove the leading YAML block, if there really is one.
+   * "starts with ---" is not enough: a document whose first line is a
+   * horizontal rule would lose everything up to the next '---'.
+   * Mirrors strip_frontmatter() in mr_rao/converter.py.
+   */
+  function stripFrontmatter(md) {
+    if (!md || !md.startsWith("---")) return md;
+    const lines = md.split("\n");
+    if (lines.length < 3 || lines[0].trim() !== "---") return md;
+    if (!RE_YAML_KEY.test(lines[1])) return md;
+    for (let i = 1; i < lines.length; i++) {
+      const t = lines[i].trim();
+      if (t === "---" || t === "...") {
+        return lines.slice(i + 1).join("\n").replace(/^\n+/, "");
+      }
+    }
+    return md;
+  }
 
   const PROFILE_HINTS = {
-    default: "Bilanciato: privacy, tabelle, frontmatter.",
-    email_legali: "Privacy massima + output pulito per AI.",
-    fatture: "Tabelle PDF; fiscal redatti, importi visibili.",
-    solo_ocr: "Forza RapidOCR su scansioni e immagini.",
-    llm_ready: "Privacy on, senza frontmatter, pulito per LLM.",
-    no_privacy: "Testo integrale (solo uso locale controllato).",
+    default: "Va bene per quasi tutto: dati personali protetti, tabelle estratte.",
+    email_legali: "Massima protezione dei dati; testo ripulito, pronto da condividere.",
+    fatture: "Tiene le tabelle e lascia visibili gli importi; nasconde CF, P.IVA e IBAN.",
+    solo_ocr: "Legge il testo dalle immagini: per scansioni e foto di documenti.",
+    llm_ready: "Testo essenziale con dati protetti, da incollare in ChatGPT & simili.",
+    no_privacy: "Testo integrale, nessuna sostituzione. Usalo solo su questo computer.",
   };
 
   const $ = (id) => document.getElementById(id);
@@ -84,7 +106,10 @@
 
   function syncPrivacyPanel() {
     if (!els.privacyPanel) return;
-    els.privacyPanel.style.display = els.privacyMaster.checked ? "grid" : "none";
+    const on = els.privacyMaster.checked;
+    els.privacyPanel.style.display = on ? "grid" : "none";
+    const offHint = $("privacy-off-hint");
+    if (offHint) offHint.style.display = on ? "none" : "block";
   }
   els.privacyMaster.addEventListener("change", syncPrivacyPanel);
   syncPrivacyPanel();
@@ -138,12 +163,7 @@
   }
 
   function renderPreview(md) {
-    let body = md;
-    if (body.startsWith("---")) {
-      const end = body.indexOf("\n---", 3);
-      if (end !== -1) body = body.slice(end + 4).replace(/^\n+/, "");
-    }
-    let html = escapeHtml(body);
+    let html = escapeHtml(stripFrontmatter(md));
     html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
     html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
     html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
@@ -226,8 +246,11 @@
     });
   }
 
-  function setResult(markdown, filename, redaction, extra) {
+  // record=false when re-opening an entry from the history, otherwise viewing
+  // an old conversion would push a copy of it back onto the list every click.
+  function setResult(markdown, filename, redaction, extra, record) {
     extra = extra || {};
+    if (record === undefined) record = true;
     currentMarkdown = markdown || "";
     currentRaw = extra.markdown_raw || null;
     currentFilename = (filename || "documento").replace(/\.[^.]+$/, "");
@@ -249,7 +272,7 @@
         els.redactionBadge.style.display = "none";
       }
     }
-    pushHistory(currentFilename, currentMarkdown, redaction, extra);
+    if (record) pushHistory(currentFilename, currentMarkdown, redaction, extra);
     els.resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
     showTab("raw");
   }
@@ -278,7 +301,7 @@
     els.historyList.querySelectorAll(".history-item").forEach((btn) => {
       btn.addEventListener("click", () => {
         const h = history[Number(btn.dataset.idx)];
-        if (h) setResult(h.md, h.name + ".md", h.redaction, h.extra || {});
+        if (h) setResult(h.md, h.name + ".md", h.redaction, h.extra || {}, false);
       });
     });
   }
@@ -378,14 +401,27 @@
     });
   }
 
-  function checkSize(file) {
-    if (file.size > MAX_BYTES) {
+  function mb(bytes) {
+    return (bytes / 1024 / 1024).toFixed(1);
+  }
+
+  /** The server limit applies to the whole request, so check the total too:
+   *  3 files of 20 MB each pass a per-file check and then get a 413. */
+  function checkSize(files) {
+    for (const f of files) {
+      if (f.size > MAX_BYTES) {
+        showToast(
+          "File troppo grande: " + f.name + " (" + mb(f.size) + " MB). Max " + MAX_MB + " MB.",
+          "error"
+        );
+        return false;
+      }
+    }
+    const total = files.reduce((sum, f) => sum + f.size, 0);
+    if (total > MAX_BYTES) {
       showToast(
-        "File troppo grande (" +
-          (file.size / 1024 / 1024).toFixed(1) +
-          " MB). Max " +
-          (window.MR_RAO_MAX_MB || 50) +
-          " MB.",
+        "Invio troppo grande (" + mb(total) + " MB in totale). Il limite di " +
+          MAX_MB + " MB vale per l'intera richiesta: carica meno file per volta.",
         "error"
       );
       return false;
@@ -395,10 +431,12 @@
 
   async function handleFiles(fileList) {
     const files = Array.from(fileList || []).filter(Boolean);
+    // Clear the input straight away: the File objects stay valid, and every
+    // early return below would otherwise leave the same file selected, so
+    // re-picking it would not fire "change" and the app would look stuck.
+    els.fileInput.value = "";
     if (!files.length) return;
-    for (const f of files) {
-      if (!checkSize(f)) return;
-    }
+    if (!checkSize(files)) return;
 
     const multi = files.length > 1;
     const compare = els.compareMode && els.compareMode.checked;
@@ -470,13 +508,21 @@
         "error"
       );
     }
-
-    els.fileInput.value = "";
   }
 
   els.dropZone.addEventListener("click", (e) => {
     if (e.target.closest("button") || e.target.closest("input")) return;
     els.fileInput.click();
+  });
+
+  // The drop zone advertises role="button" and is focusable, so it has to be
+  // operable from the keyboard too, not just with the mouse.
+  els.dropZone.addEventListener("keydown", (e) => {
+    if (e.target !== els.dropZone) return;
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      els.fileInput.click();
+    }
   });
 
   ["dragenter", "dragover"].forEach((ev) => {
@@ -515,12 +561,7 @@
   });
 
   function stripFrontmatterAndNotes(md) {
-    let body = md;
-    if (body.startsWith("---")) {
-      const end = body.indexOf("\n---", 3);
-      if (end !== -1) body = body.slice(end + 4).replace(/^\n+/, "");
-    }
-    return body
+    return stripFrontmatter(md)
       .replace(/<!--[\s\S]*?-->\n?/g, "")
       .replace(/^> 🛡️ \*.*$/gm, "")
       .replace(/^> ℹ️ \*.*$/gm, "")
@@ -592,15 +633,76 @@
     });
   }
 
+  // ── Tooltip ──
+  // Un solo elemento riposizionato: niente attributo title, che compare dopo
+  // un secondo, non si può stilare e non appare col focus da tastiera.
+  (function setupTooltips() {
+    const tip = $("tip");
+    if (!tip) return;
+    let target = null;
+
+    function place() {
+      if (!target) return;
+      const r = target.getBoundingClientRect();
+      const t = tip.getBoundingClientRect();
+      const margine = 8;
+      let left = r.left + r.width / 2 - t.width / 2;
+      left = Math.max(margine, Math.min(left, window.innerWidth - t.width - margine));
+      // sopra l'elemento; se non ci sta, sotto
+      let top = r.top - t.height - margine;
+      if (top < margine) top = r.bottom + margine;
+      tip.style.left = left + "px";
+      tip.style.top = top + "px";
+    }
+
+    function show(el) {
+      const testo = el.getAttribute("data-tip");
+      if (!testo) return;
+      target = el;
+      tip.innerHTML = testo;
+      tip.classList.add("show");
+      tip.setAttribute("aria-hidden", "false");
+      place();
+    }
+
+    function hide() {
+      target = null;
+      tip.classList.remove("show");
+      tip.setAttribute("aria-hidden", "true");
+    }
+
+    function trova(e) {
+      return e.target && e.target.closest ? e.target.closest("[data-tip]") : null;
+    }
+
+    document.addEventListener("mouseover", (e) => {
+      const el = trova(e);
+      if (el && el !== target) show(el);
+      else if (!el && target) hide();
+    });
+    document.addEventListener("focusin", (e) => {
+      const el = trova(e);
+      if (el) show(el);
+    });
+    document.addEventListener("focusout", hide);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") hide();
+    });
+    window.addEventListener("scroll", hide, true);
+    window.addEventListener("resize", hide);
+  })();
+
   // ── Watch ──
   async function refreshWatch() {
     try {
       const r = await fetch("/api/watch");
       const d = await r.json();
       if (els.watchStatus) {
+        const convertiti =
+          (d.processed || 0) === 1 ? "1 file convertito" : (d.processed || 0) + " file convertiti";
         els.watchStatus.textContent = d.running
-          ? "attivo · " + (d.message || "") + " · " + (d.processed || 0) + " file"
-          : d.message || "idle";
+          ? "in ascolto · " + (d.message || "") + " · " + convertiti
+          : d.message || "non attiva";
       }
       if (d.running) {
         if (els.watchInbox && !els.watchInbox.value) els.watchInbox.value = d.inbox || "";

@@ -3,504 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ app_name }} — Convertitore intelligente</title>
-    <meta name="description" content="Mr. Rao converte documenti, immagini e email in Markdown puro. 100% offline, OCR, privacy IT.">
+    <title>{{ app_name }} — Documenti in Markdown</title>
+    <meta name="description" content="Mr. Rao converte documenti, immagini e email in Markdown. 100% offline, OCR, privacy IT.">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.png') }}">
-    <style>
-        :root {
-            --bg: #060912;
-            --surface: #0d1526;
-            --surface-2: #121e38;
-            --surface-3: #192a50;
-            --border: rgba(255,255,255,0.07);
-            --border-hover: rgba(99,179,237,0.4);
-            --primary: #3b82f6;
-            --primary-glow: rgba(59,130,246,0.25);
-            --accent: #8b5cf6;
-            --cyan: #06b6d4;
-            --success: #10b981;
-            --error: #ef4444;
-            --text: #f0f4ff;
-            --text-2: #94a3b8;
-            --text-3: #475569;
-            --radius-sm: 8px;
-            --radius-md: 14px;
-            --radius-lg: 20px;
-            --radius-xl: 28px;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
-            --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
-            --shadow-glow: 0 0 40px rgba(59,130,246,0.15);
-        }
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        body::before {
-            content: '';
-            position: fixed; inset: 0;
-            background:
-                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(59,130,246,0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139,92,246,0.10) 0%, transparent 60%),
-                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 70%);
-            pointer-events: none; z-index: 0;
-        }
-        body::after {
-            content: '';
-            position: fixed; inset: 0;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none; z-index: 0;
-        }
-        .page {
-            position: relative; z-index: 1;
-            max-width: 920px;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem 4rem;
-            display: flex; flex-direction: column; gap: 1.25rem;
-        }
-        header { text-align: center; padding: 1.5rem 0 0.5rem; }
-        .logo-wrap {
-            display: inline-flex; align-items: center; gap: 0.85rem;
-            margin-bottom: 1rem;
-        }
-        .logo-icon {
-            width: 52px; height: 52px; border-radius: 14px;
-            box-shadow: 0 0 24px var(--primary-glow), var(--shadow-sm);
-            flex-shrink: 0;
-        }
-        .logo-icon img { width: 100%; height: 100%; display: block; border-radius: 14px; }
-        .logo-text {
-            font-size: 2.1rem; font-weight: 600; letter-spacing: 0.02em;
-            background: linear-gradient(135deg, #e0eaff 0%, #a5c3f5 40%, #c4a8ff 80%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .logo-rao {
-            font-weight: 800;
-            letter-spacing: 0.12em;
-        }
-        .logo-badge {
-            display: inline-block; padding: 0.2rem 0.55rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 6px; font-size: 0.62rem; font-weight: 700;
-            letter-spacing: 0.06em; color: #fff; margin-left: 0.35rem;
-            text-transform: uppercase; -webkit-text-fill-color: #fff;
-            vertical-align: middle;
-        }
-        .tagline {
-            font-size: 1.02rem; color: var(--text-2); line-height: 1.6;
-            max-width: 540px; margin: 0 auto;
-        }
-        .pills {
-            display: flex; flex-wrap: wrap; justify-content: center;
-            gap: 0.45rem; margin-top: 0.9rem;
-        }
-        .pill {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.28rem 0.7rem; border-radius: 100px;
-            border: 1px solid var(--border); background: var(--surface);
-            font-size: 0.76rem; color: var(--text-2); font-weight: 500;
-        }
-        .pill-dot {
-            width: 6px; height: 6px; border-radius: 50%;
-            background: var(--success); box-shadow: 0 0 6px var(--success);
-        }
-        .settings-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 1.35rem 1.5rem;
-            display: flex; flex-direction: column; gap: 1rem;
-        }
-        .settings-row {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
-        }
-        @media (max-width: 640px) {
-            .settings-row { grid-template-columns: 1fr; }
-        }
-        .field { display: flex; flex-direction: column; gap: 0.35rem; }
-        .field-label {
-            font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 0.07em; color: var(--text-2);
-        }
-        select {
-            appearance: none; -webkit-appearance: none; width: 100%;
-            padding: 0.6rem 2.2rem 0.6rem 0.9rem;
-            background: var(--surface-2); border: 1px solid var(--border);
-            border-radius: var(--radius-md); color: var(--text);
-            font-family: inherit; font-size: 0.88rem; cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 0.85rem center;
-        }
-        select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
-        .field-hint { font-size: 0.72rem; color: var(--text-3); line-height: 1.4; }
-        .toggle-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0.75rem 0.9rem; border-radius: var(--radius-md);
-            border: 1px solid var(--border); background: var(--surface-2);
-            cursor: pointer; transition: border-color 0.2s, background 0.2s;
-            gap: 0.75rem;
-        }
-        .toggle-row:hover { border-color: var(--border-hover); background: var(--surface-3); }
-        .toggle-info { display: flex; flex-direction: column; gap: 0.12rem; }
-        .toggle-title { font-size: 0.86rem; font-weight: 600; }
-        .toggle-desc { font-size: 0.72rem; color: var(--text-2); }
-        .switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
-        .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
-        .switch-track {
-            position: absolute; inset: 0; border-radius: 100px;
-            background: var(--surface-3); border: 1px solid var(--border);
-            transition: all 0.25s;
-        }
-        .switch-thumb {
-            position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
-            border-radius: 50%; background: var(--text-2); transition: all 0.25s;
-            pointer-events: none;
-        }
-        .switch input:checked ~ .switch-track {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-color: transparent; box-shadow: 0 0 12px var(--primary-glow);
-        }
-        .switch input:checked ~ .switch-thumb {
-            transform: translateX(20px); background: #fff;
-        }
-        .privacy-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 0.5rem;
-        }
-        .chip-toggle {
-            display: flex; align-items: center; gap: 0.4rem;
-            padding: 0.45rem 0.65rem; border-radius: 8px;
-            background: var(--surface-2); border: 1px solid var(--border);
-            font-size: 0.78rem; color: var(--text-2); cursor: pointer;
-        }
-        .chip-toggle input { accent-color: var(--primary); }
-        .options-row {
-            display: flex; flex-wrap: wrap; gap: 0.5rem;
-        }
-        .drop-zone {
-            position: relative; border-radius: var(--radius-xl);
-            padding: 3rem 2rem; text-align: center; cursor: pointer;
-            border: 2px dashed var(--border); background: var(--surface);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden;
-        }
-        .drop-zone:hover, .drop-zone.dragover {
-            border-color: rgba(59,130,246,0.5); transform: translateY(-3px);
-            box-shadow: var(--shadow-glow), var(--shadow-lg);
-        }
-        .drop-zone.dragover { border-color: var(--primary); background: var(--surface-2); }
-        .drop-icon {
-            width: 72px; height: 72px; border-radius: var(--radius-lg);
-            background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
-            border: 1px solid var(--border); display: flex; align-items: center;
-            justify-content: center; margin: 0 auto 1.1rem; box-shadow: var(--shadow-sm);
-        }
-        .drop-icon img { width: 40px; height: 40px; }
-        .drop-title { font-size: 1.12rem; font-weight: 600; margin-bottom: 0.35rem; }
-        .drop-subtitle { font-size: 0.84rem; color: var(--text-2); line-height: 1.5; }
-        .drop-formats {
-            display: flex; flex-wrap: wrap; justify-content: center;
-            gap: 0.35rem; margin-top: 1.1rem;
-        }
-        .fmt-badge {
-            padding: 0.18rem 0.5rem; border-radius: 6px;
-            background: var(--surface-2); border: 1px solid var(--border);
-            font-size: 0.68rem; font-weight: 600; color: var(--text-2);
-            font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-        }
-        .fmt-badge.highlight {
-            color: var(--cyan); border-color: rgba(6,182,212,0.3);
-            background: rgba(6,182,212,0.07);
-        }
-        #file-input { display: none; }
-        .loading-overlay {
-            position: absolute; inset: 0; border-radius: inherit;
-            background: rgba(6,9,18,0.88); backdrop-filter: blur(4px);
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 0.85rem;
-            opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 10;
-        }
-        .loading-overlay.active { opacity: 1; pointer-events: all; }
-        .spinner-wrap { position: relative; width: 48px; height: 48px; }
-        .spinner-outer {
-            position: absolute; inset: 0; border-radius: 50%;
-            border: 2px solid var(--border); border-top-color: var(--primary);
-            animation: spin 1s linear infinite;
-        }
-        .spinner-inner {
-            position: absolute; inset: 8px; border-radius: 50%;
-            border: 2px solid var(--border); border-bottom-color: var(--accent);
-            animation: spin 0.7s linear infinite reverse;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-label {
-            font-size: 0.84rem; color: var(--text-2); font-weight: 500;
-            max-width: 280px; text-align: center; line-height: 1.45;
-        }
-        .progress-track {
-            width: min(260px, 70%); height: 6px; border-radius: 100px;
-            background: var(--surface-3); overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%; width: 0%; border-radius: inherit;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            transition: width 0.25s;
-        }
-        .progress-pct { font-size: 0.72rem; color: var(--text-3); }
-        .result-card {
-            display: none; flex-direction: column; gap: 0.9rem;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 1.25rem;
-            animation: fadeUp 0.4s ease-out forwards;
-        }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result-header {
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 0.75rem; flex-wrap: wrap;
-        }
-        .result-title {
-            font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;
-        }
-        .result-title::before {
-            content: ''; width: 8px; height: 8px; border-radius: 50%;
-            background: var(--success); box-shadow: 0 0 8px var(--success);
-        }
-        .badge {
-            display: none; align-items: center; padding: 0.2rem 0.55rem;
-            border-radius: 100px; font-size: 0.72rem; font-weight: 600;
-            background: rgba(16,185,129,0.12); color: var(--success);
-            border: 1px solid rgba(16,185,129,0.3);
-        }
-        .btn-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-        .btn {
-            display: inline-flex; align-items: center; gap: 0.35rem;
-            padding: 0.45rem 0.95rem; border-radius: var(--radius-md);
-            font-family: inherit; font-size: 0.8rem; font-weight: 600;
-            cursor: pointer; transition: all 0.18s;
-            border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
-        }
-        .btn:hover {
-            background: var(--surface-3); transform: translateY(-1px); box-shadow: var(--shadow-sm);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-color: transparent; box-shadow: 0 4px 14px var(--primary-glow);
-        }
-        .btn-primary:hover { background: linear-gradient(135deg, #2563eb, #7c3aed); }
-        .btn-danger {
-            background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.35); color: #fca5a5;
-        }
-        .tabs { display: flex; gap: 0.35rem; margin-bottom: 0.35rem; }
-        .tab {
-            padding: 0.35rem 0.85rem; border-radius: 8px; border: 1px solid var(--border);
-            background: transparent; color: var(--text-2); font-size: 0.78rem;
-            font-weight: 600; cursor: pointer; font-family: inherit;
-        }
-        .tab.active {
-            background: var(--surface-2); color: var(--text); border-color: rgba(59,130,246,0.4);
-        }
-        .output-box {
-            position: relative; background: rgba(0,0,0,0.4);
-            border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
-        }
-        .output-topbar {
-            display: flex; align-items: center; gap: 0.4rem;
-            padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); background: var(--surface);
-        }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .dot-r { background: #ff5f56; } .dot-y { background: #ffbd2e; } .dot-g { background: #27c93f; }
-        .output-lang {
-            margin-left: auto; font-size: 0.68rem; color: var(--text-3);
-            font-family: ui-monospace, monospace; letter-spacing: 0.05em;
-        }
-        .markdown-output, .preview-output {
-            padding: 1.35rem; font-size: 0.88rem; line-height: 1.7;
-            overflow: auto; max-height: 520px; word-break: break-word;
-        }
-        .markdown-output {
-            font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-            color: #c9d5f0; white-space: pre-wrap;
-        }
-        .preview-output { display: none; color: var(--text); }
-        .preview-output h1, .preview-output h2, .preview-output h3 { margin: 0.75rem 0 0.4rem; }
-        .preview-output code {
-            background: var(--surface-2); padding: 0.1rem 0.35rem; border-radius: 4px;
-            font-size: 0.85em;
-        }
-        .preview-output blockquote {
-            border-left: 3px solid var(--primary); padding-left: 0.75rem;
-            color: var(--text-2); margin: 0.5rem 0;
-        }
-        .preview-output ul { padding-left: 1.25rem; margin: 0.4rem 0; }
-        .side-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 1rem 1.15rem;
-        }
-        .side-card h3 {
-            font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
-            color: var(--text-2); margin-bottom: 0.65rem;
-        }
-        .muted { font-size: 0.78rem; color: var(--text-3); }
-        .history-item {
-            display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem;
-            width: 100%; text-align: left; padding: 0.5rem 0.65rem; margin-bottom: 0.35rem;
-            border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2);
-            color: var(--text); cursor: pointer; font-family: inherit;
-        }
-        .history-item:hover { border-color: var(--border-hover); }
-        .hi-name { font-size: 0.82rem; font-weight: 600; }
-        .hi-meta { font-size: 0.7rem; color: var(--text-3); }
-        .toast {
-            position: fixed; bottom: 1.75rem; right: 1.75rem;
-            display: flex; align-items: center; gap: 0.55rem;
-            padding: 0.8rem 1.15rem; background: var(--surface-2);
-            border: 1px solid var(--border); border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg); font-size: 0.84rem; font-weight: 500;
-            transform: translateY(calc(100% + 2rem));
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 9999; max-width: 380px;
-        }
-        .toast.show { transform: translateY(0); }
-        .toast.success { border-left: 3px solid var(--success); }
-        .toast.error { border-left: 3px solid var(--error); }
-        footer {
-            text-align: center; padding-top: 0.5rem;
-            font-size: 0.74rem; color: var(--text-3); line-height: 1.6;
-        }
-        footer strong { color: var(--text-2); }
-        footer a { color: var(--primary); text-decoration: none; }
-        .kbd {
-            font-family: ui-monospace, monospace; font-size: 0.72rem;
-            padding: 0.1rem 0.35rem; border-radius: 4px;
-            border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
 <body>
+
+<!-- Ambient stage -->
+<div class="stage" aria-hidden="true">
+    <div class="orb orb--a"></div>
+    <div class="orb orb--b"></div>
+    <div class="orb orb--c"></div>
+    <div class="stage__grid"></div>
+    <div class="stage__vignette"></div>
+</div>
+
 <div class="page">
 
-    <header>
-        <div class="logo-wrap">
-            <div class="logo-icon">
-                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Mr RAO" width="52" height="52">
+    <!-- ── Hero ── -->
+    <header class="hero reveal">
+        <div class="hero__logo">
+            <div class="hero__mark">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Mr RAO" width="64" height="64">
             </div>
-            <span class="logo-text">Mr <span class="logo-rao">RAO</span><span class="logo-badge">v{{ app_version }}</span></span>
+            <span class="hero__wordmark">Mr <span class="hero__rao">RAO</span><span class="hero__badge">v{{ app_version }}</span></span>
         </div>
-        <p class="tagline">Dal documento al Markdown. Offline. Firmato Rao.<br>
-            PDF, Office, immagini OCR, thread email — zero cloud.</p>
+        <p class="hero__tagline">
+            Dal documento al Markdown.<br>
+            <strong>Offline.</strong> Privacy-first. Firmato Rao.
+        </p>
         <div class="pills">
             <span class="pill"><span class="pill-dot"></span> Offline</span>
-            <span class="pill">🔒 Privacy IT</span>
-            <span class="pill">📄 PDF · DOCX · XLSX</span>
-            <span class="pill">👁️ RapidOCR</span>
-            <span class="pill">📧 Thread .eml</span>
-            <span class="pill"><span class="kbd">Ctrl</span>+<span class="kbd">V</span> incolla</span>
+            <span class="pill">Privacy IT</span>
+            <span class="pill">PDF · DOCX · XLSX</span>
+            <span class="pill">OCR</span>
+            <span class="pill">Thread .eml</span>
+            <span class="pill"><span class="kbd">Ctrl</span>+<span class="kbd">V</span></span>
         </div>
     </header>
 
-    <div class="settings-card">
-        <div class="settings-row">
-            <div class="field">
-                <span class="field-label">Profilo preset</span>
-                <select id="profile" aria-label="Profilo">
-                    <option value="default">Predefinito</option>
-                    <option value="email_legali">Email legali</option>
-                    <option value="fatture">Fatture / contabili</option>
-                    <option value="solo_ocr">Solo OCR</option>
-                    <option value="llm_ready">Pronto per LLM</option>
-                    <option value="no_privacy">Nessuna redazione</option>
-                </select>
-                <span class="field-hint" id="profile-hint">Bilanciato: privacy, tabelle, frontmatter.</span>
-            </div>
-            <div class="field">
-                <span class="field-label">Motore</span>
-                <select id="engine" aria-label="Motore di conversione">
-                    <option value="auto">Automatico (consigliato)</option>
-                    <option value="rapidocr">Forza RapidOCR (scansioni / immagini)</option>
-                    <option value="markitdown">Solo MarkItDown (documenti nativi)</option>
-                </select>
-            </div>
-        </div>
-        <div class="settings-row">
-            <div class="field">
-                <span class="field-label">Lingua OCR</span>
-                <select id="language" aria-label="Lingua OCR">
-                    <option value="it">Italiano (latino)</option>
-                    <option value="en">English (latino)</option>
-                    <option value="multi">Multi (latino)</option>
-                </select>
-                <span class="field-hint">RapidOCR offline (script latini). Nessun download modelli esterni a runtime.</span>
-            </div>
-            <div class="field" style="justify-content:flex-end">
-                <div class="toggle-row" id="privacy-row">
-                    <div class="toggle-info">
-                        <span class="toggle-title">Filtra dati sensibili</span>
-                        <span class="toggle-desc">Email, tel, CF, IBAN, nomi IT</span>
-                    </div>
-                    <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
-                        <input type="checkbox" id="privacy-filter" checked>
-                        <span class="switch-track"></span>
-                        <span class="switch-thumb"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div class="privacy-grid" id="privacy-panel" style="display:none">
-            <label class="chip-toggle"><input type="checkbox" id="privacy-emails" checked> Email</label>
-            <label class="chip-toggle"><input type="checkbox" id="privacy-phones" checked> Telefoni</label>
-            <label class="chip-toggle"><input type="checkbox" id="privacy-names" checked> Nomi IT</label>
-            <label class="chip-toggle"><input type="checkbox" id="privacy-fiscal" checked> CF / P.IVA / IBAN</label>
-            <label class="chip-toggle"><input type="checkbox" id="privacy-amounts"> Importi €</label>
-        </div>
-
-        <div class="options-row">
-            <label class="chip-toggle"><input type="checkbox" id="include-tables" checked> Tabelle PDF</label>
-            <label class="chip-toggle"><input type="checkbox" id="include-frontmatter" checked> Frontmatter YAML</label>
-            <label class="chip-toggle"><input type="checkbox" id="clean-output"> Output pulito (LLM)</label>
-            <label class="chip-toggle"><input type="checkbox" id="merge-batch"> Unisci batch</label>
-            <label class="chip-toggle"><input type="checkbox" id="compare-mode"> Confronta 2 file</label>
-            <label class="chip-toggle"><input type="checkbox" id="include-raw" checked> Diff privacy</label>
-        </div>
-    </div>
-
-    <div class="side-card" id="watch">
-        <h3>Hotfolder (watch)</h3>
-        <div class="settings-row">
-            <div class="field">
-                <span class="field-label">Cartella ingresso</span>
-                <input type="text" id="watch-inbox" placeholder="C:\path\inbox" style="width:100%;padding:0.55rem 0.85rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text);font:inherit;font-size:0.85rem">
-            </div>
-            <div class="field">
-                <span class="field-label">Cartella uscita .md</span>
-                <input type="text" id="watch-outbox" placeholder="C:\path\out" style="width:100%;padding:0.55rem 0.85rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text);font:inherit;font-size:0.85rem">
-            </div>
-        </div>
-        <div class="options-row" style="margin-top:0.75rem">
-            <label class="chip-toggle"><input type="checkbox" id="watch-move"> Sposta in done/</label>
-            <button type="button" class="btn btn-primary" id="watch-start">Avvia watch</button>
-            <button type="button" class="btn" id="watch-stop">Ferma</button>
-            <span class="muted" id="watch-status">idle</span>
-        </div>
-    </div>
-
-    <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Carica file">
+    <!-- ── Drop (primary action) ── -->
+    <div class="drop-zone reveal" id="drop-zone" role="button" tabindex="0"
+         aria-label="Carica file"
+         data-tip="Trascina uno o più file, clicca per sceglierli, oppure <b>Ctrl+V</b> per incollare un'immagine.">
         <div class="drop-icon">
-            <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="40" height="40">
+            <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="48" height="48">
         </div>
         <div class="drop-title">Trascina qui i file</div>
-        <div class="drop-subtitle">oppure clicca · multi-file supportato · incolla immagine con Ctrl+V</div>
+        <div class="drop-subtitle">oppure clicca · multi-file · Ctrl+V per incollare un'immagine</div>
         <div class="drop-formats">
             <span class="fmt-badge">PDF</span>
             <span class="fmt-badge">DOCX</span>
@@ -526,34 +80,163 @@
             <div class="loading-label" id="loading-text">Conversione in corso…</div>
             <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
             <span class="progress-pct" id="progress-pct"></span>
-            <button type="button" class="btn btn-danger" id="cancel-btn" style="display:none">Annulla</button>
+            <button type="button" class="btn btn-danger" id="cancel-btn" style="display:none"
+                    data-tip="Interrompe la conversione in corso.">Annulla</button>
         </div>
     </div>
 
-    <div class="result-card" id="result-card">
+    <!-- ── Quick controls ── -->
+    <div class="glass control-bar reveal">
+        <div class="field">
+            <span class="field-label" data-tip="Combinazione pronta di opzioni. Ritocca in Opzioni avanzate se serve.">Profilo</span>
+            <select id="profile" aria-label="Profilo"
+                    data-tip="<b>Predefinito</b> — bilanciato.<br><b>Email legali</b> — privacy massima.<br><b>Fatture</b> — tabelle + importi.<br><b>Solo OCR</b> — scansioni.<br><b>LLM</b> — testo pulito.<br><b>Nessuna redazione</b> — testo integrale.">
+                <option value="default">Predefinito</option>
+                <option value="email_legali">Email legali</option>
+                <option value="fatture">Fatture / contabili</option>
+                <option value="solo_ocr">Solo OCR</option>
+                <option value="llm_ready">Pronto per LLM</option>
+                <option value="no_privacy">Nessuna redazione</option>
+            </select>
+            <span class="field-hint" id="profile-hint">Va bene per quasi tutto: dati protetti, tabelle estratte.</span>
+        </div>
+        <div class="toggle-row" id="privacy-row"
+             data-tip="Sostituisce i dati personali con segnaposto tipo <b>{{ '{{EMAIL}}' }}</b>. Utile prima di condividere o incollare in un LLM.">
+            <div class="toggle-info">
+                <span class="toggle-title">Nascondi i dati personali</span>
+                <span class="toggle-desc">Email, telefoni, CF, IBAN, nomi</span>
+            </div>
+            <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
+                <input type="checkbox" id="privacy-filter" checked>
+                <span class="switch-track"></span>
+                <span class="switch-thumb"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- ── Advanced options ── -->
+    <details class="glass panel reveal">
+        <summary>
+            <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            Opzioni avanzate
+            <span class="panel-sub">lettura · privacy · multi-file</span>
+        </summary>
+        <div class="panel-body">
+            <div class="group">
+                <div class="eyebrow">Come viene letto il file</div>
+                <div class="settings-row">
+                    <div class="field">
+                        <span class="field-label" data-tip="Nel dubbio lascia Automatico.">Metodo di lettura</span>
+                        <select id="engine" aria-label="Metodo di lettura"
+                                data-tip="<b>Automatico</b> — sceglie da solo.<br><b>Forza OCR</b> — scansioni e foto.<br><b>Solo testo nativo</b> — niente OCR.">
+                            <option value="auto">Automatico (consigliato)</option>
+                            <option value="rapidocr">Forza OCR — scansioni e foto</option>
+                            <option value="markitdown">Solo testo nativo — mai OCR</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <span class="field-label" data-tip="Conta soprattutto con l'OCR.">Lingua da riconoscere</span>
+                        <select id="language" aria-label="Lingua da riconoscere">
+                            <option value="it">Italiano</option>
+                            <option value="en">Inglese</option>
+                            <option value="multi">Più lingue insieme</option>
+                        </select>
+                    </div>
+                </div>
+                <span class="field-hint">Tutto locale: nessun file esce da questo computer.</span>
+            </div>
+
+            <div class="group">
+                <div class="eyebrow">Quali dati nascondere</div>
+                <div class="opt-grid" id="privacy-panel" style="display:none">
+                    <label class="opt" data-tip="Ogni email diventa {{ '{{EMAIL}}' }}.">
+                        <input type="checkbox" id="privacy-emails" checked>
+                        <span class="opt-text"><span class="opt-title">Email</span><span class="opt-desc">Indirizzi di posta</span></span>
+                    </label>
+                    <label class="opt">
+                        <input type="checkbox" id="privacy-phones" checked>
+                        <span class="opt-text"><span class="opt-title">Telefoni</span><span class="opt-desc">Fissi e cellulari</span></span>
+                    </label>
+                    <label class="opt">
+                        <input type="checkbox" id="privacy-names" checked>
+                        <span class="opt-text"><span class="opt-title">Nomi</span><span class="opt-desc">Nomi e cognomi italiani</span></span>
+                    </label>
+                    <label class="opt">
+                        <input type="checkbox" id="privacy-fiscal" checked>
+                        <span class="opt-text"><span class="opt-title">Codici fiscali e bancari</span><span class="opt-desc">CF, P.IVA, IBAN</span></span>
+                    </label>
+                    <label class="opt">
+                        <input type="checkbox" id="privacy-amounts">
+                        <span class="opt-text"><span class="opt-title">Importi in euro</span><span class="opt-desc">Cifre e totali</span></span>
+                    </label>
+                    <label class="opt" data-tip="Abilita la scheda Confronto privacy.">
+                        <input type="checkbox" id="include-raw" checked>
+                        <span class="opt-text"><span class="opt-title">Confronto prima/dopo</span><span class="opt-desc">Scheda di verifica</span></span>
+                    </label>
+                </div>
+                <span class="field-hint" id="privacy-off-hint">Il filtro è spento: i dati personali restano nel Markdown.</span>
+            </div>
+
+            <div class="group">
+                <div class="eyebrow">Cosa mettere nel Markdown</div>
+                <div class="opt-grid">
+                    <label class="opt">
+                        <input type="checkbox" id="include-tables" checked>
+                        <span class="opt-text"><span class="opt-title">Tabelle dai PDF</span><span class="opt-desc">Ricostruite in Markdown</span></span>
+                    </label>
+                    <label class="opt">
+                        <input type="checkbox" id="include-frontmatter" checked>
+                        <span class="opt-text"><span class="opt-title">Scheda informativa</span><span class="opt-desc">Origine, data, redazioni</span></span>
+                    </label>
+                    <label class="opt">
+                        <input type="checkbox" id="clean-output">
+                        <span class="opt-text"><span class="opt-title">Solo contenuto</span><span class="opt-desc">Niente note tecniche</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="group">
+                <div class="eyebrow">Quando carichi più file</div>
+                <div class="opt-grid">
+                    <label class="opt">
+                        <input type="checkbox" id="merge-batch">
+                        <span class="opt-text"><span class="opt-title">Unisci in un documento</span><span class="opt-desc">Un solo .md</span></span>
+                    </label>
+                    <label class="opt">
+                        <input type="checkbox" id="compare-mode">
+                        <span class="opt-text"><span class="opt-title">Confronta 2 file</span><span class="opt-desc">Documento A / B</span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- ── Result ── -->
+    <div class="glass result-card" id="result-card">
         <div class="result-header">
             <span class="result-title">Risultato Markdown
-                <span class="badge" id="redaction-badge"></span>
+                <span class="badge" id="redaction-badge" data-tip="Dati personali sostituiti. Apri Confronto privacy per i dettagli."></span>
             </span>
             <div class="btn-group">
-                <button type="button" class="btn" id="copy-btn">Copia</button>
-                <button type="button" class="btn" id="copy-clean-btn">Copia pulita</button>
+                <button type="button" class="btn" id="copy-btn" data-tip="Copia tutto negli appunti.">Copia</button>
+                <button type="button" class="btn" id="copy-clean-btn" data-tip="Solo contenuto, pronto per LLM.">Copia testo</button>
                 <button type="button" class="btn" id="download-txt-btn">.txt</button>
-                <button type="button" class="btn btn-primary" id="download-btn" draggable="true" title="Trascina sul Desktop per salvare">Scarica .md</button>
+                <button type="button" class="btn btn-primary" id="download-btn" draggable="true"
+                        data-tip="Scarica .md oppure <b>trascina</b> sul Desktop.">Scarica .md</button>
             </div>
         </div>
         <div class="tabs">
-            <button type="button" class="tab active" id="tab-raw">Raw</button>
-            <button type="button" class="tab" id="tab-preview">Preview</button>
-            <button type="button" class="tab" id="tab-diff" style="display:none">Diff privacy</button>
+            <button type="button" class="tab active" id="tab-raw">Markdown</button>
+            <button type="button" class="tab" id="tab-preview">Anteprima</button>
+            <button type="button" class="tab" id="tab-diff" style="display:none">Confronto privacy</button>
         </div>
-        <div id="attachments-bar" style="display:none;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.5rem"></div>
+        <div id="attachments-bar"></div>
         <div class="output-box">
             <div class="output-topbar">
                 <span class="dot dot-r"></span>
                 <span class="dot dot-y"></span>
                 <span class="dot dot-g"></span>
-                <span class="output-lang">markdown · trascina il bottone .md sul Desktop</span>
+                <span class="output-lang">markdown · drag .md sul Desktop</span>
             </div>
             <div class="markdown-output" id="markdown-output" draggable="true"></div>
             <div class="preview-output" id="preview-output"></div>
@@ -561,28 +244,68 @@
         </div>
     </div>
 
-    <div class="side-card">
-        <h3>Cronologia sessione</h3>
-        <div id="history-list"><p class="muted">Nessuna conversione in questa sessione.</p></div>
-        <p class="muted" style="margin-top:0.5rem">Solo in memoria — niente salvataggio su disco lato browser.</p>
+    <!-- ── Secondary: history + watch ── -->
+    <div class="secondary-grid">
+        <div class="glass side-card reveal">
+            <h3 data-tip="Conversioni di questa sessione (solo in memoria).">Sessione</h3>
+            <div id="history-list"><p class="muted">Nessuna conversione ancora.</p></div>
+            <p class="muted" style="margin-top:0.65rem">Scompare chiudendo la pagina. Niente su disco.</p>
+        </div>
+
+        <details class="glass panel reveal" id="watch">
+            <summary>
+                <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                Cartella automatica
+                <span class="panel-sub" id="watch-status">non attiva</span>
+            </summary>
+            <div class="panel-body">
+                <p class="muted">
+                    Ogni file nella cartella di ingresso viene convertito da solo.
+                    Il <code>.md</code> finisce in uscita. Usa profilo e opzioni attuali.
+                </p>
+                <div class="settings-row">
+                    <div class="field">
+                        <span class="field-label">Cartella da sorvegliare</span>
+                        <input type="text" id="watch-inbox" class="input-text"
+                               placeholder="C:\Users\...\Da convertire">
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Dove salvare i .md</span>
+                        <input type="text" id="watch-outbox" class="input-text"
+                               placeholder="C:\Users\...\Convertiti">
+                    </div>
+                </div>
+                <div class="opt-grid">
+                    <label class="opt">
+                        <input type="checkbox" id="watch-move">
+                        <span class="opt-text"><span class="opt-title">Sposta originali in done/</span><span class="opt-desc">Cartella ingresso pulita</span></span>
+                    </label>
+                </div>
+                <div class="watch-actions">
+                    <button type="button" class="btn btn-primary" id="watch-start">Avvia</button>
+                    <button type="button" class="btn" id="watch-stop">Ferma</button>
+                </div>
+            </div>
+        </details>
     </div>
 
-    <footer>
-        <strong>{{ app_name }}</strong> v{{ app_version }} · MarkItDown · RapidOCR · Scrubadub · BeautifulSoup<br>
-        100% locale · Nessun dato inviato a server esterni ·
+    <footer class="reveal">
+        <strong>{{ app_name }}</strong> v{{ app_version }} · offline · zero cloud<br>
+        MarkItDown · RapidOCR · Scrubadub · BeautifulSoup ·
         <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
     </footer>
 </div>
+
+<div id="tip" role="tooltip" aria-hidden="true"></div>
 
 <div class="toast" id="toast" role="status">
     <span class="toast-icon" id="toast-icon">✅</span>
     <span id="toast-msg">Operazione completata</span>
 </div>
 
-<script>window.MR_RAO_MAX_MB = 50;</script>
+<script>window.MR_RAO_MAX_MB = {{ max_upload_mb }};</script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 <script>
-// Make entire privacy row toggle the checkbox (single label pattern avoided nesting)
 document.getElementById('privacy-row').addEventListener('click', function (e) {
     if (e.target.closest('label.switch') || e.target.tagName === 'INPUT') return;
     const cb = document.getElementById('privacy-filter');

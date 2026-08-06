@@ -19,15 +19,15 @@ Convertitore locale di PDF, Office, immagini (OCR), HTML, CSV e thread email `.e
 | Email | Parser `.eml` thread IT/EN, allegati elencati e **scaricabili** |
 | Privacy IT | Email, telefoni `+39`, CF, IBAN, P.IVA, nomi + Scrubadub + **diff privacy** |
 | Profili | Predefinito, email legali, fatture, solo OCR, LLM-ready, no redazione |
-| UX | Multi-file, merge, **confronto 2 file**, progress, annulla, Raw/Preview, cronologia, Ctrl+V |
+| UX | **Design System 2.0** (glass/aurora/float) · multi-file, merge, confronto 2 file, progress, annulla, anteprima, cronologia, Ctrl+V |
 | Export | `.md`, `.txt`, copia pulita LLM, frontmatter YAML, **drag-out** `.md` |
-| Hotfolder | Watch da UI + CLI (`watch inbox out`) |
+| Cartella automatica | Sorveglia una cartella e converte da sola i file che ci metti (da UI o CLI) |
 | Tray | Icona system tray (Apri UI / Hotfolder / Esci) |
 | Shell Windows | Invia a + menu contestuale **Apri con Mr. Rao** |
 | CLI | `convert`, `watch`, `health` (anche via `MrRao.exe`) |
 | Portable | `dist/MrRao-Portable` — **zero Python** sul PC destinazione (~390 MB) |
 | Docker | `Dockerfile` + `docker-compose.yml` |
-| Qualità | 23 test pytest + `scripts/quality_gate.bat` |
+| Qualità | 142 test pytest (incl. matrice profilo × formato) + `scripts/quality_gate.bat` |
 
 ---
 
@@ -59,7 +59,16 @@ Serve a convertire il **corpo HTML delle email** in testo leggibile (rimuove tag
 Avvia Mr Rao.bat
 ```
 
-Apre **http://127.0.0.1:5000**
+Apre **http://127.0.0.1:5000**.
+
+Se quella porta è già occupata (tipico: una vecchia istanza ancora in
+esecuzione), Mr. Rao **non si sovrappone in silenzio**: dice chi la occupa e
+parte sulla prima porta libera, aprendo il browser sull'indirizzo giusto.
+
+```
+!! La porta 5000 e' gia' occupata da: Mr. Rao v1.0.0
+-> Questa istanza parte sulla porta 5001.
+```
 
 Variabili opzionali:
 
@@ -67,8 +76,23 @@ Variabili opzionali:
 |-----------|---------|-------------|
 | `MR_RAO_DEBUG` | `0` | `1` abilita debug Flask |
 | `MR_RAO_PORT` | `5000` | Porta |
-| `MR_RAO_MAX_UPLOAD_MB` | `50` | Limite upload |
+| `MR_RAO_MAX_UPLOAD_MB` | `50` | Limite upload — vale per l'**intera richiesta**, non per singolo file |
 | `MR_RAO_MAX_OCR_PAGES` | `50` | Max pagine OCR PDF |
+| `MR_RAO_ALLOWED_HOSTS` | `127.0.0.1,localhost` | Host ammessi nell'header `Host`. `*` = qualunque (default se `MR_RAO_HOST=0.0.0.0`) |
+| `MR_RAO_MAX_WORKERS` | `2` | Conversioni in parallelo; le altre restano in coda |
+| `MR_RAO_MAX_JOBS` | `50` | Job tenuti in memoria prima di sfoltire i più vecchi |
+
+### Nota di sicurezza
+
+Mr. Rao **non ha autenticazione**: chiunque raggiunga la porta può convertire
+file e avviare un hotfolder che scrive `.md` su percorsi arbitrari. Per questo:
+
+- si accettano solo header `Host` in allow-list (blocca il DNS rebinding, cioè
+  un dominio dell'attaccante che risolve a `127.0.0.1`);
+- le richieste che modificano stato con `Origin` cross-site sono rifiutate
+  (blocca la CSRF da una qualunque pagina aperta nel browser);
+- `docker-compose.yml` pubblica la porta **solo su localhost**. Per esporlo in
+  rete serve un reverse proxy con autenticazione davanti.
 
 ---
 
@@ -149,8 +173,12 @@ markitdown-webapp/
 │   ├── ocr_service.py
 │   ├── privacy.py
 │   ├── jobs.py
+│   ├── portcheck.py       # porta occupata (SO_EXCLUSIVEADDRUSE)
 │   └── cli.py
-├── static/img/            # logo + favicon
+├── static/
+│   ├── css/app.css        # Design System 2.0 (glass / aurora)
+│   ├── js/app.js
+│   └── img/               # logo + favicon + ico
 ├── templates/index.html
 ├── tests/
 ├── docs/
@@ -164,8 +192,10 @@ markitdown-webapp/
 ## Documentazione
 
 - [BeautifulSoup4](docs/BEAUTIFULSOUP.md)
-- [Architettura](docs/ARCHITECTURE.md)
+- [Architettura](docs/ARCHITECTURE.md) — backend + **UI 2.0**
+- [Backlog / priorità](docs/BACKLOG.md) — P0 SendTo→UI, P1 polish, P2 test…
 - [Privacy](docs/PRIVACY.md)
+- [Portable](docs/PORTABLE.md)
 - [Changelog](docs/CHANGELOG.md)
 
 ---
