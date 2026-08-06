@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Mr. Rao — social card</title>
+<!--
+  Card 1280x640 per l'anteprima social (GitHub, LinkedIn, Slack, X).
+
+  Regola che governa il progetto di questa pagina: nel feed la card viene
+  mostrata larga ~450 px, cioè un terzo scarso. Tutto quello che qui sotto
+  non arriva a ~36 px diventa illeggibile. Per questo NON si usa uno
+  screenshot dell'app rimpicciolito: serve tipografia grande e poco testo.
+
+  Si rigenera con:  python scripts\make_social_card.py
+-->
+<style>
+  @font-face { font-family: system; src: local("Segoe UI"); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; }
+  body {
+    background: #060912;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    color: #f0f4ff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 84px;
+    position: relative;
+  }
+  /* Alone diagonale, come nell'app */
+  body::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(900px 520px at 12% -10%, rgba(59,130,246,0.22), transparent 60%),
+      radial-gradient(760px 460px at 96% 108%, rgba(139,92,246,0.20), transparent 62%);
+  }
+  body::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(rgba(255,255,255,0.020) 1px, transparent 1px) 0 0 / 100% 64px,
+      linear-gradient(90deg, rgba(255,255,255,0.020) 1px, transparent 1px) 0 0 / 64px 100%;
+    mask-image: radial-gradient(circle at 50% 45%, #000 35%, transparent 78%);
+  }
+  .contenuto { position: relative; z-index: 1; }
+
+  .marchio { display: flex; align-items: center; gap: 26px; margin-bottom: 40px; }
+  .marchio img {
+    width: 104px; height: 104px; border-radius: 26px;
+    box-shadow: 0 0 56px rgba(99,102,241,0.55), 0 12px 32px rgba(0,0,0,0.5);
+  }
+  .nome { font-size: 76px; font-weight: 300; letter-spacing: 0.01em; line-height: 1; }
+  .nome b { font-weight: 800; letter-spacing: 0.10em; }
+
+  .claim {
+    font-size: 44px; font-weight: 600; line-height: 1.24;
+    letter-spacing: -0.015em; max-width: 1010px;
+  }
+  .claim em {
+    font-style: normal;
+    background: linear-gradient(96deg, #7dd3fc 0%, #a5b4fc 45%, #c4b5fd 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .sotto {
+    margin-top: 30px; font-size: 27px; font-weight: 400;
+    color: #9fb0cc; letter-spacing: 0.005em;
+  }
+  .sotto .punto { color: #4b5b78; margin: 0 14px; }
+
+  .piede {
+    position: absolute; left: 84px; right: 84px; bottom: 46px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 23px; color: #7f90ad; z-index: 1;
+  }
+  .tag {
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 999px;
+    padding: 9px 20px; font-size: 21px; color: #b9c7e0;
+    background: rgba(255,255,255,0.035);
+  }
+</style>
+</head>
+<body>
+  <div class="contenuto">
+    <div class="marchio">
+      <img src="../static/img/logo.png" alt="">
+      <div class="nome">Mr <b>RAO</b></div>
+    </div>
+
+    <div class="claim">
+      Documenti in Markdown<br>
+      <em>con i dati personali già rimossi.</em>
+    </div>
+
+    <div class="sotto">
+      PDF · Word · Excel · scansioni · email
+      <span class="punto">•</span>
+      100% sul tuo computer
+    </div>
+  </div>
+
+  <div class="piede">
+    <div>github.com/AntonioRao/mr-rao</div>
+    <div class="tag">Open source · AGPL-3.0</div>
+  </div>
+</body>
+</html>
