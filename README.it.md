@@ -120,7 +120,7 @@ Non è uno slogan, è verificabile:
 
 - **Nel codice dell'app non c'è una sola chiamata di rete verso l'esterno.** L'unica `urlopen` presente punta a `127.0.0.1` e serve a capire chi occupa la porta. Controllabile in un comando: `grep -rn "urlopen\|requests\." mr_rao/`
 - **I modelli OCR sono nel pacchetto.** Nessun download al primo avvio.
-- **Le cartelle di lavoro non finiscono nel cloud.** Su Windows «Documenti» spesso *è* la cartella OneDrive: Mr. Rao se ne accorge e in quel caso usa una cartella locale, dicendoti perché. Era un difetto vero, corretto nella [1.3.0](docs/CHANGELOG.md).
+- **Le cartelle di lavoro non finiscono nel cloud.** Su Windows «Documenti» spesso *è* la cartella OneDrive: Mr. Rao se ne accorge e in quel caso usa una cartella locale, dicendoti perché — così uno strumento che promette che i file non escono dal computer non te li sincronizza in silenzio sul cloud aziendale.
 - **Il server locale si difende.** Header `Host` in allow-list (contro il DNS rebinding) e rifiuto delle richieste cross-site (contro la CSRF): una pagina aperta nel browser non può pilotare Mr. Rao.
 
 ---
@@ -133,7 +133,7 @@ Il cuore della conversione è **[MarkItDown](https://github.com/microsoft/markit
 
 > *Mr. Rao non è affiliato né sponsorizzato da Microsoft o dagli altri progetti citati.*
 
-Quell'elenco non è scritto a mano: lo **genera** [`scripts/gen_third_party.py`](scripts/gen_third_party.py) leggendo i metadati dei pacchetti realmente installati, e il quality gate fallisce se è disallineato. La versione compilata a mano aveva già sbagliato una licenza e ne aveva omessa un'altra con obblighi veri: da lì la scelta di automatizzarla.
+Quell'elenco non è scritto a mano: lo **genera** [`scripts/gen_third_party.py`](scripts/gen_third_party.py) leggendo i metadati dei pacchetti realmente installati, e il quality gate fallisce se si discosta da quelli. Così non può invecchiare in silenzio.
 
 Due librerie sono **LGPL** (pystray e python-stdnum): testi di licenza, notice e istruzioni per sostituirle sono in [`licenses/`](licenses/). La licenza di Mr. Rao non impone restrizioni aggiuntive su di esse.
 
