@@ -404,3 +404,21 @@ def test_una_coppia_davanti_a_un_indirizzo_e_sempre_un_nome():
         "Kwabena Osei <k.osei@example.it>", only("emails", "names")
     )
     assert "Osei" not in out and "{{NAME}}" in out
+
+
+@pytest.mark.parametrize(
+    "testo,resta",
+    [
+        ("FIRMATO MARIO ROSSI", "FIRMATO"),
+        ("Firmato Mario Rossi", "Firmato"),
+        ("REDATTO DA GIUSEPPE ESPOSITO", "REDATTO"),
+    ],
+)
+def test_il_participio_davanti_alla_firma_non_e_parte_del_nome(testo, resta):
+    """Stessa famiglia del verbo davanti all'email: la parola che
+    introduce una firma finiva dentro il nome. Trovato dalla prova di
+    installazione, non dai test."""
+    out, _ = apply_privacy_filter(testo, only("names", "name_guess"))
+    assert resta in out, out
+    assert "{{NAME}}" in out
+    assert "ROSSI" not in out and "ESPOSITO" not in out

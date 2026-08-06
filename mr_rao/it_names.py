@@ -525,6 +525,11 @@ conferma confermare confermato confermata segnala segnalare segnalazione
 richiedi richiedere verifica verificare controlla controllare
 apri aprire chiudi chiudere leggi leggere vedi vedere trova trovare
 puoi potete devi dovete vuoi volete fai fate usa usare
+firmato firmata firmatario firmatari redatto redatta approvato approvata
+autorizzato autorizzata presentato presentata emesso emessa emissione
+sottoscritto sottoscritta compilato compilata predisposto predisposta
+aggiornato aggiornata revisionato revisionata validato validata
+concordato concordata definito definita stabilito stabilita
 di da in con su per tra fra del dello della dei degli delle al allo alla
 ai agli alle dal dallo dalla dai dagli dalle nel nello nella nei negli
 nelle sul sullo sulla sui sugli sulle col coi

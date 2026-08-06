@@ -10,15 +10,21 @@ REM due copie sono andate fuori sincrono, e la disinstallazione lasciava
 REM voci orfane che puntavano a un eseguibile non piu' esistente:
 REM cliccarle non faceva nulla, e non c'era modo di capire perche'.
 
+REM Prima con garbo, poi sul serio. taskkill senza /F manda una richiesta
+REM di chiusura che un'applicazione console puo' semplicemente ignorare: il
+REM processo resta, la cartella resta bloccata, e la disinstallazione
+REM finisce con un avviso invece che con una disinstallazione.
 echo Chiusura di Mr. Rao, se in esecuzione...
 taskkill /IM MrRao.exe >nul 2>&1
+taskkill /IM MrRao.exe /F /T >nul 2>&1
 
 echo Rimozione di %INSTALL_DIR% ...
 if exist "%INSTALL_DIR%" rmdir /s /q "%INSTALL_DIR%"
 if exist "%INSTALL_DIR%" (
     echo.
     echo ATTENZIONE: non riesco a rimuovere %INSTALL_DIR%
-    echo Chiudi Mr. Rao e le finestre di Esplora risorse aperte li' dentro.
+    echo Chiudi le finestre di Esplora risorse aperte li' dentro e rilancia.
+    echo I collegamenti e le voci di menu vengono tolti lo stesso.
     echo.
 )
 

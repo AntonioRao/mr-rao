@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.4.1 — Due difetti trovati installando, non testando
+
+Entrambi usciti dalla prova completa da zero: disinstalla, scarica dalla
+release, installa, converti. Nessuno dei 253 test li aveva visti.
+
+**Il disinstallatore non chiudeva Mr. Rao.** Usava `taskkill` senza `/F`,
+che invia una richiesta di chiusura che un'applicazione console può
+semplicemente ignorare. Il processo restava, la cartella restava bloccata,
+e la disinstallazione finiva con un avviso invece che con una
+disinstallazione. Adesso prova con garbo e poi sul serio. Il caso è quello
+normale, non un caso limite: chi disinstalla lo fa quasi sempre con il
+programma aperto.
+
+**La parola che introduce una firma finiva dentro il nome.** `FIRMATO
+MARIO ROSSI` diventava un solo `{{NAME}}`, portandosi via anche
+«FIRMATO». È la stessa famiglia del verbo davanti a un indirizzo email,
+corretto poco prima: la regola prende una sequenza di parole maiuscole e
+la sostituisce tutta se una di quelle è un nome noto. Aggiunti i participi
+che introducono una firma — firmato, redatto, approvato, sottoscritto e
+altri.
+
+Il nome sparisce come prima; la parola che lo introduce resta, ed è quella
+che dà senso alla riga.
+
+- 256 test.
+
 ## 1.4.0 — Su una mail vera passava troppa roba
 
 La segnalazione era circostanziata: in una mail sul desktop restavano in
