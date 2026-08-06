@@ -40,3 +40,6 @@ desktop.ini
 # Logs / test artifacts
 *.log
 test_output.txt
+
+# Configurazione locale dell'editor/agente, non fa parte del progetto
+.claude/
