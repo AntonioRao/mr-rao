@@ -3,6 +3,7 @@
 **Turn PDFs, Office files, scans and emails into clean Markdown — with the personal data already stripped out.**
 **All on your own machine, without sending anything anywhere.**
 
+[![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.3.1-3b82f6)](docs/CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-161%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
