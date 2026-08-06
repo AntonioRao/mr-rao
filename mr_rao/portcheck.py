@@ -37,6 +37,12 @@ def port_in_use(host: str, port: int) -> bool:
       nel caso normale, quello della porta libera.
     Fuori da Windows un bind senza SO_REUSEADDR fallisce già con EADDRINUSE.
     """
+    # CodeQL py/bind-socket-all-network-interfaces (alert 11): il bind largo
+    # e' reale, ma questo socket non serve niente a nessuno -- apre, guarda se
+    # la porta e' libera e chiude subito (vedi il finally). L'unico modo di
+    # arrivarci con host largo e' aver scelto MR_RAO_HOST=0.0.0.0, che e'
+    # l'opzione di esposizione: da 1.7.0 quella scelta non spegne piu' la
+    # difesa anti DNS-rebinding, l'allow-list resta sugli indirizzi veri.
     bind_host = "" if host in ("0.0.0.0", "") else host
     family = socket.AF_INET6 if ":" in bind_host else socket.AF_INET
     s = socket.socket(family, socket.SOCK_STREAM)

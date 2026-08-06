@@ -153,3 +153,10 @@ e, soprattutto, cosa è sfuggito.
 - **I formati sono italiani.** Un numero di telefono tedesco o un codice
   fiscale spagnolo non hanno un riconoscitore dedicato.
 - **Non sostituisce una valutazione DPIA o un parere legale.**
+
+## Domande da reviewer
+
+Undici domande tipiche di chi clona il repository e ispeziona il motore
+(anche con l’aiuto di un’AI), con risposte allineate al codice:
+
+**→ [PRIVACY_FAQ.md](PRIVACY_FAQ.md)**

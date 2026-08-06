@@ -106,6 +106,51 @@ Le note che l'applicazione scrive di suo sono ora ancorate a inizio riga —
 prima `\n?` davanti rendeva ambiguo dove cominciasse il match, ed era la
 seconda segnalazione.
 
+### Gli altri dodici alert, chiusi con la ragione scritta
+
+Restavano dodici segnalazioni. Nessuna era sfruttabile, ma per due motivi
+diversi — ed è la distinzione che rende il triage una cosa seria invece che
+un'archiviazione:
+
+- **sette falsi positivi.** CodeQL segue il nome del file caricato fino a
+  una scrittura su disco. Il flusso esiste, ma l'unica parte controllata è
+  `Path(filename).suffix`, che **non può contenere un separatore** — provato
+  con `../../../etc/passwd`, `a.pdf/../../x`, `..\..\win.ini` — e il nome
+  del file lo sceglie `tempfile.mkstemp` nella cartella temporanea. Sopra
+  c'è una seconda barriera indipendente: `ALLOWED_EXTENSIONS`;
+- **cinque scelte consapevoli.** I percorsi della sorveglianza non sono
+  confinati perché la hotfolder deve poter stare dove serve; il bind largo
+  è la sonda che controlla se la porta è libera; il tooltip usa `innerHTML`
+  perché sei di essi contengono `<b>` e la sorgente è un template.
+
+Le motivazioni stanno **anche nel codice**, non solo nella scheda Security:
+chi clona il repository si porta dietro i file, non l'interfaccia di GitHub.
+E ognuna dice a quale condizione l'alert va riaperto — una chiusura
+sopravvive al codice che l'ha giustificata, ed è lì che il triage marcisce.
+
+Lasciarli aperti non era prudenza: dodici «high» permanenti su un
+repository pubblico dicono una cosa falsa a chi guarda, e insegnano a non
+guardare più. È così che il tredicesimo non lo vedi.
+
+### Una FAQ per chi cerca l'overclaim
+
+`docs/PRIVACY_FAQ.md` — undici domande di chi apre il repository per
+trovarci una promessa più grande del codice. Comincia rispondendo **no**
+alla domanda che farebbe più comodo («è anonimizzazione GDPR?»).
+
+Ci è entrata una cosa che prima non era scritta da nessuna parte: i
+segnaposto **non sono numerati**, quindi due persone diverse diventano lo
+stesso `{{NAME}}`. In uscita non si può ricollegare chi era chi — non esiste
+nessuna mappa da custodire, perché non viene mai costruita. Ma un documento
+**spezzato in pezzi** perde il contesto fra un blocco e l'altro, e un nome
+riconosciuto sul testo intero può sopravvivere in un frammento. Conviene
+convertire il documento intero e incollare il risultato, non convertire i
+pezzi.
+
+Gli esempi della pagina sono sotto test, come già quelli del README: se il
+codice cambia e la pagina no, la suite lo dice prima che se ne accorga un
+lettore.
+
 ### Cosa è stato valutato e scartato
 
 - **Confinare i percorsi della sorveglianza.** Romperebbe la funzione: la
@@ -118,7 +163,7 @@ seconda segnalazione.
   proteggerebbe da niente. Il threat model adesso lo dichiara esplicitamente
   in [SECURITY.md](../SECURITY.md), che vale di più.
 
-**342 test** (erano 315).
+**352 test** (erano 315).
 
 ## 1.6.0 — Il checksum come garanzia, non come filtro
 

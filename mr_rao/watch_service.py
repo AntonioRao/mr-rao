@@ -102,6 +102,19 @@ def start_watch(
     move_done: bool = False,
 ) -> dict[str, Any]:
     stop_watch()
+    # CodeQL py/path-injection (alert 9 e 10): questi percorsi arrivano dalla
+    # richiesta e non sono confinati. Non e' una svista, e' la funzione: la
+    # cartella sorvegliata deve poter stare nei Documenti o su un disco di
+    # rete, e l'interfaccia ha un selettore di cartelle nativo apposta.
+    #
+    # Il presidio non e' un recinto sul percorso -- che romperebbe l'uso -- ma
+    # il fatto che nessuna pagina esterna possa arrivare a questo endpoint:
+    # vedi _register_guards in app_factory.py. E la scrittura produce solo
+    # file .md, senza mai sovrascriverne uno esistente (output_path_for).
+    #
+    # Se un giorno questo diventasse raggiungibile senza il controllo
+    # cross-site, o iniziasse a scrivere qualcosa di diverso da .md, l'alert
+    # va riaperto: l'assunzione sarebbe cambiata.
     inbox_p = Path(inbox).expanduser().resolve()
     outbox_p = Path(outbox).expanduser().resolve()
     inbox_p.mkdir(parents=True, exist_ok=True)

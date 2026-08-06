@@ -142,6 +142,11 @@ def browse_folder(initial: str | None = None, title: str = "Scegli cartella") ->
         try:
             root.withdraw()
             root.attributes("-topmost", True)
+            # CodeQL py/path-injection (alert 8): `initial` arriva dalla
+            # richiesta, ma qui decide soltanto *dove si apre* una finestra di
+            # dialogo. Non legge, non scrive, non crea niente: il percorso che
+            # conta e' quello che la persona sceglie cliccando, e senza quel
+            # clic la funzione restituisce None.
             init = initial if initial and Path(initial).is_dir() else str(folders_root()[0])
             path = filedialog.askdirectory(
                 parent=root, initialdir=init, title=title, mustexist=True
