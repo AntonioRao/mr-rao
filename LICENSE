@@ -1,0 +1,94 @@
+Mr. Rao Source License
+Copyright (c) 2026 Rao
+
+==============================================================================
+1. SOMMARIO (non sostituisce il testo sotto)
+==============================================================================
+
+- Uso **personale**, **didattico**, di **ricerca** e **valutazione interna**
+  (anche in azienda, purché non sia prodotto/servizio commerciale basato su
+  Mr. Rao): **consentito gratuitamente**, con attribuzione.
+- Uso **commerciale** (vendita, SaaS, embedding in prodotto a pagamento,
+  redistribuzione a pagamento, servizio gestito per terzi a pagamento):
+  **richiede autorizzazione scritta dell’autore** (Rao).
+- Il codice e i binari delle **dipendenze di terze parti** restano sotto le
+  **loro** licenze (MIT, Apache-2.0, BSD, LGPL, …). Questa licenza non le
+  modifica e non le riduce.
+
+==============================================================================
+2. DEFINIZIONI
+==============================================================================
+
+“Software” indica il codice sorgente, gli script, la documentazione e gli
+asset originali del progetto Mr. Rao presenti in questo repository (o nel
+pacchetto portable ufficiale), **esclusi** i componenti di terze parti
+distribuiti con le rispettive licenze.
+
+“Uso commerciale” include, a titolo esemplificativo: vendita del Software o
+di un prodotto che lo incorpora; offerta come servizio a pagamento; uso come
+componente essenziale di un’offerta commerciale verso terzi; redistribuzione
+a pagamento.
+
+==============================================================================
+3. CONCESSIONE NON COMMERCIALE
+==============================================================================
+
+È concesso a chiunque, gratuitamente e a tempo indeterminato, il diritto non
+esclusivo di:
+
+a) usare, copiare, modificare e distribuire il Software per scopi non
+   commerciali;
+b) studiare e adattare il Software;
+c) includere il Software in workflow interni non destinati alla rivendita,
+
+a condizione che:
+
+1. sia mantenuta la presente avvertenza di copyright e licenza;
+2. le modifiche rilevanti siano indicate in modo ragionevole;
+3. le notifiche e i file di terze parti (es. THIRD_PARTY.md / NOTICE) siano
+   conservati quando si redistribuisce.
+
+==============================================================================
+4. USO COMMERCIALE
+==============================================================================
+
+Qualsiasi Uso commerciale del Software richiede **preventiva autorizzazione
+scritta** del titolare del copyright (Rao). Contattare l’autore per condizioni
+e eventuali canoni.
+
+Senza tale autorizzazione, l’Uso commerciale non è consentito.
+
+==============================================================================
+5. COMPONENTI DI TERZE PARTI
+==============================================================================
+
+Il Software si appoggia a librerie open source (MarkItDown, RapidOCR, Flask,
+BeautifulSoup, Scrubadub, pdfplumber, Pillow, ONNX Runtime, Magika, pystray,
+ecc.). Ciascuna resta regolata dalla **propria** licenza, tipicamente
+permissive (MIT, Apache-2.0, BSD) o LGPL (pystray).
+
+- Non si può “richiedere l’autorizzazione a Rao” per usare **solo** quelle
+  librerie: restano liberamente utilizzabili secondo le loro condizioni.
+- Redistribuendo Mr. Rao (sorgente o binario) si devono rispettare anche gli
+  obblighi di quelle licenze (attribuzione, notice, e per LGPL le regole di
+  linking/distribuzione applicabili).
+
+Un elenco orientativo è in `THIRD_PARTY.md` e nella UI (info dipendenze).
+
+==============================================================================
+6. ESCLUSIONE DI GARANZIE
+==============================================================================
+
+IL SOFTWARE È FORNITO “COSÌ COM’È”, SENZA GARANZIE DI ALCUN TIPO, ESPRESSE O
+IMPLICITE, INCLUSE MA NON LIMITATE A COMMERCIABILITÀ, IDONEITÀ A UNO SCOPO
+PARTICOLARE E NON VIOLAZIONE. IN NESSUN CASO L’AUTORE SARÀ RESPONSABILE PER
+DANNI DERIVANTI DALL’USO O DALL’IMPOSSIBILITÀ DI USARE IL SOFTWARE.
+
+==============================================================================
+7. NOTE LEGALI
+==============================================================================
+
+Questo testo non costituisce parere legale professionale. Per usi critici o
+commerciali, consultare un legale. L’autore può aggiornare questa licenza nelle
+versioni successive del progetto; le copie già ottenute restano regolate dalla
+versione inclusa al momento della ricezione, salvo diverso accordo scritto.

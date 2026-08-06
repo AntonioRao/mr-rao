@@ -335,9 +335,122 @@
 
     <footer class="reveal">
         <strong>{{ app_name }}</strong> v{{ app_version }} · 100% locale · zero cloud<br>
-        MarkItDown · RapidOCR · Scrubadub · BeautifulSoup ·
-        <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
+        <span class="footer-links">
+            <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
+            <a href="https://github.com/RapidAI/RapidOCR" target="_blank" rel="noopener">RapidOCR</a>
+            <a href="https://github.com/pallets/flask" target="_blank" rel="noopener">Flask</a>
+            <a href="https://www.crummy.com/software/BeautifulSoup/" target="_blank" rel="noopener">BeautifulSoup</a>
+            <a href="https://github.com/LeapBeyond/scrubadub" target="_blank" rel="noopener">Scrubadub</a>
+            <a href="https://github.com/jsvine/pdfplumber" target="_blank" rel="noopener">pdfplumber</a>
+            <a href="https://github.com/google/magika" target="_blank" rel="noopener">Magika</a>
+            <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">pystray</a>
+        </span>
+        <br>
+        <button type="button" class="btn" id="open-about-footer" style="margin-top:0.65rem;font-size:0.72rem"
+                data-tip="Licenza Mr. Rao e elenco dipendenze open source.">Licenza e dipendenze</button>
     </footer>
+</div>
+
+<!-- Pulsante info fisso -->
+<button type="button" class="info-fab" id="open-about" aria-label="Informazioni, licenza e dipendenze"
+        data-tip="Trasparenza: dipendenze open source, repository e licenza di Mr. Rao.">i</button>
+
+<!-- Modal trasparenza -->
+<div class="modal-backdrop" id="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title" hidden>
+    <div class="modal glass">
+        <div class="modal__head">
+            <div>
+                <div class="modal__title" id="about-title">Mr. Rao — trasparenza</div>
+                <p class="modal__sub">Dipendenze open source, repository e condizioni d’uso del progetto.</p>
+            </div>
+            <button type="button" class="modal__close" id="close-about" aria-label="Chiudi">×</button>
+        </div>
+
+        <div class="modal__section">
+            <h3>Licenza Mr. Rao</h3>
+            <div class="license-box">
+                <strong>Uso personale, didattico e di valutazione:</strong> gratuito, con attribuzione.<br>
+                <strong>Uso commerciale</strong> (vendita, SaaS, prodotto a pagamento basato su Mr. Rao):
+                richiede <strong>autorizzazione scritta dell’autore (Rao)</strong>.<br><br>
+                I componenti di terzi restano sotto le <strong>loro</strong> licenze (MIT, Apache, BSD, LGPL…):
+                non sono “chiusi” da questa regola. Dettaglio in <code>LICENSE</code> e <code>THIRD_PARTY.md</code>.
+            </div>
+        </div>
+
+        <div class="modal__section">
+            <h3>Dipendenze e repository</h3>
+            <ul class="dep-list">
+                <li>
+                    <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
+                    <span class="dep-tag">MIT</span>
+                    <span class="dep-role">Conversione documenti Office/PDF → Markdown (Microsoft)</span>
+                </li>
+                <li>
+                    <a href="https://github.com/RapidAI/RapidOCR" target="_blank" rel="noopener">RapidOCR</a>
+                    <span class="dep-tag">Apache-2.0</span>
+                    <span class="dep-role">OCR offline su immagini e PDF scansionati</span>
+                </li>
+                <li>
+                    <a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>
+                    <span class="dep-tag">MIT</span>
+                    <span class="dep-role">Esecuzione modelli OCR / Magika</span>
+                </li>
+                <li>
+                    <a href="https://github.com/pallets/flask" target="_blank" rel="noopener">Flask</a>
+                    <span class="dep-tag">BSD-3</span>
+                    <span class="dep-role">Server web locale dell’interfaccia</span>
+                </li>
+                <li>
+                    <a href="https://www.crummy.com/software/BeautifulSoup/" target="_blank" rel="noopener">Beautiful Soup</a>
+                    <span class="dep-tag">MIT</span>
+                    <span class="dep-role">HTML delle email → testo leggibile</span>
+                </li>
+                <li>
+                    <a href="https://github.com/LeapBeyond/scrubadub" target="_blank" rel="noopener">Scrubadub</a>
+                    <span class="dep-tag">MIT</span>
+                    <span class="dep-role">Redazione dati personali (insieme ai filtri IT di Mr. Rao)</span>
+                </li>
+                <li>
+                    <a href="https://github.com/jsvine/pdfplumber" target="_blank" rel="noopener">pdfplumber</a>
+                    <span class="dep-tag">MIT</span>
+                    <span class="dep-role">Tabelle PDF e rendering pagine per OCR</span>
+                </li>
+                <li>
+                    <a href="https://github.com/python-pillow/Pillow" target="_blank" rel="noopener">Pillow</a>
+                    <span class="dep-tag">HPND</span>
+                    <span class="dep-role">Elaborazione immagini</span>
+                </li>
+                <li>
+                    <a href="https://github.com/google/magika" target="_blank" rel="noopener">Magika</a>
+                    <span class="dep-tag">Apache-2.0</span>
+                    <span class="dep-role">Riconoscimento tipo file (usato da MarkItDown)</span>
+                </li>
+                <li>
+                    <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">pystray</a>
+                    <span class="dep-tag dep-tag--warn">LGPL-3.0</span>
+                    <span class="dep-role">Icona system tray (opzionale; disattivabile con MR_RAO_TRAY=0)</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="modal__section">
+            <h3>Perché è compatibile</h3>
+            <p>
+                MIT, Apache-2.0 e BSD permettono di costruire prodotti anche commerciali
+                <em>sopra</em> le librerie, pur conservando notice e copyright. Mr. Rao limita solo
+                <strong>il proprio codice e il prodotto assemblato</strong>, non le librerie in sé.
+            </p>
+            <p>
+                <strong>LGPL (pystray):</strong> in caso di redistribuzione binaria che include pystray,
+                vanno rispettati gli obblighi LGPL (notice e possibilità di sostituire la libreria).
+                In dubbio, distribuire con tray disattivato o consultare un legale.
+            </p>
+            <p style="margin-bottom:0">
+                Questo riquadro non è un parere legale. Per usi commerciali critici: autorizzazione a Rao
+                + verifica legale delle licenze upstream.
+            </p>
+        </div>
+    </div>
 </div>
 
 <div id="tip" role="tooltip" aria-hidden="true"></div>
@@ -356,7 +469,6 @@ document.getElementById('privacy-row').addEventListener('click', function (e) {
     cb.checked = !cb.checked;
     cb.dispatchEvent(new Event('change'));
 });
-// Mostra etichetta step 3 quando c'è un risultato
 (function () {
     const card = document.getElementById('result-card');
     const label = document.getElementById('step-result');
@@ -366,6 +478,32 @@ document.getElementById('privacy-row').addEventListener('click', function (e) {
         label.style.display = visible ? 'flex' : 'none';
     });
     obs.observe(card, { attributes: true, attributeFilter: ['style', 'class'] });
+})();
+// About / licenza modal
+(function () {
+    const modal = document.getElementById('about-modal');
+    const openers = [document.getElementById('open-about'), document.getElementById('open-about-footer')];
+    const closer = document.getElementById('close-about');
+    if (!modal) return;
+    function open() {
+        modal.hidden = false;
+        requestAnimationFrame(function () { modal.classList.add('is-open'); });
+        closer && closer.focus();
+    }
+    function close() {
+        modal.classList.remove('is-open');
+        setTimeout(function () { modal.hidden = true; }, 280);
+    }
+    openers.forEach(function (btn) {
+        if (btn) btn.addEventListener('click', open);
+    });
+    if (closer) closer.addEventListener('click', close);
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) close();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('is-open')) close();
+    });
 })();
 </script>
 </body>

@@ -189,6 +189,20 @@ markitdown-webapp/
 
 ---
 
+## Licenza
+
+Mr. Rao (codice e prodotto di questo repository) è sotto la [**Mr. Rao Source License**](LICENSE):
+
+| Uso | Condizione |
+|-----|------------|
+| Personale, didattico, valutazione interna | Gratuito, con attribuzione |
+| **Commerciale** (vendita, SaaS, prodotto a pagamento basato su Mr. Rao) | **Autorizzazione scritta dell’autore (Rao)** |
+
+Le librerie open source usate sotto (MarkItDown, RapidOCR, Flask, …) restano sotto le **loro** licenze (MIT / Apache / BSD / LGPL).  
+Elenco e link: [THIRD_PARTY.md](THIRD_PARTY.md). Nella UI: pulsante **ⓘ** in basso a sinistra.
+
+> Non è un parere legale: per usi commerciali chiedere autorizzazione e, se serve, un legale.
+
 ## Documentazione
 
 - [BeautifulSoup4](docs/BEAUTIFULSOUP.md)
@@ -196,6 +210,7 @@ markitdown-webapp/
 - [Backlog / priorità](docs/BACKLOG.md) — P0 SendTo→UI, P1 polish, P2 test…
 - [Privacy](docs/PRIVACY.md)
 - [Portable](docs/PORTABLE.md)
+- [Terze parti / licenze](THIRD_PARTY.md)
 - [Changelog](docs/CHANGELOG.md)
 
 ---

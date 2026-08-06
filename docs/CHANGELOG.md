@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.3 — Trasparenza dipendenze + licenza non commerciale
+
+### UI
+- Pulsante **ⓘ** (FAB) e voce footer **Licenza e dipendenze**
+- Modal glass con elenco repo, licenze e spiegazione commerciale / LGPL (pystray)
+- Link GitHub/siti delle librerie nel footer
+
+### Legale
+- `LICENSE` — Mr. Rao Source License (uso non commerciale libero; commerciale su autorizzazione Rao)
+- `THIRD_PARTY.md` — MarkItDown (MIT), RapidOCR (Apache-2.0), Flask (BSD), …, pystray (LGPL-3.0)
+- Compatibile con le licenze permissive delle dipendenze: la restrizione commerciale vale sul **codice Mr. Rao**, non “chiude” le librerie di terzi
+
 ## 1.2.2 — Cartella automatica: Sfoglia… + cartelle predefinite in Documenti
 
 ### Cartelle di default (create all'avvio se mancano)
