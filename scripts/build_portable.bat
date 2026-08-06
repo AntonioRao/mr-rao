@@ -63,6 +63,7 @@ pyinstaller --noconfirm --clean --onedir --console --name MrRao ^
   --collect-all rapidocr_onnxruntime ^
   --collect-all onnxruntime ^
   --collect-all markitdown ^
+  --collect-all magika ^
   --collect-submodules mr_rao ^
   app.py
 

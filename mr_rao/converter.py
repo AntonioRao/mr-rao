@@ -193,6 +193,13 @@ def convert_file(
             except Exception as e:
                 print(f"MarkItDown conversion error: {e}")
                 final_text = None
+                # Portable resilience if Magika models are missing
+                if ext in {".txt", ".csv", ".md", ".json", ".xml", ".html", ".htm", ".rtf"}:
+                    try:
+                        final_text = path.read_text(encoding="utf-8", errors="replace")
+                        engine_used = "plaintext_fallback"
+                    except Exception as e2:
+                        print(f"Plaintext fallback error: {e2}")
 
             tables_extra = ""
             if ext == ".pdf" and opts.include_tables:
