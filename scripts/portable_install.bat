@@ -21,6 +21,22 @@ set "INSTALL_DIR=%LOCALAPPDATA%\MrRao"
 echo Destinazione: %INSTALL_DIR%
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 
+REM Aggiornando una versione precedente, xcopy sovrascrive ma non rimuove: i
+REM file di dipendenze non piu' incluse resterebbero li' per sempre. Misurato
+REM aggiornando da 1.3.2 a 1.3.3: 120 MB di librerie morte rimaste sul disco.
+if exist "%INSTALL_DIR%\app" (
+    echo Rimozione versione precedente...
+    rmdir /s /q "%INSTALL_DIR%\app" 2>nul
+    if exist "%INSTALL_DIR%\app" (
+        echo.
+        echo ATTENZIONE: non riesco a rimuovere la versione precedente.
+        echo Probabilmente Mr. Rao e' in esecuzione: chiudilo e rilancia.
+        echo.
+        pause
+        exit /b 1
+    )
+)
+
 echo Copia file...
 xcopy /E /I /Y "app\*" "%INSTALL_DIR%\app\" >nul
 if exist "mr-rao.ico" copy /Y "mr-rao.ico" "%INSTALL_DIR%\mr-rao.ico" >nul
