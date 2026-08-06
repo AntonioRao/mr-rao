@@ -40,6 +40,15 @@ _RE_PIVA = re.compile(
 # "ab12cdefghijklm" are not IBANs. Every candidate is checked with mod-97.
 _RE_IBAN = re.compile(r"\b([A-Z]{2}\d{2}[A-Z0-9]{11,30})\b")
 
+# L'IBAN come lo stampano le banche: a gruppi di quattro. Il pattern sopra
+# pretende i caratteri attaccati, quindi su "IT60 X054 2811 1010 0000 0123
+# 456" — la forma piu' comune su carta intestata, bonifici e fatture — non
+# trovava nulla. Qui i gruppi sono ammessi, e a scartare i falsi candidati
+# ci pensa il mod-97 come sempre.
+_RE_IBAN_SPAZIATO = re.compile(
+    r"\b([A-Z]{2}\d{2}(?:[ \-][A-Z0-9]{2,6}){2,9})(?![\w])"
+)
+
 # Carta di pagamento: 13-19 cifre che iniziano con un IIN plausibile e
 # passano il controllo di Luhn. Senza Luhn qualunque numero lungo finirebbe
 # redatto; con Luhn e' il numero stesso a dire se e' una carta.
@@ -102,6 +111,17 @@ _RE_DATELIKE = re.compile(
 # Email
 _RE_EMAIL = re.compile(
     r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"
+)
+
+# L'indirizzo scritto per non farsi trovare dai raccoglitori automatici:
+# "mario [at] esempio [dot] it". Chi lo scrive cosi' lo fa apposta perche'
+# non sembri un'email — e infatti al riconoscitore non sembrava.
+_RE_EMAIL_OFFUSCATA = re.compile(
+    r"(?i)\b[A-Za-z0-9._%+\-]+\s*"
+    r"(?:\[\s*at\s*\]|\(\s*at\s*\)|\{\s*at\s*\}|\bchiocciola\b|\s+at\s+)\s*"
+    r"[A-Za-z0-9\-]+"
+    r"(?:\s*(?:\[\s*(?:dot|punto)\s*\]|\(\s*(?:dot|punto)\s*\)|\bpunto\b|\bdot\b|\.)\s*"
+    r"[A-Za-z0-9\-]+)+"
 )
 
 
@@ -457,6 +477,145 @@ def cf_check_char_ok(candidate: str) -> bool:
     return "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[totale % 26] == s[15]
 
 
+def piva_check_ok(candidate: str) -> bool:
+    """Cifra di controllo della partita IVA (undici cifre, Luhn all'italiana).
+
+    Stessa scelta del codice fiscale: non rifiuta, informa. Undici cifre in
+    un contesto fiscale restano sostituite comunque; se il controllo non
+    torna, il numero diventa un sospetto — perche' o non era una partita
+    IVA, o il documento e' storpiato.
+    """
+    p = re.sub(r"[\s\-.]", "", candidate)
+    if len(p) != 11 or not p.isdigit():
+        return False
+    totale = 0
+    for i, c in enumerate(p[:10]):
+        n = int(c)
+        if i % 2:
+            n *= 2
+            if n > 9:
+                n -= 9
+        totale += n
+    return (10 - totale % 10) % 10 == int(p[10])
+
+
+# ---------------------------------------------------------------------------
+# Tolleranza agli errori dell'OCR, tenuta a bada dai checksum
+# ---------------------------------------------------------------------------
+
+# Le confusioni tipiche del riconoscimento ottico, nelle due direzioni.
+# Non servono a indovinare: servono a proporre un candidato che poi deve
+# passare il *suo* controllo matematico. E' l'unico modo di essere
+# tolleranti senza aprire la porta ai falsi positivi.
+_A_CIFRA = {
+    "O": "0", "D": "0", "Q": "0", "I": "1", "L": "1", "Z": "2", "E": "3",
+    "A": "4", "S": "5", "G": "6", "T": "7", "B": "8", "J": "3",
+}
+_A_LETTERA = {
+    "0": "O", "1": "I", "2": "Z", "3": "E", "4": "A", "5": "S", "6": "G",
+    "7": "T", "8": "B",
+}
+
+# Confusioni fra lettere. Sembrano superflue — sono gia' lettere — ma la
+# piu' frequente di tutte e' proprio questa: la elle minuscola letta al
+# posto della i maiuscola. "IT60" diventa "lT60", che di lettere ne ha
+# ancora due e quindi supera ogni controllo di forma, e fallisce il mod-97.
+_FRA_LETTERE = {"l": "I", "|": "I", "¦": "I", "ı": "I", "…": "I"}
+
+# Struttura del codice fiscale: L = lettera, D = cifra.
+_CF_FORMA = "LLLLLLDDLDDLDDDL"
+
+MAX_CORREZIONI_OCR = 2
+
+
+def _coerce(token: str, forma: str) -> tuple[str, int] | None:
+    """Porta ogni carattere nella classe che la struttura richiede.
+
+    Restituisce (candidato, quante correzioni) oppure None se ne servono
+    troppe: oltre due non e' piu' un errore di lettura, e' un altro dato.
+    """
+    if len(token) != len(forma):
+        return None
+    fuori = []
+    corretti = 0
+    for c, atteso in zip(token.upper(), forma):
+        if atteso == "D":
+            if c.isdigit():
+                fuori.append(c)
+                continue
+            sostituto = _A_CIFRA.get(c)
+        else:
+            if c.isalpha():
+                fuori.append(c)
+                continue
+            sostituto = _A_LETTERA.get(c)
+        if sostituto is None:
+            return None
+        fuori.append(sostituto)
+        corretti += 1
+        if corretti > MAX_CORREZIONI_OCR:
+            return None
+    return "".join(fuori), corretti
+
+
+def cf_ocr_recover(token: str) -> str | None:
+    """Un codice fiscale storpiato dall'OCR, se il controllo lo conferma."""
+    esito = _coerce(token, _CF_FORMA)
+    if not esito:
+        return None
+    candidato, corretti = esito
+    if corretti == 0 or not _RE_CF.fullmatch(candidato):
+        return None
+    return candidato if cf_check_char_ok(candidato) else None
+
+
+def iban_ocr_recover(token: str) -> str | None:
+    """Un IBAN storpiato dall'OCR, se il mod-97 lo conferma."""
+    pulito = re.sub(r"\s", "", token)
+    if not 15 <= len(pulito) <= 34:
+        return None
+    # Almeno una delle due iniziali dev'essere gia' una lettera.
+    #
+    # Senza questo vincolo il numero d'ordine 5551234567890123 diventava
+    # "SS51234567890123" con due correzioni, e quel candidato il mod-97 lo
+    # supera. Il checksum protegge dai candidati sbagliati, non da uno
+    # spazio di candidati troppo largo: se puoi trasformare qualunque
+    # sequenza di cifre in un IBAN, prima o poi ne azzecchi uno.
+    if not any(c.isalpha() for c in pulito[:2]):
+        return None
+    forma = "LLDD" + "A" * (len(pulito) - 4)
+    fuori = []
+    corretti = 0
+    for grezzo, atteso in zip(pulito, forma):
+        c = grezzo.upper()
+        if atteso == "A":  # alfanumerico: va bene qualunque cosa
+            fuori.append(c)
+            continue
+        if atteso == "L":
+            if grezzo in _FRA_LETTERE:
+                sostituto = _FRA_LETTERE[grezzo]
+            elif c.isalpha():
+                fuori.append(c)
+                continue
+            else:
+                sostituto = _A_LETTERA.get(c)
+        else:
+            if c.isdigit():
+                fuori.append(c)
+                continue
+            sostituto = _A_CIFRA.get(c)
+        if sostituto is None:
+            return None
+        corretti += 1
+        if corretti > MAX_CORREZIONI_OCR:
+            return None
+        fuori.append(sostituto)
+    candidato = "".join(fuori)
+    if corretti == 0 or not candidato.isalnum():
+        return None
+    return candidato if iban_checksum_ok(candidato) else None
+
+
 def luhn_ok(candidate: str) -> bool:
     """Controllo di Luhn (ISO/IEC 7812). Un numero lungo qualsiasi lo
     supera una volta su dieci: unito al vincolo sul primo digit e sulla
@@ -551,6 +710,19 @@ def _looks_like_word(token: str) -> bool:
 # gia' redatto: quello che e' stato sostituito non c'e' piu', quindi cio'
 # che resta e' davvero rimasto.
 _RE_QUASI_CF = re.compile(r"(?<![\w-])[A-Z0-9]{16}(?![\w-])")
+
+# Per il recupero serve tollerare anche la minuscola: la elle minuscola
+# letta al posto della i maiuscola e' la confusione piu' frequente di tutte.
+_RE_FUZZY_CF = re.compile(r"(?<![\w-])[A-Za-z0-9]{16}(?![\w-])")
+
+# Per l'IBAN il pattern dei sospetti non basta: pretende due cifre in
+# terza e quarta posizione, e quelle sono proprio le posizioni che l'OCR
+# storpia ("IT60" letto "IT6O"). Qui si accetta qualunque sequenza
+# alfanumerica lunga come un IBAN, purche' almeno una delle due iniziali
+# sia gia' una lettera; a scartarla ci pensa il mod-97.
+_RE_FUZZY_IBAN = re.compile(
+    r"(?<![\w-])(?=[A-Za-z0-9]?[A-Za-z])[A-Za-z0-9]{15,34}(?![\w-])"
+)
 
 # Le prime due lettere sono quelle che l'OCR sbaglia piu' spesso: "IT60"
 # letto "lT60" o "1T6O". Qui non si pretende la maiuscola, altrimenti il
@@ -809,6 +981,7 @@ def apply_privacy_filter(
 
     if opts.emails:
         out = _replace_all(out, _RE_EMAIL, "{{EMAIL}}", report, "emails")
+        out = _replace_all(out, _RE_EMAIL_OFFUSCATA, "{{EMAIL}}", report, "emails")
 
     if opts.fiscal:
 
@@ -837,6 +1010,7 @@ def apply_privacy_filter(
             return "{{IBAN}}"
 
         out = _RE_IBAN.sub(_iban_sub, out)
+        out = _RE_IBAN_SPAZIATO.sub(_iban_sub, out)
 
         def _card_sub(m: re.Match) -> str:
             if not luhn_ok(m.group(1)):
@@ -858,6 +1032,28 @@ def apply_privacy_filter(
         out = _RE_BBAN.sub(_bban_sub, out)
         out = _replace_all(out, _RE_ABI_CAB, "{{BBAN}}", report, "bban")
 
+        # Recupero dei codici storpiati dall'OCR. Gira dopo i riconoscitori
+        # esatti, su cio' che e' rimasto, e sostituisce *solo* se il
+        # checksum del candidato corretto torna. E' quello che permette di
+        # essere tolleranti senza aprire ai falsi positivi: non decide
+        # un'euristica, decide l'aritmetica.
+        def _cf_fuzzy(m: re.Match) -> str:
+            if cf_ocr_recover(m.group(0)) is None:
+                return m.group(0)
+            report.add("codice_fiscale")
+            report.add("ocr_corretti")
+            return "{{CODICE_FISCALE}}"
+
+        def _iban_fuzzy(m: re.Match) -> str:
+            if iban_ocr_recover(m.group(0)) is None:
+                return m.group(0)
+            report.add("iban")
+            report.add("ocr_corretti")
+            return "{{IBAN}}"
+
+        out = _RE_FUZZY_CF.sub(_cf_fuzzy, out)
+        out = _RE_FUZZY_IBAN.sub(_iban_fuzzy, out)
+
         # P.IVA: only replace if preceded by context keywords nearby or IT prefix
         def _piva_sub(m: re.Match) -> str:
             ctx = _context_before(m.string, m.start()).lower()
@@ -865,6 +1061,15 @@ def apply_privacy_filter(
             if raw.upper().startswith("IT") or any(
                 k in ctx for k in ("p.iva", "piva", "partita", "vat", "c.f.")
             ):
+                # Stessa scelta del codice fiscale: sostituisce comunque,
+                # e se la cifra di controllo non torna lo dice.
+                if not piva_check_ok(m.group(1)):
+                    report.suspect(
+                        "partita_iva",
+                        m.group(1),
+                        "sostituita, ma la cifra di controllo non torna: "
+                        "o non era una partita IVA, o il documento e' storpiato",
+                    )
                 report.add("partita_iva")
                 return "{{PARTITA_IVA}}"
             return raw

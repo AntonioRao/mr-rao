@@ -1,5 +1,63 @@
 # Changelog
 
+## 1.6.0 — Il checksum come garanzia, non come filtro
+
+La 1.5.0 aveva imparato a **dire** quello che non riusciva a togliere. Questa
+impara a toglierlo.
+
+### Recupero dei codici storpiati dall'OCR
+
+Un codice fiscale letto male — `RSSMRA85T1OA562S`, con la O al posto dello
+zero — non ha più bisogno di restare nel testo. Il motore prova a
+correggere **fino a due caratteri** usando le confusioni tipiche del
+riconoscimento ottico, e sostituisce **solo se il checksum del candidato
+corretto torna**.
+
+Non decide un'euristica: decide l'aritmetica. È l'unico modo di essere
+tolleranti senza aprire la porta ai falsi positivi.
+
+```
+RSSMRA85T1OA562S   →  {{CODICE_FISCALE}}   (1 correzione, controllo OK)
+lT60X05428…123456  →  {{IBAN}}             (1 correzione, mod-97 OK)
+lT60X05428…123457  →  invariato            (nessuna correzione lo salva)
+```
+
+La confusione più frequente di tutte non è lettera-cifra ma **lettera-lettera**:
+la elle minuscola letta al posto della i maiuscola. `IT60` diventa `lT60`,
+che di lettere ne ha ancora due e quindi supera ogni controllo di forma —
+e fallisce il mod-97 senza che nessuno capisca perché.
+
+**Una regressione trovata dai test.** La prima versione trasformava il
+numero d'ordine `5551234567890123` in `SS51234567890123`, e quel candidato
+il mod-97 lo supera davvero. Il checksum protegge dai candidati sbagliati,
+non da uno spazio di candidati troppo largo: se puoi trasformare qualunque
+sequenza di cifre in un IBAN, prima o poi ne azzecchi uno. Adesso almeno
+una delle due iniziali dev'essere già una lettera.
+
+### L'IBAN come lo stampano le banche
+
+`IT60 X054 2811 1010 0000 0123 456` — a gruppi di quattro, la forma più
+comune su carta intestata, bonifici e fatture — **non veniva riconosciuto
+affatto**. Il riconoscitore pretendeva i caratteri attaccati.
+
+Non l'aveva trovato nessuna delle due analisi che hanno esaminato il
+motore: si cercava il difetto sofisticato mentre mancava il caso normale.
+
+### La cifra di controllo della partita IVA
+
+Stessa scelta del codice fiscale: non rifiuta, informa. Undici cifre in un
+contesto fiscale restano sostituite comunque; se la cifra di controllo non
+torna, il numero diventa un sospetto — perché o non era una partita IVA, o
+il documento è storpiato.
+
+### Email offuscate
+
+`mario [at] esempio [dot] it`, `(at)`, `chiocciola`, `punto`. Chi le scrive
+così lo fa apposta perché non sembrino email, e infatti al riconoscitore
+non sembravano.
+
+- 315 test (erano 304).
+
 ## 1.5.0 — «3 redatti, 2 da controllare»
 
 Il limite più serio del motore non era un difetto: era una scelta. I

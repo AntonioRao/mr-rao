@@ -4,8 +4,8 @@
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.5.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-304%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.6.0-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-315%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)

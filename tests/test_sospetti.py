@@ -77,26 +77,56 @@ def test_un_codice_fiscale_valido_non_genera_sospetti():
 
 
 @pytest.mark.parametrize(
-    "testo,tipo",
+    "testo,storpiato",
     [
-        ("Il codice e RSSMRA85T1OA562S sul modulo", "codice_fiscale"),
-        ("IBAN lT60X0542811101000000123456 della banca", "iban"),
-        ("cell. 335 l23 4567 per urgenze", "telefono"),
+        ("Il codice e RSSMRA85T1OA562S sul modulo", "RSSMRA85T1OA562S"),
+        ("Il codice e RSSMRA85TIOA562S sul modulo", "RSSMRA85TIOA562S"),
+        ("IBAN lT60X0542811101000000123456 della banca", "lT60X0542811101000000123456"),
+        ("IBAN IT6OX0542811101000000123456 della banca", "IT6OX0542811101000000123456"),
     ],
 )
-def test_le_forme_quasi_valide_diventano_sospetti(testo, tipo):
+def test_i_codici_storpiati_dall_ocr_vengono_recuperati(testo, storpiato):
+    """Non e' un'euristica a decidere, e' l'aritmetica: si prova a
+    correggere fino a due caratteri e si sostituisce **solo** se il
+    checksum del candidato torna."""
     out, rep = apply_privacy_filter(testo, PrivacyOptions())
-    assert out == testo, "senza certezza non si sostituisce"
+    assert storpiato not in out
+    assert rep.counts.get("ocr_corretti", 0) >= 1, rep.counts
+
+
+def test_il_recupero_non_inventa_codici():
+    """Il checksum protegge dai candidati sbagliati, non da uno spazio di
+    candidati troppo largo: il numero d'ordine 5551234567890123 diventava
+    «SS51234567890123», che il mod-97 lo supera davvero."""
+    testo = "Ordine 5551234567890123 del magazzino"
+    out, rep = apply_privacy_filter(testo, PrivacyOptions())
+    assert out == testo, out
+    assert rep.total == 0
+
+
+@pytest.mark.parametrize(
+    "testo,tipo",
+    [
+        ("cell. 335 l23 4567 per urgenze", "telefono"),
+        ("Riferimento ABCDEF12G34H567I in atti", "codice_fiscale"),
+        ("P.IVA 01234567890 della ditta", "partita_iva"),
+    ],
+)
+def test_cio_che_il_recupero_non_chiude_resta_un_sospetto(testo, tipo):
+    """I sospetti servono per quello che il checksum non puo' salvare:
+    un telefono non ha cifra di controllo, e un codice che nemmeno
+    correggendolo torna non si puo' sostituire per somiglianza."""
+    _, rep = apply_privacy_filter(testo, PrivacyOptions())
     assert tipo in [s["kind"] for s in rep.suspects], rep.suspects
 
 
 def test_il_sospetto_e_mascherato():
     """Serve a ritrovarlo nel documento, non a leggerlo: il rapporto puo'
     finire in un log o in una scheda a video."""
-    _, rep = apply_privacy_filter("Il codice e RSSMRA85T1OA562S", PrivacyOptions())
+    _, rep = apply_privacy_filter("Riferimento ABCDEF12G34H567I", PrivacyOptions())
     campione = rep.suspects[0]["sample"]
-    assert "RSSMRA85T1OA562S" not in campione
-    assert campione.startswith("RS") and campione.endswith("2S")
+    assert "ABCDEF12G34H567I" not in campione
+    assert campione.startswith("AB") and campione.endswith("7I")
     assert "•" in campione
 
 
@@ -120,6 +150,53 @@ def test_niente_sospetti_a_riconoscitori_spenti():
 
 
 def test_il_rapporto_espone_il_conteggio():
-    _, rep = apply_privacy_filter("Il codice e RSSMRA85T1OA562S", PrivacyOptions())
+    _, rep = apply_privacy_filter("Riferimento ABCDEF12G34H567I", PrivacyOptions())
     d = rep.to_dict()
     assert d["suspects_total"] == len(d["suspects"]) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Forme che nella vita reale sono la norma, e il motore non vedeva
+# ---------------------------------------------------------------------------
+
+
+def test_iban_scritto_a_gruppi_di_quattro():
+    """E' come lo stampano le banche su carta intestata, bonifici e
+    fatture. Il riconoscitore pretendeva i caratteri attaccati, quindi
+    sulla forma piu' comune di tutte non trovava niente."""
+    out, rep = apply_privacy_filter(
+        "IBAN IT60 X054 2811 1010 0000 0123 456", PrivacyOptions()
+    )
+    assert out == "IBAN {{IBAN}}"
+    assert rep.counts.get("iban") == 1
+
+
+def test_un_iban_a_gruppi_sbagliato_resta():
+    """Anche qui decide il mod-97, non la forma."""
+    testo = "IBAN IT60 X054 2811 1010 0000 0123 457"
+    out, _ = apply_privacy_filter(testo, PrivacyOptions())
+    assert out == testo
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "scrivi a mario [at] esempio [dot] it",
+        "mario (at) esempio (punto) it",
+        "mario chiocciola esempio punto it",
+    ],
+)
+def test_email_offuscate(testo):
+    """Chi scrive cosi' lo fa apposta perche' non sembri un'email — e
+    infatti al riconoscitore non sembrava."""
+    out, rep = apply_privacy_filter(testo, PrivacyOptions())
+    assert "{{EMAIL}}" in out
+    assert "esempio" not in out
+
+
+def test_la_partita_iva_ha_la_sua_cifra_di_controllo():
+    from mr_rao.privacy import piva_check_ok
+
+    assert piva_check_ok("01234567897") is True
+    assert piva_check_ok("00743110157") is True
+    assert piva_check_ok("01234567890") is False
