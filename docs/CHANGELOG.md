@@ -1,5 +1,70 @@
 # Changelog
 
+## 1.7.2 — Quello che il programma sapeva e non diceva
+
+Il tasto destro converte un documento e mette il `.md` accanto
+all'originale. È il modo più comodo di usare Mr. Rao, quindi è quello che
+la gente usa — e fino a ieri era anche l'unico che **nascondeva metà del
+risultato**.
+
+Su un file con un codice fiscale storpiato dallo scanner:
+
+```
+> prova.txt...
+  ok (markitdown, redactions=2)
+```
+
+Poi la finestra si chiudeva all'istante, perché `open_with_mr_rao.bat`
+finiva con `if errorlevel 1 pause` — si fermava **solo** se qualcosa andava
+storto. Restava un file e nient'altro.
+
+Questo, invece, il programma lo sapeva già:
+
+```
+sospetti:
+  codice_fiscale  RS************2X
+     sedici caratteri con la proporzione di un codice fiscale,
+     ma la struttura non torna: possibile lettura OCR sbagliata
+```
+
+**Due dati personali erano rimasti nel documento**, deformati ma leggibili
+da una persona. Il motore li aveva visti, sapeva spiegare perché, e non lo
+diceva a nessuno: i sospetti vivevano solo nell'interfaccia web.
+
+`PRIVACY.md` dichiara che «zero redazioni non significa documento pulito» e
+la FAQ che il confronto prima/dopo «è il controllo che conta». Il percorso
+più comodo saltava entrambe le cose in silenzio. Non era una scomodità: era
+il prodotto che contraddiceva il proprio documento.
+
+Adesso la riga di comando stampa tipo, campione mascherato e motivo di ogni
+sospetto, e la finestra si ferma quando c'è qualcosa da leggere.
+
+**Su un documento pulito continua a chiudersi da sola.** Fermarsi anche a
+mani vuote insegnerebbe a chiudere senza leggere, che è peggio di non
+fermarsi: dopo tre «niente da segnalare» nessuno legge più il quarto.
+
+Due dettagli pagati subito:
+
+- la maschera usa `*` e non il pallino `•` dell'interfaccia web. In una
+  console italiana quel carattere non esiste e diventerebbe un punto
+  interrogativo — cioè esattamente il segno che indica un guasto;
+- `--attendi` non blocca quando nessuno può premere un tasto. Senza quella
+  guardia una conversione in uno script sarebbe rimasta appesa per sempre.
+
+### Come è nata
+
+`P0` stava in cima al backlog da mesi con questa motivazione: *«tasto destro
+→ apri l'interfaccia col risultato, perché l'utente si aspetta il browser»*.
+
+Era un'assunzione. La persona che lo usa tutti i giorni ha detto il
+contrario — *«mi piace il tasto destro che genera direttamente il documento
+anonimizzato, è semplice ed efficace»* — e aveva ragione: per il caso più
+frequente il browser è un passaggio in più, non uno in meno.
+
+Il difetto vero stava dall'altra parte, e si vedeva solo usandolo.
+
+**389 test** (erano 384).
+
 ## 1.7.1 — Il file che avevi aperto
 
 Tutto quello che c'è qui dentro è uscito da qualcuno che **usava** il

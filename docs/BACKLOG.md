@@ -1,6 +1,6 @@
 # Backlog & piano di priorità — Mr. Rao
 
-Lo stato delle voci vale alla **1.7.0**. La fonte di verità resta git e il
+Lo stato delle voci vale alla **1.7.2**. La fonte di verità resta git e il
 [changelog](CHANGELOG.md): se una riga qui dice DONE e il codice dice altro,
 ha ragione il codice.
 
@@ -26,8 +26,8 @@ scompare**.
 
 | ID | Item | Perché | Stato |
 |----|------|--------|--------|
-| P0.1 | **L'esito di una conversione da tasto destro non deve sparire quando c'è qualcosa da guardare** | `open_with_mr_rao.bat` finisce con `if errorlevel 1 pause`: la finestra si ferma solo se qualcosa va storto. Quando funziona si chiude all'istante, e con lei sparisce `redactions=3`. Si ottiene un file e nessuna idea di cosa sia stato tolto | TODO |
-| P0.2 | **La CLI deve stampare anche i sospetti**, non solo il conteggio delle redazioni | Il rapporto contiene `suspects` — la cosa che esiste apposta per dire «qui devi controllare» — e la riga di comando non la mostra. È il segnale più importante, assente nel percorso più usato | TODO |
+| P0.1 | **L'esito di una conversione da tasto destro non deve sparire quando c'è qualcosa da guardare** | Il `.bat` passa ora `--attendi`: la finestra si ferma se qualcosa è stato tolto o segnalato, e si chiude da sola su un documento pulito | **DONE** (1.7.2) |
+| P0.2 | **La CLI deve stampare anche i sospetti**, non solo il conteggio delle redazioni | Stampa tipo e campione mascherato di ognuno, con il perché. Maschera con `*` e non col pallino: in cp1252 sarebbe diventato un punto interrogativo, cioè il carattere che segnala un guasto | **DONE** (1.7.2) |
 | P0.3 | Se server già su: riusa porta, non aprire seconda istanza cieca | Evita porte occupate / finestre morte | TODO (parziale: portcheck) |
 | P0.4 | Feedback visibile su fallimento shell (message box o log file) | Shell che flasha e sparisce = zero fiducia. Parzialmente coperto: dalla 1.7.1 un file bloccato dice perché invece di mostrare un traceback | TODO |
 

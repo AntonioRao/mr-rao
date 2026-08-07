@@ -44,6 +44,78 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
     )
 
 
+def _scrivi(riga: str) -> None:
+    """Stampa senza morire su una console cp1252.
+
+    I campioni dei sospetti sono mascherati con dei pallini (U+2022): su una
+    console italiana predefinita finiscono contro un UnicodeEncodeError, e il
+    programma si chiuderebbe proprio mentre sta dicendo la cosa piu'
+    importante.
+    """
+    try:
+        print(riga, flush=True)
+    except UnicodeEncodeError:
+        print(riga.encode("ascii", "replace").decode("ascii"), flush=True)
+
+
+def _stampa_esito(r) -> bool:
+    """Racconta cosa e' successo. Torna True se c'e' qualcosa da guardare.
+
+    Il conteggio delle redazioni da solo era meta' della storia, ed e' la
+    meta' rassicurante. L'altra sono i **sospetti**: cio' che somiglia a un
+    dato personale ed e' rimasto nel testo perche' il riconoscitore non ha
+    potuto esserne certo -- tipicamente un codice storpiato dallo scanner.
+    Vivevano solo nell'interfaccia web, cioe' mancavano proprio dal percorso
+    piu' comodo e quindi piu' usato: il tasto destro.
+
+    Un documento con «2 redazioni» e due sospetti non e' un documento
+    anonimizzato, e dirne solo il primo numero contraddice quello che
+    PRIVACY.md dichiara: «zero redazioni non significa documento pulito».
+    """
+    totale = r.redaction.total
+    sospetti = list(getattr(r.redaction, "suspects", None) or [])
+    _scrivi(f"  ok ({r.engine_used}) - {totale} redazioni")
+
+    if not sospetti:
+        return totale > 0
+
+    _scrivi(f"  !! {len(sospetti)} da controllare: somigliano a dati personali")
+    _scrivi("     e sono rimasti nel testo, perche' non c'era certezza.")
+    for s in sospetti:
+        # Il pallino della maschera (U+2022) sta bene nell'interfaccia web e
+        # non esiste in cp1252: su una console italiana diventerebbe un punto
+        # interrogativo, cioe' lo stesso carattere che segnala un guasto.
+        # Un asterisco si legge uguale ovunque e non sembra un errore.
+        campione = str(s.get("sample", "")).replace("•", "*")
+        _scrivi(f"       {s.get('kind', '?')}  {campione}")
+        perche = s.get("why")
+        if perche:
+            _scrivi(f"         {perche}")
+    return True
+
+
+def _attendi_se_serve(args: argparse.Namespace, da_guardare: bool) -> None:
+    """Tiene aperta la finestra quando c'e' qualcosa da leggere.
+
+    Il tasto destro lanciava la conversione e la finestra si chiudeva
+    all'istante: restava un .md e nessuna idea di cosa fosse stato tolto o
+    segnalato. Il percorso piu' comodo saltava in silenzio il controllo che
+    PRIVACY.md chiama «quello che conta».
+
+    Si ferma **solo** se c'e' qualcosa da dire. Fermarsi anche a mani vuote
+    insegnerebbe a chiudere senza leggere, che e' peggio di non fermarsi.
+    """
+    if not getattr(args, "attendi", False) or not da_guardare:
+        return
+    if not sys.stdin or not sys.stdin.isatty():
+        return  # in una pipeline non c'e' nessuno che prema un tasto
+    _scrivi("")
+    try:
+        input("Premi Invio per chiudere. ")
+    except (EOFError, KeyboardInterrupt):
+        pass
+
+
 def cmd_convert(args: argparse.Namespace) -> int:
     paths: list[Path] = []
     for p in args.files:
@@ -64,22 +136,25 @@ def cmd_convert(args: argparse.Namespace) -> int:
 
     opts = _build_options(args)
     results = []
+    da_guardare = False
     for path in paths:
-        print(f"> {path.name}...", flush=True)
+        _scrivi(f"> {path.name}...")
         r = convert_file(path, options=opts)
         if r.error:
             print(f"  ERRORE: {r.error}", file=sys.stderr)
             if not args.merge:
+                _attendi_se_serve(args, True)
                 return 1
         else:
-            print(f"  ok ({r.engine_used}, redactions={r.redaction.total})")
+            da_guardare = _stampa_esito(r) or da_guardare
         results.append(r)
 
     if args.merge:
         md = merge_markdowns(results, title=args.title or "Documento unificato")
         out = Path(args.output or "merged.md")
         out.write_text(md, encoding="utf-8")
-        print(f"Salvato merge: {out}")
+        _scrivi(f"Salvato merge: {out}")
+        _attendi_se_serve(args, da_guardare)
         return 0
 
     for r, path in zip(results, paths):
@@ -94,7 +169,8 @@ def cmd_convert(args: argparse.Namespace) -> int:
             else:
                 out = out_dir / (path.stem + ".md")
         out.write_text(r.markdown, encoding="utf-8")
-        print(f"Salvato: {out}")
+        _scrivi(f"Salvato: {out}")
+    _attendi_se_serve(args, da_guardare)
     return 0
 
 
@@ -201,6 +277,12 @@ def main(argv: list[str] | None = None) -> int:
     p_conv.add_argument("--no-frontmatter", action="store_true")
     p_conv.add_argument("--clean", action="store_true", help="Output pulito per LLM")
     p_conv.add_argument("--force-ocr", action="store_true")
+    p_conv.add_argument(
+        "--attendi",
+        action="store_true",
+        help="Tieni aperta la finestra se c'e' qualcosa da controllare "
+        "(lo usa il tasto destro; inutile in uno script)",
+    )
     p_conv.set_defaults(func=cmd_convert)
 
     p_watch = sub.add_parser("watch", help="Osserva cartella e converte automaticamente")
