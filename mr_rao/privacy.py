@@ -1125,6 +1125,7 @@ class Passo:
     nome: str
     pacchetto: str
     campo: str  # il campo di PrivacyOptions che lo accende
+    priorita: int
     esegui: Callable[[str, RedactionReport, PrivacyOptions], str]
 
 
@@ -1134,27 +1135,38 @@ class Passo:
 # link), i codici prima dei telefoni (una partita IVA e' undici cifre), i
 # nomi per ultimi, quando i segnaposto gia' inseriti fanno da contesto.
 # Spostare una riga qui cambia cio' che esce: il banco golden se ne accorge.
+#
+# La **priorita' e' del tipo di dato, non del pacchetto**: un codice fiscale
+# (it) e un SSN (en) devono girare insieme, prima dei telefoni, perche' e'
+# quello che oggi impedisce a un telefono di mangiarsi una partita IVA. Se
+# l'ordine seguisse i pacchetti, aggiungerne un terzo lo romperebbe -- e si
+# vedrebbe come una redazione sbagliata, non come un errore di ordinamento.
 SEQUENZA: tuple[Passo, ...] = (
-    Passo("secrets", CORE, "secrets", lambda t, r, o: _scrub_secrets(t, r)),
-    Passo("urls", CORE, "urls", lambda t, r, o: _scrub_urls(t, r)),
-    Passo("emails", CORE, "emails", _scrub_emails),
-    Passo("codice_fiscale", IT, "fiscal", _scrub_cf),
-    Passo("iban", CORE, "fiscal", _scrub_iban),
-    Passo("cards", CORE, "fiscal", _scrub_cards),
-    Passo("bban", IT, "fiscal", _scrub_bban),
-    Passo("codice_fiscale_ocr", IT, "fiscal", _scrub_fuzzy_cf),
-    Passo("iban_ocr", CORE, "fiscal", _scrub_fuzzy_iban),
-    Passo("partita_iva", IT, "fiscal", _scrub_piva),
-    Passo("date_nascita", IT, "dates", lambda t, r, o: _scrub_birth_dates(t, r)),
+    Passo("secrets", CORE, "secrets", 10, lambda t, r, o: _scrub_secrets(t, r)),
+    Passo("urls", CORE, "urls", 20, lambda t, r, o: _scrub_urls(t, r)),
+    Passo("emails", CORE, "emails", 30, _scrub_emails),
+    # I codici: 40-49. L'ordine interno conta -- i riconoscitori esatti
+    # prima di quelli tolleranti all'OCR, che girano su cio' che e' rimasto.
+    Passo("codice_fiscale", IT, "fiscal", 40, _scrub_cf),
+    Passo("iban", CORE, "fiscal", 41, _scrub_iban),
+    Passo("cards", CORE, "fiscal", 42, _scrub_cards),
+    Passo("bban", IT, "fiscal", 43, _scrub_bban),
+    Passo("codice_fiscale_ocr", IT, "fiscal", 44, _scrub_fuzzy_cf),
+    Passo("iban_ocr", CORE, "fiscal", 45, _scrub_fuzzy_iban),
+    Passo("partita_iva", IT, "fiscal", 46, _scrub_piva),
+    Passo("date_nascita", IT, "dates", 50, lambda t, r, o: _scrub_birth_dates(t, r)),
     # Il pattern e' internazionale (prefisso +CC, parola di contesto anche
     # in inglese); restano italiane solo le due scorciatoie senza contesto,
     # cellulare 3xx e fisso 0xx, dentro _phone_is_plausible. Vanno separate
     # quando arrivera' il pacchetto inglese con le regole NANP.
-    Passo("phones", CORE, "phones", _scrub_phones),
+    Passo("phones", CORE, "phones", 60, _scrub_phones),
     # Euro e parole italiane: "importo", "imponibile", "canone".
-    Passo("amounts", IT, "amounts", _scrub_amounts),
-    Passo("addresses", IT, "addresses", lambda t, r, o: _scrub_addresses(t, r)),
-    Passo("names", IT, "names", lambda t, r, o: _scrub_names(t, r, guess=o.name_guess)),
+    Passo("amounts", IT, "amounts", 65, _scrub_amounts),
+    Passo("addresses", IT, "addresses", 70, lambda t, r, o: _scrub_addresses(t, r)),
+    Passo(
+        "names", IT, "names", 90,
+        lambda t, r, o: _scrub_names(t, r, guess=o.name_guess),
+    ),
 )
 
 
@@ -1177,7 +1189,9 @@ def apply_privacy_filter(
     out = text
 
     attivi = set(opts.pacchetti)
-    for passo in SEQUENZA:
+    # Ordinamento stabile: a parita' di priorita' vale l'ordine di
+    # dichiarazione in SEQUENZA, che e' l'ordine dei pacchetti core -> it.
+    for passo in sorted(SEQUENZA, key=lambda p: p.priorita):
         if passo.pacchetto not in attivi:
             continue
         if not getattr(opts, passo.campo):

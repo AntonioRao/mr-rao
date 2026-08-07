@@ -129,11 +129,39 @@ def test_il_sospetto_italiano_non_scatta_senza_il_pacchetto_italiano():
 
 
 @pytest.mark.parametrize("pacchetti", [(CORE,), (CORE, IT), ()])
-def test_l_ordine_dei_passi_non_dipende_dalla_selezione(pacchetti):
+def test_filtrare_non_riordina(pacchetti):
     """Filtrare non deve riordinare: l'ordine e' il comportamento."""
-    eseguiti = [p.nome for p in SEQUENZA if p.pacchetto in set(pacchetti)]
-    atteso = [p.nome for p in SEQUENZA if p.pacchetto in set(pacchetti)]
-    assert eseguiti == atteso
-    # e restano nell'ordine dichiarato in SEQUENZA
+    eseguiti = [
+        p.nome
+        for p in sorted(SEQUENZA, key=lambda p: p.priorita)
+        if p.pacchetto in set(pacchetti)
+    ]
     indici = [next(i for i, p in enumerate(SEQUENZA) if p.nome == n) for n in eseguiti]
     assert indici == sorted(indici)
+
+
+def test_l_ordine_dichiarato_coincide_con_quello_eseguito():
+    """SEQUENZA si legge dall'alto in basso, ma a decidere e' ``priorita``.
+
+    Se le due cose divergessero, chiunque legga il file per capire l'ordine
+    leggerebbe una cosa falsa -- ed e' il file dove l'ordine *e'* il
+    comportamento. Meglio tenerli allineati e farlo dire a un test.
+    """
+    dichiarato = [p.nome for p in SEQUENZA]
+    eseguito = [p.nome for p in sorted(SEQUENZA, key=lambda p: p.priorita)]
+    assert dichiarato == eseguito
+
+
+def test_le_priorita_rispettano_i_vincoli_che_contano():
+    """Non l'ordine esatto -- i tre vincoli per cui quell'ordine esiste."""
+    pr = {p.nome: p.priorita for p in SEQUENZA}
+    # Gli URL prima delle email: un indirizzo dentro un link non deve
+    # spezzare il link.
+    assert pr["urls"] < pr["emails"]
+    # I codici prima dei telefoni: una partita IVA e' undici cifre.
+    assert max(pr["partita_iva"], pr["codice_fiscale"]) < pr["phones"]
+    # I riconoscitori esatti prima di quelli tolleranti all'OCR.
+    assert pr["codice_fiscale"] < pr["codice_fiscale_ocr"]
+    assert pr["iban"] < pr["iban_ocr"]
+    # I nomi per ultimi: i segnaposto gia' inseriti fanno da contesto.
+    assert pr["names"] == max(pr.values())
