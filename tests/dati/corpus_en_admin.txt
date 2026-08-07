@@ -1,0 +1,68 @@
+PROCUREMENT REVIEW — QUARTERLY REPORT
+Reference: PO-2024-118 / Annex B
+Issued: March 2025
+
+1. SCOPE
+
+This report covers the procurement activity of the Data Centre and
+Network Services group for the period ending 31 March. It supersedes the
+report issued in August and should be read alongside the Service Level
+Agreement and the Bill of Materials attached at Annex C.
+
+2. SUPPLIERS UNDER REVIEW
+
+Sterling Systems Ltd continues to hold the primary hosting contract.
+Baker & Price Limited supplies rack hardware under a framework agreement
+renewed in May. Rose Analytics provides the reporting layer. Whitfield
+Holdings remains on the approved list but has not been engaged since
+June.
+
+Green Lane Logistics handles physical media destruction. The collection
+point is the loading bay on Church Road, with a secondary site at the
+Sterling Way depot in Reading. A third site in Bath was closed in
+January and has not been replaced.
+
+3. GOVERNANCE
+
+Responsibility sits with the Head of Procurement, reporting to the Chief
+Information Security Officer. The Data Protection Officer reviews every
+contract that involves processing on behalf of the group. The Project
+Manager for the migration workstream chairs the weekly call.
+
+The Bill introduced last session does not change these obligations. The
+grace period for existing contracts runs to the end of the financial
+year.
+
+4. STANDARDS AND CONTROLS
+
+Controls are mapped to ISO/IEC 27001:2022, Annex A, with particular
+attention to Clause 8.3 and Clause 5.19. Supplier assessments follow
+NIST SP 800-53 Revision 5. The internal quality mark is applied only
+after the evidence pack has been signed off.
+
+Mark the register entry as closed once the assessment is filed. Long
+lead times on the optical modules remain the principal risk; costs rose
+by nine per cent against the forecast.
+
+5. REFERENCES AND FIGURES
+
+Purchase order:            PO-2024-118
+Asset register batch:      078051120
+Protocol number:           0034578921
+Framework agreement:       FA/2019/0442
+Contract value:            GBP 1,250,000.00
+Variation approved:        GBP 84,300.00
+Retention held:            5 per cent
+
+6. SITES
+
+Cambridge, Newcastle, Bolton and Reading remain in scope. The Wood Hill
+facility and the Ford Field annexe are listed as dormant. The Young
+Street office was released at the end of the lease.
+
+7. NEXT REVIEW
+
+The next review falls due in June. Papers close two weeks beforehand.
+Late submissions will be carried to the following cycle.
+
+END OF REPORT
