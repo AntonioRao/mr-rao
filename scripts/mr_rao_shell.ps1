@@ -107,6 +107,13 @@ function Install-Shell {
         exit 1
     }
     $ico = Resolve-Icon
+    # Il comando si calcola qui, sopra il ramo della prova, e la prova
+    # stampa *questa* variabile. Ricostruirlo dentro il ramo sembrava piu'
+    # leggibile ed era falso: si poteva cambiare il comando vero lasciando
+    # la prova a dire la cosa giusta. Una prova che ricalcola invece di
+    # mostrare descrive un programma che non esiste.
+    $comando = '"{0}" "%1"' -f $Bersaglio
+
     Write-Host "  avvio:  $Exe"
     Write-Host "  apri:   $Bersaglio"
     Write-Host "  icona:  $ico"
@@ -115,7 +122,7 @@ function Install-Shell {
         Write-Host ''
         Write-Host '  -Prova: nessun collegamento creato, nessuna chiave scritta.'
         Write-Host ("  avrei scritto {0} voci di menu con:" -f (Get-VerbKeys).Count)
-        Write-Host ('    {0}' -f ('"{0}" "%1"' -f $Bersaglio))
+        Write-Host ("    {0}" -f $comando)
         exit 0
     }
 
@@ -146,7 +153,6 @@ function Install-Shell {
         }
     }
 
-    $comando = '"{0}" "%1"' -f $Bersaglio
     $creati = 0
     $chiavi = Get-VerbKeys
     foreach ($k in $chiavi) {

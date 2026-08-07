@@ -7,7 +7,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.7.0-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-362%20passing-10b981)](tests/)
+[![Tests](https://img.shields.io/badge/tests-372%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -138,7 +138,7 @@ The recognition is code, not a neural network. The same document always yields t
 
 Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is ~150 MB, ~310 MB once installed.
 
-Installing creates the desktop shortcut, the Start menu entry and the "Apri con Mr. Rao" right-click action on eleven file types. `Disinstalla Mr Rao.bat` removes all of it — your working folders stay where they are.
+Installing creates the desktop shortcut, the Start menu entry and the "Apri con Mr. Rao" right-click action on any file, with a dedicated entry for the ten commonest formats. `Disinstalla Mr Rao.bat` removes all of it — your working folders stay where they are.
 
 ### With Python
 
@@ -251,7 +251,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Five steps: compilation, dependency health, licence alignment, published-docs alignment, **362 tests**.
+Five steps: compilation, dependency health, licence alignment, published-docs alignment, **372 tests**.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 

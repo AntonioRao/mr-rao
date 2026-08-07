@@ -49,7 +49,7 @@ ha ragione il codice.
 |----|------|--------|--------|
 | P2.1 | Test E2E portable (health + convert) | Il build avvia l'eseguibile, interroga `/api/health`, converte **.docx, .xlsx e .pptx** — uno per libreria opzionale — e confronta l'icona: se qualcosa non torna, **respinge il pacchetto** | **DONE in locale** (1.4.2, esteso ai tre formati nella 1.7.0) |
 | P2.2 | Test job cancel / watch start-stop | Race conditions | TODO |
-| P2.3 | Test shell integration (mock) | Regressioni SendTo | TODO |
+| P2.3 | Test shell integration | Il passaggio `-Prova` di `mr_rao_shell.ps1` stampa cosa scriverebbe e si ferma: da li' l'integrazione OS e' verificabile senza sporcare registro e Desktop di chi lancia i test | **DONE** (1.7.0) |
 | P2.4 | Gate pre-commit automatico (hook git opzionale) | Disciplina | TODO |
 | P2.9 | **Build del portable in CI**, non solo in locale | La 1.7.0 ha mostrato quanto valga un ambiente pulito: per tre release le librerie Office sono finite nel pacchetto solo perché erano nel venv di sviluppo. Il gate locale non può accorgersene, per definizione | TODO |
 
