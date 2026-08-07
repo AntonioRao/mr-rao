@@ -18,23 +18,36 @@ name: Portable
 # volta a settimana per intercettare le derive a monte (una nuova
 # markitdown che cambia cosa importa), e a mano prima di una release.
 
+# PER ORA SOLO A MANO, e di proposito.
+#
+# Un build su un runner GitHub puo' incontrare cose che qui non ci sono
+# (tempi, spazio su disco, percorsi), e finche' non e' passato almeno una
+# volta la' non si puo' dire che funzioni. Metterlo su un trigger
+# automatico prima di quel momento vuol dire spingere una cosa che non e'
+# stata verificata, e mettere una X rossa su main a nome di un commit che
+# in locale e' verde.
+#
+# Quando il primo giro a mano sara' verde, si aggiungono gli automatismi
+# gia' scritti qui sotto, commentati.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'requirements.txt'
-      - 'requirements-build.txt'
-      - 'scripts/build_portable.bat'
-      - 'scripts/verify_build.py'
-      - 'scripts/make_release_zip.py'
-      - 'scripts/check_venv.py'
-      - 'scripts/mr_rao_shell.ps1'
-      - 'mr_rao/converter.py'
-      - '.github/workflows/portable.yml'
-  schedule:
-    # Lunedi' alle 5:00 UTC. Le dipendenze si muovono anche quando noi no.
-    - cron: '0 5 * * 1'
+
+  # Da riattivare dopo la prima esecuzione riuscita:
+  #
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'requirements.txt'
+  #     - 'requirements-build.txt'
+  #     - 'scripts/build_portable.bat'
+  #     - 'scripts/verify_build.py'
+  #     - 'scripts/make_release_zip.py'
+  #     - 'scripts/check_venv.py'
+  #     - 'scripts/mr_rao_shell.ps1'
+  #     - 'mr_rao/converter.py'
+  #     - '.github/workflows/portable.yml'
+  # schedule:
+  #   - cron: '0 5 * * 1'   # lunedi' 5:00 UTC, per le derive a monte
 
 permissions:
   contents: read

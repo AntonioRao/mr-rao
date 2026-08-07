@@ -96,7 +96,10 @@ def test_il_pacchetto_si_costruisce_in_ci():
     config = carica(portable)
     eventi = trigger(config)
     assert "workflow_dispatch" in eventi, "deve potersi lanciare a mano prima di una release"
-    assert "schedule" in eventi, "senza cadenza le derive a monte non si vedono"
+    # Nessuna asserzione su push/schedule: finche' il build non e' passato
+    # almeno una volta su un runner GitHub sta apposta solo a mano, e un
+    # test che pretendesse gli automatismi spingerebbe ad accenderli prima
+    # di sapere se funziona.
 
     passi = config["jobs"]["build"]["steps"]
     comandi = " ".join(str(p.get("run", "")) for p in passi)
