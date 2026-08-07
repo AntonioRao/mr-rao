@@ -66,3 +66,27 @@ def test_i_controlli_restituiscono_una_lista(controllo):
     """Un controllo che tornasse None passerebbe ogni assert `not problemi`
     senza guardare niente. E' il modo in cui questi presidi muoiono zitti."""
     assert isinstance(controllo(), list)
+
+
+def test_claude_md_e_agents_md_restano_identici():
+    """Due file con lo stesso contenuto sono due file che divergono.
+
+    E' successo tre volte in questo repository nello stesso giorno:
+    quality_gate.ps1 fermo a tre passi su cinque, due script di
+    installazione che facevano quasi la stessa cosa, e l'elenco delle
+    estensioni scritto in due posti con la disinstallazione che ne conosceva
+    uno solo. Qui il rischio e' peggiore del solito, perche' a leggere il
+    file sbagliato sarebbe un assistente: seguirebbe regole che nessuno ha
+    piu' aggiornato, senza che nessuno se ne accorga.
+
+    Restano due file perche' due strumenti diversi cercano due nomi diversi.
+    Se un giorno uno dei due potesse diventare un rimando all'altro, tanto
+    meglio -- ma finche' sono copie, la copia va verificata.
+    """
+    agents = RADICE / "AGENTS.md"
+    claude = RADICE / "CLAUDE.md"
+    assert agents.is_file() and claude.is_file(), "mancano le regole di lavoro"
+    assert agents.read_bytes() == claude.read_bytes(), (
+        "AGENTS.md e CLAUDE.md sono diversi: chi legge il secondo seguirebbe "
+        "regole vecchie. Copia l'uno sull'altro."
+    )
