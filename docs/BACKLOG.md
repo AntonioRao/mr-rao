@@ -13,19 +13,40 @@ ha ragione il codice.
 
 ## P0 — Coerenza UX / OS (impatto alto)
 
+**Riscritta il 2026-08-07, dopo aver sentito chi lo usa.** Diceva: «tasto
+destro → apri la UI col risultato, perché l'utente si aspetta il browser».
+Era un'assunzione, e la persona che lo usa tutti i giorni ha detto il
+contrario: *«mi piace il tasto destro che genera direttamente il documento
+anonimizzato, è semplice ed efficace»*. Ha ragione — per il caso più
+frequente (voglio il testo, adesso) aprire un browser è un passaggio in più,
+non uno in meno.
+
+Il difetto vero è un altro, e va nella direzione opposta: **l'esito
+scompare**.
+
 | ID | Item | Perché | Stato |
 |----|------|--------|--------|
-| P0.1 | **SendTo / Apri con → UI con risultato** | Oggi apre solo CLI convert + shell; l'utente si aspetta il browser | TODO |
-| P0.2 | Flusso unificato: convert → apri `http://127.0.0.1:5000` con job/result in sessione o query | Un solo mental model | TODO |
+| P0.1 | **L'esito di una conversione da tasto destro non deve sparire quando c'è qualcosa da guardare** | `open_with_mr_rao.bat` finisce con `if errorlevel 1 pause`: la finestra si ferma solo se qualcosa va storto. Quando funziona si chiude all'istante, e con lei sparisce `redactions=3`. Si ottiene un file e nessuna idea di cosa sia stato tolto | TODO |
+| P0.2 | **La CLI deve stampare anche i sospetti**, non solo il conteggio delle redazioni | Il rapporto contiene `suspects` — la cosa che esiste apposta per dire «qui devi controllare» — e la riga di comando non la mostra. È il segnale più importante, assente nel percorso più usato | TODO |
 | P0.3 | Se server già su: riusa porta, non aprire seconda istanza cieca | Evita porte occupate / finestre morte | TODO (parziale: portcheck) |
-| P0.4 | Feedback visibile su fallimento shell (message box o log file) | Shell che flasha e sparisce = zero fiducia | TODO |
+| P0.4 | Feedback visibile su fallimento shell (message box o log file) | Shell che flasha e sparisce = zero fiducia. Parzialmente coperto: dalla 1.7.1 un file bloccato dice perché invece di mostrare un traceback | TODO |
 
-**Design proposto P0.1**
+**Perché P0.1 e P0.2 contano più di quanto sembri.** La FAQ dice che il
+confronto prima/dopo «è il controllo che conta», e `PRIVACY.md` che «zero
+redazioni non significa documento pulito». Il percorso più veloce e più
+comodo — quello che la gente userà davvero — **salta entrambe le cose in
+silenzio**. Non è un problema di comodità: è il prodotto che contraddice il
+proprio documento.
 
-1. `open_with` / SendTo lanciano `MrRao.exe --ui <file>` (o bat equivalente).  
-2. Se server non up → start + wait health.  
-3. POST convert (sync o job) → redirect browser a `/` con risultato in memoria (job_id).  
-4. UI apre tab risultato automaticamente.
+**Design proposto**
+
+1. Documento pulito (zero redazioni, zero sospetti) → la finestra si chiude
+   come adesso: non c'è niente da guardare, e fermarsi per dire «niente»
+   insegna a chiudere senza leggere.
+2. Qualcosa tolto **o** qualcosa da controllare → si ferma, mostra il
+   conteggio, i sospetti mascherati e il percorso del `.md`, e ricorda che
+   il confronto si apre nell'app.
+3. Il file continua a comparire accanto all'originale: quello non si tocca.
 
 ---
 
@@ -211,7 +232,13 @@ che spiega il perimetro italiano, interfaccia in italiano per chi la usa.
 
 ## Metriche di “fatto” per P0
 
-- [ ] Click destro → Invia a Mr. Rao → browser aperto entro 3s  
-- [ ] Markdown del file visibile in UI  
-- [ ] Nessuna console che flasha e sparisce senza spiegazione  
+Anche queste riscritte il 2026-08-07: la prima diceva «browser aperto entro
+3s», che era la vecchia idea sbagliata di dove si debba finire.
+
+- [ ] Click destro su un documento pulito → il `.md` compare accanto
+      all'originale e la finestra si chiude, senza chiedere niente
+- [ ] Click destro su un documento con dati personali → prima di chiudersi
+      dice **quante** sostituzioni e **quanti** sospetti, e dove trovare il file
+- [ ] Il conteggio dei sospetti compare anche da riga di comando
+- [ ] Nessuna console che flasha e sparisce quando c'era qualcosa da leggere
 - [ ] Funziona sia da install Python sia da portable exe  
