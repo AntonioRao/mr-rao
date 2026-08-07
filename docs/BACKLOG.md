@@ -1,6 +1,8 @@
 # Backlog & piano di priorità — Mr. Rao
 
-Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
+Lo stato delle voci vale alla **1.7.0**. La fonte di verità resta git e il
+[changelog](CHANGELOG.md): se una riga qui dice DONE e il codice dice altro,
+ha ragione il codice.
 
 ## Principio
 
@@ -37,6 +39,7 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 | P1.3 | Empty states e microcopy coerenti | Professionalità | **DONE** |
 | P1.4 | Preview Markdown più fedele (liste, tabelle) | Anteprima debole | TODO |
 | P1.5 | Mobile / narrow viewport polish | Uso da tablet | TODO |
+| P1.8 | **Elenco di termini sempre / mai da sostituire, configurabile dall'interfaccia** | Il motore decide con regole generali; ogni studio ha però nomi propri ricorrenti (clienti, controparti) e parole che non vanno mai toccate (denominazioni interne). Oggi l'unica leva è spegnere un riconoscitore intero. Vale come [parità GUI](../README.it.md): configurabile lì, non solo da riga di comando | TODO |
 
 ---
 
@@ -44,22 +47,30 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 
 | ID | Item | Perché | Stato |
 |----|------|--------|--------|
-| P2.1 | Test E2E portable (health + convert) | Il build avvia l'eseguibile, interroga `/api/health`, converte un `.docx` e confronta l'icona: se qualcosa non torna, **respinge il pacchetto**. Manca solo il giro in CI | **DONE in locale** (1.4.2) |
+| P2.1 | Test E2E portable (health + convert) | Il build avvia l'eseguibile, interroga `/api/health`, converte **.docx, .xlsx e .pptx** — uno per libreria opzionale — e confronta l'icona: se qualcosa non torna, **respinge il pacchetto** | **DONE in locale** (1.4.2, esteso ai tre formati nella 1.7.0) |
 | P2.2 | Test job cancel / watch start-stop | Race conditions | TODO |
 | P2.3 | Test shell integration (mock) | Regressioni SendTo | TODO |
 | P2.4 | Gate pre-commit automatico (hook git opzionale) | Disciplina | TODO |
+| P2.9 | **Build del portable in CI**, non solo in locale | La 1.7.0 ha mostrato quanto valga un ambiente pulito: per tre release le librerie Office sono finite nel pacchetto solo perché erano nel venv di sviluppo. Il gate locale non può accorgersene, per definizione | TODO |
 
 ---
 
 ## P2-ter — Irrobustimento del server locale (1.7.0)
 
+Numerate `S.x` e non `P2.x`: la prima stesura di questa sezione riusava
+P2.5–P2.8, che **P2-bis aveva già presi**, e per qualche ora «P2.7» ha
+voluto dire due cose diverse, in due stati diversi. Un elenco in cui non si
+può citare un identificativo non serve a niente.
+
 | ID | Item | Stato |
 |----|------|--------|
-| P2.5 | `Sec-Fetch-Site` rifiutato su mutazioni — copre il ramo in cui `Origin` manca, e i vicini di porta su localhost | **DONE** (1.7.0) |
-| P2.6 | Allow-list host reale anche con `MR_RAO_HOST=0.0.0.0`, invece di `*` | **DONE** (1.7.0) |
-| P2.7 | `SECRET_KEY` casuale in memoria invece di una costante pubblicata | **DONE** (1.7.0) |
-| P2.8 | `frame-ancestors 'none'`, `nosniff`, `no-referrer` | **DONE** (1.7.0) |
-| P2.9 | Tetto di tempo sull'OCR, con troncamento dichiarato nel documento | **DONE** (1.7.0) |
+| S.1 | `Sec-Fetch-Site` rifiutato su mutazioni — copre il ramo in cui `Origin` manca, e i vicini di porta su localhost | **DONE** (1.7.0) |
+| S.2 | Allow-list host reale anche con `MR_RAO_HOST=0.0.0.0`, invece di `*` | **DONE** (1.7.0) |
+| S.3 | `SECRET_KEY` casuale in memoria invece di una costante pubblicata | **DONE** (1.7.0) |
+| S.4 | `frame-ancestors 'none'`, `nosniff`, `no-referrer` | **DONE** (1.7.0) |
+| S.5 | Tetto di tempo sull'OCR, con troncamento dichiarato nel documento | **DONE** (1.7.0) |
+| S.6 | ReDoS quadratico nella pulizia del testo (`<!--` mai chiusi): 3,2 s su 80 mila caratteri, con un tetto d'invio di 50 MB | **DONE** (1.7.0) |
+| S.7 | Triage dei 16 alert CodeQL: 4 corretti, 12 chiusi con la motivazione scritta **anche nel codice**, non solo nella scheda Security | **DONE** (1.7.0) |
 
 ### Valutati e scartati, con la ragione
 
@@ -79,6 +90,7 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 | P3.2 | Diff semantico 2 PDF (non solo A/B stacked) | Compare attuale è merge etichettato | TODO |
 | P3.3 | Tray: stato job + “apri ultimo risultato” | Tray oggi minimale | TODO |
 | P3.4 | Portable firmato / zip release versionato | Distribuzione team | TODO |
+| P3.5 | **Documenti d'identità: carta d'identità, patente, passaporto** | Oggi non c'è nessun riconoscitore. Sono fra i dati più sensibili che passano da uno studio, e hanno formati regolari — la patente italiana ha una struttura fissa, il passaporto una riga MRZ leggibile a vista. Va fatto col metodo di casa: il pattern propone, un validatore decide, e il verbale amministrativo deve restare a zero | TODO |
 
 ---
 
@@ -105,14 +117,25 @@ Ultimo aggiornamento: UI Design System 2.0 (glass / aurora / float).
 ## Ordine di lavoro consigliato
 
 ```
+A.9  (in parallelo: aspetta dei documenti, non del codice)
+ │
 P0.1 → P0.2 → P0.3 → P0.4
-         ↓
-      P1.4 / P1.5
-         ↓
-      P2.x (test)
-         ↓
-      P3 solo se richiesta esplicita
+ │
+P1.8 → P1.4 / P1.5
+ │
+P2.9 → P2.2 / P2.3 / P2.4
+ │
+P3 solo se richiesta esplicita
 ```
+
+**A.9 sta fuori dalla catena perché non dipende da noi.** È l'unica voce che
+può togliere un limite oggi dichiarato: PRIVACY.md ammette che il banco OCR
+è sintetico, cioè che l'efficacia sulle scansioni è *stimata, non misurata*.
+Per misurarla servono documenti passati davvero da uno scanner — e finché
+non ci sono, quella riga in PRIVACY.md deve restare dov'è.
+
+**P0 resta in cima fra le cose che dipendono da noi**: è l'unica che
+l'utente incontra tutti i giorni, ed è ferma da più release di ogni altra.
 
 ---
 
