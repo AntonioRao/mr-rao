@@ -1,25 +1,24 @@
-# Mr. Rao quality gate — run before commit
-$ErrorActionPreference = "Stop"
-Set-Location (Join-Path $PSScriptRoot "..")
+# Mr. Rao quality gate, per chi lavora in PowerShell.
+#
+# Questo file non ripete i passi del gate: li esegue chiamando
+# quality_gate.bat, che ne resta l'unica definizione.
+#
+# Prima era una seconda implementazione, e ha fatto esattamente quello che
+# fanno le seconde implementazioni: e' rimasta indietro. Diceva "[1/3]"
+# quando i passi erano cinque, non conosceva il controllo delle licenze ne'
+# quello dei documenti pubblicati, e nessuno la chiamava -- quindi nessuno
+# se ne accorgeva. Chi apriva il repository e leggeva questo file si faceva
+# un'idea sbagliata di cosa venga controllato prima di un commit.
+#
+# Un solo elenco di passi, due modi di lanciarlo.
 
-Write-Host "=== Mr. Rao quality gate ===" -ForegroundColor Cyan
+$ErrorActionPreference = 'Continue'
 
-$py = "python"
-if (Test-Path ".\venv\Scripts\python.exe") {
-    $py = ".\venv\Scripts\python.exe"
+$gate = Join-Path $PSScriptRoot 'quality_gate.bat'
+if (-not (Test-Path $gate)) {
+    Write-Host "ERRORE: manca $gate" -ForegroundColor Red
+    exit 1
 }
 
-Write-Host "[1/3] Compile check..."
-& $py -m compileall -q app.py config.py mr_rao
-if ($LASTEXITCODE -ne 0) { Write-Host "FAIL compileall" -ForegroundColor Red; exit 1 }
-
-Write-Host "[2/3] CLI health..."
-& $py -m mr_rao.cli health
-if ($LASTEXITCODE -ne 0) { Write-Host "FAIL health" -ForegroundColor Red; exit 1 }
-
-Write-Host "[3/3] pytest..."
-& $py -m pytest tests -q --tb=short
-if ($LASTEXITCODE -ne 0) { Write-Host "FAIL tests" -ForegroundColor Red; exit 1 }
-
-Write-Host "=== GATE PASSED ===" -ForegroundColor Green
-exit 0
+& $gate
+exit $LASTEXITCODE

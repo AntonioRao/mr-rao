@@ -7,10 +7,33 @@
 #
 # ASCII puro di proposito: un .ps1 con caratteri accentati e senza BOM non
 # viene interpretato correttamente da Windows PowerShell 5.1.
+#
+# Serve due installazioni diverse, e per questo i percorsi sono parametri
+# invece che dedotti:
+#
+#   pacchetto portable   ->  <InstallDir>\app\MrRao.exe, che porta l'icona
+#                            dentro di se'
+#   installazione da     ->  "Avvia Mr Rao.bat" per il collegamento,
+#   sorgente (Python)        "open_with_mr_rao.bat" per il menu, e il .ico
+#                            del repository per l'icona
+#
+# Prima l'installazione da sorgente aveva due script propri, che facevano
+# la stessa cosa in modo leggermente diverso. Due strade per lo stesso
+# risultato vuol dire che correggendone una l'altra resta indietro in
+# silenzio -- ed e' il difetto che questo file era nato per chiudere.
 
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$InstallDir,
+    # Cosa lancia il collegamento. Vuoto = layout del pacchetto portable.
+    [string]$Avvio,
+    # Cosa lancia il menu contestuale, che riceve il file come argomento.
+    # Vuoto = lo stesso di -Avvio (l'eseguibile accetta gia' un percorso).
+    [string]$ApriCon,
+    # Icona. Vuoto = quella dentro l'eseguibile.
+    [string]$Icona,
+    # Stampa cosa farebbe e si ferma: niente registro, niente collegamenti.
+    [switch]$Prova,
     [switch]$Remove
 )
 
@@ -21,7 +44,8 @@ $Estensioni = @(
     '.xlsx', '.pptx', '.txt'
 )
 
-$Exe = Join-Path $InstallDir 'app\MrRao.exe'
+if ($Avvio) { $Exe = $Avvio } else { $Exe = Join-Path $InstallDir 'app\MrRao.exe' }
+if ($ApriCon) { $Bersaglio = $ApriCon } else { $Bersaglio = $Exe }
 
 function Get-DesktopPath {
     # Con OneDrive attivo il Desktop puo' essere spostato (Known Folder
@@ -69,6 +93,11 @@ function Resolve-Icon {
     # L'eseguibile l'icona ce l'ha dentro (PyInstaller la incorpora al
     # build) e c'e' sempre: se manca lui non c'e' nessun collegamento da
     # creare. Un'indirezione in meno, tre guasti in meno.
+    #
+    # L'installazione da sorgente non ha un eseguibile in cui guardare, e
+    # deve passare un .ico esplicito: li' i tre guasti descritti sopra
+    # restano possibili, ed e' il prezzo di non avere un binario.
+    if ($Icona) { return $Icona }
     return $Exe
 }
 
@@ -78,7 +107,17 @@ function Install-Shell {
         exit 1
     }
     $ico = Resolve-Icon
+    Write-Host "  avvio:  $Exe"
+    Write-Host "  apri:   $Bersaglio"
     Write-Host "  icona:  $ico"
+
+    if ($Prova) {
+        Write-Host ''
+        Write-Host '  -Prova: nessun collegamento creato, nessuna chiave scritta.'
+        Write-Host ("  avrei scritto {0} voci di menu con:" -f (Get-VerbKeys).Count)
+        Write-Host ('    {0}' -f ('"{0}" "%1"' -f $Bersaglio))
+        exit 0
+    }
 
     $falliti = @()
     foreach ($link in Get-LinkPaths) {
@@ -107,7 +146,7 @@ function Install-Shell {
         }
     }
 
-    $comando = '"{0}" "%1"' -f $Exe
+    $comando = '"{0}" "%1"' -f $Bersaglio
     $creati = 0
     $chiavi = Get-VerbKeys
     foreach ($k in $chiavi) {

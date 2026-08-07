@@ -12,7 +12,7 @@ echo.
 
 cd /d "%~dp0"
 
-echo [1/5] Verifica Python...
+echo [1/6] Verifica Python...
 where python >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     echo.
@@ -27,7 +27,7 @@ python --version
 echo       Python trovato.
 echo.
 
-echo [2/5] Creazione ambiente virtuale (venv)...
+echo [2/6] Creazione ambiente virtuale (venv)...
 if exist "venv" (
     echo       Ambiente virtuale gia' presente, lo riutilizzo.
 ) else (
@@ -41,7 +41,7 @@ if exist "venv" (
 )
 echo.
 
-echo [3/5] Installazione dipendenze (include beautifulsoup4, Flask, RapidOCR...)...
+echo [3/6] Installazione dipendenze (include beautifulsoup4, Flask, RapidOCR...)...
 echo.
 call venv\Scripts\activate.bat
 python -m pip install --upgrade pip
@@ -68,7 +68,7 @@ if %ERRORLEVEL% neq 0 (
 )
 echo.
 
-echo [5/7] Generazione icone (logo, favicon, mr-rao.ico)...
+echo [5/6] Generazione icone (logo, favicon, mr-rao.ico)...
 python scripts\generate_icons.py
 if %ERRORLEVEL% neq 0 (
     echo       AVVISO: generazione icone fallita — lo shortcut usera' l'icona di default.
@@ -77,28 +77,22 @@ if %ERRORLEVEL% neq 0 (
 )
 echo.
 
-echo [6/7] Collegamento Desktop con icona...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\create_desktop_shortcut.ps1" -ProjectRoot "%~dp0"
-if %ERRORLEVEL% neq 0 (
-    echo       Fallback: creo Mr Rao.bat sul Desktop senza .ico
-    set SCRIPT_DIR=%~dp0
-    set DESKTOP=%USERPROFILE%\Desktop
-    (
-    echo @echo off
-    echo cd /d "%SCRIPT_DIR%"
-    echo call "Avvia Mr Rao.bat"
-    ) > "%DESKTOP%\Mr Rao.bat"
-) else (
-    echo       Collegamento: Desktop\Mr. Rao.lnk  (icona mr-rao.ico)
-)
-echo.
-
-echo [7/7] Menu contestuale Windows (Invia a / Apri con)...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\install_shell_integration.ps1" -ExePath "%~dp0scripts\open_with_mr_rao.bat" -IconPath "%~dp0static\img\mr-rao.ico" 2>nul
+echo [6/6] Collegamenti e menu contestuale...
+REM Stesso script del pacchetto portable, con i percorsi di questa
+REM installazione: da sorgente non c'e' un MrRao.exe, quindi il
+REM collegamento punta al .bat di avvio, il menu contestuale a quello che
+REM accetta un file come argomento, e l'icona al .ico del repository.
+REM
+REM Prima qui c'erano due script separati che facevano la stessa cosa in
+REM modo leggermente diverso da quello del pacchetto: l'elenco delle
+REM estensioni viveva in due posti, e la disinstallazione ne conosceva uno
+REM solo.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\mr_rao_shell.ps1" -InstallDir "%~dp0" -Avvio "%~dp0Avvia Mr Rao.bat" -ApriCon "%~dp0scripts\open_with_mr_rao.bat" -Icona "%~dp0static\img\mr-rao.ico"
 if errorlevel 1 (
-    echo       Shell integration opzionale non applicata.
+    echo       AVVISO: alcuni collegamenti non sono stati creati.
+    echo               Mr. Rao si avvia comunque da "Avvia Mr Rao.bat".
 ) else (
-    echo       Invia a / Apri con Mr. Rao configurati.
+    echo       Collegamenti e menu contestuale configurati.
 )
 echo.
 
