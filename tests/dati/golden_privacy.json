@@ -1,0 +1,27 @@
+{
+  "uscita": "Oggetto: pratica 2024/118\n\nGentile Dott. {{NAME}},\n\nle confermo quanto concordato. Il referente e' {{NAME}}\n<{{EMAIL}}>, in copia anche {{EMAIL}}\n\nRecapiti: cell. {{PHONE}}, fisso {{PHONE}}, fax {{PHONE}}.\nSede: {{ADDRESS}}.\nRiferimenti su {{URL}} e su {{URL}}\n\nCodice fiscale {{CODICE_FISCALE}}, partita IVA {{PARTITA_IVA}}.\nIBAN {{IBAN}}, oppure {{IBAN}}.\nCarta {{CARD}}. Coordinate: conto CIN X {{BBAN}}.\n\nIl collega, nato il {{DATE}}, seguira' la pratica.\nImporto concordato: {{AMOUNT}}.\n\nDa OCR, storpiati: {{CODICE_FISCALE}} e lT60X05428111010000001234S7\nChiave: {{SECRET}} = {{SECRET}}\n\nCordiali saluti\n{{NAME}}\n",
+  "totale": 24,
+  "conteggi": {
+    "addresses": 1,
+    "amounts": 1,
+    "bban": 1,
+    "cards": 1,
+    "codice_fiscale": 2,
+    "dates": 1,
+    "emails": 2,
+    "iban": 2,
+    "names": 3,
+    "ocr_corretti": 1,
+    "partita_iva": 1,
+    "phones": 3,
+    "secrets": 3,
+    "urls": 2
+  },
+  "sospetti": [
+    {
+      "kind": "iban",
+      "sample": "lT•••••••••••••••••••••••S7",
+      "why": "ha la forma di un IBAN ma non supera il controllo mod-97"
+    }
+  ]
+}

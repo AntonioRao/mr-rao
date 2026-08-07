@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from typing import Callable
 
 from mr_rao.it_names import COMMON_CAPITALIZED, FIRST_NAMES, SURNAMES
 
@@ -349,6 +350,25 @@ _AMBIGUOUS_ALONE = frozenset(
 )
 
 
+# ---------------------------------------------------------------------------
+# Pacchetti
+# ---------------------------------------------------------------------------
+#
+# Un riconoscitore o vale ovunque, o vale in un Paese solo. La distinzione
+# non esisteva da nessuna parte: dentro l'unico interruttore ``fiscal``
+# convivevano l'IBAN — mod-97, valido in tutti i Paesi SEPA — e il codice
+# fiscale, che esiste solo qui. Chi voleva usare Mr. Rao su un documento
+# straniero doveva prendersi anche i riconoscitori italiani, oppure
+# rinunciare pure all'IBAN.
+#
+# I nomi restano quelli dei codici lingua ISO 639-1, cosi' il giorno in cui
+# l'interfaccia avra' un selettore di lingua i due vocabolari coincidono.
+CORE = "core"
+IT = "it"
+
+PACCHETTI_NOTI: tuple[str, ...] = (CORE, IT)
+
+
 @dataclass
 class PrivacyOptions:
     emails: bool = True
@@ -365,6 +385,11 @@ class PrivacyOptions:
     # elenco contiene, ma e' anche la regola che puo' sbagliare: si spegne
     # da sola, senza rinunciare al resto del riconoscimento dei nomi.
     name_guess: bool = True
+    # Quali famiglie di riconoscitori eseguire. Il valore predefinito e' il
+    # comportamento di sempre: nucleo universale piu' formati italiani.
+    # Un documento inglese vorra' ``(CORE,)`` oggi e ``(CORE, EN)`` domani;
+    # uno studio italiano che segue un cliente estero li vorra' entrambi.
+    pacchetti: tuple[str, ...] = (CORE, IT)
 
 
 @dataclass
@@ -769,18 +794,22 @@ def find_suspects(text: str, report: RedactionReport, opts: PrivacyOptions) -> N
                 )
 
     if opts.fiscal:
-        for m in _RE_QUASI_CF.finditer(text):
-            tok = m.group(0)
-            lettere = sum(c.isalpha() for c in tok)
-            cifre = sum(c.isdigit() for c in tok)
-            # Un hash o un identificativo non hanno questa proporzione.
-            if 6 <= lettere <= 11 and 5 <= cifre <= 10:
-                report.suspect(
-                    "codice_fiscale",
-                    tok,
-                    "sedici caratteri con la proporzione di un codice fiscale, "
-                    "ma la struttura non torna: possibile lettura OCR sbagliata",
-                )
+        # Il quasi-codice-fiscale e' italiano; il quasi-IBAN e la
+        # quasi-carta valgono ovunque, quindi restano fuori dal pacchetto.
+        if IT in opts.pacchetti:
+            for m in _RE_QUASI_CF.finditer(text):
+                tok = m.group(0)
+                lettere = sum(c.isalpha() for c in tok)
+                cifre = sum(c.isdigit() for c in tok)
+                # Un hash o un identificativo non hanno questa proporzione.
+                if 6 <= lettere <= 11 and 5 <= cifre <= 10:
+                    report.suspect(
+                        "codice_fiscale",
+                        tok,
+                        "sedici caratteri con la proporzione di un codice "
+                        "fiscale, ma la struttura non torna: possibile "
+                        "lettura OCR sbagliata",
+                    )
         for m in _RE_QUASI_IBAN.finditer(text):
             tok = m.group(0)
             if sum(c.isalpha() for c in tok) < 3 or sum(c.isdigit() for c in tok) < 8:
@@ -954,17 +983,191 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
     return _RE_LONE_TOKEN.sub(_lone_sub, text)
 
 
+def _scrub_emails(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    out = _replace_all(text, _RE_EMAIL, "{{EMAIL}}", report, "emails")
+    return _replace_all(out, _RE_EMAIL_OFFUSCATA, "{{EMAIL}}", report, "emails")
+
+
+def _scrub_cf(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        # Si sostituisce comunque: su un dato personale l'errore va fatto
+        # nella direzione prudente. Ma se la struttura torna e il carattere
+        # di controllo no, quasi sempre il testo viene da un OCR che ha
+        # storpiato un carattere -- e allora ne avra' storpiati altri, che
+        # nessun riconoscitore ha visto.
+        if not cf_check_char_ok(m.group(1)):
+            report.suspect(
+                "codice_fiscale",
+                m.group(1),
+                "sostituito, ma il carattere di controllo non torna: "
+                "il documento potrebbe contenere altri dati storpiati",
+            )
+        report.add("codice_fiscale")
+        return "{{CODICE_FISCALE}}"
+
+    return _RE_CF.sub(_sub, text)
+
+
+def _scrub_iban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        if not iban_checksum_ok(m.group(1)):
+            return m.group(0)
+        report.add("iban")
+        return "{{IBAN}}"
+
+    out = _RE_IBAN.sub(_sub, text)
+    return _RE_IBAN_SPAZIATO.sub(_sub, out)
+
+
+def _scrub_cards(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        if not luhn_ok(m.group(1)):
+            return m.group(0)
+        report.add("cards")
+        return "{{CARD}}"
+
+    return _RE_CARD.sub(_sub, text)
+
+
+def _scrub_bban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    # Prima dei telefoni: 22 cifre di coordinate bancarie hanno la stessa
+    # forma di due numeri di telefono attaccati.
+    def _sub(m: re.Match) -> str:
+        ctx = _context_before(m.string, m.start(), 40).lower()
+        if not any(k in ctx for k in ("bban", "coordinate", "c/c", "conto", "cin ")):
+            return m.group(0)
+        report.add("bban")
+        return "{{BBAN}}"
+
+    out = _RE_BBAN.sub(_sub, text)
+    return _replace_all(out, _RE_ABI_CAB, "{{BBAN}}", report, "bban")
+
+
+# Recupero dei codici storpiati dall'OCR. Gira dopo i riconoscitori esatti,
+# su cio' che e' rimasto, e sostituisce *solo* se il checksum del candidato
+# corretto torna. E' quello che permette di essere tolleranti senza aprire
+# ai falsi positivi: non decide un'euristica, decide l'aritmetica.
+def _scrub_fuzzy_cf(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        if cf_ocr_recover(m.group(0)) is None:
+            return m.group(0)
+        report.add("codice_fiscale")
+        report.add("ocr_corretti")
+        return "{{CODICE_FISCALE}}"
+
+    return _RE_FUZZY_CF.sub(_sub, text)
+
+
+def _scrub_fuzzy_iban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        if iban_ocr_recover(m.group(0)) is None:
+            return m.group(0)
+        report.add("iban")
+        report.add("ocr_corretti")
+        return "{{IBAN}}"
+
+    return _RE_FUZZY_IBAN.sub(_sub, text)
+
+
+def _scrub_piva(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    # Only replace if preceded by context keywords nearby or IT prefix.
+    def _sub(m: re.Match) -> str:
+        ctx = _context_before(m.string, m.start()).lower()
+        raw = m.group(0)
+        if raw.upper().startswith("IT") or any(
+            k in ctx for k in ("p.iva", "piva", "partita", "vat", "c.f.")
+        ):
+            # Stessa scelta del codice fiscale: sostituisce comunque, e se
+            # la cifra di controllo non torna lo dice.
+            if not piva_check_ok(m.group(1)):
+                report.suspect(
+                    "partita_iva",
+                    m.group(1),
+                    "sostituita, ma la cifra di controllo non torna: "
+                    "o non era una partita IVA, o il documento e' storpiato",
+                )
+            report.add("partita_iva")
+            return "{{PARTITA_IVA}}"
+        return raw
+
+    return _RE_PIVA.sub(_sub, text)
+
+
+def _scrub_phones(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        if not _phone_is_plausible(m):
+            return m.group(0)
+        report.add("phones")
+        return "{{PHONE}}"
+
+    return _RE_PHONE.sub(_sub, text)
+
+
+def _scrub_amounts(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        if not _amount_is_plausible(m):
+            return m.group(0)
+        report.add("amounts")
+        return "{{AMOUNT}}"
+
+    return _RE_AMOUNT.sub(_sub, text)
+
+
+@dataclass(frozen=True)
+class Passo:
+    """Un riconoscitore nella sequenza, con il pacchetto che lo possiede.
+
+    ``nome`` non e' decorativo: e' l'identificativo con cui i test dicono
+    quale passo intendono, e non deve cambiare quando cambia il nome della
+    funzione.
+    """
+
+    nome: str
+    pacchetto: str
+    campo: str  # il campo di PrivacyOptions che lo accende
+    esegui: Callable[[str, RedactionReport, PrivacyOptions], str]
+
+
+# **L'ordine di questa lista e' il comportamento del motore.** Non e'
+# casuale: i segreti per primi (una chiave privata contiene di tutto), gli
+# URL prima delle email (un indirizzo dentro un link non deve spezzare il
+# link), i codici prima dei telefoni (una partita IVA e' undici cifre), i
+# nomi per ultimi, quando i segnaposto gia' inseriti fanno da contesto.
+# Spostare una riga qui cambia cio' che esce: il banco golden se ne accorge.
+SEQUENZA: tuple[Passo, ...] = (
+    Passo("secrets", CORE, "secrets", lambda t, r, o: _scrub_secrets(t, r)),
+    Passo("urls", CORE, "urls", lambda t, r, o: _scrub_urls(t, r)),
+    Passo("emails", CORE, "emails", _scrub_emails),
+    Passo("codice_fiscale", IT, "fiscal", _scrub_cf),
+    Passo("iban", CORE, "fiscal", _scrub_iban),
+    Passo("cards", CORE, "fiscal", _scrub_cards),
+    Passo("bban", IT, "fiscal", _scrub_bban),
+    Passo("codice_fiscale_ocr", IT, "fiscal", _scrub_fuzzy_cf),
+    Passo("iban_ocr", CORE, "fiscal", _scrub_fuzzy_iban),
+    Passo("partita_iva", IT, "fiscal", _scrub_piva),
+    Passo("date_nascita", IT, "dates", lambda t, r, o: _scrub_birth_dates(t, r)),
+    # Il pattern e' internazionale (prefisso +CC, parola di contesto anche
+    # in inglese); restano italiane solo le due scorciatoie senza contesto,
+    # cellulare 3xx e fisso 0xx, dentro _phone_is_plausible. Vanno separate
+    # quando arrivera' il pacchetto inglese con le regole NANP.
+    Passo("phones", CORE, "phones", _scrub_phones),
+    # Euro e parole italiane: "importo", "imponibile", "canone".
+    Passo("amounts", IT, "amounts", _scrub_amounts),
+    Passo("addresses", IT, "addresses", lambda t, r, o: _scrub_addresses(t, r)),
+    Passo("names", IT, "names", lambda t, r, o: _scrub_names(t, r, guess=o.name_guess)),
+)
+
+
 def apply_privacy_filter(
     text: str,
     options: PrivacyOptions | None = None,
 ) -> tuple[str, RedactionReport]:
     """Apply selected redactions. Returns (cleaned_text, report).
 
-    L'ordine non e' casuale: i segreti per primi (una chiave privata contiene
-    di tutto), gli URL prima delle email (un indirizzo dentro un link non
-    deve spezzare il link), i codici prima dei telefoni (una partita IVA e'
-    undici cifre), i nomi per ultimi, quando i segnaposto gia' inseriti
-    fanno da contesto.
+    I riconoscitori, il loro ordine e il pacchetto a cui appartengono stanno
+    tutti in ``SEQUENZA``. Qui resta solo la regola di esecuzione: un passo
+    gira se il suo pacchetto e' fra quelli scelti **e** se il suo
+    interruttore e' acceso. Erano due cose diverse scritte come una sola.
     """
     if not text:
         return text, RedactionReport()
@@ -973,137 +1176,13 @@ def apply_privacy_filter(
     report = RedactionReport()
     out = text
 
-    if opts.secrets:
-        out = _scrub_secrets(out, report)
-
-    if opts.urls:
-        out = _scrub_urls(out, report)
-
-    if opts.emails:
-        out = _replace_all(out, _RE_EMAIL, "{{EMAIL}}", report, "emails")
-        out = _replace_all(out, _RE_EMAIL_OFFUSCATA, "{{EMAIL}}", report, "emails")
-
-    if opts.fiscal:
-
-        def _cf_sub(m: re.Match) -> str:
-            # Si sostituisce comunque: su un dato personale l'errore va
-            # fatto nella direzione prudente. Ma se la struttura torna e il
-            # carattere di controllo no, quasi sempre il testo viene da un
-            # OCR che ha storpiato un carattere -- e allora ne avra'
-            # storpiati altri, che nessun riconoscitore ha visto.
-            if not cf_check_char_ok(m.group(1)):
-                report.suspect(
-                    "codice_fiscale",
-                    m.group(1),
-                    "sostituito, ma il carattere di controllo non torna: "
-                    "il documento potrebbe contenere altri dati storpiati",
-                )
-            report.add("codice_fiscale")
-            return "{{CODICE_FISCALE}}"
-
-        out = _RE_CF.sub(_cf_sub, out)
-
-        def _iban_sub(m: re.Match) -> str:
-            if not iban_checksum_ok(m.group(1)):
-                return m.group(0)
-            report.add("iban")
-            return "{{IBAN}}"
-
-        out = _RE_IBAN.sub(_iban_sub, out)
-        out = _RE_IBAN_SPAZIATO.sub(_iban_sub, out)
-
-        def _card_sub(m: re.Match) -> str:
-            if not luhn_ok(m.group(1)):
-                return m.group(0)
-            report.add("cards")
-            return "{{CARD}}"
-
-        out = _RE_CARD.sub(_card_sub, out)
-
-        # Prima dei telefoni: 22 cifre di coordinate bancarie hanno la
-        # stessa forma di due numeri di telefono attaccati.
-        def _bban_sub(m: re.Match) -> str:
-            ctx = _context_before(m.string, m.start(), 40).lower()
-            if not any(k in ctx for k in ("bban", "coordinate", "c/c", "conto", "cin ")):
-                return m.group(0)
-            report.add("bban")
-            return "{{BBAN}}"
-
-        out = _RE_BBAN.sub(_bban_sub, out)
-        out = _replace_all(out, _RE_ABI_CAB, "{{BBAN}}", report, "bban")
-
-        # Recupero dei codici storpiati dall'OCR. Gira dopo i riconoscitori
-        # esatti, su cio' che e' rimasto, e sostituisce *solo* se il
-        # checksum del candidato corretto torna. E' quello che permette di
-        # essere tolleranti senza aprire ai falsi positivi: non decide
-        # un'euristica, decide l'aritmetica.
-        def _cf_fuzzy(m: re.Match) -> str:
-            if cf_ocr_recover(m.group(0)) is None:
-                return m.group(0)
-            report.add("codice_fiscale")
-            report.add("ocr_corretti")
-            return "{{CODICE_FISCALE}}"
-
-        def _iban_fuzzy(m: re.Match) -> str:
-            if iban_ocr_recover(m.group(0)) is None:
-                return m.group(0)
-            report.add("iban")
-            report.add("ocr_corretti")
-            return "{{IBAN}}"
-
-        out = _RE_FUZZY_CF.sub(_cf_fuzzy, out)
-        out = _RE_FUZZY_IBAN.sub(_iban_fuzzy, out)
-
-        # P.IVA: only replace if preceded by context keywords nearby or IT prefix
-        def _piva_sub(m: re.Match) -> str:
-            ctx = _context_before(m.string, m.start()).lower()
-            raw = m.group(0)
-            if raw.upper().startswith("IT") or any(
-                k in ctx for k in ("p.iva", "piva", "partita", "vat", "c.f.")
-            ):
-                # Stessa scelta del codice fiscale: sostituisce comunque,
-                # e se la cifra di controllo non torna lo dice.
-                if not piva_check_ok(m.group(1)):
-                    report.suspect(
-                        "partita_iva",
-                        m.group(1),
-                        "sostituita, ma la cifra di controllo non torna: "
-                        "o non era una partita IVA, o il documento e' storpiato",
-                    )
-                report.add("partita_iva")
-                return "{{PARTITA_IVA}}"
-            return raw
-
-        out = _RE_PIVA.sub(_piva_sub, out)
-
-    if opts.dates:
-        out = _scrub_birth_dates(out, report)
-
-    if opts.phones:
-
-        def _phone_sub(m: re.Match) -> str:
-            if not _phone_is_plausible(m):
-                return m.group(0)
-            report.add("phones")
-            return "{{PHONE}}"
-
-        out = _RE_PHONE.sub(_phone_sub, out)
-
-    if opts.amounts:
-
-        def _amount_sub(m: re.Match) -> str:
-            if not _amount_is_plausible(m):
-                return m.group(0)
-            report.add("amounts")
-            return "{{AMOUNT}}"
-
-        out = _RE_AMOUNT.sub(_amount_sub, out)
-
-    if opts.addresses:
-        out = _scrub_addresses(out, report)
-
-    if opts.names:
-        out = _scrub_names(out, report, guess=opts.name_guess)
+    attivi = set(opts.pacchetti)
+    for passo in SEQUENZA:
+        if passo.pacchetto not in attivi:
+            continue
+        if not getattr(opts, passo.campo):
+            continue
+        out = passo.esegui(out, report, opts)
 
     find_suspects(out, report, opts)
     return out, report

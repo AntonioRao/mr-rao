@@ -292,11 +292,32 @@ def test_un_verbale_amministrativo_esce_intatto():
 # ---------------------------------------------------------------------------
 
 
+# Campi di PrivacyOptions che non sono interruttori e quindi non si
+# «spengono». Elencarli qui invece di allentare il test: cosi' il giorno in
+# cui se ne aggiunge uno bisogna passare da questa riga e dire perche'.
+NON_INTERRUTTORI = {"pacchetti"}
+
+
 def test_no_redaction_spegne_ogni_riconoscitore():
     """Elencare i campi a mano lascia acceso quello aggiunto ieri."""
     opts = no_redaction()
     for campo, valore in vars(opts).items():
+        if campo in NON_INTERRUTTORI:
+            continue
         assert valore is False, campo
+
+
+def test_i_non_interruttori_non_sono_booleani():
+    """La deroga qui sopra e' un buco, se qualcuno ci mette dentro un flag.
+
+    Un campo booleano dichiarato non-interruttore verrebbe saltato dal test
+    precedente, e ``no_redaction()`` potrebbe lasciarlo acceso senza che
+    nulla protesti. Un tipo diverso da bool e' la prova che non e' un
+    interruttore.
+    """
+    opts = no_redaction()
+    for campo in NON_INTERRUTTORI:
+        assert not isinstance(getattr(opts, campo), bool), campo
 
 
 def test_no_redaction_lascia_il_testo_come_sta():
