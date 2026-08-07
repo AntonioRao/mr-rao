@@ -18,8 +18,10 @@ In gergo EDPB/WP29 l’*anonimizzazione* è irreversibile e rende la
 re-identificazione ragionevolmente impossibile. Mr. Rao fa **redazione
 assistita** (e in parte pseudonimizzazione grezza): sostituisce pezzi di
 testo con segnaposto (`{{CODICE_FISCALE}}`, `{{NAME}}`, …) e lascia il
-resto del documento intatto — ruoli, importi (se non disattivati),
-struttura, quasi-identificatori.
+resto del documento intatto — ruoli, fatti, struttura, cronologia degli
+eventi: tutto ciò che identifica una persona **senza nominarla**. Gli
+importi si possono togliere, ma la casella è spenta di default, quindi
+con le impostazioni predefinite restano anche loro.
 
 Usarlo per *ridurre* l’esposizione prima di un incolla in un’AI, con
 controllo umano del prima/dopo, è lo scopo dichiarato. Usarlo per dire
