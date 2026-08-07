@@ -51,7 +51,7 @@ ha ragione il codice.
 | P2.2 | Test job cancel / watch start-stop | Race conditions | TODO |
 | P2.3 | Test shell integration | Il passaggio `-Prova` di `mr_rao_shell.ps1` stampa cosa scriverebbe e si ferma: da li' l'integrazione OS e' verificabile senza sporcare registro e Desktop di chi lancia i test | **DONE** (1.7.0) |
 | P2.4 | Gate pre-commit automatico (hook git opzionale) | Disciplina | TODO |
-| P2.9 | **Build del portable in CI**, non solo in locale | La 1.7.0 ha mostrato quanto valga un ambiente pulito: per tre release le librerie Office sono finite nel pacchetto solo perché erano nel venv di sviluppo. Il gate locale non può accorgersene, per definizione | TODO |
+| P2.9 | **Build del portable in CI**, non solo in locale | Workflow `portable.yml`: parte senza venv, quindi il pacchetto non può ereditare niente dalla macchina di sviluppo. Non a ogni commit — quando cambia qualcosa che può romperlo, una volta a settimana per le derive a monte, e a mano prima di una release | **DONE** (1.7.0) |
 
 ---
 
