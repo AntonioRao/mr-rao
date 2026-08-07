@@ -6,15 +6,26 @@ aprivano una finestra nera e si chiudevano: PyInstaller aveva incluso un
 runtime hook che moriva su un file mancante, prima ancora di arrivare al
 nostro codice. Se ne accorse un essere umano avviandolo, non il build.
 
-Da qui in poi se ne accorge il build. Quattro controlli, nell'ordine in
-cui fallirebbero:
+Da qui in poi se ne accorge il build. I controlli, nell'ordine in cui
+fallirebbero:
 
 1. il processo resta vivo dopo l'avvio;
 2. /api/health risponde, con la versione giusta e frozen=True;
-3. una conversione vera produce testo — e non solo di un .txt: un .docx,
-   perche' i formati Office sono vissuti rotti per parecchie versioni
-   senza che nessuno se ne accorgesse;
-4. l'anonimizzazione lavora davvero sul testo estratto.
+3. una conversione vera produce testo — e non di un .txt, ma di **tutti e
+   tre** i formati Office che dipendono da una libreria opzionale;
+4. l'anonimizzazione lavora davvero sul testo estratto;
+5. l'icona spedita e' quella del repository.
+
+Perche' tutti e tre e non solo il .docx, che c'era gia'. Ogni formato
+Office ha una libreria diversa dietro — mammoth per Word, pandas piu'
+openpyxl per Excel, python-pptx per PowerPoint — e per tre versioni quelle
+librerie sono finite nel pacchetto **per caso**: erano nel venv di sviluppo
+da un'installazione precedente, non nell'elenco delle dipendenze. Ha
+funzionato tutto, e nessuno lo stava controllando.
+
+Con un formato solo sotto esame, il giorno che una di quelle librerie non
+viene piu' impacchettata il build accetta il pacchetto e se ne accorge chi
+lo usa: «nessun testo riconoscibile», con la colpa apparente al documento.
 
 Uso:  python scripts/verify_build.py dist/MrRao-Portable/app/MrRao.exe
 """
@@ -69,6 +80,43 @@ def docx_di_prova(testo: str) -> bytes:
         z.writestr("[Content_Types].xml", types)
         z.writestr("_rels/.rels", rels)
         z.writestr("word/document.xml", doc)
+    return buf.getvalue()
+
+
+def xlsx_di_prova(testo: str) -> bytes:
+    """Un .xlsx vero, scritto da openpyxl.
+
+    Costruirlo a mano come il .docx non conviene: openpyxl vuole un
+    pacchetto piu' completo, e un file appena fuori specifica farebbe
+    fallire la verifica per il motivo sbagliato.
+
+    Se openpyxl manca nel venv di build l'errore e' quello giusto: senza,
+    il pacchetto uscirebbe comunque, con Excel rotto dentro.
+    """
+    from openpyxl import Workbook
+
+    cartella = Workbook()
+    foglio = cartella.active
+    foglio["A1"] = "Riferimento"
+    foglio["B1"] = testo
+    buf = io.BytesIO()
+    cartella.save(buf)
+    return buf.getvalue()
+
+
+def pptx_di_prova(testo: str) -> bytes:
+    """Un .pptx vero, scritto da python-pptx.
+
+    A mano sarebbe anche peggio del .xlsx: servono slide master e layout.
+    Vale lo stesso ragionamento sull'import mancante.
+    """
+    from pptx import Presentation
+
+    presentazione = Presentation()
+    diapositiva = presentazione.slides.add_slide(presentazione.slide_layouts[5])
+    diapositiva.shapes.title.text = testo
+    buf = io.BytesIO()
+    presentazione.save(buf)
     return buf.getvalue()
 
 
@@ -149,28 +197,50 @@ def main(argv: list[str]) -> int:
             print("FALLITO  l'eseguibile non si dichiara frozen: non e' il pacchetto", file=sys.stderr)
             return 1
 
-        # Una conversione vera, su un formato che e' gia' stato rotto.
+        # Conversioni vere, una per formato Office. Ognuno ha dietro una
+        # libreria diversa: se ne manca una, il documento esce vuoto e
+        # l'errore da' la colpa al file. Meglio che la colpa se la prenda
+        # il build.
         campi = {
             "profile": "default",
             "privacy_filter": "true",
             "include_frontmatter": "false",
         }
-        testo = "Contatta mario.rossi@example.it al 335 123 4567 in via Roma 12"
-        esito = post_multipart(
-            f"{base}/api/convert/sync", campi, "verifica.docx", docx_di_prova(testo)
+        frase = "Contatta mario.rossi@example.it al 335 123 4567 in via Roma 12"
+        prove = (
+            # (estensione, contenuto, libreria dietro, segnaposto attesi)
+            (".docx", docx_di_prova(frase), "mammoth",
+             ("{{EMAIL}}", "{{PHONE}}", "{{ADDRESS}}")),
+            (".xlsx", xlsx_di_prova(frase), "pandas + openpyxl",
+             ("{{EMAIL}}", "{{PHONE}}")),
+            (".pptx", pptx_di_prova(frase), "python-pptx",
+             ("{{EMAIL}}", "{{PHONE}}")),
         )
-        md = esito.get("markdown") or ""
-        if "Contatta" not in md:
-            print(f"FALLITO  il .docx non ha prodotto testo:\n{md[:400]}", file=sys.stderr)
-            return 1
-        print(f"  OK     conversione .docx: {len(md)} caratteri, motore {esito.get('engine')}")
-
-        mancanti = [p for p in ("{{EMAIL}}", "{{PHONE}}", "{{ADDRESS}}") if p not in md]
-        if mancanti:
-            print(f"FALLITO  anonimizzazione incompleta, mancano {mancanti}:\n{md[:400]}", file=sys.stderr)
-            return 1
-        totale = (esito.get("redaction") or {}).get("total", 0)
-        print(f"  OK     anonimizzazione: {totale} sostituzioni")
+        for ext, contenuto, libreria, attesi in prove:
+            esito = post_multipart(
+                f"{base}/api/convert/sync", campi, f"verifica{ext}", contenuto
+            )
+            md = esito.get("markdown") or ""
+            if "Contatta" not in md:
+                print(
+                    f"FALLITO  il {ext} non ha prodotto testo: nel pacchetto manca "
+                    f"probabilmente {libreria}.\n{md[:400]}",
+                    file=sys.stderr,
+                )
+                return 1
+            mancanti = [p for p in attesi if p not in md]
+            if mancanti:
+                print(
+                    f"FALLITO  anonimizzazione incompleta su {ext}, mancano "
+                    f"{mancanti}:\n{md[:400]}",
+                    file=sys.stderr,
+                )
+                return 1
+            totale = (esito.get("redaction") or {}).get("total", 0)
+            print(
+                f"  OK     {ext:5s} {len(md):4d} caratteri, motore "
+                f"{esito.get('engine')}, {totale} sostituzioni"
+            )
 
         # L'icona spedita dev'essere quella del repository. Per un po' il
         # pacchetto ne ha portata una piu' povera, generata al passo 1 del
