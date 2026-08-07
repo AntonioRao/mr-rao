@@ -1,0 +1,23 @@
+Oggetto: pratica 2024/118
+
+Gentile Dott. Nazzareno Sbrolli,
+
+le confermo quanto concordato. Il referente e' Mario Rossi
+<m.rossi@example.it>, in copia anche laura.bianchi [at] studio [punto] it
+
+Recapiti: cell. 335 123 4567, fisso 06 1234 5678, fax +39 06 9876543.
+Sede: via Valle di Perna 128, 00128 Roma.
+Riferimenti su https://www.example.it/pratiche/2024-118 e su www.altro.it
+
+Codice fiscale RSSMRA85T10A562S, partita IVA IT12345678903.
+IBAN IT60X0542811101000000123456, oppure IT60 X054 2811 1010 0000 0123 456.
+Carta 4111 1111 1111 1111. Coordinate: conto CIN X ABI 05428 CAB 11101.
+
+Il collega, nato il 12/03/1985, seguira' la pratica.
+Importo concordato: 1.250,00 EUR.
+
+Da OCR, storpiati: RSSMRA85T1OA562S e lT60X05428111010000001234S7
+Chiave: api_key = sk-test-ABCDEF0123456789abcdef
+
+Cordiali saluti
+Giuseppe Verdi
