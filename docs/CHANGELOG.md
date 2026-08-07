@@ -1,5 +1,120 @@
 # Changelog
 
+## 1.7.1 — Il file che avevi aperto
+
+Tutto quello che c'è qui dentro è uscito da qualcuno che **usava** il
+programma, non da qualcuno che lo leggeva.
+
+### «Failed to fetch» era il file aperto in Word
+
+Convertire un documento che si ha aperto è una delle cose più naturali del
+mondo. Word lo tiene bloccato in lettura, e Mr. Rao rispondeva così:
+
+```
+Traceback (most recent call last):
+  ...
+PermissionError: [Errno 13] Permission denied: 'Verbale_2026-06.docx'
+```
+
+Dal browser arrivava anche peggio: **«failed to fetch»**, che dà la colpa
+alla rete mentre il server sta benissimo e la richiesta non è mai partita —
+il browser non era riuscito a *leggere* il file.
+
+Due messaggi, uno inutile e uno fuorviante, per una situazione che capita a
+chiunque il primo giorno. Adesso:
+
+> ⚠️ **Il file è aperto in un altro programma.**
+> `Verbale_2026-06.docx` è bloccato — succede quando il documento è aperto
+> in Word, Excel o PowerPoint. **Chiudilo e riprova.**
+
+Il nome del file c'è di proposito: chi ne converte dieci in fila deve sapere
+quale dei dieci.
+
+### L'installazione da sorgente non creava niente, e non lo diceva
+
+`%~dp0` finisce con una barra rovescia, e per il parser della riga di
+comando di Windows `\"` è una virgoletta **protetta**, non la chiusura
+della stringa. Passando `-InstallDir "%~dp0"` l'intera riga collassava:
+
+```
+InstallDir = [C:\...\markitdown-webapp" -Avvio C:\...\Avvia]
+Avvio      = [Mr]
+ApriCon    = [Rao.bat -ApriCon ...]
+```
+
+Lo script riceveva `-Avvio` valorizzato `Mr`, non trovava il file, e usciva
+in errore **senza creare un solo collegamento**. L'installazione precedente
+restava al suo posto, quindi sembrava che non fosse successo niente.
+
+Ora c'è un test che vieta la trappola: nessun argomento fra virgolette può
+finire con una barra, sulle righe che invocano powershell. Solo lì — in
+`xcopy "%OUT%\app\"` la barra finale significa «è una cartella», e un
+controllo su tutte le righe segnalava sei punti giusti e uno sbagliato.
+
+### Una sola strada per i collegamenti
+
+L'installazione da sorgente aveva due script propri che facevano quello che
+`mr_rao_shell.ps1` fa già per il pacchetto — e quel file esiste proprio
+perché l'elenco delle estensioni una volta viveva in due posti e la
+disinstallazione ne conosceva uno solo. Correggerne uno e lasciare indietro
+l'altro è lo stesso difetto, un piano più su.
+
+Ora i percorsi sono parametri, perché le due installazioni sono davvero
+diverse: il pacchetto ha un `MrRao.exe` con l'icona dentro, il sorgente ha
+un `.bat` di avvio, un secondo `.bat` che accetta un file e un `.ico` a
+parte. I valori predefiniti sono quelli del pacchetto, quindi per lui non
+cambia nulla.
+
+**E adesso è sotto test** (P2.3, la voce rimasta scoperta più a lungo). Non
+per pigrizia: quello script scrive sul Desktop e nel registro, e un test che
+lo esegue davvero sporca la macchina di chi lo lancia. Il passaggio `-Prova`
+scioglie il nodo — sa dire cosa farebbe senza farlo.
+
+### Il pacchetto si costruisce anche in una macchina che non possiede niente
+
+Workflow `Portable` (P2.9). Parte **senza venv**: se una libreria manca
+dall'elenco delle dipendenze, manca anche dal pacchetto, e la verifica se ne
+accorge convertendo un `.docx`, un `.xlsx` e un `.pptx` veri — uno per
+libreria opzionale, mentre prima ne provava uno solo.
+
+È la lezione della 1.7.0 messa in pratica: per tre release quelle librerie
+sono finite nel pacchetto **per caso**, perché erano nel venv di sviluppo.
+Un gate che gira sulla stessa macchina che ha il problema non può vederlo.
+
+### I documenti non possono più invecchiare in silenzio
+
+`scripts/check_docs.py`, quinto passo del quality gate. Parte da
+`git ls-files` — non dall'elenco dei file che si stanno modificando — e
+controlla quattro cose: nessun identificativo duplicato nel backlog, link
+relativi che esistono, versioni citate coerenti con `APP_VERSION`, conteggi
+di test veri.
+
+Nasce da un errore: alla domanda «i documenti sono aggiornati?» avevo
+risposto di sì guardando quelli che stavo modificando. Due erano fermi a
+quindici release prima. **Un controllo che parte da ciò che si ha già in
+mano trova solo ciò che si è già guardato.**
+
+Si è guadagnato il posto al primo giro, bocciando i README che dichiaravano
+un numero di test già superato.
+
+### Correzioni minori
+
+- La FAQ diceva che il motore lascia intatti «ruoli, **importi (se non
+  disattivati)**», che si legge come *gli importi si tolgono finché non li
+  spegni*. È il contrario: sono spenti di default, perché in una fattura di
+  solito servono. Riscritto con ciò che resta **sempre** — ruoli, fatti,
+  struttura, cronologia degli eventi.
+- I README promettevano il menu contestuale «su **undici** tipi di file». Le
+  estensioni sono dieci: l'undici era il numero di chiavi di registro, che
+  include quella per *tutti* i file. Un conteggio interno diventato una
+  promessa, sbagliato in entrambi i versi — perché con quella chiave la voce
+  compare su qualsiasi file.
+- `quality_gate.ps1` era una seconda implementazione del gate, ferma a tre
+  passi su cinque, e non la chiamava nessuno. Ora invoca `quality_gate.bat`,
+  che resta l'unica definizione.
+
+**384 test** (erano 382).
+
 ## 1.7.0 — Le difese che c'erano, dove non arrivavano
 
 Nessuna funzione nuova: cinque punti in cui i presidi esistenti si fermavano
