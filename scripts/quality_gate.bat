@@ -15,8 +15,20 @@ if errorlevel 1 exit /b 1
 echo [3/5] licenze di terze parti allineate...
 REM Un elenco scritto a mano invecchia in silenzio: la prima stesura
 REM sbagliava la licenza di Scrubadub e ometteva python-stdnum (LGPL).
-%PY% scripts\gen_third_party.py --check
-if errorlevel 1 exit /b 1
+REM
+REM Questo controllo confronta THIRD_PARTY.md con le versioni **installate**,
+REM quindi ha senso solo dove le versioni sono quelle del manutentore. Su un
+REM runner pulito pip ne risolve altre e il confronto fallisce per il motivo
+REM sbagliato: non perche' l'elenco sia sbagliato, ma perche' e' un altro
+REM ambiente. ci.yml lo salta gia' per questo, con lo stesso ragionamento.
+REM Qui la scelta e' esplicita e ha un nome, invece di essere un passo
+REM silenziosamente assente.
+if defined MR_RAO_GATE_NO_LICENCE_CHECK (
+    echo       saltato: MR_RAO_GATE_NO_LICENCE_CHECK impostata
+) else (
+    %PY% scripts\gen_third_party.py --check
+    if errorlevel 1 exit /b 1
+)
 echo [4/5] pytest...
 %PY% -m pytest tests -q --tb=short
 if errorlevel 1 exit /b 1

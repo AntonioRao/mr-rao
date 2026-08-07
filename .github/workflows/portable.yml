@@ -76,6 +76,20 @@ jobs:
       - name: Build e verifica del pacchetto
         run: scripts\build_portable.bat
         shell: cmd
+        env:
+          # THIRD_PARTY.md elenca le versioni risolte sulla macchina del
+          # manutentore; qui pip ne installa altre, e il confronto fallirebbe
+          # perche' l'ambiente e' diverso, non perche' l'elenco sia sbagliato.
+          # Il primo giro di questo workflow si e' fermato esattamente li'.
+          # ci.yml salta il controllo per la stessa ragione, gia' documentata.
+          #
+          # Conseguenza da tenere presente: il pacchetto costruito **qui**
+          # contiene versioni diverse da quelle descritte in THIRD_PARTY.md.
+          # Va bene finche' questo lavoro serve a *verificare* che il build
+          # regga in una macchina pulita. Il giorno che se ne volesse
+          # pubblicare l'artefatto come release, le licenze andrebbero
+          # rigenerate qui dentro.
+          MR_RAO_GATE_NO_LICENCE_CHECK: "1"
 
       # Solo sulle esecuzioni a mano: sono quelle che si lanciano prima di
       # una release, ed e' li' che serve avere in mano il pacchetto. Le
