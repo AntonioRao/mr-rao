@@ -114,17 +114,62 @@ def test_i_bat_puntano_a_uno_script_che_esiste():
         # stesso nome come *destinazione* di una copia, e quel file non
         # esiste finche' il pacchetto non e' stato assemblato: cercare ogni
         # occorrenza del nome faceva fallire il test su una riga corretta.
+        #
+        # Del percorso si controlla il nome finale, non la stringa intera:
+        # nei .bat i percorsi si compongono con variabili (`%~dp0`, `%RADICE%`,
+        # `%INSTALL_DIR%`) che qui non si possono risolvere davvero. La prima
+        # versione ci provava e falliva su un percorso corretto.
         for m in re.finditer(r'-File\s+"([^"]*mr_rao_shell\.ps1)"', testo):
-            grezzo = m.group(1)
-            candidati = [
-                Path(grezzo.replace("%~dp0", str(bat.parent) + "\\")),
-                RADICE / grezzo,
-            ]
-            assert any(c.is_file() for c in candidati), (
-                f"{bat.name} punta a {grezzo!r}, che non esiste ne' accanto al "
-                f".bat ne' dalla radice del repository"
+            # Via le variabili del .bat (%~dp0, %RADICE%, %INSTALL_DIR%) prima
+            # di prendere il nome finale: senza separatore dopo la variabile,
+            # `Path(...).name` restituirebbe "%~dp0mr_rao_shell.ps1".
+            pulito = re.sub(r"%[^%]*%|%~dp0", "", m.group(1))
+            nome = Path(pulito.replace("\\", "/")).name
+            assert list(RADICE.rglob(nome)), (
+                f"{bat.name} invoca {nome}, che non esiste da nessuna parte "
+                f"nel repository"
             )
     assert trovati >= 2, "mi aspetto almeno l'installazione da sorgente e quella portable"
+
+
+def test_nessun_argomento_finisce_con_una_barra_dentro_le_virgolette():
+    """La trappola che ha fatto fallire davvero l'installazione.
+
+    `%~dp0` termina con una barra rovescia. Per il parser della riga di
+    comando di Windows la sequenza `\\"` e' una virgoletta **protetta**, non
+    la chiusura della stringa: scrivendo `-InstallDir "%~dp0"` l'intera riga
+    collassa e il programma chiamato riceve gli argomenti a pezzi.
+
+    Misurato sul caso vero: `-Avvio` arrivava valorizzato `Mr`, il file non
+    esisteva, e lo script usciva in errore **senza creare niente**. Non se n'e'
+    accorto nessun test, perche' guardavo se il percorso esistesse invece di
+    guardare come veniva passato.
+
+    Il rimedio nel .bat e' mettere la radice in una variabile e toglierle la
+    barra finale prima di usarla.
+
+    Vale **solo per le righe che invocano powershell**: `xcopy "%OUT%\\app\\"`
+    e' corretto — li' la barra finale dice «e' una cartella» e xcopy non usa
+    quelle regole di quoting. Un controllo su tutte le righe segnalava sei
+    punti giusti e uno sbagliato, cioe' era rumore.
+    """
+    colpevoli = []
+    for bat in RADICE.rglob("*.bat"):
+        if {"venv", "dist", "build"} & set(bat.parts):
+            continue
+        for n, riga in enumerate(
+            bat.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+        ):
+            if riga.lstrip().upper().startswith(("REM ", "::")):
+                continue
+            if "powershell" not in riga.lower():
+                continue
+            for m in re.finditer(r'"[^"]*\\"', riga):
+                colpevoli.append(f"{bat.name}:{n}  {m.group(0)}")
+    assert not colpevoli, (
+        "argomenti che finiscono con una barra dentro le virgolette — la "
+        "riga di comando collassa:\n  " + "\n  ".join(colpevoli)
+    )
 
 
 def test_il_readme_non_promette_un_numero_sbagliato(sorgente):

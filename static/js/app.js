@@ -528,8 +528,18 @@
     } catch (e) {
       setLoading(false);
       if (e.message === "cancelled") return;
+      // "Failed to fetch" non vuol dire quasi mai che il server e' spento.
+      // Il caso di gran lunga piu' frequente e' che il browser non sia
+      // riuscito a *leggere* il file: succede ogni volta che il documento e'
+      // aperto in Word o Excel, che lo tengono bloccato. Il messaggio
+      // generico mandava a cercare il problema nel server, che sta benissimo
+      // — e l'utente non ha modo di indovinare.
+      const nonLeggibile =
+        e instanceof TypeError || /failed to fetch|network|NotReadable/i.test(e.message || "");
       showToast(
-        e.message || "Impossibile contattare Mr. Rao. Verifica che il server sia avviato.",
+        nonLeggibile
+          ? "Non riesco a leggere il file: se e' aperto in Word o Excel, chiudilo e riprova."
+          : e.message || "Impossibile contattare Mr. Rao. Verifica che il server sia avviato.",
         "error"
       );
     }

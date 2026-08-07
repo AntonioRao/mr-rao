@@ -285,8 +285,42 @@ def convert_file(
     engine_used = "none"
     final_text: str | None = None
     failure_reason: str | None = None
-    file_hash = _file_sha256(path) if path.exists() else "unknown"
     attachments: list[dict] = []
+
+    # Il primo tocco al file e' qui, ed e' anche il primo punto in cui puo'
+    # rifiutarsi. Convertire un documento che si ha aperto in Word e' una
+    # delle cose piu' naturali del mondo, e Word lo tiene bloccato in
+    # lettura: senza questo ramo usciva un traceback Python con dentro
+    # "PermissionError", che a chi usa il programma non dice niente e non
+    # nomina nemmeno il colpevole.
+    try:
+        file_hash = _file_sha256(path) if path.exists() else "unknown"
+    except PermissionError:
+        return ConvertResult(
+            markdown=(
+                "> ⚠️ **Il file è aperto in un altro programma.**\n>\n"
+                f"> `{original_name}` è bloccato — succede quando il documento\n"
+                "> è aperto in Word, Excel o PowerPoint.\n>\n"
+                "> **Chiudilo e riprova.**"
+            ),
+            engine_used="none",
+            source_name=original_name,
+            source_ext=ext,
+            empty=True,
+            error="Il file è aperto in un altro programma: chiudilo e riprova.",
+        )
+    except OSError as e:
+        return ConvertResult(
+            markdown=(
+                "> ⚠️ **Non riesco a leggere il file.**\n>\n"
+                f"> `{original_name}`: {e.strerror or e}"
+            ),
+            engine_used="none",
+            source_name=original_name,
+            source_ext=ext,
+            empty=True,
+            error=f"Impossibile leggere il file: {e.strerror or e}",
+        )
 
     try:
         _stop_if_cancelled(should_cancel)

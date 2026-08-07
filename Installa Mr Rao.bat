@@ -87,7 +87,16 @@ REM Prima qui c'erano due script separati che facevano la stessa cosa in
 REM modo leggermente diverso da quello del pacchetto: l'elenco delle
 REM estensioni viveva in due posti, e la disinstallazione ne conosceva uno
 REM solo.
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\mr_rao_shell.ps1" -InstallDir "%~dp0" -Avvio "%~dp0Avvia Mr Rao.bat" -ApriCon "%~dp0scripts\open_with_mr_rao.bat" -Icona "%~dp0static\img\mr-rao.ico"
+REM ATTENZIONE alla barra rovescia finale. %~dp0 termina con "\", e per il
+REM parser della riga di comando di Windows la sequenza \" e' una virgoletta
+REM *protetta*, non la chiusura della stringa: passando -InstallDir "%~dp0"
+REM l'intera riga collassa e PowerShell riceve gli argomenti a pezzi.
+REM Misurato: -Avvio arrivava valorizzato "Mr", il file non esisteva, e lo
+REM script usciva in errore senza creare nessun collegamento.
+REM Per questo la radice si mette in una variabile e le si toglie la barra.
+set "RADICE=%~dp0"
+if "%RADICE:~-1%"=="\" set "RADICE=%RADICE:~0,-1%"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%RADICE%\scripts\mr_rao_shell.ps1" -InstallDir "%RADICE%" -Avvio "%RADICE%\Avvia Mr Rao.bat" -ApriCon "%RADICE%\scripts\open_with_mr_rao.bat" -Icona "%RADICE%\static\img\mr-rao.ico"
 if errorlevel 1 (
     echo       AVVISO: alcuni collegamenti non sono stati creati.
     echo               Mr. Rao si avvia comunque da "Avvia Mr Rao.bat".

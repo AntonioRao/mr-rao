@@ -129,3 +129,31 @@ def test_merge_markdowns():
     assert "body a" in merged
     assert "body b" in merged
     assert "a.txt" in merged
+
+
+def test_un_file_aperto_in_word_lo_dice_invece_di_esplodere(tmp_path, monkeypatch):
+    """Convertire un documento che si ha aperto e' normalissimo, e Word lo
+    tiene bloccato in lettura. Prima usciva un traceback Python con dentro
+    PermissionError: a chi usa il programma non dice niente, non nomina il
+    colpevole, e dalla web app arrivava come «failed to fetch».
+
+    Trovato dal vivo il 2026-08-07, su un .docx aperto sul desktop.
+    """
+    from mr_rao import converter as modulo
+    from mr_rao.converter import ConvertOptions, convert_file
+
+    percorso = tmp_path / "verbale.docx"
+    percorso.write_bytes(b"contenuto qualunque")
+
+    def bloccato(_p):
+        raise PermissionError(13, "Permission denied")
+
+    monkeypatch.setattr(modulo, "_file_sha256", bloccato)
+
+    r = convert_file(percorso, options=ConvertOptions(include_frontmatter=False))
+
+    assert r.empty
+    assert "aperto in un altro programma" in r.error
+    assert "Chiudilo e riprova" in r.markdown
+    # Il nome del file dev'esserci: chi ne converte dieci deve sapere quale.
+    assert "verbale.docx" in r.markdown
