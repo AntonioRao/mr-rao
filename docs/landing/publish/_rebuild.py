@@ -26,6 +26,27 @@ if "el.style" in src:
 html = src.replace("../../static/img/logo.svg", "assets/logo.svg").replace(
     "../../static/img/favicon.svg", "assets/favicon.svg"
 )
+
+# Gli asset portano l'impronta del proprio contenuto nell'indirizzo.
+#
+# `_headers` li fa cachare sette giorni, e i nomi sono fissi: cambiando il
+# logo, chi era gia' passato dal sito continuava a vedere quello vecchio
+# fino alla scadenza. E' successo davvero -- deploy corretto, pagina nuova,
+# logo vecchio, per quasi una settimana.
+#
+# Con `?v=<impronta>` l'indirizzo cambia insieme al file, quindi la cache
+# viene aggirata da sola quando serve e continua a valere quando non serve.
+def impronta(nome: str) -> str:
+    dati = (root / "assets" / nome).read_bytes()
+    return hashlib.sha256(dati).hexdigest()[:10]
+
+
+for nome in ("logo.svg", "favicon.svg", "favicon.ico"):
+    percorso = root / "assets" / nome
+    if not percorso.exists():
+        continue
+    html = html.replace(f"assets/{nome}", f"assets/{nome}?v={impronta(nome)}")
+
 (root / "index.html").write_text(html, encoding="utf-8", newline="\n")
 
 class Inline(HTMLParser):
