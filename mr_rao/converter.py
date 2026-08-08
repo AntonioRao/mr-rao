@@ -266,6 +266,62 @@ def _frontmatter(
     return "\n".join(lines)
 
 
+# Estensioni che sono prosa per definizione: una mail, una lettera, una
+# presentazione. Non serve stimare niente.
+_ESTENSIONI_PROSA = frozenset({".eml", ".msg", ".txt", ".md", ".rtf", ".pptx", ".ppt"})
+# Estensioni che sono quasi sempre tabelle e celle: la stima non si applica.
+_ESTENSIONI_MODULO = frozenset({".xlsx", ".xls", ".csv", ".json", ".xml"})
+
+# Righe e rettangoli vettoriali ogni 100 caratteri, sopra i quali un PDF e'
+# un modulo. Misurato: le istruzioni dell'Agenzia delle Entrate -- libretti
+# in prosa -- stanno a 0,2; i modelli dello stesso ente a 0,7; i moduli
+# fiscali statunitensi fra 3,7 e 9,8. La soglia sta nel mezzo del vuoto fra
+# le due popolazioni, non a ridosso di una delle due.
+_SOGLIA_MODULO = 0.5
+
+
+def _e_prosa(path: Path, ext: str, engine_used: str) -> bool | None:
+    """Prosa, modulo, o non si sa.
+
+    Serve a scegliere quanto pretendere prima di sostituire un nome: su una
+    lettera un solo riscontro negli elenchi basta, su un modulo no. La
+    differenza e' misurata -- 2 739 sostituzioni sbagliate da una parte,
+    609 nomi persi dall'altra -- e non esiste un valore che vada bene per
+    entrambe.
+
+    Il segnale buono e' **geometrico**, non testuale: le caselle di un
+    modulo sono righe e rettangoli disegnati nel PDF. Sopravvivono alla
+    lettura del file e muoiono nella conversione in testo, che e' il motivo
+    per cui va guardato qui e non dentro il motore privacy.
+
+    ``None`` quando non si sa -- una scansione e' fatta di pixel e non ha
+    vettori da contare -- e chi riceve None sceglie la prudenza.
+    """
+    if ext in _ESTENSIONI_PROSA:
+        return True
+    if ext in _ESTENSIONI_MODULO:
+        return False
+    if ext != ".pdf" or _is_ocr(engine_used):
+        # Su una scansione i vettori non ci sono: contarli darebbe zero e
+        # zero verrebbe letto come «prosa», che e' la risposta sbagliata
+        # per il motivo sbagliato.
+        return None
+    try:
+        import pdfplumber
+
+        with pdfplumber.open(str(path)) as pdf:
+            if not pdf.pages:
+                return None
+            pagina = pdf.pages[0]
+            caratteri = len(pagina.chars)
+            if caratteri < 200:
+                return None
+            geometria = len(pagina.lines) + len(pagina.rects)
+            return (geometria / caratteri * 100) < _SOGLIA_MODULO
+    except Exception:
+        return None
+
+
 def convert_file(
     filepath: str | Path,
     original_name: str | None = None,
@@ -437,7 +493,10 @@ def convert_file(
         if privacy_on and final_text:
             if opts.include_raw:
                 markdown_raw = final_text
-            final_text, redaction = apply_privacy_filter(final_text, opts.privacy)
+            privacy = opts.privacy
+            if privacy.prosa is None:
+                privacy = replace(privacy, prosa=_e_prosa(path, ext, engine_used))
+            final_text, redaction = apply_privacy_filter(final_text, privacy)
             if _is_ocr(engine_used):
                 final_text = final_text.rstrip() + "\n\n" + _ocr_privacy_warning()
 

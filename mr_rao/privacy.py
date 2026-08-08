@@ -425,6 +425,22 @@ class PrivacyOptions:
     # Un documento inglese vorra' ``(CORE,)`` oggi e ``(CORE, EN)`` domani;
     # uno studio italiano che segue un cliente estero li vorra' entrambi.
     pacchetti: tuple[str, ...] = (CORE, IT, EN)
+    # Prosa o modulo. La stessa regola ha segno opposto sulle due
+    # popolazioni, e non e' un'opinione -- e' misurato su 127 documenti
+    # amministrativi (verita' di riferimento zero) e 1500 email vere:
+    #
+    #   riscontro singolo negli elenchi   moduli: falsi pos.   email: nomi
+    #   -> sospetto                                    1 637        2 823
+    #   -> sostituzione                                4 376        3 432
+    #
+    # Su un modulo «sospetto» toglie 2 739 errori; su una lettera costa
+    # 609 nomi che restano nel documento. Un valore solo peggiora una
+    # delle due meta' per far contenta l'altra.
+    #
+    # ``None`` = non si sa. In quel caso si sceglie la prudenza sul
+    # documento (sospetto) e non sul richiamo, perche' un falso positivo
+    # si vede leggendo l'uscita, un nome lasciato in chiaro no.
+    prosa: bool | None = None
 
 
 @dataclass
@@ -963,7 +979,9 @@ def _scrub_addresses(text: str, report: RedactionReport) -> str:
     return _RE_ADDRESS.sub(_sub, text)
 
 
-def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
+def _scrub_names(
+    text: str, report: RedactionReport, guess: bool, prosa: bool | None = None
+) -> str:
     """Sostituisce i nomi di persona, dal segnale piu' forte al piu' debole."""
 
     # 1. Titolo professionale: "il geom. Nazzareno Sbrolli".
@@ -1070,11 +1088,17 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
             noti = sum(1 for t in run if t in FIRST_NAMES or t in SURNAMES)
             guessed = guess and not any(_looks_like_word(t) for t in run)
             lungo_giusto = 2 <= len(run) <= _MAX_TOKEN_NOME
-            if lungo_giusto and (noti >= 2 or guessed):
+            # Su prosa un riscontro solo basta: «da Ludovica Sbrancagnoli»
+            # in una frase e' quasi sempre una persona, e pretendere due
+            # riscontri costerebbe 609 nomi su 1500 email vere. Su un
+            # modulo lo stesso riscontro e' quasi sempre un'etichetta, e
+            # accettarlo costa 2 739 sostituzioni sbagliate.
+            bastano = 1 if prosa else 2
+            if lungo_giusto and (noti >= bastano or guessed):
                 report.add("names")
                 pieces.append(("{{NAME}}", j - 1))
             else:
-                if lungo_giusto and noti == 1:
+                if lungo_giusto and noti == 1 and not prosa:
                     report.suspect(
                         "nome",
                         " ".join(tokens[i:j]),
@@ -1761,7 +1785,7 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("addresses_en", EN, "addresses", 71, _scrub_en_addresses),
     Passo(
         "names", IT, "names", 90,
-        lambda t, r, o: _scrub_names(t, r, guess=o.name_guess),
+        lambda t, r, o: _scrub_names(t, r, guess=o.name_guess, prosa=o.prosa),
     ),
     # Stessa fascia dei nomi italiani: se i due pacchetti sono accesi
     # insieme gira prima quello italiano, che e' piu' aggressivo, e questo
