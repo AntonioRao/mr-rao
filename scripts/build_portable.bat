@@ -24,8 +24,18 @@ pip install -q -r requirements-build.txt
 if errorlevel 1 exit /b 1
 
 echo.
-echo [1/7] Icons...
-python scripts\generate_icons.py
+echo [1/7] Icone (gia' versionate, si controlla che ci siano)...
+REM Le icone NON si rigenerano qui. Sono artefatti versionati, prodotti da
+REM scripts\generate_icons.py quando cambia il disegno -- che richiede
+REM svglib/rlPyCairo, librerie che di proposito non stanno in
+REM requirements.txt perche' il prodotto non le usa.
+REM
+REM Rigenerarle a ogni build voleva dire due cose, entrambe successe: la
+REM build si rompe su una macchina che non ha quegli strumenti, e su una
+REM macchina con caratteri diversi il pacchetto esce con un marchio
+REM leggermente diverso da quello nel repository. Qui si verifica solo che
+REM i file esistano.
+python -c "import sys;from pathlib import Path;m=[f for f in ('static/img/logo.png','static/img/favicon.ico','static/img/mr-rao.ico','static/img/favicon-64.png') if not Path(f).exists()];sys.exit(('mancano: '+', '.join(m)) if m else 0)"
 if errorlevel 1 exit /b 1
 
 echo.
