@@ -43,3 +43,7 @@ test_output.txt
 
 # Configurazione locale dell'editor/agente, non fa parte del progetto
 .claude/
+
+# Uscita di scripts/misura_su_mail_tue.py: numeri su posta personale.
+# Non va nel repository nemmeno mascherata.
+scripts/misura_mail.txt
