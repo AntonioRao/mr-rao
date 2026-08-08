@@ -12,7 +12,7 @@ PSF), copyleft di file (MPL-2.0, esplicitamente compatibile) e LGPL, che
 l'AGPL può incorporare. La licenza di Mr. Rao **non** limita i diritti che
 queste librerie concedono.
 
-Pacchetti nell'ambiente: **64** — di cui **4** con obblighi
+Pacchetti nell'ambiente: **68** — di cui **5** con obblighi
 oltre la semplice attribuzione (copyleft o eccezioni).
 
 ## Licenze con obblighi particolari
@@ -27,6 +27,7 @@ Sono elencate per prime perché sono quelle da controllare.
 | [pyinstaller](https://pyinstaller.org) | 6.21.0 | GNU General Public License v2 (GPLv2) | — |
 | [pyinstaller-hooks-contrib](https://github.com/pyinstaller/pyinstaller-hooks-contrib) | 2026.6 | Apache Software License; GNU General Public License v2 (GPLv2) | — |
 | [pystray](https://github.com/moses-palmer/pystray) | 0.19.5 | GNU Lesser General Public License v3 (LGPLv3) | [`licenses/pystray/`](licenses/pystray/) |
+| [tqdm](https://tqdm.github.io) | 4.70.0 | MPL-2.0 AND MIT | — |
 
 **pystray** (LGPL-3.0) è l'unica libreria LGPL del pacchetto: testo di
 licenza, NOTICE e istruzioni di sostituzione in `licenses/pystray/`.
@@ -58,7 +59,7 @@ Mr. Rao non li modifica.
 | [pystray](https://github.com/moses-palmer/pystray) | 0.19.5 | Icona nella barra di sistema | GNU Lesser General Public License v3 (LGPLv3) | [`licenses/pystray/`](licenses/pystray/) |
 | [pytest](https://docs.pytest.org/en/stable/changelog.html) | 9.1.1 | Test (solo sviluppo) | MIT | — |
 | [PyYAML](https://pyyaml.org/) | 6.0.3 | Verifica del frontmatter nei test | MIT License | — |
-| [rapidocr-onnxruntime](https://github.com/RapidAI/RapidOCR) | 1.2.3 | OCR offline (immagini e PDF scansionati) | Apache-2.0 | — |
+| [rapidocr](https://rapidai.github.io/RapidOCRDocs) | 3.9.2 | OCR offline (immagini e PDF scansionati), modelli PP-OCRv6 inclusi | Apache-2.0 | — |
 | [Werkzeug](https://werkzeug.palletsprojects.com/page/changes/) | 3.1.8 | Livello WSGI | BSD-3-Clause | — |
 
 ## Dipendenze indirette
@@ -66,11 +67,12 @@ Mr. Rao non li modifica.
 Arrivano come dipendenze delle precedenti. Sono elencate per intero perché
 l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 
-<details><summary>Elenco completo (50 pacchetti)</summary>
+<details><summary>Elenco completo (54 pacchetti)</summary>
 
 | Progetto | Versione | Licenza | Notice locale |
 |----------|----------|---------|---------------|
 | [altgraph](https://altgraph.readthedocs.io) | 0.17.5 | MIT License | — |
+| [antlr4-python3-runtime](http://www.antlr.org) | 4.9.3 | BSD | — |
 | [blinker](https://discord.gg/pallets) | 1.9.0 | MIT License | — |
 | [certifi](https://github.com/certifi/python-certifi) | 2026.7.22 | Mozilla Public License 2.0 (MPL 2.0) | — |
 | [cffi](https://cffi.readthedocs.io/) | 2.1.1 | MIT-0 | — |
@@ -78,6 +80,7 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [click](https://click.palletsprojects.com/page/changes/) | 8.4.2 | BSD-3-Clause | — |
 | [cobble](http://github.com/mwilliamson/python-cobble) | 0.1.4 | BSD License | — |
 | [colorama](https://github.com/tartley/colorama) | 0.4.6 | BSD License | — |
+| [colorlog](https://github.com/borntyping/python-colorlog) | 6.12.0 | MIT License | — |
 | [cryptography](https://cryptography.io/en/latest/changelog/) | 50.0.0 | Apache-2.0 OR BSD-3-Clause | — |
 | [defusedxml](https://github.com/tiran/defusedxml) | 0.7.1 | Python Software Foundation License | — |
 | [et_xmlfile](https://foss.heptapod.net/openpyxl/et_xmlfile) | 2.0.0 | MIT License | — |
@@ -92,6 +95,7 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [MarkupSafe](https://palletsprojects.com/donate) | 3.0.3 | BSD-3-Clause | — |
 | [numpy](https://numpy.org) | 2.5.1 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 | — |
 | [olefile](https://www.decalage.info/python/olefileio) | 0.47 | BSD License | — |
+| [omegaconf](https://github.com/omry/omegaconf) | 2.3.1 | BSD License | — |
 | [opencv-python](https://github.com/opencv/opencv-python) | 5.0.0.93 | Apache Software License | — |
 | [openpyxl](https://openpyxl.readthedocs.io) | 3.1.5 | MIT License | — |
 | [packaging](https://packaging.pypa.io/) | 26.3 | Apache-2.0 OR BSD-2-Clause | — |
@@ -115,6 +119,7 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [shapely](https://shapely.readthedocs.io/) | 2.1.2 | BSD License | — |
 | [six](https://github.com/benjaminp/six) | 1.17.0 | MIT License | — |
 | [soupsieve](https://github.com/facelessuser/soupsieve) | 2.9.1 | MIT | — |
+| [tqdm](https://tqdm.github.io) | 4.70.0 | MPL-2.0 AND MIT | — |
 | [typing_extensions](https://github.com/python/typing_extensions/issues) | 4.16.0 | PSF-2.0 | — |
 | [tzdata](https://github.com/python/tzdata) | 2026.3 | Apache-2.0 | — |
 | [urllib3](https://github.com/urllib3/urllib3/blob/main/CHANGES.rst) | 2.7.0 | MIT | — |

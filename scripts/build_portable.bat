@@ -78,10 +78,10 @@ pyinstaller --noconfirm --clean --onedir --console --name MrRao ^
   --hidden-import=mr_rao.tray ^
   --hidden-import=mr_rao.cli ^
   --hidden-import=bs4 ^
-  --hidden-import=rapidocr_onnxruntime ^
+  --hidden-import=rapidocr ^
   --hidden-import=pdfplumber ^
   --hidden-import=PIL ^
-  --collect-all rapidocr_onnxruntime ^
+  --collect-all rapidocr ^
   --collect-all onnxruntime ^
   --collect-all markitdown ^
   --collect-all magika ^

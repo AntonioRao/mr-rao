@@ -23,7 +23,13 @@ xlrd>=2.0.1             # .xls
 pdfminer.six>=20231228
 pdfplumber>=0.11.0
 Pillow>=10.0.0
-rapidocr_onnxruntime>=1.2.3
+# OCR offline. `rapidocr` e non piu' `rapidocr_onnxruntime`: il pacchetto e'
+# stato rinominato e il vecchio nome e' fermo alla 1.2.3, senza piu' rilasci
+# nemmeno di sicurezza. `onnxruntime` va dichiarato a parte, perche' dalla 3.x
+# non e' piu' una dipendenza di rapidocr: senza, il primo RapidOCR() alza
+# ImportError. I modelli PP-OCRv6 viaggiano dentro la wheel.
+rapidocr>=3.9.2
+onnxruntime>=1.17.0
 # HTML → text for .eml — see docs/BEAUTIFULSOUP.md
 beautifulsoup4>=4.12.0
 # System tray (optional but recommended)

@@ -1,6 +1,6 @@
 # Backlog & piano di priorità — Mr. Rao
 
-Lo stato delle voci vale alla **1.7.2**. La fonte di verità resta git e il
+Lo stato delle voci vale alla **1.9.0**. La fonte di verità resta git e il
 [changelog](CHANGELOG.md): se una riga qui dice DONE e il codice dice altro,
 ha ragione il codice.
 
@@ -124,7 +124,7 @@ può citare un identificativo non serve a niente.
 | P4.2 | Rimuovere shim MarkItDown quando nessuno li usa più | TODO |
 | P4.3 | Spezzare `app.js` in moduli ES se cresce ancora | TODO |
 | P4.4 | CSS già estratto in `static/css/app.css` | **DONE** |
-| P4.5 | **Migrare da `rapidocr_onnxruntime` a `rapidocr`** — il pacchetto è stato rinominato: il vecchio nome è fermo a **1.2.3** e non riceverà più niente, correzioni di sicurezza comprese, mentre il nuovo è alla **3.9.2**. Nel codice sono due soli `import` (`mr_rao/ocr_service.py`, `mr_rao/cli.py`) più la riga in `requirements.txt` e la descrizione in `scripts/gen_third_party.py`: la stringa `"rapidocr"` che compare ovunque è il nome interno del motore, non il pacchetto. Il rischio non è la superficie ma **l'API cambiata fra la 1.2 e la 3.x**, quindi il banco OCR va rifatto girare prima di crederci | TODO |
+| P4.5 | **Migrare da `rapidocr_onnxruntime` a `rapidocr`** — fatto in 1.9.0. Non era manutenzione: la 1.2.3 perdeva gli spazi fra le parole (`PartitaIVA12345678903-tel.+390951234567`) e sullo stesso documento il filtro privacy trovava **1** dato personale invece di **4** — IBAN, partita IVA e telefono restavano in chiaro. L'API non era compatibile (`RapidOCROutput` invece della tupla), `onnxruntime` va dichiarato a parte, e l'intera suite passava anche col motore OCR rotto, perche' ogni test lo sostituiva con testo finto: aggiunto `tests/test_ocr_motore.py` | **DONE** (1.9.0) |
 
 ---
 

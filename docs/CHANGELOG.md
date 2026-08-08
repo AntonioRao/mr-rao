@@ -1,5 +1,74 @@
 # Changelog
 
+## 1.9.0 — Il motore OCR perdeva gli spazi, e con loro i dati personali
+
+Il pacchetto OCR che usavamo, `rapidocr_onnxruntime`, è stato **rinominato**:
+è fermo alla 1.2.3 e non riceverà più niente, correzioni di sicurezza
+comprese. Il progetto continua come `rapidocr`, oggi alla 3.9.2.
+
+Sembrava manutenzione. Non lo era.
+
+**La stessa immagine, letta dalle due versioni:**
+
+```
+1.2.3  IBANTT60X0542811101000000123456
+       PartitaIVA12345678903-tel.+390951234567
+
+3.9.2  IBAN IT60X0542811101000000123456
+       Partita IVA 12345678903 - tel. +39 095 123 4567
+```
+
+La versione che avevamo in produzione **perdeva gli spazi fra le parole** e
+confondeva `I` con `T` e con `f`. Per un motore di redazione non è un
+dettaglio estetico: i riconoscitori lavorano sui confini di parola.
+
+Passando quei due testi allo stesso filtro privacy:
+
+| testo letto da | dati personali rimossi |
+|---|---|
+| OCR 1.2.3 | **1** — solo il codice fiscale |
+| OCR 3.9.2 | **4** |
+
+Con il vecchio motore, su quel documento **IBAN, partita IVA e numero di
+telefono restavano in chiaro**. E `IBANTT60` falliva per forza il controllo
+del codice Paese introdotto nella 1.8.0 proprio per non inventare IBAN.
+
+### Cosa è cambiato nel codice
+
+L'API non è compatibile, contrariamente a quanto sembra. La 3.x restituisce
+un oggetto `RapidOCROutput` invece della tupla `(result, elapse)`: il vecchio
+`result, _ = ocr(path)` alza `TypeError`, e il testo ora sta in `.txts`.
+
+`onnxruntime` va dichiarato esplicitamente: dalla 3.x non è più una
+dipendenza di `rapidocr`, e senza di esso il primo `RapidOCR()` muore. I
+modelli **PP-OCRv6** viaggiano dentro la wheel, quindi al primo avvio non si
+scarica niente — cosa che per un programma che promette di non usare la rete
+non è un dettaglio.
+
+### Il motore parlava troppo
+
+Appena costruito, scriveva nove righe di INFO sulla console, e fra queste il
+percorso completo dei modelli — che su Windows **contiene il nome
+dell'utente**. Su uno strumento che esiste per non far uscire i dati, un
+output di console incollato in una segnalazione non deve dire chi sei. Ora
+tace.
+
+### Il buco nei test che questa migrazione ha rivelato
+
+I 693 test passavano **anche con il motore OCR completamente rotto**: tutti
+sostituiscono `ocr_image` con una funzione che restituisce testo finto. Vanno
+benissimo per provare cosa fa il convertitore *dato* un testo, ma nessuno
+toccava il motore vero.
+
+Aggiunto `tests/test_ocr_motore.py`: tre prove che fanno leggere al motore
+vero un'immagine costruita sul momento — che legga, che non incolli le parole
+fra loro, che non stampi percorsi. Verificati rossi sul codice precedente
+prima di considerarli fatti.
+
+**696 test.**
+
+---
+
 ## 1.8.0 — Quello che nessuno aveva mai misurato
 
 Il banco di prova erano due testi scritti da noi: una mail dove tutto

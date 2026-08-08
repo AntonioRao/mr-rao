@@ -8,8 +8,8 @@
 [![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20150%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.8.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-693%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.9.0-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-696%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -275,7 +275,7 @@ Non è uno slogan, è verificabile:
 
 Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze, e le loro licenze restano intatte.
 
-Il cuore della conversione è **[MarkItDown](https://github.com/microsoft/markitdown)** di Microsoft (MIT). L'OCR è **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) su **[ONNX Runtime](https://onnxruntime.ai/)**. Il resto — Flask, BeautifulSoup, pdfplumber, Pillow — è elencato per intero in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
+Il cuore della conversione è **[MarkItDown](https://github.com/microsoft/markitdown)** di Microsoft (MIT). L'OCR è **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) su **[ONNX Runtime](https://onnxruntime.ai/)**, con i modelli PP-OCRv6 dentro il pacchetto — al primo avvio non si scarica niente. Il resto — Flask, BeautifulSoup, pdfplumber, Pillow — è elencato per intero in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
 
 > *Mr. Rao non è affiliato né sponsorizzato da Microsoft o dagli altri progetti citati.*
 
@@ -322,7 +322,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **693 test**.
+Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **696 test**.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 

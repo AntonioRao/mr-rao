@@ -8,8 +8,8 @@
 [![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20150%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.8.0-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-693%20passing-10b981)](tests/)
+[![Version](https://img.shields.io/badge/version-1.9.0-3b82f6)](docs/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-696%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -272,7 +272,7 @@ Not a slogan — something you can check:
 
 Mr. Rao is **not** a fork of any of these projects: it uses them as dependencies, and their licences stay intact.
 
-The conversion core is **[MarkItDown](https://github.com/microsoft/markitdown)** by Microsoft (MIT). OCR is **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) on **[ONNX Runtime](https://onnxruntime.ai/)**. Everything else — Flask, BeautifulSoup, pdfplumber, Pillow — is listed in full in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
+The conversion core is **[MarkItDown](https://github.com/microsoft/markitdown)** by Microsoft (MIT). OCR is **[RapidOCR](https://github.com/RapidAI/RapidOCR)** (Apache-2.0) on **[ONNX Runtime](https://onnxruntime.ai/)**, with the PP-OCRv6 models shipped inside the package — nothing is downloaded at first run. Everything else — Flask, BeautifulSoup, pdfplumber, Pillow — is listed in full in **[THIRD_PARTY.md](THIRD_PARTY.md)**.
 
 > *Mr. Rao is not affiliated with or endorsed by Microsoft or any of the projects mentioned.*
 
@@ -308,7 +308,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Five steps: compilation, dependency health, licence alignment, published-docs alignment, **693 tests**.
+Five steps: compilation, dependency health, licence alignment, published-docs alignment, **696 tests**.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 

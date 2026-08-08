@@ -242,7 +242,7 @@ def cmd_health(_args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"markitdown: FAIL ({e})")
     try:
-        from rapidocr_onnxruntime import RapidOCR  # noqa: F401
+        from rapidocr import RapidOCR  # noqa: F401
 
         print("rapidocr: ok")
     except Exception as e:

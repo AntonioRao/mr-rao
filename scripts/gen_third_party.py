@@ -21,7 +21,7 @@ OUT = ROOT / "THIRD_PARTY.md"
 # Dipendenze dirette: come vengono usate nel prodotto.
 RUOLI = {
     "markitdown": "Documenti Office/HTML/PDF → Markdown",
-    "rapidocr-onnxruntime": "OCR offline (immagini e PDF scansionati)",
+    "rapidocr": "OCR offline (immagini e PDF scansionati), modelli PP-OCRv6 inclusi",
     "onnxruntime": "Esecuzione dei modelli OCR",
     "flask": "Server web locale",
     "werkzeug": "Livello WSGI",

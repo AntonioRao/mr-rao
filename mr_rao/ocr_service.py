@@ -1,6 +1,7 @@
 """OCR helpers: RapidOCR images + PDF page fallback + table extraction."""
 from __future__ import annotations
 
+import logging
 import tempfile
 import threading
 import time
@@ -21,10 +22,36 @@ def get_ocr():
     if _ocr is None:
         with _ocr_lock:
             if _ocr is None:
-                from rapidocr_onnxruntime import RapidOCR
+                # `rapidocr`, non piu' `rapidocr_onnxruntime`: il pacchetto e'
+                # stato rinominato e il vecchio nome e' fermo alla 1.2.3, senza
+                # piu' correzioni nemmeno di sicurezza.
+                from rapidocr import RapidOCR
 
-                _ocr = RapidOCR()
+                # La 3.x scrive nove righe di INFO al primo uso, e fra queste
+                # il percorso completo dei modelli -- che su Windows contiene
+                # il nome dell'utente. Su uno strumento che esiste per non far
+                # uscire i dati, un output di console incollato in una
+                # segnalazione non deve dire chi sei.
+                #
+                # Le righe escono *durante* la costruzione, e RapidOCR si
+                # riconfigura il logger mentre nasce: alzarne il livello prima
+                # non serve (lo sovrascrive) e dopo e' tardi. Si spengono per
+                # la sola durata dell'inizializzazione, poi si rimette tutto
+                # com'era -- il `finally` c'e' perche' una disabilitazione
+                # globale lasciata accesa sarebbe molto peggio del rumore.
+                _zittisci_log_ocr()
+                logging.disable(logging.INFO)
+                try:
+                    _ocr = RapidOCR()
+                finally:
+                    logging.disable(logging.NOTSET)
     return _ocr
+
+
+def _zittisci_log_ocr() -> None:
+    """Abbassa i log di RapidOCR a WARNING, senza toccare quelli di nessun altro."""
+    for nome in ("RapidOCR", "rapidocr"):
+        logging.getLogger(nome).setLevel(logging.WARNING)
 
 
 ProgressCb = Callable[[int, int, str], None]  # current, total, message
@@ -32,12 +59,17 @@ CancelCb = Callable[[], bool]
 
 
 def ocr_image(filepath: str | Path, language: str = "it") -> str | None:
-    """Run RapidOCR on an image path. language is advisory (Latin scripts)."""
+    """Run RapidOCR on an image path. language is advisory (Latin scripts).
+
+    Il risultato non e' piu' la tupla ``(result, elapse)`` della 1.2.3: la 3.x
+    restituisce un ``RapidOCROutput`` con ``.txts``, ``.boxes``, ``.scores``.
+    Il vecchio ``result, _ = ocr(path)`` qui alzava ``TypeError``, e il vecchio
+    ``item[1]`` non esiste piu'.
+    """
     ocr = get_ocr()
-    result, _ = ocr(str(filepath))
-    if not result:
-        return None
-    lines = [item[1] for item in result]
+    out = ocr(str(filepath))
+    # `.txts` e' None quando non trova niente, non una sequenza vuota.
+    lines = list(getattr(out, "txts", None) or ())
     # language reserved for future model selection / post-processing
     _ = language
     return "\n\n".join(lines) if lines else None
