@@ -342,3 +342,54 @@ def test_il_convertitore_deduce_il_tipo_dal_file():
     # Su una scansione i vettori non ci sono: contarli darebbe zero, e zero
     # verrebbe letto come «prosa» -- giusto per il motivo sbagliato.
     assert _e_prosa(Path("x.pdf"), ".pdf", "rapidocr_pdf_fallback") is None
+
+
+# ---------------------------------------------------------------------------
+# L'IBAN: il codice Paese e la lunghezza, non solo il mod-97
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "iban,paese",
+    [
+        ("IT60X0542811101000000123456", "Italia, 27"),
+        ("GB29NWBK60161331926819", "Regno Unito, 22"),
+        ("DE89370400440532013000", "Germania, 22"),
+        ("NL91ABNA0417164300", "Paesi Bassi, 18"),
+    ],
+)
+def test_gli_iban_veri_passano(iban, paese):
+    from mr_rao.privacy import iban_checksum_ok
+
+    assert iban_checksum_ok(iban), paese
+
+
+@pytest.mark.parametrize(
+    "finto,perche",
+    [
+        ("SS51234567890123456789012345", "«SS» non e' un codice Paese"),
+        ("XX60X0542811101000000123456", "«XX» non e' assegnato"),
+        ("IT60X05428111010000001234", "italiano ma lungo 25 invece di 27"),
+    ],
+)
+def test_i_finti_iban_non_passano(finto, perche):
+    """Il mod-97 da solo scarta 96 candidati su 97: su un volume pieno di
+    codici lunghi, uno su 97 passa comunque. Sul banco comparivano IBAN su
+    documenti che non ne contengono nessuno, «recuperati» dall'OCR --
+    12 casi, ora zero. Il checksum protegge dai candidati sbagliati, non da
+    uno spazio di candidati troppo largo."""
+    from mr_rao.privacy import iban_checksum_ok
+
+    assert not iban_checksum_ok(finto), perche
+
+
+def test_il_recupero_ocr_non_inventa_iban():
+    """Con due correzioni ottiche si arriva a un mod-97 valido per caso.
+    Il codice Paese e la lunghezza tolgono quasi tutto quello spazio."""
+    from mr_rao.privacy import iban_ocr_recover
+
+    # Un IBAN italiano vero con due caratteri storpiati dall'OCR: va
+    # recuperato, e' il motivo per cui la funzione esiste.
+    assert iban_ocr_recover("lT6OX0542811101000000123456") is not None
+    # Un numero d'ordine qualsiasi: non deve diventare niente.
+    assert iban_ocr_recover("5551234567890123456789012345") is None
