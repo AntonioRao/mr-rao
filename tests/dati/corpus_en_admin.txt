@@ -26,12 +26,16 @@ January and has not been replaced.
 
 Responsibility sits with the Head of Procurement, reporting to the Chief
 Information Security Officer. The Data Protection Officer reviews every
-contract that involves processing on behalf of the group. The Project
-Manager for the migration workstream chairs the weekly call.
+contract that involves processing on behalf of the group.
+The Project Manager for the migration workstream chairs the weekly call.
 
 The Bill introduced last session does not change these obligations. The
 grace period for existing contracts runs to the end of the financial
-year.
+year. Grace and favour arrangements are out of scope.
+
+Brown field sites are excluded from the survey. Collections continue to
+use the Will Call desk at the depot; the standing orders remain as
+published.
 
 4. STANDARDS AND CONTROLS
 
