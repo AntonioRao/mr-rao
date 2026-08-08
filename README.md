@@ -20,7 +20,7 @@
 *Extract the zip, double-click `Installa Mr Rao.bat`. That's it.*
 <sub>The download starts straight away. [All releases and release notes](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
 
-![Mr. Rao — interface](docs/img/schermata.png)
+![Mr. Rao — interface](docs/img/schermata-en.png)
 
 > **Interface and output in English or Italian**, chosen from your browser and switchable with one click — the produced Markdown follows the same language. Alongside the Italian formats (*codice fiscale*, *partita IVA*, BBAN) the engine recognises UK, US, Canadian and Australian ones: NHS number, National Insurance number, SSN, ITIN, ABA routing number, SIN, ABN, TFN, UK postcodes and passport MRZ lines — each with its own checksum where one exists. English name detection is context-driven and deliberately narrower than the Italian: [PRIVACY.md](docs/PRIVACY.md) says what that costs.
 
