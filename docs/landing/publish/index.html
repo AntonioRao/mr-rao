@@ -223,6 +223,23 @@
     transform: translateY(18px);
     animation: fadeUp 0.85s 0.08s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+  /* Il marchio a sinistra della scritta, alla stessa altezza.
+     La misura e' in `em`, non in pixel: il titolo usa un `clamp()` che lo
+     rimpicciolisce sugli schermi stretti, e un logo in pixel resterebbe
+     grande mentre il testo si accorcia. In `em` scala insieme. */
+  .hero .wordmark .wm-row {
+    display: flex;
+    align-items: center;
+    gap: 0.26em;
+  }
+  .hero .wordmark .wm-logo {
+    width: 1.06em;
+    height: 1.06em;
+    flex-shrink: 0;
+    /* `drop-shadow` e non `box-shadow`: il marchio e' un disco, e la
+       seconda seguirebbe il rettangolo dell'immagine. */
+    filter: drop-shadow(0 0 26px rgba(61,255,154,0.35));
+  }
   .hero .wordmark .dot {
     color: var(--phosphor-dim);
     margin: 0 0.08em;
@@ -675,7 +692,10 @@
     <div class="hero-copy">
       <p class="eyebrow">Protocollo zero · solo loopback</p>
       <p class="wordmark" aria-label="Mr. Rao">
-        Mr<span class="dot">.</span>Rao
+        <span class="wm-row">
+          <img class="wm-logo" src="assets/logo.svg?v=bdb291803a" alt="" width="512" height="512" />
+          <span>Mr<span class="dot">.</span>Rao</span>
+        </span>
         <span class="ver">offline by design</span>
       </p>
       <h1>
