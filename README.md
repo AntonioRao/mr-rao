@@ -5,7 +5,7 @@
 **Turn PDFs, Office files, scans and emails into clean Markdown — with the personal data already stripped out.**
 **All on your own machine, without sending anything anywhere.**
 
-[![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20150%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+[![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.9.0-3b82f6)](docs/CHANGELOG.md)
@@ -193,7 +193,7 @@ leaves the room.
 
 **[⬇️ Download the latest release](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** — then extract the zip and double-click **`Installa Mr Rao.bat`**.
 
-Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is ~150 MB, ~310 MB once installed.
+Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is ~165 MB, ~330 MB once installed.
 
 Installing creates the desktop shortcut, the Start menu entry and the "Apri con Mr. Rao" right-click action on any file, with a dedicated entry for the ten commonest formats. `Disinstalla Mr Rao.bat` removes all of it — your working folders stay where they are.
 

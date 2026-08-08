@@ -16,8 +16,8 @@ La cartella `MrRao-Portable` (generata su un PC di build) include:
 scripts\build_portable.bat
 ```
 
-Output: `dist\MrRao-Portable\` (~310 MB) più i due archivi in `dist\`:
-`MrRao-Portable-<versione>.zip` e `MrRao-Portable.zip` (~150 MB l'uno).
+Output: `dist\MrRao-Portable\` (~330 MB) più i due archivi in `dist\`:
+`MrRao-Portable-<versione>.zip` e `MrRao-Portable.zip` (~165 MB l'uno).
 **Vanno allegati entrambi alla release**: GitHub serve
 `/releases/latest/download/NOME` solo se il nome non cambia fra le versioni,
 ed è quel percorso che alimenta i link di scaricamento diretto nei README.
