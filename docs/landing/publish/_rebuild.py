@@ -1,4 +1,15 @@
+"""Rigenera index.html e le impronte CSP di _headers dal sorgente della landing.
+
+Gli inline vengono estratti con `HTMLParser`, non con una regex: una regex su
+`<script ...>` sbaglia sui casi che un parser tratta senza pensarci (attributi
+che contengono `>`, commenti, tag chiusi in modo strano) e qui sbagliare vuol
+dire calcolare l'impronta del blocco sbagliato — cioe' pubblicare un sito che
+il browser blocca. Ogni passaggio che potrebbe non trovare niente si ferma
+invece di andare avanti in silenzio: un'impronta vecchia non si vede finche'
+non si guarda il sito pubblicato.
+"""
 from pathlib import Path
+from html.parser import HTMLParser
 import re
 import hashlib
 import base64
@@ -17,10 +28,48 @@ html = src.replace("../../static/img/logo.svg", "assets/logo.svg").replace(
 )
 (root / "index.html").write_text(html, encoding="utf-8", newline="\n")
 
-styles = re.findall(r"<style[^>]*>(.*?)</style>", html, re.S | re.I)
-scripts = re.findall(
-    r"<script(?![^>]*\bsrc=)(?:\s[^>]*)?>(.*?)</script>", html, re.S | re.I
-)
+class Inline(HTMLParser):
+    """Raccoglie il testo dei blocchi <style> e <script> senza `src`."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=False)
+        self.styles: list[str] = []
+        self.scripts: list[str] = []
+        self._dove: str | None = None
+        # `handle_data` puo' essere chiamata piu' volte per un blocco solo:
+        # si accumula qui e si chiude il blocco al tag di chiusura, altrimenti
+        # un blocco spezzato sembrerebbe due blocchi.
+        self._buf: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "style":
+            self._dove = "styles"
+        elif tag == "script" and not dict(attrs).get("src"):
+            self._dove = "scripts"
+
+    def handle_endtag(self, tag):
+        if tag in ("style", "script") and self._dove:
+            getattr(self, self._dove).append("".join(self._buf))
+            self._buf = []
+            self._dove = None
+
+    def handle_data(self, data):
+        if self._dove:
+            self._buf.append(data)
+
+
+parser = Inline()
+parser.feed(html)
+styles, scripts = parser.styles, parser.scripts
+
+# `[0]` da solo prenderebbe il primo e ignorerebbe gli altri: l'impronta
+# coprirebbe meta' pagina e il browser bloccherebbe il resto.
+for nome, blocchi in (("style", styles), ("script", scripts)):
+    if len(blocchi) != 1:
+        raise SystemExit(
+            f"attesi 1 blocco <{nome}> inline, trovati {len(blocchi)}: "
+            "l'header CSP ne fissa uno solo"
+        )
 
 
 def sh(s: str) -> str:
@@ -36,15 +85,17 @@ print("SCRIPT", script_h)
 
 hdr_path = root / "_headers"
 hdr = hdr_path.read_text(encoding="utf-8")
-hdr = re.sub(
-    r"script-src 'self' 'sha256-[^']+'",
-    f"script-src 'self' '{script_h}'",
-    hdr,
-)
-hdr = re.sub(
-    r"style-src 'self' 'sha256-[^']+'",
-    f"style-src 'self' '{style_h}'",
-    hdr,
-)
+# `re.sub` che non trova niente restituisce la stringa com'era, senza dire
+# niente: e' cosi' che l'impronta e' rimasta vecchia una volta.
+for direttiva, impronta in (("script-src", script_h), ("style-src", style_h)):
+    hdr, sostituite = re.subn(
+        rf"{direttiva} 'self' 'sha256-[^']+'",
+        f"{direttiva} 'self' '{impronta}'",
+        hdr,
+    )
+    if sostituite != 1:
+        raise SystemExit(
+            f"attesa 1 direttiva {direttiva} in _headers, sostituite {sostituite}"
+        )
 hdr_path.write_text(hdr, encoding="utf-8", newline="\n")
 print("OK wrote index.html + _headers")

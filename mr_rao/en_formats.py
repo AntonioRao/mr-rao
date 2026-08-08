@@ -709,7 +709,18 @@ BANCO = (
 
 
 def esegui_banco() -> int:
-    """Passa ogni vettore nella sua funzione. Restituisce i fallimenti."""
+    """Passa ogni vettore nella sua funzione. Restituisce i fallimenti.
+
+    CodeQL py/clear-text-logging-sensitive-data: la stampa qui sotto mostra
+    SSN, NINO e simili in chiaro, ed e' voluto. Quei valori sono le costanti
+    ``VETTORI_*`` di questo file — pubblicate da chi emette l'identificativo
+    oppure costruite applicando l'algoritmo, come dice il terzo elemento di
+    ogni tupla. Nessun dato di chi usa il programma passa da questa funzione:
+    e' un banco che si lancia a mano (``python -m mr_rao.en_formats``) e la
+    riga esce solo quando un vettore fallisce. Mascherarla renderebbe
+    impossibile capire *quale* vettore e' andato storto, che e' l'unica cosa
+    che quella riga serve a dire.
+    """
     falliti = 0
     totali = 0
     for nome, funzione, vettori in BANCO:

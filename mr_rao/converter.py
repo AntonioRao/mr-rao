@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-from config import APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
+from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
 from mr_rao.i18n import LINGUA_PREDEFINITA, t
 from mr_rao.ocr_service import extract_pdf_tables, ocr_image, ocr_pdf_fallback
 from mr_rao.privacy import (
@@ -577,8 +577,17 @@ def convert_bytes(
     should_cancel: CancelCb | None = None,
 ) -> ConvertResult:
     """Write bytes to a secure temp file, convert, delete. Minimizes disk dwell time."""
+    # `suffix` finisce in un nome di file, quindi arriva qui solo se e' una
+    # delle estensioni che sappiamo trattare. Non e' difesa contro il
+    # traversal — `Path.suffix` restituisce '' appena compare un separatore,
+    # quindi da li' non si esce — ma contro i casi storti che restano:
+    # `a...` da' un suffisso di solo punto, `a.` + 300 caratteri da' un nome
+    # troppo lungo per il filesystem. Vale anche per chi chiama questa
+    # funzione senza passare dai controlli di `routes.py`.
     ext = Path(filename).suffix.lower()
-    fd, tmp = tempfile.mkstemp(suffix=ext or ".bin", prefix="mrrao_")
+    if ext not in ALLOWED_EXTENSIONS:
+        ext = ".bin"
+    fd, tmp = tempfile.mkstemp(suffix=ext, prefix="mrrao_")
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(data)
