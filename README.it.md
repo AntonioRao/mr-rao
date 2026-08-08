@@ -1,5 +1,7 @@
 # Mr. Rao
 
+[English](README.md) · **Italiano**
+
 **Trasforma PDF, Word, Excel, scansioni ed email in Markdown pulito — con i dati personali già rimossi.**
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
@@ -12,7 +14,6 @@
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
 
-**🇮🇹 Italiano** · [🇬🇧 English](README.md)
 
 ### [⬇️ Scarica per Windows — nessun Python richiesto](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 

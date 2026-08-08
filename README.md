@@ -1,5 +1,7 @@
 # Mr. Rao
 
+**English** · [Italiano](README.it.md)
+
 **Turn PDFs, Office files, scans and emails into clean Markdown — with the personal data already stripped out.**
 **All on your own machine, without sending anything anywhere.**
 
@@ -12,7 +14,6 @@
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
 
-[🇬🇧 English](README.md) · **[🇮🇹 Italiano](README.it.md)**
 
 ### [⬇️ Download for Windows — no Python required](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
