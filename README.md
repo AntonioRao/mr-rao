@@ -21,7 +21,7 @@
 
 ![Mr. Rao — interface](docs/img/schermata.png)
 
-> **Heads up:** Mr. Rao is built for **Italian** documents. It recognises *codice fiscale*, *partita IVA*, IBANs and Italian names, and its interface is in Italian. The code and its documentation are in English, and the redaction engine is designed to be extended to other countries — see [Contributing](CONTRIBUTING.md).
+> **Heads up:** the **interface is in Italian**. The engine is not: alongside the Italian formats (*codice fiscale*, *partita IVA*, BBAN) it recognises UK and US ones — NHS number, National Insurance number, SSN, ITIN, ABA routing number, Canadian SIN, Australian ABN and TFN, UK postcodes and passport MRZ lines — each with its own checksum where one exists. English name detection is context-driven and deliberately narrower than the Italian: see [PRIVACY.md](docs/PRIVACY.md) for what that costs. The code and its documentation are in English.
 
 ---
 
@@ -71,27 +71,45 @@ Carta 4111 1111 1111 1111           →  {{CARD}}
 cell. 335 123 4567                  →  {{PHONE}}
 ```
 
-### Names: four signals, not a list
+### Names: levels of evidence, not a list
 
-No list of surnames is ever complete. So context rules carry the weight, strongest signal first:
+No list of surnames is ever complete, and no list is enough on its own: "Chiesa", "Costa", "Monte" and "Villa" are real Italian surnames **and** words that appear on every other line of an administrative document. So the engine asks for proof, and how strong that proof has to be depends on what it is reading.
 
-1. **a professional title in front** — Dott., Ing., Geom., Avv.;
-2. **a name next to an email address** — `Tizio Caio <t.caio@x.it>`, by far the commonest case in mail;
-3. **a recognised first name** pulling in the word after it: if "Nazzareno" is a first name, "Sbrolli" is the surname even though no list contains it;
-4. **a heuristic** — two capitalised words in a row that are not Italian words.
+**It replaces** when the text declares that this is a person:
 
-Only the fourth one can be wrong, and it is the only one with a switch of its own.
+- **a professional title in front** — Dott., Ing., Geom., Avv., Mr, Dr, Prof;
+- **a closing formula** — "Kind regards, Whitfield": a signature is the one place a surname on its own really is a surname;
+- **a name next to an email address** — `Tizio Caio <t.caio@x.it>`, by far the commonest case in mail;
+- **a first name and surname side by side**, both recognised.
+
+**It flags and leaves alone** when the evidence is weak: a single list hit, a lone word, a run of capitals with nothing else around it. The document stays intact and whoever checks it knows where to look.
+
+### Letter or form: the same rule points the other way
+
+In a letter, two capitalised words of which one is in the lists are almost always a person. On a form they are almost always a field label: "Imposta Lorda", "Quadro RN", "Redditi Persone Fisiche".
+
+That is not an impression, it is measured:
+
+| | blank administrative documents | Italian prose |
+|---|---|---|
+| requiring **two** hits | 2,739 fewer wrong replacements | 3,918 fewer names caught |
+| requiring **one** hit | 2,739 more | 3,918 more |
+
+There is no single value that is right for both, so Mr. Rao **works it out from the file** — email is prose, spreadsheets are forms, and in PDFs it counts the boxes drawn on the page — and lets you override it when it gets that wrong.
+
+The most aggressive heuristic, "two capitalised words that are not Italian words", is **off by default** as of 1.7.2. The reason is a number: on twenty blank Agenzia delle Entrate forms it produced 8,904 wrong replacements, and on eight historical issues of the Gazzetta Ufficiale, 14,376. It can still be switched on for letters and contracts, where proper titles are rare.
 
 ### The guard that matters most
 
-A filter that redacts everything is as useless as one that redacts nothing. The bench is **two** texts, and both are tests:
+A filter that redacts everything is as useless as one that redacts nothing. The bench has **three populations**, and the first is the one that counts:
 
-| | expected | result |
+| | expected | what it is for |
 |---|---|---|
-| An Italian email carrying ten categories of personal data | all of it | **29 replacements, nothing left in the clear** |
-| A minutes document full of "Comitato Tecnico", "Piano Industriale", protocol and tender numbers | none of it | **0 replacements** |
+| **127 blank documents** — Italian and US tax forms, Gazzetta issues back to 1890, statistical volumes | **zero** | every replacement is an error by construction: there is nothing to judge by eye |
+| 6,000 messages from Italian mailing lists | — | how it behaves on real prose |
+| 1,500 messages in English | — | the same, in the other language |
 
-Two things hold the second one up: a vocabulary of Italian words that turn up capitalised, and a suffix check — "Industriale" and "Tecnico" end the way words end, not the way surnames end.
+The first one exists because of a defect found exactly that way: on a **blank** US tax form, the engine produced 22 replacements. A document with no personal data in it at all. A hand-written bench had never caught it, because a hand-written bench only contains the traps its author thought of.
 
 ### And what it cannot remove, it flags
 
