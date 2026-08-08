@@ -21,7 +21,7 @@
 
 ![Mr. Rao — interfaccia](docs/img/schermata.png)
 
-> *Note for international visitors: Mr. Rao targets Italian documents — it recognises codice fiscale, partita IVA, IBAN and Italian names. The interface is in Italian; the code is documented in English.*
+> *Note for international visitors: the interface is in Italian, but the engine is not — alongside the Italian formats it recognises NHS and National Insurance numbers, SSN, ITIN, ABA routing numbers, Canadian SIN, Australian ABN and TFN, UK postcodes and passport MRZ lines. The code is documented in English.*
 
 ---
 
@@ -71,27 +71,45 @@ Carta 4111 1111 1111 1111           →  {{CARD}}
 cell. 335 123 4567                  →  {{PHONE}}
 ```
 
-### I nomi: quattro segnali, non un elenco
+### I nomi: livelli di prova, non un elenco
 
-Nessun elenco di cognomi è completo. Per questo valgono anche le regole di contesto, dal segnale più forte al più debole:
+Nessun elenco di cognomi è completo, e nessun elenco basta da solo: «Chiesa», «Costa», «Monte» e «Villa» sono cognomi italiani veri **e** parole che in un documento amministrativo compaiono a ogni riga. Per questo il motore chiede una prova, e quanto forte dev'essere dipende da cosa sta leggendo.
 
-1. **titolo professionale davanti** — Dott., Ing., Geom., Avv.;
-2. **nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`, il caso più frequente nelle email;
-3. **nome proprio riconosciuto** che tira dentro la parola successiva: se «Nazzareno» è un nome, «Sbrolli» è il cognome anche se non compare in nessun elenco;
-4. **euristica** — due parole maiuscole di fila che non sono parole italiane.
+**Sostituisce** quando il testo dichiara che quella è una persona:
 
-Solo la quarta può sbagliare, ed è l'unica che si può spegnere da sola.
+- **titolo professionale davanti** — Dott., Ing., Geom., Avv.;
+- **formula di chiusura** — «Cordiali saluti, Esposito»: la firma è l'unico posto dove un cognome da solo è davvero un cognome;
+- **nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`, il caso più frequente nelle email;
+- **nome e cognome adiacenti**, entrambi riconosciuti.
+
+**Segnala e basta** quando la prova è debole: un riscontro singolo negli elenchi, una parola isolata, una sequenza di maiuscole senza altro contesto. Il documento resta intatto e chi controlla sa dove guardare.
+
+### Lettera o modulo: la stessa regola ha segno opposto
+
+Su una lettera, due parole maiuscole di cui una risulta negli elenchi sono quasi sempre una persona. Su un modulo sono quasi sempre l'etichetta di un campo: «Imposta Lorda», «Quadro RN», «Redditi Persone Fisiche».
+
+Non è un'impressione, è misurato:
+
+| | documenti amministrativi in bianco | prosa italiana |
+|---|---|---|
+| pretendere **due** riscontri | 2 739 sostituzioni sbagliate in meno | 3 918 nomi in meno |
+| pretendere **un** riscontro | 2 739 in più | 3 918 in più |
+
+Non esiste un valore giusto per entrambi, quindi Mr. Rao **lo deduce dal file** — le email sono prosa, i fogli di calcolo sono moduli, e nei PDF conta le caselle disegnate — e ti lascia cambiarlo quando sbaglia.
+
+L'euristica più aggressiva, «due parole maiuscole che non sono parole italiane», è **spenta di default** dalla 1.7.2. Il motivo è un numero: su venti moduli dell'Agenzia delle Entrate in bianco produceva 8 904 sostituzioni sbagliate, e su otto Gazzette Ufficiali storiche 14 376. Resta accendibile per lettere e contratti, dove le denominazioni sono poche.
 
 ### Il controllo che conta di più
 
-Un filtro che redige tutto è inutile esattamente come uno che non redige niente. Il banco di prova sono **due** testi, e sono entrambi dei test:
+Un filtro che redige tutto è inutile esattamente come uno che non redige niente. Il banco di prova ha **tre popolazioni**, e la prima è quella che conta:
 
-| | sostituzioni attese | risultato |
+| | attese | a cosa serve |
 |---|---|---|
-| Una mail italiana con dieci categorie di dati personali | tutto | **29 sostituzioni, niente in chiaro** |
-| Un verbale con «Comitato Tecnico», «Piano Industriale», «Fase Uno», protocolli e codici gara | niente | **0 sostituzioni** |
+| **127 documenti in bianco** — moduli fiscali italiani e americani, Gazzette dal 1890, volumi statistici | **zero** | ogni sostituzione è un errore, per costruzione: non c'è niente da giudicare a occhio |
+| 6 000 messaggi di mailing list italiane | — | come si comporta sulla prosa vera |
+| 1 500 messaggi in inglese | — | lo stesso, sull'altra lingua |
 
-Due cose tengono in piedi il secondo: un vocabolario di parole italiane che capita di trovare maiuscole, e un controllo sulle terminazioni — «Industriale» e «Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
+Il primo è nato da un difetto trovato così: il motore, su un modulo fiscale statunitense **in bianco**, produceva 22 sostituzioni. Un documento senza un solo dato personale. Un banco scritto a mano non l'aveva mai visto, perché contiene solo le trappole a cui chi lo scrive ha pensato.
 
 ### E quello che non riesce a togliere, lo dice
 
