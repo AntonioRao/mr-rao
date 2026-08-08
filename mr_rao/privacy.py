@@ -304,6 +304,18 @@ _RE_TITLE_NAME = re.compile(
 # Un nome accanto a un indirizzo di posta: "Mario Rossi <mario@x.it>",
 # "mario@x.it (Mario Rossi)". Gira dopo la sostituzione delle email, quindi
 # quello che cerca e' il segnaposto.
+# Le formule di chiusura italiane. Quello che segue e' una persona: e'
+# l'unico contesto in cui un cognome da solo vale come prova.
+_CHIUSURE_IT = (
+    r"cordiali\s+saluti|distinti\s+saluti|cordialmente|in\s+fede|"
+    r"un\s+caro\s+saluto|cari\s+saluti|molti\s+saluti|saluti|ossequi|"
+    r"grazie\s+e\s+saluti|resto\s+a\s+disposizione|a\s+presto"
+)
+_RE_FIRMA_IT = re.compile(
+    rf"(?i:{_CHIUSURE_IT})[,.]?[ \t]*(?:\r?\n\s*|[ \t]+)"
+    rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+)
+
 _RE_NAME_BEFORE_EMAIL = re.compile(
     rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})(?P<sep>\s*[<\(\[]?\s*)\{{\{{EMAIL\}}\}}"
 )
@@ -993,6 +1005,22 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
     text = _RE_NAME_BEFORE_EMAIL.sub(_email_name_sub, text)
     text = _RE_NAME_AFTER_EMAIL.sub(_email_name_sub, text)
 
+    # 2-bis. La firma. Una formula di chiusura dichiara che quello che
+    # segue e' una persona, ed e' l'unico posto dove un cognome da solo --
+    # «Cordiali saluti, Esposito» -- e' davvero un cognome e non la parola
+    # «esposito». Senza questa regola, portare gli elenchi da «sostituisce»
+    # a «segnala» avrebbe fatto sopravvivere le firme, che sono il punto in
+    # cui il nome compare quasi sempre.
+    def _firma_sub(m: re.Match) -> str:
+        name = m.group("name")
+        tokens = [t.lower().strip("'’-.,;:") for t in name.split()]
+        if not tokens or all(_is_common_word(t) or _is_entity_word(t) for t in tokens):
+            return m.group(0)
+        report.add("names")
+        return m.group(0).replace(name, "{{NAME}}", 1)
+
+    text = _RE_FIRMA_IT.sub(_firma_sub, text)
+
     # 3. Elenchi (nome proprio o cognome noto) e, se abilitata,
     #    4. euristica: due parole maiuscole che non sono parole italiane.
     def _pair_sub(m: re.Match) -> str:
@@ -1024,12 +1052,36 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
             while j < len(tokens) and not common[j]:
                 j += 1
             run = [t.lower().strip("'’-") for t in tokens[i:j]]
-            known = any(t in FIRST_NAMES or t in SURNAMES for t in run)
+            # **Due** riscontri, non uno.
+            #
+            # Prima bastava che *una* parola della sequenza stesse negli
+            # elenchi perche' l'intera sequenza sparisse. Su un modulo
+            # amministrativo e' quasi sempre vero per caso: gli elenchi
+            # contengono 2181 cognomi, e molti sono anche parole comuni --
+            # Chiesa, Costa, Monte, Villa, Ponte, Sala, Carta, Banca.
+            # «Imposta Lorda» spariva perche' una delle due somigliava a un
+            # cognome.
+            #
+            # Nome e cognome adiacenti, entrambi riconosciuti, sono invece
+            # una prova vera: e' la stessa regola che nel pacchetto inglese
+            # decide «Sarah Whitfield». Il riscontro singolo non si butta,
+            # diventa un **sospetto**: il documento resta intatto e chi
+            # legge sa dove guardare.
+            noti = sum(1 for t in run if t in FIRST_NAMES or t in SURNAMES)
             guessed = guess and not any(_looks_like_word(t) for t in run)
-            if 2 <= len(run) <= _MAX_TOKEN_NOME and (known or guessed):
+            lungo_giusto = 2 <= len(run) <= _MAX_TOKEN_NOME
+            if lungo_giusto and (noti >= 2 or guessed):
                 report.add("names")
                 pieces.append(("{{NAME}}", j - 1))
             else:
+                if lungo_giusto and noti == 1:
+                    report.suspect(
+                        "nome",
+                        " ".join(tokens[i:j]),
+                        "una sola parola risulta negli elenchi dei nomi: "
+                        "non basta a dire che sia una persona, ma potrebbe "
+                        "esserlo",
+                    )
                 original = tokens[i]
                 for k in range(i + 1, j):
                     original += seps[k - 1] + tokens[k]
@@ -1076,8 +1128,19 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
             return m.group(0)
         if tok not in FIRST_NAMES and tok not in SURNAMES:
             return m.group(0)
-        report.add("names")
-        return "{{NAME}}"
+        # Una parola sola, in elenco, senza nient'altro intorno: e' il
+        # segnale piu' debole che abbiamo, e sostituire su quello vuol dire
+        # cancellare «Costa», «Monte» e «Villa» ogni volta che compaiono in
+        # un documento amministrativo. Diventa un sospetto: il documento
+        # resta leggibile e chi lo controlla sa dove guardare.
+        report.suspect(
+            "nome",
+            m.group(0),
+            "risulta negli elenchi dei nomi ma non ha nulla intorno che "
+            "dica che sia una persona: nessun titolo, nessuna firma, "
+            "nessun indirizzo accanto",
+        )
+        return m.group(0)
 
     return _RE_LONE_TOKEN.sub(_lone_sub, text)
 
