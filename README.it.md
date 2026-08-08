@@ -9,7 +9,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Versione](https://img.shields.io/badge/versione-1.7.2-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-686%20passati-10b981)](tests/)
+[![Test](https://img.shields.io/badge/test-689%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -283,7 +283,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **686 test**.
+Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **689 test**.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 

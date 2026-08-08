@@ -30,6 +30,10 @@ class WatchState:
     # dict, not set: insertion order lets us drop the oldest keys. A long-running
     # hotfolder would otherwise grow this forever.
     _seen: dict[str, float] = field(default_factory=dict, repr=False)
+    # L'impronta vista al giro precedente, per ogni file ancora nella cartella:
+    # e' cosi' che si capisce se un file e' fermo o sta ancora arrivando.
+    # Non cresce come _seen: contiene solo i file che ci sono adesso.
+    _in_arrivo: dict[str, tuple[int, int]] = field(default_factory=dict, repr=False)
 
     def to_dict(self) -> dict[str, Any]:
         with self._lock:
@@ -61,6 +65,24 @@ def _remember(key: str) -> None:
     if len(_state._seen) > MAX_SEEN:
         for old in list(_state._seen)[: MAX_SEEN // 2]:
             del _state._seen[old]
+
+
+def _impronta(path: Path) -> tuple[int, int] | None:
+    """Dimensione e orario di modifica: cosa serve per dire «questo file e' fermo».
+
+    La sola dimensione non basta. Un file riscritto in casa -- stessa
+    lunghezza, contenuto diverso -- la lascia identica, e l'orario di modifica
+    era gia' li' sotto gli occhi: la cartella sorvegliata lo usa da sempre
+    nella chiave per non riconvertire due volte lo stesso file.
+
+    None se il file e' sparito fra un'occhiata e l'altra: succede, ed e' un
+    esito normale, non un errore.
+    """
+    try:
+        st = path.stat()
+    except OSError:
+        return None
+    return (st.st_size, st.st_mtime_ns)
 
 
 def write_atomic(dest: Path, text: str) -> None:
@@ -131,6 +153,7 @@ def start_watch(
         _state.last_error = ""
         _state.message = "in attesa di file"
         _state._seen.clear()
+        _state._in_arrivo.clear()
         _state._stop.clear()
         _state.running = True
         t = threading.Thread(target=_loop, daemon=True, name="mr-rao-watch")
@@ -165,6 +188,7 @@ def _loop() -> None:
                     _state.last_error = "La cartella da monitorare non esiste piu'"
                     _state.message = "cartella da monitorare non valida"
             else:
+                candidati: set[str] = set()
                 for path in sorted(inbox.iterdir()):
                     if _state._stop.is_set():
                         break
@@ -175,20 +199,34 @@ def _loop() -> None:
                     # skip done subfolder
                     if path.parent.name.lower() == "done":
                         continue
-                    try:
-                        key = f"{path.name}:{path.stat().st_mtime_ns}"
-                    except OSError:
+                    impronta = _impronta(path)
+                    if impronta is None:
                         continue
+                    candidati.add(path.name)
+                    key = f"{path.name}:{impronta[1]}"
                     with _state._lock:
                         if key in _state._seen:
                             continue
-                    # wait for stable size
-                    try:
-                        s1 = path.stat().st_size
-                        time.sleep(0.35)
-                        if path.stat().st_size != s1:
-                            continue
-                    except OSError:
+                    # Il file puo' essere ancora in arrivo: una copia da disco
+                    # di rete, uno scanner, un client di posta che salva un
+                    # allegato scrivono a pezzi, con pause in mezzo. Prima si
+                    # campionava la sola dimensione a 0,35 s di distanza, senza
+                    # uscire dal giro: una pausa piu' lunga di cosi' -- del
+                    # tutto ordinaria -- e un file scritto a meta' passava per
+                    # fermo, finiva convertito, e nella cartella di uscita
+                    # restava un .md con dentro mezzo documento. Ben formato,
+                    # quindi invisibile.
+                    #
+                    # Ora l'impronta dev'essere la stessa del giro precedente:
+                    # la finestra di quiete diventa l'intervallo di
+                    # sorveglianza, che l'utente puo' allungare, invece di una
+                    # costante che nessuna impostazione riusciva a toccare.
+                    # Un file appena arrivato aspetta un giro in piu': e' il
+                    # prezzo, ed e' meno caro di mezzo documento.
+                    with _state._lock:
+                        precedente = _state._in_arrivo.get(path.name)
+                        _state._in_arrivo[path.name] = impronta
+                    if precedente != impronta:
                         continue
                     with _state._lock:
                         _state.message = f"sto convertendo {path.name}"
@@ -215,6 +253,11 @@ def _loop() -> None:
                         except OSError as e:
                             with _state._lock:
                                 _state.last_error = f"Non riesco a spostare l'originale: {e}"
+                # Le impronte dei file che non ci sono piu' non servono a
+                # nessuno: qui la memoria resta grande quanto la cartella.
+                with _state._lock:
+                    for sparito in set(_state._in_arrivo) - candidati:
+                        del _state._in_arrivo[sparito]
         except Exception as e:
             with _state._lock:
                 _state.last_error = str(e)
