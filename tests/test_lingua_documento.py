@@ -138,6 +138,48 @@ def test_i_segnaposto_non_si_traducono(lingua, tmp_path):
     assert "{{EMAIL}}" in r.markdown
 
 
+# ── 4. anche gli errori del server rispondono nella lingua giusta ───────
+
+
+@pytest.fixture()
+def client():
+    from mr_rao.app_factory import create_app
+
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+BASE = "http://127.0.0.1:5000"
+
+
+def test_l_errore_json_segue_la_lingua_del_modulo(client):
+    """Il campo `lang` lo manda la pagina: e' l'unico che sa cosa l'utente
+    sta guardando adesso."""
+    import io
+
+    def errore(lingua):
+        r = client.post(
+            "/api/convert/sync",
+            data={"lang": lingua, "file": (io.BytesIO(b"x"), "prova.exe")},
+            content_type="multipart/form-data",
+            base_url=BASE,
+            headers={"Origin": BASE},
+        )
+        return r.get_json()["error"]
+
+    assert "is not supported" in errore("en")
+    assert "non supportato" in errore("it")
+
+
+def test_l_errore_json_segue_il_cookie_quando_non_c_e_il_modulo(client):
+    """Chi ha cliccato il selettore ha detto qualcosa di piu' preciso del
+    suo browser, e vale anche per un endpoint che non riceve moduli."""
+    client.set_cookie("mr_rao_lang", "en", domain="127.0.0.1")
+    r = client.get("/api/jobs/inesistente", base_url=BASE)
+    assert r.get_json()["error"] == "Job not found"
+
+
 def test_la_lingua_inglese_non_spegne_i_riconoscitori_italiani():
     """Uno studio italiano che tiene la pagina in inglese converte comunque
     fatture italiane. Togliergli il codice fiscale senza dirglielo sarebbe un

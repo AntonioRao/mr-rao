@@ -22,7 +22,7 @@ from config import (
     MAX_WORKERS,
 )
 from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
-from mr_rao.i18n import lingua_da, t
+from mr_rao.i18n import LINGUA_PREDEFINITA, lingua_da, t
 from mr_rao.jobs import job_store
 from mr_rao.privacy import (
     FIELD_DEFAULTS,
@@ -93,25 +93,30 @@ def _merge_privacy(form, profile: dict) -> PrivacyOptions:
     )
 
 
-def _lingua_richiesta() -> str:
-    """La lingua di *questa* richiesta, con la pagina che ha l'ultima parola.
+def lingua_richiesta(esplicita: str | None = None) -> str:
+    """La lingua di *questa* richiesta.
 
-    Il campo `lang` del modulo lo manda il JavaScript leggendo
-    `<html lang>`: e' l'unica fonte che sa davvero cosa l'utente sta
-    guardando in quel momento. Cookie e Accept-Language restano sotto per
-    chi chiama l'API a mano, e sono gli stessi che decidono la pagina, cosi'
-    schermo e documento non possono divergere.
+    Non guarda `request.form`: la usa anche `app_factory`, dentro un
+    `before_request` e nel gestore del 413, dove leggere il modulo
+    vorrebbe dire far analizzare a Flask un invio che stiamo rifiutando
+    proprio perche' e' troppo grande.
+
+    Chi il modulo ce l'ha gia' in mano passa il campo `lang` in
+    ``esplicita``: lo manda il JavaScript leggendo `<html lang>`, ed e'
+    l'unica fonte che sa davvero cosa l'utente sta guardando adesso.
+    Sotto restano cookie e Accept-Language, gli stessi che decidono la
+    pagina, cosi' schermo e documento non possono divergere.
     """
     return lingua_da(
         request.headers.get("Accept-Language"),
         cookie=request.cookies.get("mr_rao_lang"),
-        query=request.form.get("lang") or request.args.get("lang"),
+        query=esplicita or request.args.get("lang"),
     )
 
 
 def _parse_options_from_request() -> ConvertOptions:
     form = request.form
-    lingua = _lingua_richiesta()
+    lingua = lingua_richiesta(form.get("lang"))
     profile_id = form.get("profile") or form.get("preset")
     if profile_id:
         opts = options_from_profile(profile_id)
@@ -179,27 +184,26 @@ def _result_payload(result: ConvertResult) -> dict:
     return payload
 
 
-def _validate_filename(filename: str) -> tuple[str | None, str | None]:
+def _validate_filename(
+    filename: str, lingua: str = LINGUA_PREDEFINITA
+) -> tuple[str | None, str | None]:
     if not filename:
-        return None, "Nessun file selezionato"
+        return None, t("err_nessun_file", lingua)
     original_ext = Path(filename).suffix.lower() if "." in filename else ""
     if original_ext not in ALLOWED_EXTENSIONS:
-        return None, (
-            f'Tipo di file "{original_ext}" non supportato. '
-            "Formati: PDF, DOCX, XLSX, PPTX, HTML, CSV, TXT, EML e immagini."
-        )
+        return None, t("err_tipo_non_supportato", lingua, ext=original_ext)
     return original_ext, None
 
 
 @bp.route("/")
 def index():
-    from mr_rao.i18n import TESTI, lingua_da, t
+    from mr_rao.i18n import TESTI
 
-    lingua = lingua_da(
-        request.headers.get("Accept-Language"),
-        cookie=request.cookies.get("mr_rao_lang"),
-        query=request.args.get("lang"),
-    )
+    # La stessa funzione che decide la lingua delle risposte JSON e del
+    # testo dentro i documenti: se qui si scegliesse diversamente, si
+    # potrebbe leggere una pagina in una lingua e ricevere un errore
+    # nell'altra.
+    lingua = lingua_richiesta()
     risposta = make_response(
         render_template(
             "index.html",
@@ -253,14 +257,14 @@ def profiles():
     return jsonify({"profiles": list_profiles(), "detail": {p: get_profile(p) for p in [x["id"] for x in list_profiles()]}})
 
 
-def _fail_job(job, exc: Exception) -> None:
+def _fail_job(job, exc: Exception, lingua: str = LINGUA_PREDEFINITA) -> None:
     """Never leave a job in 'running': the UI would poll it forever."""
     print(f"job {job.id} crashed: {exc!r}")
     with job.lock:
         if job.status in ("done", "cancelled"):
             return
         job.status = "error"
-        job.error = "Errore interno durante la conversione."
+        job.error = t("err_interno_conversione", lingua)
         job.message = job.error
 
 
@@ -271,16 +275,18 @@ def _run_job_single(job_id: str, data: bytes, filename: str, options: ConvertOpt
     try:
         _run_job_single_inner(job, data, filename, options)
     except Exception as e:  # noqa: BLE001 — last line of defence for the worker thread
-        _fail_job(job, e)
+        _fail_job(job, e, options.lingua)
 
 
 def _run_job_single_inner(job, data: bytes, filename: str, options: ConvertOptions) -> None:
     with job.lock:
         job.status = "running"
-        job.message = "Avvio conversione…"
+        job.message = t("job_avvio", options.lingua)
 
-    def progress(c, t, msg):
-        job.set_progress(c, t, msg)
+    # , non :  e' la funzione delle traduzioni, e un parametro
+    # con lo stesso nome la nasconderebbe dentro questa funzione annidata.
+    def progress(c, totale, msg):
+        job.set_progress(c, totale, msg)
 
     result = convert_bytes(
         data,
@@ -292,7 +298,7 @@ def _run_job_single_inner(job, data: bytes, filename: str, options: ConvertOptio
     with job.lock:
         if job.cancel_flag:
             job.status = "cancelled"
-            job.message = "Annullato"
+            job.message = t("job_annullato", options.lingua)
             return
         if result.error:
             job.status = "error"
@@ -300,7 +306,7 @@ def _run_job_single_inner(job, data: bytes, filename: str, options: ConvertOptio
             job.message = result.error
         else:
             job.status = "done"
-            job.message = "Completato"
+            job.message = t("job_completato", options.lingua)
             job.progress = job.total
             job.result = _result_payload(result)
 
@@ -319,7 +325,7 @@ def _run_job_batch(
     try:
         _run_job_batch_inner(job, items, options, merge, merge_title, compare)
     except Exception as e:  # noqa: BLE001 — last line of defence for the worker thread
-        _fail_job(job, e)
+        _fail_job(job, e, options.lingua)
 
 
 def _run_job_batch_inner(
@@ -333,18 +339,22 @@ def _run_job_batch_inner(
     with job.lock:
         job.status = "running"
         job.total = len(items)
-        job.message = "Batch in corso…"
+        job.message = t("job_batch", options.lingua)
 
     results = []
     for i, (data, filename) in enumerate(items):
         if job.should_cancel():
             with job.lock:
                 job.status = "cancelled"
-                job.message = "Annullato"
+                job.message = t("job_annullato", options.lingua)
             return
-        job.set_progress(i, len(items), f"File {i + 1}/{len(items)}: {filename}")
+        job.set_progress(
+            i,
+            len(items),
+            t("job_file_n", options.lingua, i=i + 1, n=len(items), nome=filename),
+        )
 
-        def progress(c, t, msg, _i=i, _n=len(items), _f=filename):
+        def progress(c, totale, msg, _i=i, _n=len(items), _f=filename):
             job.set_progress(_i, _n, f"{_f}: {msg}")
 
         r = convert_bytes(
@@ -359,7 +369,7 @@ def _run_job_batch_inner(
     if job.should_cancel():
         with job.lock:
             job.status = "cancelled"
-            job.message = "Annullato"
+            job.message = t("job_annullato", options.lingua)
         return
 
     if merge or compare:
@@ -380,7 +390,10 @@ def _run_job_batch_inner(
         with job.lock:
             job.status = "done"
             job.progress = len(items)
-            job.message = "Confronto completato" if compare else "Merge completato"
+            job.message = t(
+                "js_confronto_completato" if compare else "job_merge_completato",
+                options.lingua,
+            )
             job.result = {
                 "markdown": merged,
                 "engine": "compare" if compare else "merge",
@@ -401,7 +414,7 @@ def _run_job_batch_inner(
         with job.lock:
             job.status = "done"
             job.progress = len(items)
-            job.message = "Batch completato"
+            job.message = t("job_batch_completato", options.lingua)
             job.result = {
                 "batch": True,
                 "items": [
@@ -413,41 +426,44 @@ def _run_job_batch_inner(
 
 @bp.route("/api/convert", methods=["POST"])
 def convert_api():
-    if "file" not in request.files:
-        return jsonify({"error": "Nessun file trovato nella richiesta"}), 400
-
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "Nessun file selezionato"}), 400
-
-    _, err = _validate_filename(file.filename)
-    if err:
-        return jsonify({"error": err}), 400
-
     # No .eml special case here: the privacy default is decided once in
     # options_from_form(), which is fail-safe (redacts unless told otherwise).
     options = _parse_options_from_request()
+    lingua = options.lingua
+
+    if "file" not in request.files:
+        return jsonify({"error": t("err_nessun_file_richiesta", lingua)}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": t("err_nessun_file", lingua)}), 400
+
+    _, err = _validate_filename(file.filename, lingua)
+    if err:
+        return jsonify({"error": err}), 400
 
     data = file.read()
     if not data:
-        return jsonify({"error": "File vuoto"}), 400
+        return jsonify({"error": t("err_file_vuoto", lingua)}), 400
     if len(data) > current_app.config["MAX_CONTENT_LENGTH"]:
-        return jsonify({"error": "File troppo grande"}), 400
+        return jsonify({"error": t("err_troppo_grande", lingua)}), 400
 
     job = job_store.create()
     with job.lock:
-        job.message = "In coda…"
+        job.message = t("job_in_coda", lingua)
     _spawn(_run_job_single, job.id, data, file.filename, options)
     return jsonify({"job_id": job.id}), 202
 
 
 @bp.route("/api/convert/batch", methods=["POST"])
 def convert_batch():
+    options = _parse_options_from_request()
+    lingua = options.lingua
+
     files = request.files.getlist("files") or request.files.getlist("file")
     if not files:
-        return jsonify({"error": "Nessun file nella richiesta"}), 400
+        return jsonify({"error": t("err_nessun_file_richiesta", lingua)}), 400
 
-    options = _parse_options_from_request()
     merge = _truthy(request.form.get("merge"), False)
     compare = _truthy(request.form.get("compare"), False)
     # Vuoto = «decidilo tu»: il titolo predefinito lo sceglie il worker nella
@@ -460,7 +476,7 @@ def convert_batch():
     for f in files:
         if not f or not f.filename:
             continue
-        _, err = _validate_filename(f.filename)
+        _, err = _validate_filename(f.filename, lingua)
         if err:
             return jsonify({"error": f"{f.filename}: {err}"}), 400
         data = f.read()
@@ -468,13 +484,13 @@ def convert_batch():
             items.append((data, f.filename))
 
     if not items:
-        return jsonify({"error": "Nessun file valido"}), 400
+        return jsonify({"error": t("err_nessun_file_valido", lingua)}), 400
     if compare and len(items) != 2:
-        return jsonify({"error": "Il confronto richiede esattamente 2 file"}), 400
+        return jsonify({"error": t("err_confronto_due_file", lingua)}), 400
 
     job = job_store.create()
     with job.lock:
-        job.message = "In coda…"
+        job.message = t("job_in_coda", lingua)
     _spawn(_run_job_batch, job.id, items, options, merge, merge_title, compare)
     return jsonify({"job_id": job.id}), 202
 
@@ -483,30 +499,32 @@ def convert_batch():
 def convert_compare():
     """Compare exactly two documents. Convenience alias of /api/convert/batch
     with compare=1, accepting file_a/file_b instead of a files[] list."""
+    options = _parse_options_from_request()
+    lingua = options.lingua
+
     files = request.files.getlist("files")
     if len(files) < 2:
         a = request.files.get("file_a") or request.files.get("file1")
         b = request.files.get("file_b") or request.files.get("file2")
         files = [f for f in (a, b) if f]
     if len(files) != 2:
-        return jsonify({"error": "Servono esattamente 2 file (file_a e file_b)"}), 400
+        return jsonify({"error": t("err_due_file_ab", lingua)}), 400
 
-    options = _parse_options_from_request()
     items: list[tuple[bytes, str]] = []
     for f in files:
         if not f.filename:
-            return jsonify({"error": "Nome file mancante"}), 400
-        _, err = _validate_filename(f.filename)
+            return jsonify({"error": t("err_nome_mancante", lingua)}), 400
+        _, err = _validate_filename(f.filename, lingua)
         if err:
             return jsonify({"error": err}), 400
         data = f.read()
         if not data:
-            return jsonify({"error": f"File vuoto: {f.filename}"}), 400
+            return jsonify({"error": t("err_file_vuoto_nome", lingua, nome=f.filename)}), 400
         items.append((data, f.filename))
 
     job = job_store.create()
     with job.lock:
-        job.message = "In coda…"
+        job.message = t("job_in_coda", lingua)
     _spawn(
         _run_job_batch,
         job.id,
@@ -521,16 +539,18 @@ def convert_compare():
 
 @bp.route("/api/convert/sync", methods=["POST"])
 def convert_sync():
+    options = _parse_options_from_request()
+    lingua = options.lingua
+
     if "file" not in request.files:
-        return jsonify({"error": "Nessun file trovato nella richiesta"}), 400
+        return jsonify({"error": t("err_nessun_file_richiesta", lingua)}), 400
     file = request.files["file"]
     if not file.filename:
-        return jsonify({"error": "Nessun file selezionato"}), 400
-    _, err = _validate_filename(file.filename)
+        return jsonify({"error": t("err_nessun_file", lingua)}), 400
+    _, err = _validate_filename(file.filename, lingua)
     if err:
         return jsonify({"error": err}), 400
 
-    options = _parse_options_from_request()
     data = file.read()
     result = convert_bytes(data, file.filename, options=options)
     if result.error:
@@ -542,14 +562,14 @@ def convert_sync():
 def job_status(job_id: str):
     job = job_store.get(job_id)
     if not job:
-        return jsonify({"error": "Job non trovato"}), 404
+        return jsonify({"error": t("err_job_assente", lingua_richiesta())}), 404
     return jsonify(job.to_public())
 
 
 @bp.route("/api/jobs/<job_id>/cancel", methods=["POST"])
 def job_cancel(job_id: str):
     if not job_store.cancel(job_id):
-        return jsonify({"error": "Job non trovato"}), 404
+        return jsonify({"error": t("err_job_assente", lingua_richiesta())}), 404
     return jsonify({"ok": True, "id": job_id})
 
 
@@ -581,11 +601,31 @@ def folders_browse():
     """Native OS folder picker (local app only). Body: { initial?, title? }."""
     data = request.get_json(silent=True) or {}
     initial = data.get("initial") or request.form.get("initial")
-    title = data.get("title") or request.form.get("title") or "Scegli cartella"
+    lingua = lingua_richiesta(data.get("lang"))
+    title = (
+        data.get("title")
+        or request.form.get("title")
+        or t("js_scegli_cartella", lingua)
+    )
     path = browse_folder(initial=initial, title=title)
     if not path:
         return jsonify({"ok": False, "cancelled": True, "path": None})
     return jsonify({"ok": True, "cancelled": False, "path": path})
+
+
+def _stato_watch_tradotto(state: dict) -> dict:
+    """Il messaggio «non attivo» nella lingua di chi sta guardando.
+
+    Mentre il monitoraggio lavora, il messaggio racconta un file e resta
+    nella lingua scelta all'avvio: e' la stessa dei documenti che sta
+    scrivendo, e cambiarla a meta' sarebbe una bugia. Ma **da fermo** non
+    c'e' nessun lavoro in corso, e quel testo lo ha scritto il valore
+    predefinito della classe -- deciso all'importazione del modulo, quando
+    di richieste non ce n'era ancora nessuna. Qui la richiesta c'e'.
+    """
+    if not state.get("running"):
+        state["message"] = t("watch_msg_non_attivo", lingua_richiesta())
+    return state
 
 
 @bp.route("/api/watch", methods=["GET"])
@@ -593,7 +633,7 @@ def watch_get():
     # Nessuna creazione qui: la UI interroga questo endpoint ogni 4 secondi,
     # e creare cartelle a ogni poll significa toccare il disco (e la sincro-
     # nizzazione cloud) per sempre.
-    state = get_watch_state()
+    state = _stato_watch_tradotto(get_watch_state())
     state["defaults"] = describe_default_folders()
     return jsonify(state)
 
@@ -606,7 +646,7 @@ def watch_start():
     inbox = data.get("inbox") or request.form.get("inbox") or defaults["inbox"]
     outbox = data.get("outbox") or request.form.get("outbox") or defaults["outbox"]
     if not inbox or not outbox:
-        return jsonify({"error": "Specificare inbox e outbox"}), 400
+        return jsonify({"error": t("err_inbox_outbox", lingua_richiesta())}), 400
     interval = float(data.get("interval") or request.form.get("interval") or 2)
     move_done = _truthy(data.get("move_done") or request.form.get("move_done"), False)
     # options from form/json profile
@@ -619,11 +659,11 @@ def watch_start():
             options = ConvertOptions()
         # Anche la cartella sorvegliata scrive documenti: la lingua gliela fissa
         # chi accende il monitoraggio, perche' poi lavora senza nessuna richiesta.
-        options.lingua = _lingua_richiesta()
+        options.lingua = lingua_richiesta(data.get("lang"))
     state = start_watch(inbox, outbox, options=options, interval=interval, move_done=move_done)
     return jsonify(state)
 
 
 @bp.route("/api/watch", methods=["DELETE"])
 def watch_stop():
-    return jsonify(stop_watch())
+    return jsonify(_stato_watch_tradotto(stop_watch()))

@@ -1193,6 +1193,88 @@ TESTI: dict[str, dict[str, str]] = {
         "en": "OCR time limit reached at page {n}/{tot}",
     },
     "prog_ocr_pagina": {"it": "OCR pagina {n}/{tot}…", "en": "OCR page {n}/{tot}…"},
+    # ══════════════════════════════════════════════════════════════════
+    # Quello che risponde il server: errori JSON e stato dei lavori.
+    # Li legge una persona, non un programma — il codice HTTP e' quello
+    # che leggono i programmi.
+    # ══════════════════════════════════════════════════════════════════
+    "err_nessun_file_richiesta": {
+        "it": "Nessun file trovato nella richiesta",
+        "en": "No file found in the request",
+    },
+    "err_nessun_file_valido": {"it": "Nessun file valido", "en": "No valid file"},
+    "err_tipo_non_supportato": {
+        "it": "Tipo di file \"{ext}\" non supportato. Formati: PDF, DOCX, XLSX, "
+              "PPTX, HTML, CSV, TXT, EML e immagini.",
+        "en": "File type \"{ext}\" is not supported. Formats: PDF, DOCX, XLSX, "
+              "PPTX, HTML, CSV, TXT, EML and images.",
+    },
+    "err_due_file_ab": {
+        "it": "Servono esattamente 2 file (file_a e file_b)",
+        "en": "Exactly 2 files are needed (file_a and file_b)",
+    },
+    "err_nome_mancante": {"it": "Nome file mancante", "en": "Missing file name"},
+    "err_file_vuoto_nome": {"it": "File vuoto: {nome}", "en": "Empty file: {nome}"},
+    "err_inbox_outbox": {
+        "it": "Specificare inbox e outbox", "en": "Give both an inbox and an outbox",
+    },
+    "err_interno_conversione": {
+        "it": "Errore interno durante la conversione.",
+        "en": "Internal error during conversion.",
+    },
+    "err_host": {
+        "it": "Host '{host}' non consentito. Usa http://127.0.0.1 oppure "
+              "imposta MR_RAO_ALLOWED_HOSTS.",
+        "en": "Host '{host}' is not allowed. Use http://127.0.0.1, or set "
+              "MR_RAO_ALLOWED_HOSTS.",
+    },
+    "err_cross_site": {
+        "it": "Richiesta cross-site rifiutata", "en": "Cross-site request refused",
+    },
+    "err_richiesta_troppo_grande": {
+        "it": "Richiesta troppo grande. Limite {max} MB per l'intero invio "
+              "(non per singolo file).",
+        "en": "The request is too large. The {max} MB limit is for the whole "
+              "upload, not per file.",
+    },
+    "err_endpoint": {"it": "Endpoint non trovato", "en": "Endpoint not found"},
+    "err_metodo": {"it": "Metodo non consentito", "en": "Method not allowed"},
+    "err_server_interno": {
+        "it": "Errore interno del server", "en": "Internal server error",
+    },
+    # -- stato di un lavoro ------------------------------------------------
+    "job_in_coda": {"it": "In coda…", "en": "Queued…"},
+    "job_avvio": {"it": "Avvio conversione…", "en": "Starting conversion…"},
+    "job_annullato": {"it": "Annullato", "en": "Cancelled"},
+    "job_completato": {"it": "Completato", "en": "Done"},
+    "job_batch": {"it": "Batch in corso…", "en": "Batch under way…"},
+    "job_file_n": {"it": "File {i}/{n}: {nome}", "en": "File {i}/{n}: {nome}"},
+    "job_merge_completato": {"it": "Merge completato", "en": "Merge done"},
+    "job_batch_completato": {"it": "Batch completato", "en": "Batch done"},
+    # -- cartella sorvegliata ----------------------------------------------
+    "watch_msg_non_attivo": {"it": "non attivo", "en": "not running"},
+    "watch_msg_in_attesa": {
+        "it": "in attesa di file", "en": "waiting for files",
+    },
+    "watch_msg_cartella_non_valida": {
+        "it": "cartella da monitorare non valida", "en": "watched folder not valid",
+    },
+    "watch_err_cartella_sparita": {
+        "it": "La cartella da monitorare non esiste piu'",
+        "en": "The watched folder no longer exists",
+    },
+    "watch_msg_convertendo": {
+        "it": "sto convertendo {nome}", "en": "converting {nome}",
+    },
+    "watch_msg_errore_file": {"it": "Errore: {nome}", "en": "Error: {nome}"},
+    "watch_msg_fatto": {"it": "fatto: {nome}", "en": "done: {nome}"},
+    "watch_err_spostamento": {
+        "it": "Non riesco a spostare l'originale: {motivo}",
+        "en": "The original could not be moved: {motivo}",
+    },
+    "watch_msg_errore": {
+        "it": "errore durante il monitoraggio", "en": "error while watching",
+    },
 }
 
 
