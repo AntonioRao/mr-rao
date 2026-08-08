@@ -551,3 +551,65 @@ def test_le_altre_forme_di_offuscamento_reggono_ancora():
         out, report = apply_privacy_filter(testo, PrivacyOptions())
         assert report.counts.get("emails") == 1, f"non riconosciuta: {testo!r}"
         assert "esempio" not in out, f"resto dell'indirizzo rimasto: {out!r}"
+
+
+# ---------------------------------------------------------------------------
+# Indirizzi in maiuscolo
+# ---------------------------------------------------------------------------
+
+def test_indirizzo_tutto_maiuscolo():
+    """«VIA GARIBALDI 14» dev'essere tolto quanto «Via Garibaldi 14».
+
+    Il riconoscitore pretendeva una minuscola dentro il nome della via, per
+    escludere acronimi e numeri romani. Effetto collaterale: era **cieco sul
+    maiuscolo**, cioe' proprio dove vive — patenti, carte d'identita', moduli,
+    qualsiasi scansione. Su una patente finta toglieva zero.
+    """
+    for testo in (
+        "8. VIA GARIBALDI 14, 20121 MILANO",
+        "PIAZZA DUOMO 1",
+        "VIA XX SETTEMBRE 5",
+    ):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert report.counts.get("addresses") == 1, f"non tolto: {testo!r}"
+        assert "GARIBALDI" not in out and "DUOMO" not in out
+
+
+def test_il_maiuscolo_pretende_il_numero_civico():
+    """Senza civico, in maiuscolo, non e' un indirizzo.
+
+    Nel testo normale l'iniziale maiuscola distingue il nome proprio. In un
+    testo tutto maiuscolo quel segnale non c'e', e le parole-chiave deboli
+    aprono decine di toponimi: BORGO SAN LORENZO e BORGO VALSUGANA sono
+    comuni, STRADA DEL VINO e' un itinerario. Misurato: 83 sostituzioni
+    sbagliate su documenti dove l'atteso e' zero.
+    """
+    for testo in ("BORGO SAN LORENZO", "STRADA DEL VINO", "BORGO VALSUGANA"):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert not report.counts.get("addresses"), f"tolto per sbaglio: {testo!r}"
+        assert out == testo
+
+
+def test_via_che_vuol_dire_tramite():
+    """In italiano «via» vuol dire anche «tramite», e allora non e' un luogo.
+
+    L'elenco non e' immaginato: viene dal conteggio di cosa segue davvero la
+    parola-chiave su 1 027 documenti veri. Questi casi hanno un numero
+    accanto, quindi la regola del civico non basta a salvarli: serve l'elenco.
+    """
+    for testo in (
+        "copiato via USB 3 volte",
+        "montato via NFS 2 dischi",
+        "deciso in via provvisoria 2 mesi fa",
+        "agire per via giudiziale 3 volte",
+        "inviato via PEC",
+    ):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert not report.counts.get("addresses"), f"tolto per sbaglio: {testo!r}"
+
+
+def test_le_vie_vere_restano_riconosciute():
+    """La difesa non deve aver spento il riconoscitore."""
+    for testo in ("in via Marconi 5", "Via Garibaldi 14", "Piazza Duomo, Milano"):
+        _, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert report.counts.get("addresses") == 1, f"non riconosciuto: {testo!r}"

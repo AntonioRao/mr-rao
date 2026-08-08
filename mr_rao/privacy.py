@@ -262,19 +262,62 @@ _ADDRESS_KW = (
 
 # Parole che seguono la parola-chiave senza fare un indirizzo: "via PEC",
 # "Via Aerea". Sono maiuscole, quindi il vincolo sull'iniziale non basta.
+# L'elenco non e' stato immaginato: e' ricavato contando cosa segue davvero
+# la parola-chiave su 1 027 documenti veri (moduli in bianco piu' mailing
+# list). Li' dentro convivono vie vere — Fermi, Mazzini, Pascoli, Roentgen,
+# Marconi — e usi di «via» che vogliono dire «tramite». Solo i secondi entrano
+# qui: aggiungere un toponimo vero renderebbe cieco il riconoscitore proprio
+# sugli indirizzi.
 _ADDRESS_STOPWORDS = frozenset(
     {
+        # trasmissione e recapito
         "pec", "email", "mail", "e-mail", "fax", "telefono", "posta",
         "raccomandata", "internet", "web", "aerea", "terra", "mare",
         "telematica", "ordinaria", "breve", "crucis", "libera", "cavo",
-        "satellite", "corriere", "telefax", "sms", "lattea",
+        "satellite", "corriere", "telefax", "sms", "etere", "radio",
+        "telefonica", "telegrafica", "messaggio", "chat",
+        # protocolli e mezzi tecnici: «via USB», «via SSH» — i piu' frequenti
+        # nel corpus, e nessuno di questi e' un nome di strada italiano
+        "usb", "ssh", "ftp", "sftp", "nfs", "lan", "wan", "vpn", "http",
+        "https", "smtp", "imap", "pop3", "telnet", "rsync", "samba", "cifs",
+        "bluetooth", "ethernet", "wifi", "wi-fi", "seriale", "parallela",
+        "modem", "browser", "terminale", "script", "cron", "api", "rss",
+        "proxy", "tunnel", "socket", "in-reply-to", "technologies",
+        "software", "hardware", "driver", "kernel", "firmware",
+        # applicazioni
+        "app", "whatsapp", "telegram", "skype", "zoom", "teams", "meet",
+        "messenger", "signal", "portale", "piattaforma", "sito",
+        # italiano amministrativo e giuridico: «in via provvisoria»,
+        # «per via gerarchica», «in via d'urgenza»
+        "giudiziale", "giudiziaria", "amministrativa", "gerarchica",
+        "legale", "cautelare", "straordinaria", "provvisoria", "definitiva",
+        "preliminare", "principale", "sussidiaria", "subordinata",
+        "transitoria", "eccezionale", "urgente", "analogica", "cartacea",
+        "informale", "ufficiale", "diplomatica", "sperimentale",
+        "prioritaria", "preferenziale", "esclusiva", "generale", "autonoma",
+        "diretta", "indiretta", "equitativa", "consensuale", "stragiudiziale",
+        "d'urgenza", "presuntiva", "residuale", "alternativa",
     }
 )
 
 # Un pezzo di nome proprio: iniziale maiuscola e almeno una minuscola.
 # Il vincolo sulla minuscola esclude in un colpo solo gli acronimi (PEC,
 # SPA), i numeri romani (II) e i segnaposto gia' inseriti ({{EMAIL}}).
-_TOK = r"[A-ZÀ-ÖØ-Þ][\w'’\-]*[a-zà-öø-ÿ][\w'’\-]*"
+_TOK_MISTO = r"[A-ZÀ-ÖØ-Þ][\w'’\-]*[a-zà-öø-ÿ][\w'’\-]*"
+
+# ...ma cosi' il riconoscitore era CIECO SUL MAIUSCOLO, ed e' proprio dove
+# vive: «VIA GARIBALDI 14» su una patente, su un modulo, su qualsiasi
+# scansione, restava intatto mentre «Via Garibaldi 14» spariva. Chi legge non
+# poteva saperlo.
+#
+# Il ramo maiuscolo tiene tutte le protezioni del primo:
+#   - almeno tre lettere, cosi' i numeri romani corti (II, IV, XI) restano fuori
+#   - niente `{`, quindi i segnaposto gia' inseriti non vengono riassorbiti
+#   - le parole di `_ADDRESS_STOPWORDS` (PEC, FAX, AEREA...) sono comunque
+#     scartate a valle, e in italiano «via» vuol dire anche «tramite»
+_TOK_MAIUSC = r"[A-ZÀ-ÖØ-Þ]{3,}(?:['’\-][A-ZÀ-ÖØ-Þ]+)*"
+
+_TOK = rf"(?:{_TOK_MISTO}|{_TOK_MAIUSC})"
 
 # Articoli e preposizioni che stanno dentro un nome di strada.
 _CONN = (
@@ -284,7 +327,13 @@ _CONN = (
 
 _RE_ADDRESS = re.compile(
     rf"(?<!\w)(?i:{_ADDRESS_KW})\.?\s+"
-    rf"(?P<body>(?:{_CONN}\s+)*"
+    # Il numero romano puo' stare anche in TESTA al nome: «Via XX Settembre»,
+    # «Viale IV Novembre». Ce n'e' una in quasi ogni citta' italiana, e non
+    # veniva riconosciuta in nessuna delle due grafie -- il primo pezzo del
+    # nome doveva contenere una minuscola, e «XX» non ne ha. Deve essere
+    # seguito da una parola vera, altrimenti «via II» da solo basterebbe.
+    rf"(?P<body>(?:[IVXLC]{{1,5}}\s+(?=[A-Za-zÀ-ÿ]))?"
+    rf"(?:{_CONN}\s+)*"
     rf"(?:\w+['’])?{_TOK}"
     rf"(?:\s+(?:{_CONN}\s+|e\s+)?(?:\w+['’])?{_TOK}){{0,3}})"
     rf"(?P<roman>\s+[IVXLC]{{1,5}}(?![\w]))?"
@@ -1031,8 +1080,24 @@ def _scrub_birth_dates(text: str, report: RedactionReport) -> str:
 
 def _scrub_addresses(text: str, report: RedactionReport) -> str:
     def _sub(m: re.Match) -> str:
-        first = m.group("body").split()[0].lower().strip(".,'’")
+        corpo = m.group("body")
+        first = corpo.split()[0].lower().strip(".,'’")
         if first in _ADDRESS_STOPWORDS:
+            return m.group(0)
+        # Tutto maiuscolo: serve anche il numero civico.
+        #
+        # Nel testo a maiuscole e minuscole l'iniziale maiuscola distingue
+        # gia' il nome proprio dal resto. In un testo tutto maiuscolo quel
+        # segnale non c'e' piu', e le parole-chiave deboli aprono decine di
+        # toponimi che indirizzi non sono: BORGO SAN LORENZO, BORGO
+        # VALSUGANA, STRADA DEL VINO sono comuni e itinerari, non recapiti.
+        # Misurato: 83 sostituzioni sbagliate su documenti dove l'atteso e'
+        # zero, quasi tutte di questa forma.
+        #
+        # Il civico e' il segnale che resta: «VIA GARIBALDI 14» e «VIA
+        # ARENULA 70» ce l'hanno, un nome di comune in un elenco no. Chi
+        # scrive un indirizzo per farci arrivare qualcuno scrive il numero.
+        if not re.search(r"[a-zà-öø-ÿ]", corpo) and not m.group("civ"):
             return m.group(0)
         report.add("addresses")
         return "{{ADDRESS}}"

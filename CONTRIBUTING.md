@@ -50,7 +50,7 @@ In particolare sono benvenuti:
   ti è sfuggito, o un codice prodotto è stato scambiato per un IBAN, apri una
   issue con un esempio **inventato** (mai dati reali).
 - **Anteprima Markdown più fedele** (liste annidate, tabelle) — P1.4.
-- **Test.** Ce ne sono 707 test e non bastano mai. (Il numero è scritto prima
+- **Test.** Ce ne sono 711 test e non bastano mai. (Il numero è scritto prima
   della parola «test» di proposito: è così che `scripts/check_docs.py` lo
   trova. Scritto al contrario era rimasto fermo a 161 per venti release.)
 
