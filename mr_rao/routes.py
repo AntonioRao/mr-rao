@@ -4,7 +4,14 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from flask import Blueprint, current_app, jsonify, render_template, request
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    make_response,
+    render_template,
+    request,
+)
 
 from config import (
     ALLOWED_EXTENSIONS,
@@ -163,14 +170,40 @@ def _validate_filename(filename: str) -> tuple[str | None, str | None]:
 
 @bp.route("/")
 def index():
-    return render_template(
-        "index.html",
-        app_name=APP_NAME,
-        app_version=APP_VERSION,
-        # The client-side size check must follow MR_RAO_MAX_UPLOAD_MB, not a
-        # hardcoded 50, or raising the server limit changes nothing.
-        max_upload_mb=MAX_UPLOAD_MB,
+    from mr_rao.i18n import TESTI, lingua_da, t
+
+    lingua = lingua_da(
+        request.headers.get("Accept-Language"),
+        cookie=request.cookies.get("mr_rao_lang"),
+        query=request.args.get("lang"),
     )
+    risposta = make_response(
+        render_template(
+            "index.html",
+            app_name=APP_NAME,
+            app_version=APP_VERSION,
+            # The client-side size check must follow MR_RAO_MAX_UPLOAD_MB, not a
+            # hardcoded 50, or raising the server limit changes nothing.
+            max_upload_mb=MAX_UPLOAD_MB,
+            lang=lingua,
+            # `t` come funzione, non un dizionario gia' risolto: cosi' il
+            # template chiede `t('chiave')` e una chiave sbagliata si vede
+            # come testo brutto invece di far saltare la pagina.
+            t=lambda chiave, **kw: t(chiave, lingua, **kw),
+            # Le stesse stringhe al JavaScript, in un blob inline: nessun
+            # file in piu' da impacchettare, nessuna chiamata di rete.
+            testi_js={k: v[lingua] for k, v in TESTI.items()},
+        )
+    )
+    if request.args.get("lang"):
+        # La scelta esplicita si ricorda. Solo `SameSite=Lax` e nessun
+        # `Secure`: e' un server locale in http, e un cookie che il browser
+        # rifiuta e' peggio di nessun cookie.
+        risposta.set_cookie(
+            "mr_rao_lang", lingua, max_age=60 * 60 * 24 * 365,
+            samesite="Lax", httponly=False,
+        )
+    return risposta
 
 
 @bp.route("/api/health")

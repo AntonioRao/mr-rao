@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,6 +31,16 @@
             </div>
             <span class="hero__wordmark">Mr <span class="hero__rao">RAO</span><span class="hero__badge">v{{ app_version }}</span></span>
         </div>
+        {# La lingua si sceglie qui. La pagina la propone dal browser --
+           italiano se l'Accept-Language lo chiede, inglese per il resto del
+           mondo -- e questa scelta la sovrascrive e resta ricordata.
+           NON cambia i riconoscitori: quelli hanno le loro caselle, perche'
+           uno studio italiano puo' voler leggere in inglese e convertire
+           comunque fatture italiane. #}
+        <nav class="hero__lang" aria-label="Lingua / Language">
+            <a href="?lang=it" hreflang="it"{% if lang == 'it' %} aria-current="true"{% endif %}>IT</a>
+            <a href="?lang=en" hreflang="en"{% if lang == 'en' %} aria-current="true"{% endif %}>EN</a>
+        </nav>
         <p class="hero__tagline">
             Converti documenti, immagini e thread email in Markdown puro.<br>
             <strong>Con i dati personali già rimossi.</strong> Offline, sul tuo computer.
@@ -524,6 +534,7 @@
 </div>
 
 <script>window.MR_RAO_MAX_MB = {{ max_upload_mb }};</script>
+<script>window.MR_RAO_I18N = {{ testi_js|tojson }};</script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 <script>
 document.getElementById('privacy-row').addEventListener('click', function (e) {
