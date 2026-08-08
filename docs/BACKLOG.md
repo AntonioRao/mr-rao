@@ -112,6 +112,7 @@ può citare un identificativo non serve a niente.
 | P3.3 | Tray: stato job + “apri ultimo risultato” | Tray oggi minimale | TODO |
 | P3.4 | Portable firmato / zip release versionato | Distribuzione team | TODO |
 | P3.5 | **Documenti d'identità: carta d'identità, patente, passaporto** | Oggi non c'è nessun riconoscitore. Sono fra i dati più sensibili che passano da uno studio, e hanno formati regolari — la patente italiana ha una struttura fissa, il passaporto una riga MRZ leggibile a vista. Va fatto col metodo di casa: il pattern propone, un validatore decide, e il verbale amministrativo deve restare a zero | TODO |
+| P3.6 | **NER opzionale per i nomi (modello ONNX leggero)** | Serve a una cosa sola che le liste non possono fare: leggere il **ruolo nella frase**. «Lavoro a Milano» e «ho parlato con Mario Milano» contengono la stessa parola, e oggi il motore o la lascia passare o la segna come sospetto. Il guadagno è sui cognomi che coincidono con parole comuni — Chiesa, Costa, Monte, Villa. **Il costo va detto:** un modello fa sparire il *perché*. Oggi ogni sostituzione ha una regola citabile e due esecuzioni danno lo stesso esito; un modello dà un punteggio, e il giorno che sbaglia non si può spiegare a un cliente perché un nome è rimasto. Quindi: spento di default, **mai al posto** dei validatori — il modello propone, contesto e aritmetica decidono, i sospetti restano. Vedi issue #4 | TODO |
 
 ---
 
@@ -123,6 +124,7 @@ può citare un identificativo non serve a niente.
 | P4.2 | Rimuovere shim MarkItDown quando nessuno li usa più | TODO |
 | P4.3 | Spezzare `app.js` in moduli ES se cresce ancora | TODO |
 | P4.4 | CSS già estratto in `static/css/app.css` | **DONE** |
+| P4.5 | **Migrare da `rapidocr_onnxruntime` a `rapidocr`** — il pacchetto è stato rinominato: il vecchio nome è fermo a **1.2.3** e non riceverà più niente, correzioni di sicurezza comprese, mentre il nuovo è alla **3.9.2**. Nel codice sono due soli `import` (`mr_rao/ocr_service.py`, `mr_rao/cli.py`) più la riga in `requirements.txt` e la descrizione in `scripts/gen_third_party.py`: la stringa `"rapidocr"` che compare ovunque è il nome interno del motore, non il pacchetto. Il rischio non è la superficie ma **l'API cambiata fra la 1.2 e la 3.x**, quindi il banco OCR va rifatto girare prima di crederci | TODO |
 
 ---
 
@@ -212,21 +214,22 @@ accettarne una solo se il mod-97 torna. Lo stesso vale per il codice fiscale,
 che ha un carattere di controllo. Su formati senza checksum questa strada non
 si può percorrere, e infatti non va percorsa.
 
-## P1-bis — Interfaccia in inglese (dopo il lancio)
+## P1-bis — Interfaccia in inglese (chiuso in 1.8.0)
 
-Il README è bilingue, l'interfaccia no. Tradurla è una **funzionalità**, non
-una passata di traduzione, e va fatta nell'ordine giusto.
+Tradurre l'interfaccia era una **funzionalità**, non una passata di
+traduzione, e andava fatta in un ordine preciso: prima il motore, poi le
+parole.
 
 | ID | Item | Note | Stato |
 |----|------|------|-------|
-| P1.6 | Estrarre le stringhe della UI in un dizionario `it` / `en` + selettore lingua | ~80 stringhe fra template, JS e messaggi del server: i tooltip sono lunghi apposta | TODO |
-| P1.7 | **Prima** di P1.6: rendere i riconoscitori estendibili ad altri Paesi | Oggi riconosce solo dati italiani (CF, P.IVA, IBAN, nomi IT). Una UI inglese su un motore solo-italiano promette a un utente inglese di proteggere dati che non sa riconoscere — lo stesso errore del selettore lingua OCR | TODO |
+| P1.6 | Estrarre le stringhe della UI in un dizionario `it` / `en` + selettore lingua | `mr_rao/i18n.py`: 320 chiavi fra template, JS e messaggi del server; lingua dedotta dal browser, scelta esplicita ricordata in un cookie | **DONE** (1.8.0) |
+| P1.7 | **Prima** di P1.6: rendere i riconoscitori estendibili ad altri Paesi | Pacchetti `core` / `it` / `en`, cumulativi e selezionabili: 7 riconoscitori universali, 8 italiani, 8 anglosassoni. La priorità è per **tipo di dato** e non per pacchetto, così CF e SSN convivono | **DONE** (1.8.0) |
 
 **Perché in quest'ordine.** L'inglese nell'interfaccia dice «questo strumento
-è per te» a chi parla inglese. Se poi il filtro privacy ignora un National
-Insurance Number o un SSN, la promessa è tradita nel punto che conta di più.
-Fino ad allora, la combinazione onesta è quella attuale: README in inglese
-che spiega il perimetro italiano, interfaccia in italiano per chi la usa.
+è per te» a chi parla inglese. Se il filtro privacy avesse ignorato un
+National Insurance Number o un SSN, la promessa sarebbe stata tradita nel
+punto che conta di più. Per questo il motore è arrivato prima delle parole,
+e non il contrario.
 
 ---
 

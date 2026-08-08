@@ -153,32 +153,40 @@ Il riconoscimento è codice, non una rete neurale. Lo stesso documento dà **sem
 
 ## Perché Mr. Rao
 
-Non «è il migliore». Sono quattro comportamenti precisi, e ognuno si
-verifica aprendo il codice.
+### 1. Un ponte tra documenti grezzi e prompt per AI (LLM-ready)
 
-**Dal file al prompt, in un passaggio.** Converte, redige e ti restituisce
-il testo pronto per l'AI in un colpo solo, senza che il file esca dal
-computer. È esattamente il punto in cui di solito i dati «finiscono in
-giro»: caricare un contratto su un convertitore online per poterlo poi
-incollare in un modello.
+**Il problema sul mercato.** Quando un consulente, un avvocato o un analista
+vuole usare ChatGPT, Claude o Perplexity per analizzare un contratto, una
+fattura o un thread di email, non può incollare dati personali: GDPR, NDA,
+segreto d'ufficio.
 
-**I thread email li legge davvero.** Quasi tutti gli strumenti vedono una
-mail come un file di testo. Mr. Rao riconosce `Il giorno … ha scritto:`,
-`On … wrote:` e i blocchi `Da:/Inviato:/A:`, separa i messaggi citati e
-applica la redazione dentro ognuno ([`mr_rao/eml_parser.py`](mr_rao/eml_parser.py)).
+**La soluzione Mr. Rao.** Prende qualsiasi file — PDF scansionato, Word,
+Excel, EML — lo converte in puro Markdown, estrae e rimuove i dati
+sensibili, e restituisce un testo pronto per essere incollato nell'AI senza
+rischi. In un unico passaggio.
 
-**Formati italiani, con l'aritmetica giusta.** Codice fiscale, partita IVA,
-IBAN mod-97, carte con Luhn: il candidato deve superare il controllo
-dell'ente che lo emette, non somigliargli. Gli strumenti nati altrove su
-questi numeri sbagliano, e la differenza si vede nei falsi positivi.
+### 2. Parsing nativo dei thread email (`.eml`)
 
-**Si accorge se la cartella è sincronizzata.** Se «Documenti» finisce
-dentro OneDrive, Dropbox, Google Drive, iCloud, Nextcloud, pCloud, Mega o
-Box, Mr. Rao sposta lo spazio di lavoro fuori
-([`mr_rao/user_folders.py`](mr_rao/user_folders.py)). Altrimenti «resta sul
-tuo computer» sarebbe una frase, non un fatto.
+La maggior parte dei tool vede una mail come un semplice file di testo.
+Mr. Rao ricostruisce la catena delle risposte, separa i messaggi precedenti
+e applica la redazione automatica su email, telefoni e nomi
+([`mr_rao/eml_parser.py`](mr_rao/eml_parser.py)). Una killer feature per il
+settore legale ed HR.
 
-I limiti stanno poco più sotto, nella stessa pagina e con lo stesso peso.
+### 3. Specializzazione sui formati italiani ed europei
+
+I tool americani falliscono sui formati italiani. Mr. Rao include validatori
+matematici specifici per codice fiscale, IBAN italiano (mod-97), partita IVA
+e carte di credito (algoritmo di Luhn), riducendo drasticamente i falsi
+positivi. E sì: funziona anche con i documenti in inglese.
+
+### 4. Protezione attiva anti-cloud
+
+Mr. Rao rileva se la cartella «Documenti» è sincronizzata con OneDrive,
+Dropbox o Google Drive e dirotta automaticamente lo spazio di lavoro su una
+cartella 100% locale non sincronizzata
+([`mr_rao/user_folders.py`](mr_rao/user_folders.py)), garantendo che il file
+non esca mai dalla stanza.
 
 ---
 

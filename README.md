@@ -151,33 +151,39 @@ The recognition is code, not a neural network. The same document always yields t
 
 ## Why Mr. Rao
 
-Not "it's the best". Four specific behaviours, each of which you can check
-by opening the code.
+### 1. A bridge between raw documents and AI prompts (LLM-ready)
 
-**From file to prompt in one step.** It converts, redacts, and hands you
-text that is ready to paste into an AI — without the file ever leaving your
-machine. That is precisely the moment when data usually gets loose:
-uploading a contract to an online converter so you can paste it into a
-model.
+**The problem.** When a consultant, a lawyer or an analyst wants to use
+ChatGPT, Claude or Perplexity to go through a contract, an invoice or an
+email thread, they cannot paste personal data into it — GDPR, NDA,
+professional confidentiality.
 
-**It actually reads email threads.** Most tools see an email as a text
-file. Mr. Rao recognises `On … wrote:`, `Il giorno … ha scritto:` and
-`From:/Sent:/To:` blocks, splits the quoted messages apart and redacts
-inside each one ([`mr_rao/eml_parser.py`](mr_rao/eml_parser.py)).
+**What Mr. Rao does.** It takes any file — scanned PDF, Word, Excel, EML —
+converts it to plain Markdown, extracts and removes the sensitive data, and
+hands back text that is safe to paste into the AI. In a single step.
 
-**National formats, with the arithmetic that goes with them.** Italian tax
-code, VAT number, IBAN mod-97, cards via Luhn — plus NHS, National
-Insurance, SSN, ITIN, ABA routing, SIN, ABN, TFN and MRZ lines. A candidate
-has to pass the issuer's own check, not merely look like one. That is where
-the false positives go.
+### 2. Native parsing of email threads (`.eml`)
 
-**It notices when your folder is synced.** If "Documents" lives inside
-OneDrive, Dropbox, Google Drive, iCloud, Nextcloud, pCloud, Mega or Box,
-Mr. Rao moves its working directory out
-([`mr_rao/user_folders.py`](mr_rao/user_folders.py)). Otherwise "it stays on
-your computer" would be a sentence, not a fact.
+Most tools see an email as a plain text file. Mr. Rao rebuilds the reply
+chain, separates the quoted messages and redacts emails, phone numbers and
+names inside each one ([`mr_rao/eml_parser.py`](mr_rao/eml_parser.py)). A
+killer feature for legal and HR work.
 
-The limits are just below, on the same page and with the same weight.
+### 3. Built for Italian and European formats
+
+Tools written elsewhere fail on Italian formats. Mr. Rao ships arithmetic
+validators for the Italian tax code, Italian IBAN (mod-97), VAT number and
+payment cards (Luhn), which cuts false positives sharply — and yes, it works
+on English documents too: NHS number, National Insurance, SSN, ITIN, ABA
+routing, SIN, ABN, TFN and passport MRZ lines.
+
+### 4. Active anti-cloud protection
+
+Mr. Rao detects whether your "Documents" folder is synced with OneDrive,
+Dropbox or Google Drive and automatically moves its working directory to a
+100% local, unsynced folder
+([`mr_rao/user_folders.py`](mr_rao/user_folders.py)) — so the file never
+leaves the room.
 
 ---
 
