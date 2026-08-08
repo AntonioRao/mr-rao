@@ -165,5 +165,10 @@ def test_le_priorita_rispettano_i_vincoli_che_contano():
     # I riconoscitori esatti prima di quelli tolleranti all'OCR.
     assert pr["codice_fiscale"] < pr["codice_fiscale_ocr"]
     assert pr["iban"] < pr["iban_ocr"]
-    # I nomi per ultimi: i segnaposto gia' inseriti fanno da contesto.
-    assert pr["names"] == max(pr.values())
+    # I nomi per ultimi: i segnaposto gia' inseriti fanno da contesto, e il
+    # riconoscitore inglese ci si appoggia proprio ({{EMAIL}} accanto a due
+    # parole maiuscole). Vale per **tutti** i passi sui nomi, non solo per
+    # quello italiano.
+    nomi = [p.priorita for p in SEQUENZA if p.campo == "names"]
+    altri = [p.priorita for p in SEQUENZA if p.campo != "names"]
+    assert min(nomi) > max(altri)

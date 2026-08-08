@@ -154,18 +154,66 @@ def test_il_nino_di_esempio_diventa_un_sospetto():
 # ---------------------------------------------------------------------------
 
 
-def test_i_nomi_inglesi_non_sono_ancora_coperti():
-    """Questo test **passa perche' il motore non fa una cosa**.
+# ---------------------------------------------------------------------------
+# I nomi: solo dove il testo dichiara che e' una persona
+# ---------------------------------------------------------------------------
 
-    Non e' una svista: e' il divario dichiarato nella issue #1. Il
-    pacchetto `en` copre gli identificativi, non i nomi di persona, e
-    finche' e' cosi' e' meglio che sia scritto in un test che qualcuno
-    dovra' cancellare di proposito, invece che in un commento che nessuno
-    legge. Quando arriveranno i nomi inglesi, questo test va **sostituito**
-    con quelli veri, non tolto e basta.
+
+@pytest.mark.parametrize(
+    "testo,atteso_via",
+    [
+        ("Dear James,", "apertura epistolare"),
+        ("The client is Mr Daniel Okonkwo, aged 47.", "titolo"),
+        ("Please copy in Prof. Helen Ashworth when you circulate.", "titolo"),
+        ("Attn: Michael Osei in accounts", "attenzione a"),
+        ("Sarah Whitfield <s.whitfield@harlow.co.uk> wrote:", "email accanto"),
+        ("Kind regards,\n\nSarah Whitfield\nSenior Associate", "firma"),
+    ],
+)
+def test_il_contesto_dichiara_la_persona(testo, atteso_via):
+    out, rep = apply_privacy_filter(testo, SOLO_EN)
+    assert rep.counts.get("names"), f"non riconosciuto per {atteso_via}: {out!r}"
+    assert "{{NAME}}" in out
+
+
+@pytest.mark.parametrize(
+    "formula",
+    ["Dear Sir,", "Dear Madam,", "Dear All,", "Dear Team,", "Dear Colleagues,"],
+)
+def test_le_formule_generiche_non_sono_nomi(formula):
+    """Senza questo, ogni lettera formale comincerebbe con un falso
+    positivo — ed e' la prima riga, quella che l'utente guarda."""
+    out, rep = apply_privacy_filter(formula, SOLO_EN)
+    assert out == formula
+    assert not rep.counts.get("names")
+
+
+def test_una_parola_sola_davanti_a_un_indirizzo_non_basta():
+    """A differenza dell'italiano non c'e' un elenco a cui chiedere se
+    quella parola e' un nome. Davanti a un indirizzo ci finisce di tutto, a
+    partire dai verbi: senza questa regola «Contact» sparirebbe."""
+    out, _ = apply_privacy_filter("Contact <someone@example.com> today", SOLO_EN)
+    assert "Contact" in out
+
+
+def test_il_limite_dichiarato_un_nome_in_mezzo_alla_frase_sopravvive():
+    """**Questo test passa perche' il motore NON fa una cosa.**
+
+    Non e' una svista, e' il divario dichiarato nella issue #1 e in #4.
+    Senza titolo, senza firma e senza indirizzo accanto, non c'e' nulla nel
+    testo che dica che «Grace Bellamy» e' una persona e non un'azienda o un
+    luogo -- e in inglese Grace, Bellamy, Brown, Green e Baker sono tutte e
+    due le cose. Prenderlo richiederebbe un modello, che e' esattamente
+    cio' che questo prodotto promette di non avere.
+
+    Se un giorno questo test diventasse rosso, prima di correggerlo
+    verificare **cosa** e' cambiato: se qualcuno ha aggiunto un'euristica
+    sui nomi, il documento amministrativo qui sopra e' il posto dove si
+    misura il prezzo.
     """
-    out, rep = apply_privacy_filter("Dear Mr Daniel Okonkwo,", SOLO_EN)
-    assert "Okonkwo" in out
+    testo = "His partner, Grace Bellamy, can be reached at the office."
+    out, rep = apply_privacy_filter(testo, SOLO_EN)
+    assert out == testo
     assert not rep.counts.get("names")
 
 

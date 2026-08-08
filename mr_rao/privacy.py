@@ -1282,6 +1282,125 @@ def _scrub_en_nove_cifre(
     return _RE_NOVE_CIFRE.sub(_sub, text)
 
 
+# ---------------------------------------------------------------------------
+# Nomi inglesi: solo dove il testo dice che e' un nome
+# ---------------------------------------------------------------------------
+#
+# Qui non c'e' nessun elenco di nomi, ed e' una scelta.
+#
+# In italiano l'euristica «due parole maiuscole che non sono parole
+# italiane» regge perche' -zione, -mento e -ale sono terminazioni di parole
+# e non di cognomi. In inglese quella separazione non esiste: -son, -ton,
+# -er sono entrambe le cose. E le parole inglesi comunissime che sono anche
+# nomi -- Mark, Bill, Grace, Will, May, June, Rose, Brown, Green, Baker,
+# Price, Young, Church, Sterling -- rendono qualunque elenco una macchina
+# per falsi positivi. Misurato: il motore italiano applicato a un documento
+# amministrativo inglese produceva 22 sostituzioni su un testo senza un
+# solo dato personale, e 22 su un modulo fiscale statunitense in bianco.
+#
+# Quindi si sostituisce **solo dove il testo dichiara che quella e' una
+# persona**: un titolo davanti, una formula di apertura o di chiusura, un
+# indirizzo di posta accanto. Sono regole di contesto pure, che non
+# costano un byte di dati e non sbagliano quasi mai.
+#
+# Il prezzo e' dichiarato: un nome in mezzo a una frase, senza titolo e
+# senza firma, **sopravvive**. Per prenderlo servirebbe un modello, che
+# violerebbe la promessa del prodotto (issue #4). Chi vuole quel richiamo
+# la' sa dove chiederlo; chi legge il report vede il divario nei sospetti
+# invece di scoprirlo dopo.
+
+_EN_TITOLI = (
+    r"mr|mrs|ms|miss|mx|dr|prof|professor|sir|dame|rev|reverend|hon|"
+    r"capt|captain|lord|lady|madam"
+)
+
+# Parole che seguono un titolo o un «Dear» senza essere nomi di persona.
+# Senza questo elenco «Dear Sir», «Dear All» e «Dear Team» diventerebbero
+# tre falsi positivi in cima a ogni lettera formale.
+_EN_NON_NOMI = frozenset(
+    {
+        "sir", "sirs", "madam", "madams", "all", "team", "teams",
+        "colleagues", "colleague", "customer", "customers", "client",
+        "clients", "friend", "friends", "both", "everyone", "everybody",
+        "member", "members", "resident", "residents", "parent", "parents",
+        "student", "students", "applicant", "applicants", "reader",
+    }
+)
+
+_RE_EN_TITLE_NAME = re.compile(
+    rf"(?<!\w)(?i:{_EN_TITOLI})\.?{_SP}(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+)
+
+# «Dear James,» — l'apertura epistolare e' la dichiarazione piu' esplicita
+# che esista: quello che segue e' una persona, o e' una delle formule
+# generiche di _EN_NON_NOMI.
+_RE_EN_DEAR = re.compile(
+    rf"(?<!\w)(?i:dear|attn|attention|c/o)[:.]?{_SP}"
+    rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+)
+
+# La firma: una formula di chiusura, un a capo, e il nome. E' il punto in
+# cui in una mail di lavoro il nome compare praticamente sempre, e dove
+# nessun'altra regola lo prenderebbe -- non ha titolo davanti e non ha
+# l'indirizzo accanto.
+_EN_CHIUSURE = (
+    r"(?:kind|best|warm|kindest)?\s*regards|"
+    r"yours\s+(?:sincerely|faithfully|truly)|sincerely(?:\s+yours)?|"
+    r"best\s+wishes|many\s+thanks|with\s+thanks|thanks\s+and\s+regards"
+)
+_RE_EN_FIRMA = re.compile(
+    rf"(?i:{_EN_CHIUSURE})[,.]?[ \t]*\r?\n\s*(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+)
+
+# Un nome attaccato a un indirizzo gia' sostituito. A differenza
+# dell'italiano non si accetta **mai** una parola sola: senza elenchi non
+# c'e' modo di distinguere «Contact {{EMAIL}}» da «Sarah {{EMAIL}}», e il
+# verbo verrebbe redatto. Due parole maiuscole davanti a un indirizzo sono
+# invece quasi sempre nome e cognome.
+_RE_EN_NOME_PRIMA_EMAIL = re.compile(
+    rf"(?P<name>{_TOK}{_SP}{_TOK}(?:{_SP}{_TOK})?)"
+    rf"(?P<sep>\s*[<\(\[]\s*)\{{\{{EMAIL\}}\}}"
+)
+_RE_EN_NOME_DOPO_EMAIL = re.compile(
+    rf"\{{\{{EMAIL\}}\}}(?P<sep>\s*[<\(\[]\s*)"
+    rf"(?P<name>{_TOK}{_SP}{_TOK}(?:{_SP}{_TOK})?)"
+)
+
+
+def _en_nome_utile(name: str) -> str | None:
+    """Toglie dalla coda le parole che non sono nomi, e dice se resta nulla."""
+    tokens = name.split()
+    while tokens and tokens[-1].lower().strip(".,;:'’-") in _EN_NON_NOMI:
+        tokens.pop()
+    if not tokens:
+        return None
+    if tokens[0].lower().strip(".,;:'’-") in _EN_NON_NOMI:
+        return None
+    return " ".join(tokens)
+
+
+def _scrub_en_names(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    def _sub(m: re.Match) -> str:
+        name = m.group("name")
+        utile = _en_nome_utile(name)
+        if utile is None:
+            return m.group(0)
+        report.add("names")
+        # Si sostituisce solo la parte utile: la coda ("Thank you" dopo la
+        # virgola non ci arriva, ma un titolo di coda si').
+        return m.group(0).replace(name, "{{NAME}}" + name[len(utile):], 1)
+
+    for pattern in (
+        _RE_EN_TITLE_NAME,
+        _RE_EN_DEAR,
+        _RE_EN_FIRMA,
+        _RE_EN_NOME_PRIMA_EMAIL,
+        _RE_EN_NOME_DOPO_EMAIL,
+    ):
+        text = pattern.sub(_sub, text)
+    return text
+
+
 @dataclass(frozen=True)
 class Passo:
     """Un riconoscitore nella sequenza, con il pacchetto che lo possiede.
@@ -1344,6 +1463,10 @@ SEQUENZA: tuple[Passo, ...] = (
         "names", IT, "names", 90,
         lambda t, r, o: _scrub_names(t, r, guess=o.name_guess),
     ),
+    # Stessa fascia dei nomi italiani: se i due pacchetti sono accesi
+    # insieme gira prima quello italiano, che e' piu' aggressivo, e questo
+    # raccoglie cio' che resta.
+    Passo("names_en", EN, "names", 91, _scrub_en_names),
 )
 
 
