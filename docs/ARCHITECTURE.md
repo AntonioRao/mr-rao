@@ -122,7 +122,8 @@ Dettaglio e ragioni in [SECURITY.md](../SECURITY.md).
   sostituzioni sbagliate, misurate su 127 documenti in bianco (#5). Il parametro prosa/modulo
   ne toglie la maggior parte, ma il metodo a elenchi ha un tetto di precisione che i vincoli
   incrementali non alzano.
-- **Interfaccia solo in italiano**: il motore riconosce i formati anglosassoni, la pagina no (#1, fase 3).
+- **Interfaccia in italiano e inglese** (#1, fase 3): scelta dal browser, cambiabile con un clic, e il
+  documento prodotto segue la stessa lingua. Resta italiana la riga di comando.
 - **Nessuna autenticazione**: tool locale per una persona, non un servizio.
 
 ## Documentazione correlata
