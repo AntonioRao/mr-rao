@@ -433,16 +433,17 @@ class PrivacyOptions:
     #      volumi statistici): la verita' di riferimento e' zero, quindi
     #      ogni sostituzione e' un errore;
     #   B) 1500 messaggi di python-list, prosa **inglese** tecnica;
-    #   C) 168 messaggi di mailing list italiane (lists.linux.it), prosa
-    #      italiana -- il corpus che conta per una regola italiana.
+    #   C) 6000 messaggi di mailing list italiane (lists.linux.it, 1103
+    #      archivi, 56% in italiano) -- il corpus che conta per una regola
+    #      italiana.
     #
     #   riscontro singolo negli elenchi   A: falsi pos.   B: nomi   C: nomi
-    #   -> sospetto                              1 637      2 823       710
-    #   -> sostituzione                          4 376      3 432     1 067
+    #   -> sospetto                              1 637      2 823     7 071
+    #   -> sostituzione                          4 376      3 432    10 989
     #
     # Su un modulo «sospetto» toglie 2 739 errori. Su prosa italiana costa
-    # il 50% dei nomi (1067 -> 710) e triplica i sospetti, da 2,9 a 6,9 per
-    # messaggio: a quel punto l'elenco dei sospetti smette di essere
+    # il 55% dei nomi (10 989 -> 7 071) e triplica i sospetti, da 0,7 a 2,0
+    # per messaggio: a quel punto l'elenco dei sospetti smette di essere
     # consultabile, che e' la funzione su cui si regge l'onesta' del
     # prodotto.
     #
