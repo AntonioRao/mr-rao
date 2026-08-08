@@ -128,12 +128,27 @@ _RE_EMAIL = re.compile(
 # L'indirizzo scritto per non farsi trovare dai raccoglitori automatici:
 # "mario [at] esempio [dot] it". Chi lo scrive cosi' lo fa apposta perche'
 # non sembri un'email — e infatti al riconoscitore non sembrava.
+# Spazi e tabulazioni, mai il ritorno a capo.
+#
+# Con `\s*` questo riconoscitore attraversava le righe: su
+# «... [punto] it.\n\nRecapiti: ...» il punto finale gli faceva mangiare i due
+# ritorni a capo e la parola dopo, e l'uscita diventava «{{EMAIL}}: cell.».
+# Il conteggio diceva «1 email» e nient'altro — cioe' il documento perdeva
+# testo *in silenzio*, che e' il modo peggiore di sbagliare per un programma
+# il cui compito e' far vedere cosa e' stato tolto.
+#
+# Un indirizzo, anche offuscato, sta su una riga sola. Meglio non riconoscere
+# quello scritto a cavallo di due righe che divorare un paragrafo.
+_ORIZZ = r"[^\S\r\n]"
+
 _RE_EMAIL_OFFUSCATA = re.compile(
-    r"(?i)\b[A-Za-z0-9._%+\-]+\s*"
-    r"(?:\[\s*at\s*\]|\(\s*at\s*\)|\{\s*at\s*\}|\bchiocciola\b|\s+at\s+)\s*"
-    r"[A-Za-z0-9\-]+"
-    r"(?:\s*(?:\[\s*(?:dot|punto)\s*\]|\(\s*(?:dot|punto)\s*\)|\bpunto\b|\bdot\b|\.)\s*"
-    r"[A-Za-z0-9\-]+)+"
+    rf"(?i)\b[A-Za-z0-9._%+\-]+{_ORIZZ}*"
+    rf"(?:\[{_ORIZZ}*at{_ORIZZ}*\]|\({_ORIZZ}*at{_ORIZZ}*\)|\{{{_ORIZZ}*at{_ORIZZ}*\}}"
+    rf"|\bchiocciola\b|{_ORIZZ}+at{_ORIZZ}+){_ORIZZ}*"
+    rf"[A-Za-z0-9\-]+"
+    rf"(?:{_ORIZZ}*(?:\[{_ORIZZ}*(?:dot|punto){_ORIZZ}*\]|\({_ORIZZ}*(?:dot|punto){_ORIZZ}*\)"
+    rf"|\bpunto\b|\bdot\b|\.){_ORIZZ}*"
+    rf"[A-Za-z0-9\-]+)+"
 )
 
 

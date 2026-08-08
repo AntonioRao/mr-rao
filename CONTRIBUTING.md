@@ -50,7 +50,9 @@ In particolare sono benvenuti:
   ti è sfuggito, o un codice prodotto è stato scambiato per un IBAN, apri una
   issue con un esempio **inventato** (mai dati reali).
 - **Anteprima Markdown più fedele** (liste annidate, tabelle) — P1.4.
-- **Test.** Ce ne sono 161 e non bastano mai.
+- **Test.** Ce ne sono 707 test e non bastano mai. (Il numero è scritto prima
+  della parola «test» di proposito: è così che `scripts/check_docs.py` lo
+  trova. Scritto al contrario era rimasto fermo a 161 per venti release.)
 
 ## Cosa serve prima di una PR
 
@@ -72,7 +74,11 @@ Due regole che il progetto si è dato dopo averle pagate care:
    venv\Scripts\python scripts\gen_third_party.py
    ```
    E se la dipendenza è copyleft (LGPL, MPL, GPL), aggiungi anche testo e
-   notice in `licenses/`, come è stato fatto per pystray e python-stdnum.
+   notice in `licenses/`, come è stato fatto per **pystray** (LGPL-3.0) —
+   oggi l'unica che richiede una cartella dedicata. Le MPL-2.0 presenti
+   (`certifi`, `tqdm`) stanno in `THIRD_PARTY.md` fra gli obblighi
+   particolari, con il rimando al progetto: MPL chiede di dire dove trovare
+   il sorgente, non di allegarlo.
    Il gate controlla l'allineamento, non la completezza degli adempimenti:
    quella resta responsabilità di chi aggiunge.
 

@@ -511,3 +511,43 @@ def test_le_coordinate_bancarie_non_sono_telefoni(testo):
     assert "{{BBAN}}" in out, out
     assert "{{PHONE}}" not in out
     assert report.counts.get("bban", 0) >= 1
+
+
+def test_email_offuscata_non_attraversa_il_ritorno_a_capo():
+    """L'email offuscata non deve mangiare la riga successiva.
+
+    Con `\s*` nel pattern, il punto finale di «... [punto] it.» portava a
+    consumare i due ritorni a capo e la parola dopo: l'uscita diventava
+    «{{EMAIL}}: cell. {{PHONE}}» e «Recapiti» spariva.
+
+    Non e' un falso positivo su un dato personale: e' **testo del documento
+    che sparisce senza essere segnalato**. Il conteggio diceva «1 email», e
+    chi legge non aveva motivo di sospettare che mancasse anche una riga.
+    Toglie e tace, che per questo programma e' il modo peggiore di sbagliare.
+
+    Issue #3.
+    """
+    testo = (
+        "in copia anche laura.bianchi [at] studio [punto] it.\n\n"
+        "Recapiti: cell. 335 123 4567"
+    )
+    out, report = apply_privacy_filter(testo, PrivacyOptions())
+
+    assert "Recapiti" in out, f"la parola dopo il ritorno a capo e' sparita: {out!r}"
+    assert "\n\n" in out, "il ritorno a capo doppio e' stato mangiato"
+    assert report.counts.get("emails") == 1
+    # e l'indirizzo se n'e' comunque andato
+    assert "laura.bianchi" not in out and "studio" not in out
+
+
+def test_le_altre_forme_di_offuscamento_reggono_ancora():
+    """La correzione non deve aver spento il riconoscitore."""
+    for testo in (
+        "scrivi a mario [at] esempio [punto] it",
+        "mario chiocciola esempio.it",
+        "mario at esempio dot com",
+        "mario (at) esempio (dot) it",
+    ):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert report.counts.get("emails") == 1, f"non riconosciuta: {testo!r}"
+        assert "esempio" not in out, f"resto dell'indirizzo rimasto: {out!r}"
