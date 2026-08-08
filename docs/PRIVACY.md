@@ -146,12 +146,20 @@ e, soprattutto, cosa è sfuggito.
   il tetto di tempo (`MR_RAO_OCR_TIMEOUT`, 15 minuti di default), l'estrazione si
   ferma e il motore ha visto solo le pagine lette. Il documento lo dichiara in
   cima, prima del testo: chi legge deve saperlo *prima* di fidarsi.
-- **Il banco di prova è sintetico.** I casi OCR sono stringhe scritte a mano
-  immaginando come sbaglia un riconoscitore ottico, non scansioni vere. Finché
-  non esiste un corpus di documenti passati davvero da uno scanner, l'efficacia
-  su carta è stimata, non misurata.
-- **I formati sono italiani.** Un numero di telefono tedesco o un codice
-  fiscale spagnolo non hanno un riconoscitore dedicato.
+- **Sui nomi resta la parte difficile.** Il banco non è più sintetico: dalla
+  1.8.0 sono 127 documenti veri presi dal web, scansioni comprese, dove la
+  risposta attesa è **zero** — quindi ogni sostituzione è un errore per
+  costruzione — più 7 500 messaggi di mailing list. I falsi positivi sui nomi
+  sono scesi da 6 339 a 1 637: **misurati, non stimati**. Ma 1 637 non è zero,
+  e un cognome raro in un contesto ambiguo può ancora restare, o sparire a
+  sproposito. L'euristica più aggressiva è spenta di default proprio per
+  questo.
+- **I formati coperti sono italiani e anglosassoni.** Codice fiscale, partita
+  IVA, IBAN e BBAN italiani; NHS number, National Insurance number, SSN, ITIN,
+  routing ABA, SIN canadese, ABN e TFN australiani, codice postale britannico,
+  righe MRZ dei passaporti. Un numero di telefono tedesco o un NIF spagnolo
+  **non** hanno un riconoscitore dedicato: su quei documenti il filtro vede
+  meno di quanto sembri.
 - **Non sostituisce una valutazione DPIA o un parere legale.**
 
 ## Domande da reviewer
