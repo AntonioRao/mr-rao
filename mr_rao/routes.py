@@ -22,7 +22,7 @@ from config import (
     MAX_WORKERS,
 )
 from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
-from mr_rao.i18n import LINGUA_PREDEFINITA, lingua_da, t
+from mr_rao.i18n import LINGUA_PREDEFINITA, LINGUE, lingua_da, t
 from mr_rao.jobs import job_store
 from mr_rao.privacy import (
     FIELD_DEFAULTS,
@@ -226,8 +226,14 @@ def index():
         # La scelta esplicita si ricorda. Solo `SameSite=Lax` e nessun
         # `Secure`: e' un server locale in http, e un cookie che il browser
         # rifiuta e' peggio di nessun cookie.
+        # Il valore scritto e' ricontrollato qui e non solo dentro
+        # `lingua_da`: cio' che finisce in un'intestazione HTTP si valida nel
+        # punto in cui ci finisce, cosi' resta vero anche se un domani
+        # `lingua_da` cambia. `?lang=` arriva dall'utente.
         risposta.set_cookie(
-            "mr_rao_lang", lingua, max_age=60 * 60 * 24 * 365,
+            "mr_rao_lang",
+            lingua if lingua in LINGUE else LINGUA_PREDEFINITA,
+            max_age=60 * 60 * 24 * 365,
             samesite="Lax", httponly=False,
         )
     return risposta
