@@ -664,6 +664,7 @@
     <span class="stamp">NO CLOUD</span>
     <div class="links">
       <a href="#motore">Motore</a>
+      <a href="#banco">Banco</a>
       <a href="#limiti">Limiti</a>
       <a href="#contatto">Contatto</a>
       <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Scarica</a>
@@ -694,10 +695,10 @@
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">Ispeziona il codice</a>
       </div>
       <div class="meta-row">
-        <div><strong>390+</strong> test automatici</div>
+        <div><strong>127</strong> documenti dove l’atteso è zero</div>
         <div><strong>AGPL-3.0</strong> software libero</div>
         <div><strong>127.0.0.1</strong> ascolto di default</div>
-        <div><strong>IT</strong> formati fiscali nativi</div>
+        <div><strong>IT · UK · US · CA · AU</strong> formati nazionali</div>
       </div>
     </div>
 
@@ -752,7 +753,7 @@
     <div class="grid-3">
       <article class="card">
         <div class="num">01 / CHECKSUM</div>
-        <h3>Aritmetica, non vibe</h3>
+        <h3>Aritmetica, non impressioni</h3>
         <p>IBAN mod-97, carte Luhn, controllo CF e P.IVA. Un protocollo lungo non viene “scambiato” per un recapito.</p>
       </article>
       <article class="card">
@@ -762,27 +763,56 @@
       </article>
       <article class="card">
         <div class="num">03 / OCR ≤2</div>
-        <h3>Recovery con garanzia</h3>
-        <p>Su CF e IBAN storpiati: fino a due confusions tipiche, sostituzione solo se il checksum del candidato torna.</p>
+        <h3>Recupero vincolato</h3>
+        <p>Su CF e IBAN storpiati prova fino a due confusioni tipiche di lettura, e sostituisce solo se il candidato regge tre vincoli insieme: checksum, sigla del Paese, lunghezza prevista da quel Paese (registro ISO 13616). Il mod-97 da solo scarta 96 candidati su 97: quando in gioco ci sono migliaia di codici lunghi, il resto passa.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="block" id="banco">
+    <p class="sec-label">// 03 · banco di prova</p>
+    <h2>Documenti dove la risposta giusta è zero.</h2>
+    <p class="intro">
+      Su un documento vero non sai se una sostituzione era dovuta: la giudichi a occhio, e l’occhio si stanca.
+      Per questo il motore viene misurato prima di tutto su carte che dati personali non ne contengono affatto:
+      lì ogni sostituzione è un errore, e non c’è niente da interpretare. Ogni modifica deve ripassare da qui.
+    </p>
+    <div class="grid-3">
+      <article class="card">
+        <div class="num">01 / IN BIANCO</div>
+        <h3>127 documenti, atteso zero</h3>
+        <p>Moduli fiscali italiani e statunitensi, numeri della Gazzetta Ufficiale fino al 1890, volumi statistici. Nessun dato personale per costruzione: il numero corretto di redazioni è zero, quindi ogni sostituzione si conta come errore.</p>
+      </article>
+      <article class="card">
+        <div class="num">02 / PROSA VERA</div>
+        <h3>7.500 messaggi reali</h3>
+        <p>6.000 messaggi di mailing list italiane e 1.500 inglesi: come si comporta sul testo che le persone scrivono davvero, non su frasi costruite per farlo riuscire.</p>
+      </article>
+      <article class="card">
+        <div class="num">03 / PRIMA E DOPO</div>
+        <h3>6.339 → 1.637</h3>
+        <p>Falsi positivi sui nomi, stesso banco. Su venti moduli in bianco dell’Agenzia delle Entrate una sola euristica ne produceva 8.904 da sola: ora è spenta di default.</p>
       </article>
     </div>
   </section>
 
   <section class="block" id="capacita">
-    <p class="sec-label">// 03 · capacità</p>
+    <p class="sec-label">// 04 · capacità</p>
     <h2>Tutto ciò che resta in stanza.</h2>
     <table class="spec" id="spec">
       <tr><td>Formati</td><td>PDF, DOCX, XLSX, PPTX, HTML, CSV, immagini, EML — MarkItDown + OCR offline</td></tr>
       <tr><td>Redazione</td><td>Email, telefoni, nomi, indirizzi, CF, P.IVA, IBAN, BBAN, carte, URL, segreti API</td></tr>
+      <tr><td>Oltre l’Italia</td><td>NHS number e National Insurance britannici, SSN e ITIN, ABA routing, SIN canadese, ABN e TFN australiani, CAP britannico, righe MRZ del passaporto</td></tr>
+      <tr><td>Lingua</td><td>Interfaccia in italiano e in inglese, scelta dal browser · il documento prodotto segue la stessa lingua</td></tr>
       <tr><td>Shell Windows</td><td>Tasto destro → Apri con Mr. Rao · sospetti stampati in console quando servono</td></tr>
-      <tr><td>Cartella automatica</td><td>Inbox → outbox Markdown, default fuori da OneDrive/Dropbox</td></tr>
+      <tr><td>Cartella automatica</td><td>Da convertire → Convertiti, Markdown in uscita, default fuori da OneDrive/Dropbox</td></tr>
       <tr><td>Sicurezza locale</td><td>Host allow-list, anti-CSRF Origin, GET read-only, bind 127.0.0.1</td></tr>
       <tr><td>Licenza</td><td>AGPL-3.0 · codice ispezionabile · nessun telefono a casa</td></tr>
     </table>
   </section>
 
   <section class="block" id="limiti">
-    <p class="sec-label">// 04 · onestà operativa</p>
+    <p class="sec-label">// 05 · onestà operativa</p>
     <h2>Cosa non promettiamo — di proposito.</h2>
     <p class="intro">Un CISO si fida di chi dichiara i limiti. Noi li scriviamo in README, PRIVACY e nel prodotto.</p>
     <div class="limits">
@@ -792,11 +822,15 @@
       </div>
       <div class="limit">
         <strong>Nomi: non infallibili</strong>
-        <p>Liste + contesto + euristica spegnibile. Un cognome raro può restare.</p>
+        <p>Liste + contesto + euristica spegnibile: sul banco restano 1.637 falsi positivi. Un cognome raro può restare.</p>
+      </div>
+      <div class="limit">
+        <strong>Abbiamo inventato 12 IBAN</strong>
+        <p>Il recupero OCR li ha prodotti sui 127 documenti in bianco, che di IBAN non ne contengono nessuno. Il mod-97 da solo non bastava. Con sigla del Paese e lunghezza per Paese sono tornati a 0: misurato, non stimato.</p>
       </div>
       <div class="limit">
         <strong>OCR debole = privacy più debole</strong>
-        <p>Recovery e sospetti aiutano; tre errori di lettura bastano a far sfuggire un codice.</p>
+        <p>Il recupero e i sospetti aiutano; tre errori di lettura bastano a far sfuggire un codice.</p>
       </div>
       <div class="limit">
         <strong>Monoutente locale</strong>
@@ -818,7 +852,7 @@
   </section>
 
   <section class="block" id="contatto">
-    <p class="sec-label">// 05 · canale diretto</p>
+    <p class="sec-label">// 06 · canale diretto</p>
     <h2>Segnalazioni, idee, pezzi che non tornano.</h2>
     <p class="intro">
       Scritto e mantenuto da Antonio Andrea Rao. Preferisci una mail secca
