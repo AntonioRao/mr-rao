@@ -32,7 +32,7 @@ def engines(monkeypatch):
         return "testo da immagine"
 
     def fake_ocr_pdf(path, language="it", progress=None, should_cancel=None,
-                     max_pages=None, include_tables=True):
+                     max_pages=None, include_tables=True, lingua="it"):
         calls.append("ocr_pdf")
         return "testo da OCR pdf"
 
@@ -43,7 +43,7 @@ def engines(monkeypatch):
 
     monkeypatch.setattr(converter, "ocr_image", fake_ocr_image)
     monkeypatch.setattr(converter, "ocr_pdf_fallback", fake_ocr_pdf)
-    monkeypatch.setattr(converter, "extract_pdf_tables", lambda path: "")
+    monkeypatch.setattr(converter, "extract_pdf_tables", lambda path, lingua="it": "")
     monkeypatch.setattr(converter, "get_markitdown", lambda: _FakeMarkItDown())
     return calls
 
