@@ -58,6 +58,7 @@ Mr. Rao non li modifica.
 | [pyinstaller](https://pyinstaller.org) | 6.21.0 | Build del pacchetto portable (solo sviluppo) | GNU General Public License v2 (GPLv2) | — |
 | [pystray](https://github.com/moses-palmer/pystray) | 0.19.5 | Icona nella barra di sistema | GNU Lesser General Public License v3 (LGPLv3) | [`licenses/pystray/`](licenses/pystray/) |
 | [pytest](https://docs.pytest.org/en/stable/changelog.html) | 9.1.1 | Test (solo sviluppo) | MIT | — |
+| [python-docx](https://github.com/python-openxml/python-docx/blob/master/HISTORY.rst) | 1.2.0 | Esportazione del documento redatto in .docx | MIT License | — |
 | [PyYAML](https://pyyaml.org/) | 6.0.3 | Verifica del frontmatter nei test | MIT License | — |
 | [rapidocr](https://rapidai.github.io/RapidOCRDocs) | 3.9.2 | OCR offline (immagini e PDF scansionati), modelli PP-OCRv6 inclusi | Apache-2.0 | — |
 | [Werkzeug](https://werkzeug.palletsprojects.com/page/changes/) | 3.1.8 | Livello WSGI | BSD-3-Clause | — |
@@ -67,7 +68,7 @@ Mr. Rao non li modifica.
 Arrivano come dipendenze delle precedenti. Sono elencate per intero perché
 l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 
-<details><summary>Elenco completo (54 pacchetti)</summary>
+<details><summary>Elenco completo (53 pacchetti)</summary>
 
 | Progetto | Versione | Licenza | Notice locale |
 |----------|----------|---------|---------------|
@@ -110,7 +111,6 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [pyinstaller-hooks-contrib](https://github.com/pyinstaller/pyinstaller-hooks-contrib) | 2026.6 | Apache Software License; GNU General Public License v2 (GPLv2) | — |
 | [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.12.1 | BSD-3-Clause, Apache-2.0, dependency licenses | — |
 | [python-dateutil](https://github.com/dateutil/dateutil) | 2.9.0.post0 | BSD License; Apache Software License | — |
-| [python-docx](https://github.com/python-openxml/python-docx/blob/master/HISTORY.rst) | 1.2.0 | MIT License | — |
 | [python-dotenv](https://github.com/theskumar/python-dotenv) | 1.2.2 | BSD-3-Clause | — |
 | [python-pptx](https://github.com/scanny/python-pptx/blob/master/HISTORY.rst) | 1.0.2 | MIT License | — |
 | [pywin32-ctypes](https://github.com/enthought/pywin32-ctypes) | 0.2.3 | BSD-3-Clause | — |

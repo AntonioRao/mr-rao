@@ -105,6 +105,7 @@
     copyCleanBtn: $("copy-clean-btn"),
     downloadBtn: $("download-btn"),
     downloadTxtBtn: $("download-txt-btn"),
+    downloadDocxBtn: $("download-docx-btn"),
     toast: $("toast"),
     toastMsg: $("toast-msg"),
     toastIcon: $("toast-icon"),
@@ -753,6 +754,45 @@
     downloadBlob(currentMarkdown, currentFilename + ".md", "text/markdown;charset=utf-8");
     showToast(t("js_md_scaricato"));
   });
+
+  if (els.downloadDocxBtn) {
+    els.downloadDocxBtn.addEventListener("click", async () => {
+      // Il .docx lo costruisce il server: e' un archivio zip con dentro
+      // dell'XML, e farlo qui vorrebbe dire portarsi una libreria nella
+      // pagina. Si manda il Markdown *gia' redatto*, non il documento
+      // originale: quello non lascia mai il computer, e nemmeno questa
+      // richiesta esce da 127.0.0.1.
+      els.downloadDocxBtn.disabled = true;
+      try {
+        const r = await fetch("/api/export/docx", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            markdown: currentMarkdown,
+            filename: currentFilename,
+          }),
+        });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          showToast(err.error || t("err_docx_fallito"), "error");
+          return;
+        }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement("a"), {
+          href: url,
+          download: currentFilename + ".docx",
+        });
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast(t("js_docx_scaricato"));
+      } finally {
+        els.downloadDocxBtn.disabled = false;
+      }
+    });
+  }
 
   if (els.downloadTxtBtn) {
     els.downloadTxtBtn.addEventListener("click", () => {

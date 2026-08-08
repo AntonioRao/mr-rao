@@ -79,6 +79,7 @@ pyinstaller --noconfirm --clean --onedir --console --name MrRao ^
   --hidden-import=mr_rao.cli ^
   --hidden-import=bs4 ^
   --hidden-import=rapidocr ^
+  --hidden-import=docx ^
   --hidden-import=pdfplumber ^
   --hidden-import=PIL ^
   --collect-all rapidocr ^

@@ -22,6 +22,7 @@ OUT = ROOT / "THIRD_PARTY.md"
 RUOLI = {
     "markitdown": "Documenti Office/HTML/PDF → Markdown",
     "rapidocr": "OCR offline (immagini e PDF scansionati), modelli PP-OCRv6 inclusi",
+    "python-docx": "Esportazione del documento redatto in .docx",
     "onnxruntime": "Esecuzione dei modelli OCR",
     "flask": "Server web locale",
     "werkzeug": "Livello WSGI",

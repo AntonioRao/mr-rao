@@ -629,6 +629,37 @@ TESTI: dict[str, dict[str, str]] = {
         "it": "Scarica come testo semplice .txt, senza formattazione Markdown.",
         "en": "Downloads as plain .txt, with no Markdown formatting.",
     },
+    "scarica_docx": {"it": ".docx", "en": ".docx"},
+    "tip_scarica_docx": {
+        "it": "Scarica come documento Word, per quello che deve restare un "
+              "documento: un atto da pubblicare, un contratto da depositare. "
+              "<b>Non è l'originale con sopra dei rettangoli neri</b> — il "
+              "documento viene ricostruito dal testo già redatto, quindi il "
+              "dato non c'è proprio. In cambio si perde l'impaginazione.",
+        "en": "Downloads as a Word document, for things that have to stay "
+              "documents: a record to publish, a contract to file. <b>This is "
+              "not the original with black boxes on top</b> — the document is "
+              "rebuilt from the already-redacted text, so the data is absent "
+              "rather than covered. The trade-off is the original layout.",
+    },
+    "js_docx_scaricato": {
+        "it": "Documento .docx scaricato",
+        "en": ".docx document downloaded",
+    },
+    "err_docx_assente": {
+        "it": "L'esportazione in .docx richiede python-docx, che qui non c'è. "
+              "Nel pacchetto portable è già incluso.",
+        "en": "Exporting to .docx needs python-docx, which is not installed "
+              "here. The portable package already includes it.",
+    },
+    "err_niente_da_esportare": {
+        "it": "Non c'è nessun documento da esportare.",
+        "en": "There is no document to export.",
+    },
+    "err_docx_fallito": {
+        "it": "Non sono riuscito a creare il documento .docx.",
+        "en": "Could not build the .docx document.",
+    },
     "tip_scarica_md": {
         "it": "Scarica il file Markdown. Puoi anche <b>trascinare questo "
               "pulsante</b> direttamente sul Desktop o in una cartella.",

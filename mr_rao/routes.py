@@ -1,6 +1,8 @@
 """Flask routes for Mr. Rao web API."""
 from __future__ import annotations
 
+import io
+import re
 import threading
 from pathlib import Path
 
@@ -11,6 +13,7 @@ from flask import (
     make_response,
     render_template,
     request,
+    send_file,
 )
 
 from config import (
@@ -22,6 +25,7 @@ from config import (
     MAX_WORKERS,
 )
 from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
+from mr_rao.docx_export import docx_disponibile, markdown_to_docx
 from mr_rao.i18n import LINGUA_PREDEFINITA, LINGUE, lingua_da, t
 from mr_rao.jobs import job_store
 from mr_rao.privacy import (
@@ -562,6 +566,47 @@ def convert_sync():
     if result.error:
         return jsonify({"error": result.error}), 500
     return jsonify(_result_payload(result))
+
+
+@bp.route("/api/export/docx", methods=["POST"])
+def export_docx():
+    """Markdown gia' redatto -> .docx da scaricare.
+
+    Il `.md` e il `.txt` li costruisce il browser da se'. Questo no: un .docx
+    e' un archivio zip con dentro dell'XML, e generarlo lato client vorrebbe
+    dire portarsi una libreria in piu' nella pagina.
+
+    **Non converte il documento originale.** Riceve il Markdown *gia'
+    redatto* -- cioe' un testo in cui i dati personali sono gia' segnaposto --
+    e lo rimette in forma di documento. Il dato non e' coperto: e' assente.
+    """
+    lingua = lingua_richiesta()
+    if not docx_disponibile():
+        return jsonify({"error": t("err_docx_assente", lingua)}), 501
+
+    dati = request.get_json(silent=True) or {}
+    markdown = dati.get("markdown") or ""
+    if not markdown.strip():
+        return jsonify({"error": t("err_niente_da_esportare", lingua)}), 400
+
+    # Il nome arriva dal client: qui diventa solo il nome del file scaricato,
+    # e `send_file` lo mette in un'intestazione HTTP. Si tiene il gambo e si
+    # scarta tutto il resto, percorsi compresi.
+    nome = Path(str(dati.get("filename") or "documento")).stem or "documento"
+    nome = re.sub(r"[^\w \-.]", "", nome)[:80].strip() or "documento"
+
+    try:
+        contenuto = markdown_to_docx(markdown, lingua=lingua)
+    except Exception:
+        current_app.logger.exception("export docx")
+        return jsonify({"error": t("err_docx_fallito", lingua)}), 500
+
+    return send_file(
+        io.BytesIO(contenuto),
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        as_attachment=True,
+        download_name=f"{nome}.docx",
+    )
 
 
 @bp.route("/api/jobs/<job_id>", methods=["GET"])
