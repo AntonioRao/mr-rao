@@ -8,7 +8,7 @@
 [![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20150%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.7.2-3b82f6)](docs/CHANGELOG.md)
+[![Versione](https://img.shields.io/badge/versione-1.8.0-3b82f6)](docs/CHANGELOG.md)
 [![Test](https://img.shields.io/badge/test-693%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
@@ -22,7 +22,7 @@
 
 ![Mr. Rao — interfaccia](docs/img/schermata.png)
 
-> *Note for international visitors: the interface is in Italian, but the engine is not — alongside the Italian formats it recognises NHS and National Insurance numbers, SSN, ITIN, ABA routing numbers, Canadian SIN, Australian ABN and TFN, UK postcodes and passport MRZ lines. The code is documented in English.*
+> **Interfaccia e documento in italiano o in inglese**, scelti dal browser e cambiabili con un clic. Oltre ai formati italiani il motore riconosce quelli britannici, statunitensi, canadesi e australiani: NHS number, National Insurance number, SSN, ITIN, routing bancario ABA, SIN, ABN, TFN, codice postale britannico e la zona a lettura automatica dei passaporti.
 
 ---
 
@@ -98,7 +98,7 @@ Non è un'impressione, è misurato:
 
 Non esiste un valore giusto per entrambi, quindi Mr. Rao **lo deduce dal file** — le email sono prosa, i fogli di calcolo sono moduli, e nei PDF conta le caselle disegnate — e ti lascia cambiarlo quando sbaglia.
 
-L'euristica più aggressiva, «due parole maiuscole che non sono parole italiane», è **spenta di default** dalla 1.7.2. Il motivo è un numero: su venti moduli dell'Agenzia delle Entrate in bianco produceva 8 904 sostituzioni sbagliate, e su otto Gazzette Ufficiali storiche 14 376. Resta accendibile per lettere e contratti, dove le denominazioni sono poche.
+L'euristica più aggressiva, «due parole maiuscole che non sono parole italiane», è **spenta di default** dalla 1.8.0. Il motivo è un numero: su venti moduli dell'Agenzia delle Entrate in bianco produceva 8 904 sostituzioni sbagliate, e su otto Gazzette Ufficiali storiche 14 376. Resta accendibile per lettere e contratti, dove le denominazioni sono poche.
 
 ### Il controllo che conta di più
 
