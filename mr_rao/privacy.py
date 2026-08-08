@@ -506,10 +506,42 @@ def _context_before(text: str, start: int, window: int = 24) -> str:
     return text[max(0, start - window) : start]
 
 
+# Lunghezza dell'IBAN per Paese, dal registro ISO 13616 tenuto da SWIFT.
+# Non e' un dettaglio di comodo: e' cio' che rende il mod-97 una prova
+# invece di un filtro.
+#
+# Il mod-97 da solo scarta 96 candidati su 97. Sembra molto, e su un
+# documento con dieci codici lo e'. Su un volume statistico o una Gazzetta
+# pieni di codici lunghi, uno su 97 passa lo stesso -- e infatti sul banco
+# comparivano IBAN su documenti che non ne contengono nessuno, «recuperati»
+# dall'OCR. Il checksum protegge dai candidati sbagliati, non da uno spazio
+# di candidati troppo largo.
+#
+# Codice Paese piu' lunghezza esatta tolgono quasi tutto quello spazio, e
+# non costano richiamo: un IBAN vero ha sempre un codice Paese vero e la
+# lunghezza del proprio Paese.
+_IBAN_LUNGHEZZE = {
+    "AD": 24, "AE": 23, "AL": 28, "AT": 20, "AZ": 28, "BA": 20, "BE": 16,
+    "BG": 22, "BH": 22, "BR": 29, "BY": 28, "CH": 21, "CR": 22, "CY": 28,
+    "CZ": 24, "DE": 22, "DK": 18, "DO": 28, "EE": 20, "EG": 29, "ES": 24,
+    "FI": 18, "FO": 18, "FR": 27, "GB": 22, "GE": 22, "GI": 23, "GL": 18,
+    "GR": 27, "GT": 28, "HR": 21, "HU": 28, "IE": 22, "IL": 23, "IQ": 23,
+    "IS": 26, "IT": 27, "JO": 30, "KW": 30, "KZ": 20, "LB": 28, "LC": 32,
+    "LI": 21, "LT": 20, "LU": 20, "LV": 21, "LY": 25, "MC": 27, "MD": 24,
+    "ME": 22, "MK": 19, "MR": 27, "MT": 31, "MU": 30, "NL": 18, "NO": 15,
+    "PK": 24, "PL": 28, "PS": 29, "PT": 25, "QA": 29, "RO": 24, "RS": 22,
+    "SA": 24, "SC": 31, "SD": 18, "SE": 24, "SI": 19, "SK": 24, "SM": 27,
+    "ST": 25, "SV": 28, "TL": 23, "TN": 24, "TR": 26, "UA": 29, "VA": 22,
+    "VG": 24, "XK": 20,
+}
+
+
 def iban_checksum_ok(candidate: str) -> bool:
-    """ISO 13616 mod-97 check. Rejects random uppercase tokens."""
+    """ISO 13616: codice Paese, lunghezza attesa per quel Paese, mod-97."""
     s = candidate.replace(" ", "").upper()
     if len(s) < 15 or len(s) > 34:
+        return False
+    if _IBAN_LUNGHEZZE.get(s[:2]) != len(s):
         return False
     rearranged = s[4:] + s[:4]
     digits = ""
