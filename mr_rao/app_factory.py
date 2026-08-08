@@ -4,7 +4,8 @@ from __future__ import annotations
 from flask import Flask, jsonify, request
 
 import config
-from mr_rao.routes import bp
+from mr_rao.i18n import t
+from mr_rao.routes import bp, lingua_richiesta
 
 
 def _wants_json() -> bool:
@@ -53,15 +54,12 @@ def _register_guards(app: Flask) -> None:
         allowed = app.config["ALLOWED_HOSTS"]
         host = _hostname(request.host or "")
         if "*" not in allowed and host not in allowed:
+            # `lingua_richiesta()` non guarda `request.form`: qui siamo in un
+            # before_request, e far analizzare a Flask il corpo di una
+            # richiesta che stiamo per rifiutare sarebbe lavoro regalato a
+            # chi la manda.
             return (
-                jsonify(
-                    {
-                        "error": (
-                            f"Host '{host}' non consentito. Usa http://127.0.0.1 "
-                            "oppure imposta MR_RAO_ALLOWED_HOSTS."
-                        )
-                    }
-                ),
+                jsonify({"error": t("err_host", lingua_richiesta(), host=host)}),
                 403,
             )
 
@@ -74,13 +72,13 @@ def _register_guards(app: Flask) -> None:
         # header i browser attuali lo mandano su ogni richiesta.
         site = (request.headers.get("Sec-Fetch-Site") or "").strip().lower()
         if site in SITE_RIFIUTATI:
-            return jsonify({"error": "Richiesta cross-site rifiutata"}), 403
+            return jsonify({"error": t("err_cross_site", lingua_richiesta())}), 403
 
         # Chi non manda Sec-Fetch-Site (curl, la CLI, un browser vecchio)
         # ricade qui: è il controllo che c'era prima, non sostituito.
         origin = request.headers.get("Origin")
         if origin and _hostname(origin) != host:
-            return jsonify({"error": "Richiesta cross-site rifiutata"}), 403
+            return jsonify({"error": t("err_cross_site", lingua_richiesta())}), 403
         return None
 
     @app.after_request
@@ -112,9 +110,8 @@ def _register_error_handlers(app: Flask) -> None:
         return (
             jsonify(
                 {
-                    "error": (
-                        f"Richiesta troppo grande. Limite {max_mb} MB "
-                        "per l'intero invio (non per singolo file)."
+                    "error": t(
+                        "err_richiesta_troppo_grande", lingua_richiesta(), max=max_mb
                     ),
                     "max_mb": max_mb,
                 }
@@ -125,13 +122,13 @@ def _register_error_handlers(app: Flask) -> None:
     @app.errorhandler(404)
     def _not_found(e):
         if _wants_json():
-            return jsonify({"error": "Endpoint non trovato"}), 404
+            return jsonify({"error": t("err_endpoint", lingua_richiesta())}), 404
         return e
 
     @app.errorhandler(405)
     def _not_allowed(e):
         if _wants_json():
-            return jsonify({"error": "Metodo non consentito"}), 405
+            return jsonify({"error": t("err_metodo", lingua_richiesta())}), 405
         return e
 
     @app.errorhandler(Exception)
@@ -142,7 +139,7 @@ def _register_error_handlers(app: Flask) -> None:
             return e
         app.logger.exception("Errore non gestito")
         if _wants_json():
-            return jsonify({"error": "Errore interno del server"}), 500
+            return jsonify({"error": t("err_server_interno", lingua_richiesta())}), 500
         raise e
 
 

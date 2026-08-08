@@ -10,6 +10,7 @@ from typing import Any
 
 from config import ALLOWED_EXTENSIONS
 from mr_rao.converter import ConvertOptions, convert_file
+from mr_rao.i18n import t
 
 
 @dataclass
@@ -22,7 +23,10 @@ class WatchState:
     processed: int = 0
     last_file: str = ""
     last_error: str = ""
-    message: str = "non attivo"
+    # Anche questi messaggi finiscono sotto gli occhi di chi guarda la
+    # pagina, e il thread che li scrive non ha nessuna richiesta intorno:
+    # la lingua gliela porta ConvertOptions, come al testo dei documenti.
+    message: str = field(default_factory=lambda: t("watch_msg_non_attivo"))
     options: ConvertOptions = field(default_factory=ConvertOptions)
     _thread: threading.Thread | None = field(default=None, repr=False)
     _stop: threading.Event = field(default_factory=threading.Event, repr=False)
@@ -151,14 +155,18 @@ def start_watch(
         _state.processed = 0
         _state.last_file = ""
         _state.last_error = ""
-        _state.message = "in attesa di file"
+        _state.message = t("watch_msg_in_attesa", _state.options.lingua)
         _state._seen.clear()
         _state._in_arrivo.clear()
         _state._stop.clear()
         _state.running = True
-        t = threading.Thread(target=_loop, daemon=True, name="mr-rao-watch")
-        _state._thread = t
-        t.start()
+        # `thread`, non `t`: `t` e' la funzione delle traduzioni, e una
+        # variabile locale con lo stesso nome la renderebbe irraggiungibile
+        # *in tutta la funzione* -- anche nelle righe qui sopra, che vengono
+        # prima dell'assegnamento.
+        thread = threading.Thread(target=_loop, daemon=True, name="mr-rao-watch")
+        _state._thread = thread
+        thread.start()
     return get_watch_state()
 
 
@@ -166,10 +174,10 @@ def stop_watch() -> dict[str, Any]:
     with _state._lock:
         _state._stop.set()
         _state.running = False
-        _state.message = "non attivo"
-        t = _state._thread
-    if t and t.is_alive():
-        t.join(timeout=3.0)
+        _state.message = t("watch_msg_non_attivo", _state.options.lingua)
+        thread = _state._thread
+    if thread and thread.is_alive():
+        thread.join(timeout=3.0)
     with _state._lock:
         _state._thread = None
     return get_watch_state()
@@ -185,8 +193,8 @@ def _loop() -> None:
                 move_done = _state.move_done
             if not inbox.is_dir():
                 with _state._lock:
-                    _state.last_error = "La cartella da monitorare non esiste piu'"
-                    _state.message = "cartella da monitorare non valida"
+                    _state.last_error = t("watch_err_cartella_sparita", opts.lingua)
+                    _state.message = t("watch_msg_cartella_non_valida", opts.lingua)
             else:
                 candidati: set[str] = set()
                 for path in sorted(inbox.iterdir()):
@@ -229,7 +237,7 @@ def _loop() -> None:
                     if precedente != impronta:
                         continue
                     with _state._lock:
-                        _state.message = f"sto convertendo {path.name}"
+                        _state.message = t("watch_msg_convertendo", opts.lingua, nome=path.name)
                         _state.last_file = path.name
                     r = convert_file(path, options=opts)
                     with _state._lock:
@@ -237,13 +245,13 @@ def _loop() -> None:
                     if r.error:
                         with _state._lock:
                             _state.last_error = r.error
-                            _state.message = f"Errore: {path.name}"
+                            _state.message = t("watch_msg_errore_file", opts.lingua, nome=path.name)
                         continue
                     dest = output_path_for(outbox, path)
                     write_atomic(dest, r.markdown)
                     with _state._lock:
                         _state.processed += 1
-                        _state.message = f"fatto: {path.name}"
+                        _state.message = t("watch_msg_fatto", opts.lingua, nome=path.name)
                         _state.last_error = ""
                     if move_done:
                         done = inbox / "done"
@@ -252,7 +260,7 @@ def _loop() -> None:
                             path.rename(done / path.name)
                         except OSError as e:
                             with _state._lock:
-                                _state.last_error = f"Non riesco a spostare l'originale: {e}"
+                                _state.last_error = t("watch_err_spostamento", opts.lingua, motivo=e)
                 # Le impronte dei file che non ci sono piu' non servono a
                 # nessuno: qui la memoria resta grande quanto la cartella.
                 with _state._lock:
@@ -261,7 +269,7 @@ def _loop() -> None:
         except Exception as e:
             with _state._lock:
                 _state.last_error = str(e)
-                _state.message = "errore durante il monitoraggio"
+                _state.message = t("watch_msg_errore", _state.options.lingua)
         # sleep in chunks for responsive stop
         for _ in range(int(_state.interval * 10)):
             if _state._stop.is_set():
@@ -269,4 +277,4 @@ def _loop() -> None:
             time.sleep(0.1)
     with _state._lock:
         _state.running = False
-        _state.message = "non attivo"
+        _state.message = t("watch_msg_non_attivo", _state.options.lingua)
