@@ -1630,3 +1630,14 @@ input[data-tip] { cursor: pointer; }
   #tip { transition: none; }
   .modal-backdrop, .modal { transition: none; }
 }
+
+/* Selettore di lingua: due sigle, non una bandiera. Le bandiere dicono il
+   Paese, non la lingua, e per l'inglese non ce n'e' una giusta. */
+.hero__lang { display: flex; gap: .5rem; justify-content: center; margin-top: .5rem; }
+.hero__lang a {
+  font-size: .75rem; font-weight: 600; letter-spacing: .05em;
+  padding: .15rem .5rem; border-radius: .35rem; text-decoration: none;
+  color: inherit; opacity: .45; transition: opacity .15s;
+}
+.hero__lang a:hover { opacity: .8; }
+.hero__lang a[aria-current] { opacity: 1; background: rgba(255,255,255,.1); }
