@@ -294,3 +294,51 @@ def test_la_casella_nella_pagina_non_e_spuntata():
     ).read_text(encoding="utf-8")
     riga = next(r for r in pagina.splitlines() if 'id="privacy-name_guess"' in r)
     assert "checked" not in riga, riga.strip()
+
+
+# ---------------------------------------------------------------------------
+# Prosa o modulo: tre stati, raggiungibili da fuori
+# ---------------------------------------------------------------------------
+
+
+def test_il_tipo_di_documento_ha_tre_stati():
+    """«Non lo so» e' una risposta diversa da «e' un modulo», anche se oggi
+    portano allo stesso comportamento. Il giorno in cui la stima automatica
+    migliorasse, un booleano avrebbe gia' buttato via l'informazione che
+    serve per accorgersene."""
+    from mr_rao.privacy import options_from_dict, options_from_form, prosa_da
+
+    assert prosa_da("") is None and prosa_da(None) is None
+    assert prosa_da("prosa") is True
+    assert prosa_da("modulo") is False
+    assert options_from_form({}).prosa is None
+    assert options_from_form({"privacy_stile": "prosa"}).prosa is True
+    assert options_from_dict({"privacy_stile": "modulo"}).prosa is False
+
+
+def test_il_tipo_di_documento_e_scegliibile_dalla_pagina():
+    """Parita' GUI. La stima automatica sbaglia -- su un verbale impaginato
+    come una lettera, su un PDF misto -- e chi ha il documento davanti sa
+    cos'e' meglio di qualunque euristica."""
+    pagina = (
+        Path(__file__).resolve().parents[1] / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    assert 'id="privacy-stile"' in pagina
+    for valore in ('value=""', 'value="prosa"', 'value="modulo"'):
+        assert valore in pagina, f"manca l'opzione {valore}"
+    js = (
+        Path(__file__).resolve().parents[1] / "static" / "js" / "app.js"
+    ).read_text(encoding="utf-8")
+    assert "privacy_stile" in js, "app.js non spedisce il tipo di documento"
+
+
+def test_il_convertitore_deduce_il_tipo_dal_file():
+    """Le estensioni che non hanno bisogno di stima non la fanno."""
+    from mr_rao.converter import _e_prosa
+
+    assert _e_prosa(Path("x.eml"), ".eml", "markitdown") is True
+    assert _e_prosa(Path("x.txt"), ".txt", "markitdown") is True
+    assert _e_prosa(Path("x.xlsx"), ".xlsx", "markitdown") is False
+    # Su una scansione i vettori non ci sono: contarli darebbe zero, e zero
+    # verrebbe letto come «prosa» -- giusto per il motivo sbagliato.
+    assert _e_prosa(Path("x.pdf"), ".pdf", "rapidocr_pdf_fallback") is None

@@ -1849,6 +1849,22 @@ def _pacchetti_da(flag) -> tuple[str, ...]:
     return (CORE, *scelti)
 
 
+def prosa_da(valore) -> bool | None:
+    """«prosa», «modulo» o vuoto -> True, False, None.
+
+    Tre stati e non due: «non lo so» e' una risposta diversa da «e' un
+    modulo», anche se oggi portano allo stesso comportamento. Il giorno in
+    cui la stima automatica migliorasse, un booleano avrebbe gia' buttato
+    via l'informazione che serve per accorgersene.
+    """
+    v = (str(valore) if valore is not None else "").strip().lower()
+    if v in ("prosa", "prose", "lettera", "true", "1"):
+        return True
+    if v in ("modulo", "form", "false", "0"):
+        return False
+    return None
+
+
 FIELD_DEFAULTS: dict[str, bool] = {
     "emails": True,
     "phones": True,
@@ -1910,6 +1926,7 @@ def options_from_form(form) -> PrivacyOptions:
 
     return PrivacyOptions(
         pacchetti=_pacchetti_da(flag),
+        prosa=prosa_da(form.get("privacy_stile") if hasattr(form, "get") else None),
         **{k: flag("privacy_" + k, d) for k, d in FIELD_DEFAULTS.items()},
     )
 
@@ -1920,5 +1937,6 @@ def options_from_dict(data: dict | None) -> PrivacyOptions:
         return no_redaction()
     return PrivacyOptions(
         pacchetti=_pacchetti_da(lambda k, d: bool(data.get(k, d))),
+        prosa=prosa_da(data.get("privacy_stile")),
         **{k: bool(data.get("privacy_" + k, d)) for k, d in FIELD_DEFAULTS.items()},
     )

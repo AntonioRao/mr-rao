@@ -85,6 +85,7 @@
     packPanel: $("pack-panel"),
     packIt: $("privacy-pack_it"),
     packEn: $("privacy-pack_en"),
+    stile: $("privacy-stile"),
     includeTables: $("include-tables"),
     includeFrontmatter: $("include-frontmatter"),
     cleanOutput: $("clean-output"),
@@ -356,6 +357,8 @@
     // mescolarle vorrebbe dire che spegnere i telefoni spegne anche l'IBAN.
     if (els.packIt) fd.append("privacy_pack_it", els.packIt.checked);
     if (els.packEn) fd.append("privacy_pack_en", els.packEn.checked);
+    // Tri-stato: vuoto = automatico, e «non lo so» non e’ «e’ un modulo».
+    if (els.stile) fd.append("privacy_stile", els.stile.value);
     fd.append("include_tables", els.includeTables.checked);
     fd.append("include_frontmatter", els.includeFrontmatter.checked);
     fd.append("clean_output", els.cleanOutput.checked);

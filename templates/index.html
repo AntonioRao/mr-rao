@@ -159,6 +159,14 @@
                             <span class="opt-text"><span class="opt-title">Formati anglosassoni</span><span class="opt-desc">SSN, NINO, NHS, passaporti, vie inglesi</span></span>
                         </label>
                     </div>
+                    <label class="field" data-tip="Su una lettera, due parole maiuscole di cui una risulta negli elenchi sono quasi sempre una persona. Su un modulo sono quasi sempre l'etichetta di un campo — «Imposta Lorda», «Quadro RN».&lt;br&gt;&lt;br&gt;Misurato: pretendere due riscontri toglie 2739 sostituzioni sbagliate sui moduli e costa 609 nomi sulle lettere. Non esiste un valore giusto per entrambi, quindi si sceglie.&lt;br&gt;&lt;br&gt;&lt;b&gt;Automatico&lt;/b&gt; lo deduce dal file: le email sono prosa, i fogli di calcolo sono moduli, e nei PDF si contano le caselle disegnate. Sulle scansioni non si puo' dedurre e vince la prudenza. Cambialo se il documento ti sembra classificato male.">
+                        Tipo di documento
+                        <select id="privacy-stile" aria-label="Tipo di documento">
+                            <option value="">Automatico (consigliato)</option>
+                            <option value="prosa">Lettera, email, contratto</option>
+                            <option value="modulo">Modulo, verbale, prospetto</option>
+                        </select>
+                    </label>
                     <div class="eyebrow">Quali dati nascondere</div>
                     <div class="opt-grid" id="privacy-panel" style="display:none">
                         <label class="opt" data-tip="Ogni indirizzo email diventa {{ '{{EMAIL}}' }}.">
