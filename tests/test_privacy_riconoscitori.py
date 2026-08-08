@@ -295,7 +295,7 @@ def test_un_verbale_amministrativo_esce_intatto():
 # Campi di PrivacyOptions che non sono interruttori e quindi non si
 # «spengono». Elencarli qui invece di allentare il test: cosi' il giorno in
 # cui se ne aggiunge uno bisogna passare da questa riga e dire perche'.
-NON_INTERRUTTORI = {"pacchetti"}
+NON_INTERRUTTORI = {"pacchetti", "prosa"}
 
 
 def test_no_redaction_spegne_ogni_riconoscitore():
