@@ -226,3 +226,157 @@ def test_col_pacchetto_italiano_insieme_i_nomi_tornano():
     )
     assert rep.counts.get("names")
     assert "Okonkwo" not in out
+
+
+# ---------------------------------------------------------------------------
+# Indirizzi: il civico e' il discriminante
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "indirizzo",
+    [
+        "47 Baker Street, Flat 2B, London NW1 6XE",
+        "118 Church Road, Reading RG1 8QW",
+        "1600 Pennsylvania Avenue NW, Washington DC 20500",
+        "22 Green Lane",
+        "9A Sterling Way, Bolton",
+    ],
+)
+def test_un_indirizzo_col_civico_sparisce(indirizzo):
+    out, rep = apply_privacy_filter(f"Resident at {indirizzo}.", SOLO_EN)
+    assert rep.counts.get("addresses"), out
+    assert "{{ADDRESS}}" in out
+
+
+@pytest.mark.parametrize(
+    "frase",
+    [
+        "the loading bay on Church Road",
+        "Green Lane Logistics handles the collection",
+        "the Sterling Way depot in Reading",
+        "The Young Street office was released",
+        "The Wood Hill facility is dormant",
+    ],
+)
+def test_un_nome_di_via_senza_civico_non_e_un_indirizzo(frase):
+    """La differenza fra italiano e inglese in una riga.
+
+    In italiano l'indirizzo **comincia** con la parola -- via, piazza,
+    corso -- e riconoscerla basta. In inglese **finisce** con essa, e
+    quelle stesse parole formano i nomi delle cose: depositi, uffici,
+    ragioni sociali. Il civico davanti e' l'unica differenza strutturale
+    affidabile. Tutte queste frasi vengono dal corpus amministrativo.
+    """
+    out, rep = apply_privacy_filter(frase, SOLO_EN)
+    assert out == frase
+    assert not rep.counts.get("addresses")
+
+
+def test_il_codice_postale_da_solo_non_si_tocca():
+    """Un codice postale britannico ha la forma di un codice articolo."""
+    out, _ = apply_privacy_filter("Batch SW1A 1AA was rejected.", SOLO_EN)
+    assert "SW1A 1AA" in out
+
+
+def test_il_codice_postale_col_contesto_sparisce():
+    out, rep = apply_privacy_filter("Postcode: SW1A 1AA", SOLO_EN)
+    assert rep.counts.get("addresses")
+    assert "{{POSTCODE}}" in out
+
+
+# ---------------------------------------------------------------------------
+# Australia
+# ---------------------------------------------------------------------------
+
+
+def test_abn_col_contesto():
+    out, rep = apply_privacy_filter("ABN 51 824 753 556", SOLO_EN)
+    assert rep.counts.get("abn") == 1
+    assert "{{ABN}}" in out
+
+
+def test_abn_senza_contesto_resta():
+    """Undici cifre sono anche un totale, un codice articolo, un
+    riferimento. Il mod-89 riduce il rumore, non lo azzera."""
+    out, _ = apply_privacy_filter("Line total 51 824 753 556", SOLO_EN)
+    assert "51 824 753 556" in out
+
+
+def test_tfn_col_contesto():
+    out, rep = apply_privacy_filter("TFN 123 456 782", SOLO_EN)
+    assert rep.counts.get("tfn") == 1
+    assert "{{TFN}}" in out
+
+
+# ---------------------------------------------------------------------------
+# La zona a lettura automatica del passaporto
+# ---------------------------------------------------------------------------
+
+# Lo specimen di ICAO 9303: due righe TD3 da 44 caratteri.
+MRZ_RIGA1 = "P<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<"
+MRZ_RIGA2 = "L898902C36UTO7408122F1204159ZE184226B<<<<<10"
+MRZ = f"{MRZ_RIGA1}\n{MRZ_RIGA2}"
+
+
+def test_il_blocco_mrz_sparisce_intero():
+    """Comprese la prima riga, che porta cognome e nome e **non** finisce
+    con una cifra di controllo. Cercando riga per riga sarebbe rimasta nel
+    documento: il difetto peggiore possibile, sulla riga che conta di piu'.
+    """
+    out, rep = apply_privacy_filter(f"Documento:\n{MRZ}\nFine.", SOLO_EN)
+    assert rep.counts.get("mrz") == 1
+    assert "ERIKSSON" not in out
+    assert "L898902C36UTO" not in out
+    assert "{{MRZ}}" in out
+
+
+def _storpia(riga: str, *posizioni: int) -> str:
+    """Cambia le cifre di controllo indicate, lasciando il resto intatto."""
+    caratteri = list(riga)
+    for p in posizioni:
+        caratteri[p] = "7" if caratteri[p] != "7" else "8"
+    return "".join(caratteri)
+
+
+def test_un_campo_storpiato_non_basta_a_far_sopravvivere_un_mrz():
+    """Prudenza, di proposito.
+
+    Se il numero del documento non torna ma la data di nascita si', quel
+    blocco resta chiaramente la zona a lettura automatica di un documento,
+    e dentro ci sono nome e cittadinanza. Redigerlo e' la scelta giusta:
+    l'errore, su un dato personale, va fatto nella direzione prudente.
+    """
+    riga2 = _storpia(MRZ_RIGA2, 9)  # solo la cifra del numero documento
+    out, rep = apply_privacy_filter(f"Documento:\n{MRZ_RIGA1}\n{riga2}\nFine.", SOLO_EN)
+    assert rep.counts.get("mrz") == 1
+    assert "ERIKSSON" not in out
+
+
+def test_un_mrz_illeggibile_diventa_un_sospetto():
+    """Quando **nessuna** delle tre cifre di controllo torna, non si puo'
+    piu' dire che sia un documento -- ma nemmeno tacere: quella forma la
+    produce un OCR che ha sbagliato a leggere un passaporto vero, e li'
+    dentro c'e' tutto.
+
+    Le tre cifre sono quelle dei campi che le portano accanto: numero del
+    documento (posizione 10), nascita (20), scadenza (28). Non si usa la
+    cifra composita di fine riga, che si calcola su pezzi non contigui:
+    darle in pasto la riga intera la fa fallire sempre, e un controllo che
+    dice sempre di no non distingue niente.
+    """
+    riga2 = _storpia(MRZ_RIGA2, 9, 19, 27)
+    storpiato = f"{MRZ_RIGA1}\n{riga2}"
+    out, rep = apply_privacy_filter(f"Documento:\n{storpiato}\nFine.", SOLO_EN)
+    assert not rep.counts.get("mrz")
+    assert [s for s in rep.suspects if s["kind"] == "mrz"]
+    assert "ERIKSSON" in out  # non sostituito: era il punto
+
+
+def test_una_riga_di_sole_maiuscole_non_e_un_mrz():
+    """Senza il doppio riempitivo non e' una zona a lettura automatica: e'
+    un titolo, un codice, una riga di tabella."""
+    testo = "Documento:\nRIEPILOGO0123456789ABCDEFGHILMNOPQRS\nFine."
+    out, rep = apply_privacy_filter(testo, SOLO_EN)
+    assert out == testo
+    assert not rep.suspects

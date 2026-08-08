@@ -20,11 +20,14 @@ from typing import Callable
 
 from mr_rao.en_formats import (
     aba_routing_ok,
+    abn_ok,
     itin_ok,
+    mrz_check_digit_ok,
     nhs_number_ok,
     nino_ok,
     sin_ok,
     ssn_ok,
+    tfn_ok,
 )
 from mr_rao.it_names import COMMON_CAPITALIZED, FIRST_NAMES, SURNAMES
 
@@ -1283,6 +1286,162 @@ def _scrub_en_nove_cifre(
 
 
 # ---------------------------------------------------------------------------
+# Indirizzi inglesi, e il codice postale che ci sta dentro
+# ---------------------------------------------------------------------------
+#
+# Il discriminante e' **il numero civico**, e non e' un dettaglio.
+#
+# In italiano l'indirizzo comincia con la parola: «via», «piazza», «corso».
+# In inglese finisce con essa -- Street, Road, Lane, Way -- e quelle parole
+# formano anche i nomi delle cose: «the loading bay on Church Road», «the
+# Sterling Way depot», «Green Lane Logistics», «the Young Street office».
+# Sono tutte nel corpus amministrativo, e un riconoscitore che si fermasse
+# al tipo di via le redigerebbe tutte e quattro.
+#
+# Un indirizzo vero porta il civico davanti. E' l'unica differenza
+# strutturale affidabile fra «47 Baker Street» e «Baker Street».
+
+_EN_TIPI_VIA = (
+    r"street|st|road|rd|avenue|ave|lane|ln|close|drive|way|court|ct|place|pl|"
+    r"square|sq|terrace|gardens|gdns|crescent|cres|row|walk|mews|boulevard|"
+    r"blvd|highway|hwy|parkway|pkwy|circle|cir|trail"
+)
+
+# Il codice postale britannico, nella forma che compare nella posta
+# ordinaria. La regex ufficiale del governo ha anche i rami dei territori
+# d'oltremare, che accettano cose come "AB 12": in un documento
+# amministrativo quella forma capita per caso.
+_UK_POSTCODE = r"[A-Z]{1,2}\d[A-Z\d]?[ ]?\d[A-Z]{2}"
+_US_ZIP = r"\d{5}(?:-\d{4})?"
+
+_RE_EN_ADDRESS = re.compile(
+    r"(?<![\w/-])"
+    r"\d{1,5}[A-Za-z]?"                                   # il civico
+    rf"{_SP}(?:{_TOK}{_SP}){{0,3}}(?i:{_EN_TIPI_VIA})\b"   # ... Baker Street
+    rf"(?:{_SP}(?i:NE|NW|SE|SW|N|S|E|W)\b)?"              # ... Avenue NW
+    rf"(?:,[ \t]*[^,\n]{{1,40}}){{0,3}}"                  # interno, citta'
+    rf"(?:[ \t]+(?:{_UK_POSTCODE}|{_US_ZIP}))?"           # e il codice postale
+)
+
+# Un codice postale rimasto fuori da un indirizzo completo. Da solo non si
+# tocca: la forma britannica somiglia a un codice articolo. Serve una
+# parola che dica che li' c'e' un recapito.
+_RE_EN_POSTCODE = re.compile(rf"(?<![\w-])({_UK_POSTCODE})(?![\w-])")
+_CTX_INDIRIZZO = (
+    "postcode", "post code", "zip", "address", "residing", "resident",
+    "delivery", "registered office", "correspondence",
+)
+
+
+def _scrub_en_addresses(
+    text: str, report: RedactionReport, opts: PrivacyOptions
+) -> str:
+    def _sub(m: re.Match) -> str:
+        report.add("addresses")
+        return "{{ADDRESS}}"
+
+    out = _RE_EN_ADDRESS.sub(_sub, text)
+
+    def _sub_cap(m: re.Match) -> str:
+        if not _con_contesto(m, _CTX_INDIRIZZO):
+            return m.group(0)
+        report.add("addresses")
+        return "{{POSTCODE}}"
+
+    return _RE_EN_POSTCODE.sub(_sub_cap, out)
+
+
+# ---------------------------------------------------------------------------
+# Australia, e i documenti di viaggio
+# ---------------------------------------------------------------------------
+
+_RE_ABN = re.compile(r"(?<![\w-])(\d{2}[ ]?\d{3}[ ]?\d{3}[ ]?\d{3}|\d{11})(?![\w-])")
+_RE_TFN = re.compile(r"(?<![\w-])(\d{3}[ ]?\d{3}[ ]?\d{2,3})(?![\w-])")
+
+_CTX_ABN = ("abn", "australian business number")
+_CTX_TFN = ("tfn", "tax file number")
+
+# Le righe in fondo a un passaporto: solo maiuscole, cifre e il riempitivo
+# "<". Il doppio riempitivo e' cio' che nessun'altra riga di testo ha, ed e'
+# quello che rende la ricerca sicura.
+#
+# Si cerca il **blocco**, non la singola riga, e la ragione e' che la prima
+# riga -- quella che contiene cognome e nome -- finisce con i riempitivi,
+# non con una cifra di controllo. Cercando riga per riga, quella non
+# avrebbe superato nessun controllo: sarebbe diventata un sospetto, e il
+# nome sarebbe rimasto nel documento. Cioe' il difetto peggiore possibile,
+# proprio sulla riga che conta di piu'.
+_RE_MRZ = re.compile(r"(?m)^(?:[A-Z0-9<]{28,44}\r?\n){1,2}[A-Z0-9<]{28,44}$")
+
+
+def _scrub_en_au(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    """ABN e TFN australiani.
+
+    Entrambi hanno un checksum vero -- mod-89 e mod-11 -- ma entrambi sono
+    solo cifre: senza la sigla accanto si redigerebbero i totali di una
+    fattura. Il checksum riduce il rumore, il contesto lo azzera.
+    """
+    def _sub_abn(m: re.Match) -> str:
+        if not _con_contesto(m, _CTX_ABN) or not abn_ok(m.group(1)):
+            return m.group(0)
+        report.add("abn")
+        return "{{ABN}}"
+
+    def _sub_tfn(m: re.Match) -> str:
+        if not _con_contesto(m, _CTX_TFN) or not tfn_ok(m.group(1)):
+            return m.group(0)
+        report.add("tfn")
+        return "{{TFN}}"
+
+    out = _RE_ABN.sub(_sub_abn, text)
+    return _RE_TFN.sub(_sub_tfn, out)
+
+
+def _scrub_mrz(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    """La zona a lettura automatica di un passaporto o di una carta.
+
+    Non si cerca il numero del documento: da solo non ha nulla che lo
+    distingua da un codice qualsiasi. Si cerca la **riga** -- solo
+    maiuscole, cifre e riempitivi, con almeno un doppio "<" -- e poi la
+    cifra di controllo ICAO conferma che non e' una stringa qualunque.
+
+    Vale la pena perche' una riga MRZ contiene cognome, nome,
+    cittadinanza, data di nascita, sesso e scadenza tutti insieme: e' il
+    pezzo di testo piu' denso di dati personali che possa capitare in un
+    documento scansionato.
+    """
+    def _sub(m: re.Match) -> str:
+        blocco = m.group(0)
+        if "<<" not in blocco:
+            return blocco
+        # I campi che portano la propria cifra di controllo subito accanto:
+        # numero del documento (posizioni 1-10), data di nascita (14-20),
+        # scadenza (22-28). Non si usa la cifra composita di fine riga
+        # perche' quella si calcola su pezzi **non contigui**, e darle in
+        # pasto la riga intera la fa sempre fallire.
+        campi = ((0, 10), (13, 20), (21, 28))
+        righe = blocco.splitlines()
+        if not any(
+            mrz_check_digit_ok(r[a:b])
+            for r in righe
+            for a, b in campi
+            if len(r) >= b and r[b - 1].isdigit()
+        ):
+            report.suspect(
+                "mrz",
+                blocco.replace("\n", " "),
+                "ha la forma della zona a lettura automatica di un documento "
+                "ma nessuna cifra di controllo torna: possibile lettura OCR "
+                "sbagliata, e li' dentro ci sono nome, nascita e cittadinanza",
+            )
+            return blocco
+        report.add("mrz")
+        return "{{MRZ}}"
+
+    return _RE_MRZ.sub(_sub, text)
+
+
+# ---------------------------------------------------------------------------
 # Nomi inglesi: solo dove il testo dice che e' un nome
 # ---------------------------------------------------------------------------
 #
@@ -1433,6 +1592,10 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("secrets", CORE, "secrets", 10, lambda t, r, o: _scrub_secrets(t, r)),
     Passo("urls", CORE, "urls", 20, lambda t, r, o: _scrub_urls(t, r)),
     Passo("emails", CORE, "emails", 30, _scrub_emails),
+    # La riga MRZ di un passaporto contiene cognome, nome, cittadinanza,
+    # data di nascita e scadenza tutti insieme: va tolta intera, prima che
+    # gli altri riconoscitori la smontino a pezzi e ne lascino meta'.
+    Passo("mrz", EN, "fiscal", 39, _scrub_mrz),
     # I codici: 40-49. L'ordine interno conta -- i riconoscitori esatti
     # prima di quelli tolleranti all'OCR, che girano su cio' che e' rimasto.
     Passo("codice_fiscale", IT, "fiscal", 40, _scrub_cf),
@@ -1450,6 +1613,7 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("nino", EN, "fiscal", 47, _scrub_en_nino),
     Passo("nhs_number", EN, "fiscal", 48, _scrub_en_nhs),
     Passo("routing_sin", EN, "fiscal", 49, _scrub_en_nove_cifre),
+    Passo("abn_tfn", EN, "fiscal", 49, _scrub_en_au),
     Passo("date_nascita", IT, "dates", 50, lambda t, r, o: _scrub_birth_dates(t, r)),
     # Il pattern e' internazionale (prefisso +CC, parola di contesto anche
     # in inglese); restano italiane solo le due scorciatoie senza contesto,
@@ -1459,6 +1623,7 @@ SEQUENZA: tuple[Passo, ...] = (
     # Euro e parole italiane: "importo", "imponibile", "canone".
     Passo("amounts", IT, "amounts", 65, _scrub_amounts),
     Passo("addresses", IT, "addresses", 70, lambda t, r, o: _scrub_addresses(t, r)),
+    Passo("addresses_en", EN, "addresses", 71, _scrub_en_addresses),
     Passo(
         "names", IT, "names", 90,
         lambda t, r, o: _scrub_names(t, r, guess=o.name_guess),
