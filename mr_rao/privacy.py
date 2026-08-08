@@ -401,7 +401,7 @@ class PrivacyOptions:
     # comportamento di sempre: nucleo universale piu' formati italiani.
     # Un documento inglese vorra' ``(CORE,)`` oggi e ``(CORE, EN)`` domani;
     # uno studio italiano che segue un cliente estero li vorra' entrambi.
-    pacchetti: tuple[str, ...] = (CORE, IT)
+    pacchetti: tuple[str, ...] = (CORE, IT, EN)
 
 
 @dataclass
@@ -1670,6 +1670,26 @@ def apply_privacy_filter(
 # I campi booleani esposti da form, JSON e profili, con il loro valore
 # predefinito. Tenerli in un posto solo evita che l'interfaccia e il motore
 # vadano fuori sincrono quando se ne aggiunge uno.
+# I pacchetti nazionali, come interruttori. Il nucleo non c'e': vale
+# ovunque e non si spegne, spegnerlo vorrebbe dire rinunciare a IBAN e
+# carte su qualunque documento.
+#
+# Sono campi separati da FIELD_DEFAULTS perche' rispondono a una domanda
+# diversa: quelli dicono *quali dati* nascondere, questi *di quale Paese*.
+# Un utente puo' volere tutti i riconoscitori accesi su documenti solo
+# italiani, o solo gli indirizzi su documenti di due Paesi.
+PACK_FIELD_DEFAULTS: dict[str, bool] = {
+    IT: True,
+    EN: True,
+}
+
+
+def _pacchetti_da(flag) -> tuple[str, ...]:
+    """Costruisce la tupla dei pacchetti a partire da due booleani."""
+    scelti = [p for p, d in PACK_FIELD_DEFAULTS.items() if flag("privacy_pack_" + p, d)]
+    return (CORE, *scelti)
+
+
 FIELD_DEFAULTS: dict[str, bool] = {
     "emails": True,
     "phones": True,
@@ -1730,7 +1750,8 @@ def options_from_form(form) -> PrivacyOptions:
         return no_redaction()
 
     return PrivacyOptions(
-        **{k: flag("privacy_" + k, d) for k, d in FIELD_DEFAULTS.items()}
+        pacchetti=_pacchetti_da(flag),
+        **{k: flag("privacy_" + k, d) for k, d in FIELD_DEFAULTS.items()},
     )
 
 
@@ -1739,5 +1760,6 @@ def options_from_dict(data: dict | None) -> PrivacyOptions:
     if not data.get("privacy_filter", True):
         return no_redaction()
     return PrivacyOptions(
-        **{k: bool(data.get("privacy_" + k, d)) for k, d in FIELD_DEFAULTS.items()}
+        pacchetti=_pacchetti_da(lambda k, d: bool(data.get(k, d))),
+        **{k: bool(data.get("privacy_" + k, d)) for k, d in FIELD_DEFAULTS.items()},
     )

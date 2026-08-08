@@ -15,12 +15,19 @@ from pathlib import Path
 
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION
 from mr_rao.converter import ConvertOptions, convert_file, merge_markdowns
-from mr_rao.privacy import FIELD_DEFAULTS, PrivacyOptions
+from mr_rao.privacy import CORE, EN, FIELD_DEFAULTS, IT, PrivacyOptions
 from mr_rao.watch_service import output_path_for, write_atomic
 
 
 def _build_options(args: argparse.Namespace) -> ConvertOptions:
     privacy_on = not getattr(args, "no_privacy", False)
+    # Il nucleo c'e' sempre: spegnerlo vorrebbe dire rinunciare a IBAN e
+    # carte, che valgono in ogni Paese.
+    pacchetti = (CORE,) + tuple(
+        p
+        for p, arg in ((IT, "no_pack_it"), (EN, "no_pack_en"))
+        if not getattr(args, arg, False)
+    )
     return ConvertOptions(
         engine=getattr(args, "engine", "auto"),
         language=getattr(args, "language", "it"),
@@ -28,12 +35,13 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
         # aggiunto dopo resterebbe acceso anche con --no-privacy, perche'
         # il suo valore predefinito e' True. I campi si leggono dal motore.
         privacy=PrivacyOptions(
+            pacchetti=pacchetti,
             **{
                 **{k: True for k in FIELD_DEFAULTS},
                 "amounts": getattr(args, "scrub_amounts", False),
                 "dates": getattr(args, "scrub_dates", False),
                 "name_guess": not getattr(args, "no_name_guess", False),
-            }
+            },
         )
         if privacy_on
         else PrivacyOptions(**{k: False for k in FIELD_DEFAULTS}),
@@ -272,6 +280,16 @@ def main(argv: list[str] | None = None) -> int:
         "--no-name-guess",
         action="store_true",
         help="Disattiva l'euristica del cognome (due parole maiuscole)",
+    )
+    p_conv.add_argument(
+        "--no-pack-it",
+        action="store_true",
+        help="Spegni i riconoscitori italiani (codice fiscale, P.IVA, BBAN, vie, nomi)",
+    )
+    p_conv.add_argument(
+        "--no-pack-en",
+        action="store_true",
+        help="Spegni i riconoscitori anglosassoni (SSN, NINO, NHS, passaporti)",
     )
     p_conv.add_argument("--no-tables", action="store_true")
     p_conv.add_argument("--no-frontmatter", action="store_true")

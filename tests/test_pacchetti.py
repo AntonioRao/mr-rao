@@ -15,11 +15,14 @@ scollegato e il golden sarebbe rimasto verde lo stesso.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from mr_rao.privacy import (
     CORE,
     DETECTOR_FIELDS,
+    EN,
     IT,
     PACCHETTI_NOTI,
     SEQUENZA,
@@ -80,9 +83,22 @@ def test_ogni_pacchetto_noto_ha_dei_passi():
 # ---------------------------------------------------------------------------
 
 
-def test_il_valore_predefinito_e_nucleo_piu_italiano():
-    """E' il patto della fase 1: chi non tocca niente ha il motore di ieri."""
-    assert PrivacyOptions().pacchetti == (CORE, IT)
+def test_di_default_sono_accesi_tutti_i_pacchetti():
+    """Il caso d'uso vero e' lo studio italiano col contratto inglese, e
+    quella persona non deve sapere di dover spuntare una casella.
+
+    Si puo' fare perche' e' stato misurato, non perche' sembra comodo:
+    accendendo anche il pacchetto inglese sul corpus italiano il banco
+    golden resta identico **carattere per carattere**. I riconoscitori
+    inglesi pretendono o una punteggiatura precisa (i trattini 3-2-4 del
+    SSN), o una parola di contesto, o un tipo di via inglese: su un
+    documento italiano non trovano niente a cui attaccarsi.
+
+    Se un giorno questo test e il golden divergessero, il golden ha
+    ragione: vorrebbe dire che un riconoscitore inglese ha cominciato a
+    mordere su testo italiano, ed e' un difetto, non una funzione.
+    """
+    assert PrivacyOptions().pacchetti == (CORE, IT, EN)
 
 
 def test_col_solo_nucleo_l_iban_e_la_carta_spariscono_lo_stesso():
@@ -172,3 +188,64 @@ def test_le_priorita_rispettano_i_vincoli_che_contano():
     nomi = [p.priorita for p in SEQUENZA if p.campo == "names"]
     altri = [p.priorita for p in SEQUENZA if p.campo != "names"]
     assert min(nomi) > max(altri)
+
+
+# ---------------------------------------------------------------------------
+# Raggiungibile da fuori, non solo da Python
+# ---------------------------------------------------------------------------
+#
+# Il pacchetto EN e' esistito per un giorno intero come codice morto:
+# validato, testato, e impossibile da accendere per chiunque non scrivesse
+# Python. `pacchetti` non compariva in nessun form, nessun profilo, nessun
+# argomento della riga di comando. Un motore che nessuno puo' azionare non
+# protegge nessuno.
+
+
+def test_il_form_puo_scegliere_i_pacchetti():
+    from mr_rao.privacy import options_from_form
+
+    assert options_from_form({}).pacchetti == (CORE, IT, EN)
+    assert options_from_form({"privacy_pack_en": "false"}).pacchetti == (CORE, IT)
+    assert options_from_form({"privacy_pack_it": "false"}).pacchetti == (CORE, EN)
+    entrambi = options_from_form(
+        {"privacy_pack_it": "false", "privacy_pack_en": "false"}
+    )
+    assert entrambi.pacchetti == (CORE,)
+
+
+def test_il_json_puo_scegliere_i_pacchetti():
+    from mr_rao.privacy import options_from_dict
+
+    assert options_from_dict({}).pacchetti == (CORE, IT, EN)
+    assert options_from_dict({"privacy_pack_en": False}).pacchetti == (CORE, IT)
+
+
+def test_le_caselle_esistono_nella_pagina():
+    """Parita' GUI: se il motore lo sa fare, l'interfaccia deve permetterlo.
+
+    Un'opzione raggiungibile solo dalla riga di comando e' un'opzione che
+    la maggior parte delle persone non ha.
+    """
+    pagina = (
+        Path(__file__).resolve().parents[1] / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    for casella in ('id="privacy-pack_it"', 'id="privacy-pack_en"'):
+        assert casella in pagina, f"manca la casella {casella}"
+
+
+def test_il_javascript_manda_i_pacchetti_al_server():
+    """La casella che non viene spedita e' peggio di una casella assente:
+    sembra di aver scelto qualcosa."""
+    js = (
+        Path(__file__).resolve().parents[1] / "static" / "js" / "app.js"
+    ).read_text(encoding="utf-8")
+    for campo in ("privacy_pack_it", "privacy_pack_en"):
+        assert campo in js, f"app.js non spedisce {campo}"
+
+
+def test_la_riga_di_comando_puo_spegnere_un_pacchetto():
+    js = (
+        Path(__file__).resolve().parents[1] / "mr_rao" / "cli.py"
+    ).read_text(encoding="utf-8")
+    for flag in ("--no-pack-it", "--no-pack-en"):
+        assert flag in js, f"la CLI non espone {flag}"

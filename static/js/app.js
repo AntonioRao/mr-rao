@@ -82,6 +82,9 @@
     profileHint: $("profile-hint"),
     privacyMaster: $("privacy-filter"),
     privacyPanel: $("privacy-panel"),
+    packPanel: $("pack-panel"),
+    packIt: $("privacy-pack_it"),
+    packEn: $("privacy-pack_en"),
     includeTables: $("include-tables"),
     includeFrontmatter: $("include-frontmatter"),
     cleanOutput: $("clean-output"),
@@ -127,6 +130,10 @@
     if (!els.privacyPanel) return;
     const on = els.privacyMaster.checked;
     els.privacyPanel.style.display = on ? "grid" : "none";
+    // I pacchetti seguono l'interruttore generale: a filtro spento non c'e'
+    // niente da scegliere, e due caselle accese sopra un filtro spento
+    // sarebbero solo un modo per credersi protetti.
+    if (els.packPanel) els.packPanel.style.display = on ? "grid" : "none";
     const offHint = $("privacy-off-hint");
     if (offHint) offHint.style.display = on ? "none" : "block";
   }
@@ -344,6 +351,11 @@
       const el = $("privacy-" + k);
       if (el) fd.append("privacy_" + k, el.checked);
     });
+    // I pacchetti non stanno in PRIVACY_FIELDS: quelli dicono *quali dati*
+    // nascondere, questi *di quale Paese*. Sono due domande diverse, e
+    // mescolarle vorrebbe dire che spegnere i telefoni spegne anche l'IBAN.
+    if (els.packIt) fd.append("privacy_pack_it", els.packIt.checked);
+    if (els.packEn) fd.append("privacy_pack_en", els.packEn.checked);
     fd.append("include_tables", els.includeTables.checked);
     fd.append("include_frontmatter", els.includeFrontmatter.checked);
     fd.append("clean_output", els.cleanOutput.checked);
