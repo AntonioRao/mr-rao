@@ -21,6 +21,36 @@ _REPLY_PATTERNS = [
 ]
 
 
+# Tutto cio' che non ha senso dentro un documento di testo: i controlli C0
+# (il tab, \x09, resta) e il DEL. Gli a capo si trattano a parte, sotto.
+_CONTROLLI = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def intestazione_su_una_riga(valore) -> str:
+    """Riduce il valore di un'intestazione a una riga sola, pulita.
+
+    Le intestazioni le scrive chi manda la mail, non noi: con la codifica
+    RFC 2047 (`=?utf-8?B?...?=`) dentro un oggetto ci sta qualunque byte, a
+    capo e caratteri di controllo compresi, e Python li restituisce tali e
+    quali. Nel titolo `#` un a capo chiude il titolo e tutto il resto diventa
+    testo del documento: abbastanza per scrivere sopra la tabella una finta
+    riga «| **Da** | ... |» e far leggere un mittente che non esiste.
+    """
+    testo = _CONTROLLI.sub("", str(valore).replace("\r", "\n"))
+    return " ".join(parte.strip() for parte in testo.split("\n") if parte.strip())
+
+
+def cella_tabella(valore) -> str:
+    """Come sopra, ma per una cella: la barra verticale va protetta.
+
+    `| **Da** | Mario | Rossi <m@x.it> |` ha tre celle in una tabella a due
+    colonne. Chi la disegna butta via l'eccedenza, e l'indirizzo del mittente
+    sparisce dal documento: non e' un difetto estetico, e' un dato che manca.
+    Basta un nome visualizzato con dentro un `|`, senza alcuna codifica.
+    """
+    return intestazione_su_una_riga(valore).replace("|", "\\|")
+
+
 def html_to_text(html_content: str) -> str:
     """Convert HTML to readable plain text via BeautifulSoup."""
     try:
@@ -134,7 +164,12 @@ def list_attachments(msg) -> list[tuple[str, int]]:
         for part in msg.walk():
             content_disposition = str(part.get("Content-Disposition", ""))
             if "attachment" in content_disposition:
-                fname = part.get_filename() or "(allegato senza nome)"
+                # Il nome dell'allegato lo dichiara il mittente dentro il
+                # Content-Disposition: puo' contenere un a capo e spezzare
+                # l'elenco in due voci, una delle quali senza nome.
+                fname = intestazione_su_una_riga(part.get_filename() or "") or (
+                    "(allegato senza nome)"
+                )
                 size = len(part.get_payload(decode=True) or b"")
                 attachments.append((fname, size))
     return attachments
@@ -188,11 +223,14 @@ def parse_eml(filepath: str | Path) -> str:
 
     md_lines: list[str] = []
 
-    subject = msg["subject"] or "(nessun oggetto)"
-    from_addr = msg["from"] or "(mittente sconosciuto)"
-    to_addr = msg["to"] or "(destinatario sconosciuto)"
-    cc_addr = msg.get("cc", "")
-    date_str = msg["date"] or "(data sconosciuta)"
+    # Nessuna di queste cinque righe e' testo nostro: le scrive chi manda la
+    # mail. Vanno ripulite *prima* di entrare in un titolo o in una cella,
+    # non dopo -- vedi intestazione_su_una_riga() e cella_tabella().
+    subject = intestazione_su_una_riga(msg["subject"] or "") or "(nessun oggetto)"
+    from_addr = cella_tabella(msg["from"] or "") or "(mittente sconosciuto)"
+    to_addr = cella_tabella(msg["to"] or "") or "(destinatario sconosciuto)"
+    cc_addr = cella_tabella(msg.get("cc", "") or "")
+    date_str = cella_tabella(msg["date"] or "") or "(data sconosciuta)"
 
     md_lines.append(f"# 📧 {subject}\n")
     md_lines.append("| Campo | Valore |")
