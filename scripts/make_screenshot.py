@@ -78,17 +78,25 @@ xhr.open('POST', '/api/convert/sync', false);
 xhr.send(fd);
 const esito = JSON.parse(xhr.responseText);
 
-const frame = document.createElement('iframe');
-frame.src = '/';
-frame.addEventListener('load', () => {
-  const doc = frame.contentDocument;
+// Niente iframe: dalla 1.7.0 l'app manda `frame-ancestors 'none'`, quindi
+// il browser rifiuta di caricarla dentro un riquadro -- anche dalla stessa
+// origine. Lo scatto usciva grigio con l'icona di file rotto, e siccome la
+// schermata era gia' stata fatta prima di quella intestazione, nessuno se
+// n'era accorto per tre versioni.
+//
+// Si scarica la pagina, la si monta qui dentro e la si fotografa: stessa
+// origine, nessun riquadro, e soprattutto **nessuna deroga alla sicurezza
+// del prodotto per comodita' di uno script**.
+fetch('/__LANG__').then(r => r.text()).then(html => {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  {
   doc.getElementById('markdown-output').textContent = esito.markdown;
   doc.getElementById('result-card').style.display = 'flex';
   const badge = doc.getElementById('redaction-badge');
   const totale = (esito.redaction && esito.redaction.total) || 0;
   if (badge && totale) {
     badge.style.display = 'inline-flex';
-    badge.textContent = '\\u{1F6E1}\\uFE0F ' + totale + ' redazioni';
+    badge.textContent = '\\u{1F6E1}\\uFE0F ' + totale + ' __REDAZIONI__';
   }
   const stile = doc.createElement('style');
   stile.textContent = '.info-fab{display:none!important}';
@@ -97,10 +105,11 @@ frame.addEventListener('load', () => {
   if (cronologia) {
     cronologia.innerHTML = '<button type="button" class="history-item">' +
       '<span class="hi-name">fattura-2026-0184.md</span>' +
-      '<span class="hi-meta">adesso \\u00b7 \\u{1F6E1}\\uFE0F' + totale + '</span></button>';
+      '<span class="hi-meta">__ADESSO__ \\u00b7 \\u{1F6E1}\\uFE0F' + totale + '</span></button>';
   }
+  }
+  document.replaceChild(doc.documentElement, document.documentElement);
 });
-document.body.appendChild(frame);
 </script>
 </body>
 </html>
@@ -122,7 +131,8 @@ def server_attivo(url: str) -> bool:
         return False
 
 
-def ritaglia_e_salva(grezzo: Path, larghezza_finale: int = 1500) -> tuple[int, int]:
+def ritaglia_e_salva(grezzo: Path, larghezza_finale: int = 1500,
+                     lingua: str = "it") -> tuple[int, int]:
     from PIL import Image
 
     im = Image.open(grezzo).convert("RGB")
@@ -140,17 +150,28 @@ def ritaglia_e_salva(grezzo: Path, larghezza_finale: int = 1500) -> tuple[int, i
     finale = ritagliata.resize((larghezza_finale, altezza), Image.LANCZOS)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    finale.save(OUT_DIR / "schermata.png", optimize=True)
+    # L'italiano tiene il nome storico: e' linkato dal README e dal sito,
+    # e rinominarlo romperebbe immagini gia' pubblicate.
+    nome = "schermata.png" if lingua == "it" else f"schermata-{lingua}.png"
+    finale.save(OUT_DIR / nome, optimize=True)
     # Anteprima social 1280x640: solo intestazione e area di rilascio
-    im.crop((0, 0, larg, round(larg / 2))).resize((1280, 640), Image.LANCZOS).save(
-        OUT_DIR / "social-preview.png", optimize=True
-    )
+    # Solo dall'italiano: e' l'anteprima usata dal sito e dai social, e
+    # deve restare una sola. Rigenerarla a ogni lingua la farebbe cambiare
+    # a seconda dell'ultimo comando lanciato.
+    if lingua == "it":
+        im.crop((0, 0, larg, round(larg / 2))).resize((1280, 640), Image.LANCZOS).save(
+            OUT_DIR / "social-preview.png", optimize=True
+        )
     return finale.size
 
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description="Screenshot dell'interfaccia per il README")
     ap.add_argument("--url", default="http://127.0.0.1:5000", help="URL dell'app già avviata")
+    # La schermata del README inglese deve mostrare l'interfaccia inglese:
+    # promettere due lingue e mostrarne una sola e' la stessa incoerenza
+    # che abbiamo appena tolto dai documenti.
+    ap.add_argument("--lang", default="it", choices=["it", "en"], help="lingua da fotografare")
     ap.add_argument("--width", type=int, default=1360, help="larghezza finestra in px CSS")
     ap.add_argument("--height", type=int, default=2500, help="altezza finestra in px CSS")
     args = ap.parse_args(argv)
@@ -168,7 +189,10 @@ def main(argv: list[str]) -> int:
     import json
 
     PONTE.write_text(
-        PONTE_HTML.replace("__CONTENUTO__", json.dumps(DOCUMENTO_DEMO)),
+        PONTE_HTML.replace("__CONTENUTO__", json.dumps(DOCUMENTO_DEMO))
+                   .replace("__LANG__", "" if args.lang == "it" else "?lang=" + args.lang)
+                   .replace("__REDAZIONI__", "redazioni" if args.lang == "it" else "redactions")
+                   .replace("__ADESSO__", "adesso" if args.lang == "it" else "just now"),
         encoding="utf-8",
     )
     grezzo = OUT_DIR / "_grezzo.png"
@@ -194,7 +218,7 @@ def main(argv: list[str]) -> int:
         if not grezzo.exists():
             print("Chrome non ha prodotto l'immagine.", file=sys.stderr)
             return 1
-        dimensioni = ritaglia_e_salva(grezzo)
+        dimensioni = ritaglia_e_salva(grezzo, lingua=args.lang)
         peso = (OUT_DIR / "schermata.png").stat().st_size // 1024
         print(f"docs/img/schermata.png      {dimensioni[0]}x{dimensioni[1]}  {peso} KB")
         print("docs/img/social-preview.png 1280x640")
