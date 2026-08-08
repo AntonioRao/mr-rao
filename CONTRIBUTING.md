@@ -8,6 +8,32 @@ Mr. Rao è software libero sotto **GNU AGPL-3.0** ([LICENSE](LICENSE)).
 Aprendo una pull request accetti che il tuo contributo venga distribuito sotto
 la stessa licenza.
 
+### E una cosa in più, dichiarata apertamente
+
+Aprendo una pull request concedi anche ad **Antonio Andrea Rao**, titolare del
+copyright del progetto, il diritto non esclusivo e irrevocabile di licenziare
+il tuo contributo **anche con termini diversi dall'AGPL**, licenze commerciali
+comprese. Resti autore del tuo codice e mantieni ogni diritto di riusarlo dove
+e come vuoi.
+
+**Perché serve, detto senza giri di parole.** L'AGPL permette l'uso
+commerciale, ma impone a chi modifica il programma o lo offre in rete di
+pubblicare il proprio sorgente. Alcune aziende non possono accettare quel
+vincolo e chiedono una licenza diversa. Concederla è possibile solo a chi
+detiene *tutti* i diritti: basta un contributo senza questa clausola perché
+quella strada si chiuda per l'intero progetto, e riaprirla vorrebbe dire
+ritrovare ogni autore e chiedere il permesso a ognuno.
+
+È la stessa clausola che usano Qt e MySQL, per la stessa ragione.
+
+Se non ti va bene — ed è una posizione legittima, non un capriccio — scrivilo
+nella pull request invece di accettare qualcosa che non condividi. Si trova un
+altro modo: per esempio descrivere il difetto e lasciare che sia il progetto a
+scrivere la correzione.
+
+Per i contributi di poche righe — un refuso, una parola nella documentazione —
+non ci interessa: la clausola vale per il codice.
+
 In pratica: usalo, modificalo, ridistribuiscilo. L'unico obbligo serio scatta
 se lo offri ad altri via rete — in quel caso devi rendere disponibile il
 sorgente della tua versione (articolo 13).

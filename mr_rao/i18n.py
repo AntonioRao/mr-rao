@@ -772,10 +772,10 @@ TESTI: dict[str, dict[str, str]] = {
     "footer_locale": {"it": "100% locale", "en": "100% local"},
     "footer_cloud": {"it": "zero cloud", "en": "no cloud"},
     "footer_licenza": {
-        "it": "Copyright © 2026 Rao — software libero sotto <strong>GNU "
+        "it": "Copyright © 2026 Antonio Andrea Rao — software libero sotto <strong>GNU "
               "AGPL-3.0</strong>, fornito <strong>senza alcuna garanzia</strong>. "
               "Sei libero di ridistribuirlo alle condizioni della licenza (vedi ⓘ).",
-        "en": "Copyright © 2026 Rao — free software under <strong>GNU "
+        "en": "Copyright © 2026 Antonio Andrea Rao — free software under <strong>GNU "
               "AGPL-3.0</strong>, provided <strong>with no warranty "
               "whatsoever</strong>. You may redistribute it under the terms of "
               "the licence (see ⓘ).",
@@ -820,7 +820,7 @@ TESTI: dict[str, dict[str, str]] = {
     "aria_chiudi": {"it": "Chiudi", "en": "Close"},
     "about_licenza_titolo": {"it": "Licenza Mr. Rao", "en": "Mr. Rao's licence"},
     "about_licenza_testo": {
-        "it": "Copyright © 2026 Rao<br><br>Mr. Rao è <strong>software "
+        "it": "Copyright © 2026 Antonio Andrea Rao<br><br>Mr. Rao è <strong>software "
               "libero</strong> sotto <strong>GNU Affero General Public License "
               "v3.0</strong>. Puoi usarlo, studiarlo, modificarlo e "
               "ridistribuirlo — anche in ambito professionale e commerciale — "
@@ -836,7 +836,7 @@ TESTI: dict[str, dict[str, str]] = {
               "<br>I componenti di terzi restano sotto le <strong>loro</strong> "
               "licenze (MIT, Apache-2.0, BSD, LGPL…): dettaglio in "
               "<code>THIRD_PARTY.md</code>.",
-        "en": "Copyright © 2026 Rao<br><br>Mr. Rao is <strong>free "
+        "en": "Copyright © 2026 Antonio Andrea Rao<br><br>Mr. Rao is <strong>free "
               "software</strong> under the <strong>GNU Affero General Public "
               "License v3.0</strong>. You may use it, study it, modify it and "
               "redistribute it — professionally and commercially included — "
@@ -929,11 +929,23 @@ TESTI: dict[str, dict[str, str]] = {
               "code and product; the libraries stay free.",
     },
     "about_permissive_2": {
-        "it": "Questo riquadro non è un parere legale. Uso commerciale di Mr. "
-              "Rao: autorizzazione a Rao. File: <code>LICENSE</code>, "
+        # Qui c'era «Uso commerciale: autorizzazione a Rao», e contraddiceva
+        # la licenza che il riquadro stesso dichiara: l'AGPL l'uso
+        # commerciale lo **permette**. Chi leggeva poteva concluderne due
+        # cose opposte -- che servisse un permesso, o che il progetto non
+        # sapesse cosa dice la propria licenza. Su uno strumento di
+        # conformita' la seconda e' peggio della prima.
+        "it": "Questo riquadro non è un parere legale. L'uso commerciale è "
+              "libero alle condizioni dell'AGPL, obblighi compresi. Serve "
+              "una licenza diversa — per includerlo in un prodotto chiuso, "
+              "o offrirlo in rete senza pubblicare le proprie modifiche? "
+              "Scrivi. File: <code>LICENSE</code>, "
               "<code>THIRD_PARTY.md</code>, <code>licenses/</code>.",
-        "en": "This panel is not legal advice. Commercial use of Mr. Rao: ask "
-              "Rao. Files: <code>LICENSE</code>, <code>THIRD_PARTY.md</code>, "
+        "en": "This panel is not legal advice. Commercial use is free under "
+              "the terms of the AGPL, obligations included. Need different "
+              "terms — to ship it inside a closed product, or offer it over "
+              "a network without publishing your changes? Get in touch. "
+              "Files: <code>LICENSE</code>, <code>THIRD_PARTY.md</code>, "
               "<code>licenses/</code>.",
     },
     "toast_default": {"it": "Operazione completata", "en": "Done"},
