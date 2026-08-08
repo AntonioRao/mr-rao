@@ -476,8 +476,9 @@ TESTI: dict[str, dict[str, str]] = {
     # pacchetto italiano. Entrambe le cose in inglese vanno dette.
     "tip_dates": {
         "it": "Spento di default: verrebbero tolte anche le date che servono. "
-              "Attivo, sostituisce solo le date scritte accanto a «nato il», "
-              "«data di nascita» e simili.",
+              "Attivo, sostituisce solo le date scritte accanto a una parola "
+              "di nascita — «nato il», «data di nascita», e gli inglesi "
+              "«born» e «DOB». Viaggia col pacchetto dei formati italiani.",
         "en": "Off by default: it would take out dates you need. Switched on, it "
               "only replaces dates written next to a birth word — \"born\", "
               "\"DOB\", or the Italian \"nato il\" and \"data di nascita\". It "
@@ -492,7 +493,10 @@ TESTI: dict[str, dict[str, str]] = {
     "tip_amounts": {
         "it": "Spento di default: nelle fatture gli importi di solito servono. "
               "Attivalo se vuoi condividere un documento senza mostrarne le "
-              "cifre.",
+              "cifre. Riconosce solo gli importi in euro — il simbolo €, "
+              "«EUR», o una parola di fattura accanto alla cifra — quindi "
+              "sterline e dollari restano dove sono. Viaggia col pacchetto "
+              "dei formati italiani.",
         "en": "Off by default: on an invoice the figures are usually the point. "
               "Switch it on to share a document without its numbers. It "
               "recognises euro amounts only — a € sign, EUR, or an Italian "
