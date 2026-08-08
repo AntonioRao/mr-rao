@@ -40,7 +40,12 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
                 **{k: True for k in FIELD_DEFAULTS},
                 "amounts": getattr(args, "scrub_amounts", False),
                 "dates": getattr(args, "scrub_dates", False),
-                "name_guess": not getattr(args, "no_name_guess", False),
+                # Spenta di default (#5): il flag ora l'accende. `--no-name-guess`
+                # resta accettato e non fa niente, perche' e' finito in
+                # script e appunti di chi lo usava per difendersi da questa
+                # stessa regola. Toglierlo li farebbe fallire per dire loro
+                # una cosa che ora e' il comportamento predefinito.
+                "name_guess": getattr(args, "name_guess", False),
             },
         )
         if privacy_on
@@ -277,9 +282,15 @@ def main(argv: list[str] | None = None) -> int:
         help="Redigi le date accanto a un contesto di nascita",
     )
     p_conv.add_argument(
+        "--name-guess",
+        action="store_true",
+        help="Accendi l'euristica del cognome (due parole maiuscole). Spenta "
+             "di default: su moduli e verbali produce molti falsi positivi",
+    )
+    p_conv.add_argument(
         "--no-name-guess",
         action="store_true",
-        help="Disattiva l'euristica del cognome (due parole maiuscole)",
+        help=argparse.SUPPRESS,  # ora e' il comportamento predefinito
     )
     p_conv.add_argument(
         "--no-pack-it",

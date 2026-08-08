@@ -249,3 +249,48 @@ def test_la_riga_di_comando_puo_spegnere_un_pacchetto():
     ).read_text(encoding="utf-8")
     for flag in ("--no-pack-it", "--no-pack-en"):
         assert flag in js, f"la CLI non espone {flag}"
+
+
+# ---------------------------------------------------------------------------
+# L'euristica dei cognomi resta spenta
+# ---------------------------------------------------------------------------
+
+
+def test_name_guess_e_spenta_di_default():
+    """#5. Era accesa, e su documenti veri il conto era questo:
+
+      8 904 sostituzioni sbagliate su 20 moduli dell'Agenzia delle Entrate
+     14 376 su 8 Gazzette Ufficiali storiche
+      2 888 su 99 moduli fiscali statunitensi
+
+    Tutti documenti in bianco o normativi, che non contengono un solo dato
+    personale. Mangiava «Redditi Persone Fisiche», «Quadro RN», «Imposta
+    Lorda».
+
+    Se questo test diventa rosso, qualcuno ha riacceso la regola: prima di
+    aggiornarlo, rifare il banco sui documenti veri e guardare il numero.
+    """
+    from mr_rao.privacy import FIELD_DEFAULTS, options_from_dict, options_from_form
+
+    assert PrivacyOptions().name_guess is False
+    assert FIELD_DEFAULTS["name_guess"] is False
+    assert options_from_form({}).name_guess is False
+    assert options_from_dict({}).name_guess is False
+
+
+def test_name_guess_si_puo_ancora_accendere():
+    """Spenta non vuol dire tolta: su lettere e contratti, dove le
+    denominazioni sono poche, la regola serve ancora."""
+    from mr_rao.privacy import options_from_form
+
+    assert options_from_form({"privacy_name_guess": "true"}).name_guess is True
+
+
+def test_la_casella_nella_pagina_non_e_spuntata():
+    """Parita' GUI anche sui valori predefiniti: se il motore parte spento
+    e la casella parte spunta, la pagina dice il falso."""
+    pagina = (
+        Path(__file__).resolve().parents[1] / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    riga = next(r for r in pagina.splitlines() if 'id="privacy-name_guess"' in r)
+    assert "checked" not in riga, riga.strip()
