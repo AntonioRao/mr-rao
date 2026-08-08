@@ -1,6 +1,6 @@
 """Mr. Rao — entry point for the local web server (dev + portable exe).
 
-Copyright (C) 2026 Rao
+Copyright (C) 2026 Antonio Andrea Rao
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU Affero General Public License as published by the Free

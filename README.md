@@ -246,7 +246,7 @@ One library is **LGPL** (pystray, for the system tray icon): its licence text, n
 
 ## Licence
 
-Copyright © 2026 Rao
+Copyright © 2026 Antonio Andrea Rao
 
 Mr. Rao is **free software** under the **[GNU Affero General Public License v3.0](LICENSE)**.
 You may use, study, modify and redistribute it — including commercially — under the terms of that licence.

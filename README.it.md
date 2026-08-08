@@ -248,7 +248,7 @@ Una sola libreria è **LGPL** (pystray, per l'icona nella barra di sistema): tes
 
 ## Licenza
 
-Copyright © 2026 Rao
+Copyright © 2026 Antonio Andrea Rao
 
 Mr. Rao è **software libero** sotto **[GNU Affero General Public License v3.0](LICENSE)**.
 Puoi usarlo, studiarlo, modificarlo e ridistribuirlo — anche in ambito professionale
