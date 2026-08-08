@@ -10,7 +10,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-OpCOmX4n5HoySPGEs5bvT8DVv82GJBjdwhTv2flhtYQ='; style-src 'self' 'sha256-SlMjuLX1faTTyH979nePrb4SZkX33+XuzJ2DObreE8E='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-OpCOmX4n5HoySPGEs5bvT8DVv82GJBjdwhTv2flhtYQ='; style-src 'self' 'sha256-CB65qMR/SbBeWsvEj7YPlWbWKwvVzE3J6zZEnFyai84='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable

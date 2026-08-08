@@ -572,6 +572,23 @@
   .limit strong { display: block; color: var(--amber); font-size: 0.9rem; margin-bottom: 0.4rem; font-family: var(--mono); letter-spacing: 0.04em; }
   .limit p { color: var(--fog); font-size: 0.95rem; line-height: 1.55; }
 
+  /* Stessa griglia dei limiti, in verde: forze e limiti si leggono come due
+     facce della stessa pagina, e la simmetria e' il punto -- chi dichiara i
+     limiti accanto ai pregi si fa credere di piu' su entrambi. */
+  .forze {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 700px) { .forze { grid-template-columns: 1fr; } }
+  .forza {
+    border-left: 2px solid var(--phosphor);
+    padding: 1rem 1.25rem;
+    background: rgba(61,255,154,0.04);
+  }
+  .forza strong { display: block; color: var(--phosphor); font-size: 0.9rem; margin-bottom: 0.4rem; font-family: var(--mono); letter-spacing: 0.04em; }
+  .forza p { color: var(--fog); font-size: 0.95rem; line-height: 1.55; }
+
   /* CTA final */
   .finale {
     text-align: center;
@@ -689,6 +706,7 @@
     <div class="links">
       <a href="#motore">Motore</a>
       <a href="#banco">Banco</a>
+      <a href="#perche">Perché</a>
       <a href="#limiti">Limiti</a>
       <a href="#contatto">Contatto</a>
       <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Scarica</a>
@@ -838,8 +856,32 @@
     </table>
   </section>
 
+  <section class="block" id="perche">
+    <p class="sec-label">// 05 · perché Mr. Rao</p>
+    <h2>Quattro cose che gli altri non fanno.</h2>
+    <p class="intro">Non «è il migliore»: sono quattro comportamenti precisi, verificabili aprendo il codice.</p>
+    <div class="forze">
+      <div class="forza">
+        <strong>Dal file al prompt, in un passaggio</strong>
+        <p>Converte, redige e ti restituisce il testo pronto per l'AI in un colpo solo, senza che il file esca dal computer. È il punto in cui di solito i dati «finiscono in giro»: caricare un contratto su un convertitore per poterlo incollare in un modello.</p>
+      </div>
+      <div class="forza">
+        <strong>I thread email li legge davvero</strong>
+        <p>Quasi tutti gli strumenti vedono una mail come un file di testo. Mr. Rao riconosce <code>Il giorno … ha scritto:</code>, <code>On … wrote:</code> e i blocchi <code>Da:/Inviato:/A:</code>, separa i messaggi citati e redige dentro ognuno.</p>
+      </div>
+      <div class="forza">
+        <strong>Formati italiani, con l'aritmetica giusta</strong>
+        <p>Codice fiscale, partita IVA, IBAN mod-97, carte con Luhn: il candidato deve superare il controllo dell'ente che lo emette, non somigliargli. Gli strumenti nati altrove su questi numeri sbagliano.</p>
+      </div>
+      <div class="forza">
+        <strong>Si accorge se la cartella è sincronizzata</strong>
+        <p>Se «Documenti» finisce dentro OneDrive, Dropbox, Google Drive, iCloud, Nextcloud, pCloud, Mega o Box, Mr. Rao sposta lo spazio di lavoro fuori. Altrimenti «resta sul tuo computer» sarebbe una frase, non un fatto.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="block" id="limiti">
-    <p class="sec-label">// 05 · onestà operativa</p>
+    <p class="sec-label">// 06 · onestà operativa</p>
     <h2>Cosa non promettiamo — di proposito.</h2>
     <p class="intro">Un CISO si fida di chi dichiara i limiti. Noi li scriviamo in README, PRIVACY e nel prodotto.</p>
     <div class="limits">
@@ -879,7 +921,7 @@
   </section>
 
   <section class="block" id="contatto">
-    <p class="sec-label">// 06 · canale diretto</p>
+    <p class="sec-label">// 07 · canale diretto</p>
     <h2>Segnalazioni, idee, pezzi che non tornano.</h2>
     <p class="intro">
       Scritto e mantenuto da Antonio Andrea Rao. Scrivimi una mail o su LinkedIn:

@@ -149,6 +149,38 @@ The recognition is code, not a neural network. The same document always yields t
 
 ---
 
+## Why Mr. Rao
+
+Not "it's the best". Four specific behaviours, each of which you can check
+by opening the code.
+
+**From file to prompt in one step.** It converts, redacts, and hands you
+text that is ready to paste into an AI — without the file ever leaving your
+machine. That is precisely the moment when data usually gets loose:
+uploading a contract to an online converter so you can paste it into a
+model.
+
+**It actually reads email threads.** Most tools see an email as a text
+file. Mr. Rao recognises `On … wrote:`, `Il giorno … ha scritto:` and
+`From:/Sent:/To:` blocks, splits the quoted messages apart and redacts
+inside each one ([`mr_rao/eml_parser.py`](mr_rao/eml_parser.py)).
+
+**National formats, with the arithmetic that goes with them.** Italian tax
+code, VAT number, IBAN mod-97, cards via Luhn — plus NHS, National
+Insurance, SSN, ITIN, ABA routing, SIN, ABN, TFN and MRZ lines. A candidate
+has to pass the issuer's own check, not merely look like one. That is where
+the false positives go.
+
+**It notices when your folder is synced.** If "Documents" lives inside
+OneDrive, Dropbox, Google Drive, iCloud, Nextcloud, pCloud, Mega or Box,
+Mr. Rao moves its working directory out
+([`mr_rao/user_folders.py`](mr_rao/user_folders.py)). Otherwise "it stays on
+your computer" would be a sentence, not a fact.
+
+The limits are just below, on the same page and with the same weight.
+
+---
+
 ## Getting started
 
 ### Windows, without installing Python

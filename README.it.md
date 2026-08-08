@@ -151,6 +151,37 @@ Il riconoscimento è codice, non una rete neurale. Lo stesso documento dà **sem
 
 ---
 
+## Perché Mr. Rao
+
+Non «è il migliore». Sono quattro comportamenti precisi, e ognuno si
+verifica aprendo il codice.
+
+**Dal file al prompt, in un passaggio.** Converte, redige e ti restituisce
+il testo pronto per l'AI in un colpo solo, senza che il file esca dal
+computer. È esattamente il punto in cui di solito i dati «finiscono in
+giro»: caricare un contratto su un convertitore online per poterlo poi
+incollare in un modello.
+
+**I thread email li legge davvero.** Quasi tutti gli strumenti vedono una
+mail come un file di testo. Mr. Rao riconosce `Il giorno … ha scritto:`,
+`On … wrote:` e i blocchi `Da:/Inviato:/A:`, separa i messaggi citati e
+applica la redazione dentro ognuno ([`mr_rao/eml_parser.py`](mr_rao/eml_parser.py)).
+
+**Formati italiani, con l'aritmetica giusta.** Codice fiscale, partita IVA,
+IBAN mod-97, carte con Luhn: il candidato deve superare il controllo
+dell'ente che lo emette, non somigliargli. Gli strumenti nati altrove su
+questi numeri sbagliano, e la differenza si vede nei falsi positivi.
+
+**Si accorge se la cartella è sincronizzata.** Se «Documenti» finisce
+dentro OneDrive, Dropbox, Google Drive, iCloud, Nextcloud, pCloud, Mega o
+Box, Mr. Rao sposta lo spazio di lavoro fuori
+([`mr_rao/user_folders.py`](mr_rao/user_folders.py)). Altrimenti «resta sul
+tuo computer» sarebbe una frase, non un fatto.
+
+I limiti stanno poco più sotto, nella stessa pagina e con lo stesso peso.
+
+---
+
 ## Come si usa
 
 ### Windows, senza installare Python
