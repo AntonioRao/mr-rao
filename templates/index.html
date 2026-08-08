@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ app_name }} — Documenti in Markdown</title>
-    <meta name="description" content="Mr. Rao converte documenti, immagini e email in Markdown. 100% offline, OCR, privacy IT.">
+    <title>{{ t('titolo_pagina', app=app_name) }}</title>
+    <meta name="description" content="{{ t('meta_descrizione') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
@@ -42,31 +42,35 @@
             <a href="?lang=en" hreflang="en"{% if lang == 'en' %} aria-current="true"{% endif %}>EN</a>
         </nav>
         <p class="hero__tagline">
-            Converti documenti, immagini e thread email in Markdown puro.<br>
-            <strong>Con i dati personali già rimossi.</strong> Offline, sul tuo computer.
+            {{ t('sottotitolo') }}<br>
+            <strong>{{ t('sottotitolo_forte') }}</strong> {{ t('sottotitolo_coda') }}
         </p>
         <div class="pills">
-            <span class="pill"><span class="pill-dot"></span> Offline</span>
-            <span class="pill">Anonimizza nomi · indirizzi · codici</span>
-            <span class="pill">PDF · DOCX · XLSX</span>
-            <span class="pill">OCR</span>
-            <span class="pill">Thread .eml</span>
+            <span class="pill"><span class="pill-dot"></span> {{ t('pill_offline') }}</span>
+            <span class="pill">{{ t('pill_anonimizza') }}</span>
+            <span class="pill">{{ t('pill_formati') }}</span>
+            <span class="pill">{{ t('pill_ocr') }}</span>
+            <span class="pill">{{ t('pill_eml') }}</span>
             <span class="pill"><span class="kbd">Ctrl</span>+<span class="kbd">V</span></span>
         </div>
     </header>
 
     {# ═══════════════ 1. CARICA ═══════════════ #}
     <section class="flow-section reveal" aria-labelledby="step-load">
-        <div class="flow-label" id="step-load"><span class="flow-num">1</span> Carica</div>
+        <div class="flow-label" id="step-load"><span class="flow-num">1</span> {{ t('passo_carica') }}</div>
 
+        {# I data-tip escono da Jinja gia' escapati: `<b>` diventa `&lt;b&gt;`
+           nel sorgente, e getAttribute() lo ridecodifica in `<b>` prima che il
+           tooltip lo dia a innerHTML. Il grassetto arriva, e una virgoletta
+           dritta in una traduzione inglese non puo' chiudere l'attributo. #}
         <div class="drop-zone" id="drop-zone" role="button" tabindex="0"
-             aria-label="Carica file"
-             data-tip="Trascina qui uno o più file, oppure clicca per sceglierli. Funziona anche da tastiera con Invio, e con <b>Ctrl+V</b> per incollare un'immagine copiata (uno screenshot, per esempio).">
+             aria-label="{{ t('aria_carica_file') }}"
+             data-tip="{{ t('tip_dropzone') }}">
             <div class="drop-icon">
                 <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="48" height="48">
             </div>
-            <div class="drop-title">Trascina qui i file</div>
-            <div class="drop-subtitle">oppure clicca per sceglierli · anche più file insieme · incolla un'immagine con Ctrl+V</div>
+            <div class="drop-title">{{ t('trascina_qui') }}</div>
+            <div class="drop-subtitle">{{ t('trascina_sotto') }}</div>
             <div class="drop-formats">
                 <span class="fmt-badge">PDF</span>
                 <span class="fmt-badge">DOCX</span>
@@ -89,41 +93,41 @@
                     <div class="spinner-outer"></div>
                     <div class="spinner-inner"></div>
                 </div>
-                <div class="loading-label" id="loading-text">Conversione in corso…</div>
+                <div class="loading-label" id="loading-text">{{ t('conversione_in_corso') }}</div>
                 <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
                 <span class="progress-pct" id="progress-pct"></span>
                 <button type="button" class="btn btn-danger" id="cancel-btn" style="display:none"
-                        data-tip="Interrompe la conversione in corso. Su un file singolo già avviato può volerci qualche istante prima che si fermi davvero.">Annulla</button>
+                        data-tip="{{ t('tip_annulla') }}">{{ t('annulla') }}</button>
             </div>
         </div>
     </section>
 
     {# ═══════════════ 2. IMPOSTA ═══════════════ #}
     <section class="flow-section reveal" aria-labelledby="step-setup">
-        <div class="flow-label" id="step-setup"><span class="flow-num">2</span> Imposta</div>
+        <div class="flow-label" id="step-setup"><span class="flow-num">2</span> {{ t('passo_imposta') }}</div>
 
         <div class="glass control-bar">
             <div class="field">
                 <span class="field-label"
-                      data-tip="Una combinazione già pronta di tutte le opzioni. Scegli il profilo che assomiglia al tuo lavoro e non pensare al resto: se serve puoi ritoccare le singole voci in «Opzioni avanzate».">Profilo</span>
-                <select id="profile" aria-label="Profilo"
-                        data-tip="<b>Predefinito</b> — buono per quasi tutto.<br><b>Email legali</b> — massima protezione dei dati personali, testo pulito.<br><b>Fatture</b> — tiene le tabelle e lascia visibili gli importi.<br><b>Solo OCR</b> — per scansioni e foto di documenti.<br><b>Pronto per LLM</b> — testo da incollare in un assistente AI.<br><b>Nessuna redazione</b> — testo integrale, niente sostituzioni.">
-                    <option value="default">Predefinito</option>
-                    <option value="email_legali">Email legali</option>
-                    <option value="fatture">Fatture / contabili</option>
-                    <option value="solo_ocr">Solo OCR</option>
-                    <option value="llm_ready">Pronto per LLM</option>
-                    <option value="no_privacy">Nessuna redazione</option>
+                      data-tip="{{ t('tip_profilo_etichetta') }}">{{ t('etichetta_profilo') }}</span>
+                <select id="profile" aria-label="{{ t('etichetta_profilo') }}"
+                        data-tip="{{ t('tip_profilo_scelte') }}">
+                    <option value="default">{{ t('profilo_default') }}</option>
+                    <option value="email_legali">{{ t('profilo_email_legali') }}</option>
+                    <option value="fatture">{{ t('profilo_fatture') }}</option>
+                    <option value="solo_ocr">{{ t('profilo_solo_ocr') }}</option>
+                    <option value="llm_ready">{{ t('profilo_llm_ready') }}</option>
+                    <option value="no_privacy">{{ t('profilo_no_privacy') }}</option>
                 </select>
-                <span class="field-hint" id="profile-hint">Va bene per quasi tutto: dati personali protetti, tabelle estratte.</span>
+                <span class="field-hint" id="profile-hint">{{ t('hint_profilo_default') }}</span>
             </div>
             <div class="toggle-row" id="privacy-row"
-                 data-tip="Sostituisce i dati personali con segnaposto tipo <b>{{ '{{EMAIL}}' }}</b> prima di consegnarti il Markdown. Serve soprattutto se poi incolli il testo in un servizio online: quello che è stato tolto lo vedi nella scheda «Confronto privacy».">
+                 data-tip="{{ t('tip_interruttore_privacy') }}">
                 <div class="toggle-info">
-                    <span class="toggle-title">Nascondi i dati personali</span>
-                    <span class="toggle-desc">Nomi, indirizzi, recapiti, codici, chiavi</span>
+                    <span class="toggle-title">{{ t('privacy_titolo') }}</span>
+                    <span class="toggle-desc">{{ t('privacy_desc') }}</span>
                 </div>
-                <label class="switch" for="privacy-filter" aria-label="Attiva filtro privacy">
+                <label class="switch" for="privacy-filter" aria-label="{{ t('aria_filtro_privacy') }}">
                     <input type="checkbox" id="privacy-filter" checked>
                     <span class="switch-track"></span>
                     <span class="switch-thumb"></span>
@@ -134,127 +138,125 @@
         <details class="glass panel">
             <summary>
                 <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                Opzioni avanzate
-                <span class="panel-sub">lettura del file · dettaglio privacy · più file insieme</span>
+                {{ t('opzioni_avanzate') }}
+                <span class="panel-sub">{{ t('opzioni_avanzate_sub') }}</span>
             </summary>
             <div class="panel-body">
 
                 <div class="group">
-                    <div class="eyebrow">Come viene letto il file</div>
+                    <div class="eyebrow">{{ t('gruppo_lettura') }}</div>
                     <div class="settings-row">
                         <div class="field">
-                            <span class="field-label" data-tip="Nel dubbio lascia Automatico: sceglie da solo e usa l'OCR solo quando serve.">Metodo di lettura</span>
-                            <select id="engine" aria-label="Metodo di lettura"
-                                    data-tip="<b>Automatico</b> — legge il testo del documento; se non ne trova (PDF scansionato) passa da solo all'OCR.<br><b>Forza OCR</b> — legge sempre l'immagine, riconoscendo il testo. Più lento, ma è l'unica strada per scansioni e foto.<br><b>Solo testo nativo</b> — non usa mai l'OCR: se il documento non contiene testo, il risultato è vuoto.">
-                                <option value="auto">Automatico (consigliato)</option>
-                                <option value="rapidocr">Forza OCR — scansioni e foto</option>
-                                <option value="markitdown">Solo testo nativo — mai OCR</option>
+                            <span class="field-label" data-tip="{{ t('tip_metodo_etichetta') }}">{{ t('etichetta_metodo') }}</span>
+                            <select id="engine" aria-label="{{ t('etichetta_metodo') }}"
+                                    data-tip="{{ t('tip_metodo_scelte') }}">
+                                <option value="auto">{{ t('metodo_auto') }}</option>
+                                <option value="rapidocr">{{ t('metodo_ocr') }}</option>
+                                <option value="markitdown">{{ t('metodo_nativo') }}</option>
                             </select>
                         </div>
                     </div>
-                    <span class="field-hint">Il riconoscimento avviene sul tuo computer: nessun file esce da qui,
-                    nessun modello viene scaricato. Il modello OCR è addestrato sugli alfabeti latini,
-                    quindi legge italiano e inglese senza doverlo impostare.</span>
+                    <span class="field-hint">{{ t('hint_ocr_locale') }}</span>
                 </div>
 
                 <div class="group">
-                    <div class="eyebrow">Formati di quale Paese</div>
+                    <div class="eyebrow">{{ t('gruppo_pacchetti') }}</div>
                     <div class="opt-grid" id="pack-panel" style="display:none">
-                        <label class="opt" data-tip="Codice fiscale, partita IVA, coordinate bancarie italiane, indirizzi con via e piazza, telefoni e nomi italiani. Spegnilo solo se lavori esclusivamente su documenti stranieri.">
+                        <label class="opt" data-tip="{{ t('tip_pack_it') }}">
                             <input type="checkbox" id="privacy-pack_it" checked>
-                            <span class="opt-text"><span class="opt-title">Formati italiani</span><span class="opt-desc">Codice fiscale, P.IVA, BBAN, vie, nomi</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('pack_it_titolo') }}</span><span class="opt-desc">{{ t('pack_it_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="SSN e ITIN statunitensi, National Insurance Number e NHS number britannici, routing bancario, SIN canadese, ABN e TFN australiani, indirizzi con Street e Road, e la zona a lettura automatica dei passaporti.&lt;br&gt;&lt;br&gt;Lasciarlo acceso su documenti italiani non cambia nulla: questi riconoscitori pretendono una punteggiatura precisa o una parola inglese a cui attaccarsi.">
+                        <label class="opt" data-tip="{{ t('tip_pack_en') }}">
                             <input type="checkbox" id="privacy-pack_en" checked>
-                            <span class="opt-text"><span class="opt-title">Formati anglosassoni</span><span class="opt-desc">SSN, NINO, NHS, passaporti, vie inglesi</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('pack_en_titolo') }}</span><span class="opt-desc">{{ t('pack_en_desc') }}</span></span>
                         </label>
                     </div>
-                    <label class="field" data-tip="Su una lettera, due parole maiuscole di cui una risulta negli elenchi sono quasi sempre una persona. Su un modulo sono quasi sempre l'etichetta di un campo — «Imposta Lorda», «Quadro RN».&lt;br&gt;&lt;br&gt;Misurato: pretendere due riscontri toglie 2739 sostituzioni sbagliate sui moduli e costa 609 nomi sulle lettere. Non esiste un valore giusto per entrambi, quindi si sceglie.&lt;br&gt;&lt;br&gt;&lt;b&gt;Automatico&lt;/b&gt; lo deduce dal file: le email sono prosa, i fogli di calcolo sono moduli, e nei PDF si contano le caselle disegnate. Sulle scansioni non si puo' dedurre e vince la prudenza. Cambialo se il documento ti sembra classificato male.">
-                        Tipo di documento
-                        <select id="privacy-stile" aria-label="Tipo di documento">
-                            <option value="">Automatico (consigliato)</option>
-                            <option value="prosa">Lettera, email, contratto</option>
-                            <option value="modulo">Modulo, verbale, prospetto</option>
+                    <label class="field" data-tip="{{ t('tip_tipo_documento') }}">
+                        {{ t('tipo_documento') }}
+                        <select id="privacy-stile" aria-label="{{ t('tipo_documento') }}">
+                            <option value="">{{ t('tipo_auto') }}</option>
+                            <option value="prosa">{{ t('tipo_prosa') }}</option>
+                            <option value="modulo">{{ t('tipo_modulo') }}</option>
                         </select>
                     </label>
-                    <div class="eyebrow">Quali dati nascondere</div>
+                    <div class="eyebrow">{{ t('gruppo_nascondere') }}</div>
                     <div class="opt-grid" id="privacy-panel" style="display:none">
-                        <label class="opt" data-tip="Ogni indirizzo email diventa {{ '{{EMAIL}}' }}.">
+                        <label class="opt" data-tip="{{ t('tip_emails') }}">
                             <input type="checkbox" id="privacy-emails" checked>
-                            <span class="opt-text"><span class="opt-title">Email</span><span class="opt-desc">Indirizzi di posta</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_emails_titolo') }}</span><span class="opt-desc">{{ t('opt_emails_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Numeri di telefono fissi e cellulari. I numeri che non sembrano telefoni (protocolli, codici) vengono lasciati stare.">
+                        <label class="opt" data-tip="{{ t('tip_phones') }}">
                             <input type="checkbox" id="privacy-phones" checked>
-                            <span class="opt-text"><span class="opt-title">Telefoni</span><span class="opt-desc">Fissi e cellulari</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_phones_titolo') }}</span><span class="opt-desc">{{ t('opt_phones_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Nomi e cognomi. Oltre all'elenco dei nomi italiani valgono le regole di contesto: un titolo davanti (Dott., Ing., Geom.) e il nome scritto accanto a un indirizzo email.">
+                        <label class="opt" data-tip="{{ t('tip_names') }}">
                             <input type="checkbox" id="privacy-names" checked>
-                            <span class="opt-text"><span class="opt-title">Nomi</span><span class="opt-desc">Nomi e cognomi di persona</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_names_titolo') }}</span><span class="opt-desc">{{ t('opt_names_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Due parole maiuscole di fila che non sono parole italiane spesso sono nome e cognome, anche quando il cognome non sta in nessun elenco. È la regola che copre i cognomi rari.&lt;br&gt;&lt;br&gt;&lt;b&gt;Spenta di default, e per un motivo misurato:&lt;/b&gt; su venti moduli dell'Agenzia delle Entrate in bianco — che non contengono un solo dato personale — produceva 8904 sostituzioni sbagliate, mangiando «Redditi Persone Fisiche», «Quadro RN», «Imposta Lorda».&lt;br&gt;&lt;br&gt;Accendila su lettere e contratti, dove le denominazioni sono poche. Tienila spenta su moduli, verbali e documenti amministrativi.">
+                        <label class="opt" data-tip="{{ t('tip_name_guess') }}">
                             <input type="checkbox" id="privacy-name_guess">
-                            <span class="opt-text"><span class="opt-title">Deduci i cognomi sconosciuti</span><span class="opt-desc">Regola aggressiva: spenta di default</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_name_guess_titolo') }}</span><span class="opt-desc">{{ t('opt_name_guess_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Via, viale, piazza, corso, largo, contrada... con il nome della strada, il civico e, se c'è, CAP e comune.">
+                        <label class="opt" data-tip="{{ t('tip_addresses') }}">
                             <input type="checkbox" id="privacy-addresses" checked>
-                            <span class="opt-text"><span class="opt-title">Indirizzi</span><span class="opt-desc">Vie, piazze, civici, CAP</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_addresses_titolo') }}</span><span class="opt-desc">{{ t('opt_addresses_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Collegamenti che iniziano con http, https o www. Un link porta con sé il dominio dell'azienda e spesso un identificativo di pratica nella parte finale.">
+                        <label class="opt" data-tip="{{ t('tip_urls') }}">
                             <input type="checkbox" id="privacy-urls" checked>
-                            <span class="opt-text"><span class="opt-title">Indirizzi web</span><span class="opt-desc">http, https, www.</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_urls_titolo') }}</span><span class="opt-desc">{{ t('opt_urls_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Gli IBAN sono verificati col calcolo di controllo e le carte di pagamento con quello di Luhn, così un codice a caso non viene scambiato per un conto corrente.">
+                        <label class="opt" data-tip="{{ t('tip_fiscal') }}">
                             <input type="checkbox" id="privacy-fiscal" checked>
-                            <span class="opt-text"><span class="opt-title">Codici fiscali e bancari</span><span class="opt-desc">Codice fiscale, P.IVA, IBAN, carte</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_fiscal_titolo') }}</span><span class="opt-desc">{{ t('opt_fiscal_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Chiavi API, token, password scritte accanto alla loro etichetta e blocchi di chiave privata. Sono i dati che non ci si accorge di aver incollato.">
+                        <label class="opt" data-tip="{{ t('tip_secrets') }}">
                             <input type="checkbox" id="privacy-secrets" checked>
-                            <span class="opt-text"><span class="opt-title">Chiavi e password</span><span class="opt-desc">Token, API key, credenziali</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_secrets_titolo') }}</span><span class="opt-desc">{{ t('opt_secrets_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Spento di default: verrebbero tolte anche le date che servono. Attivo, sostituisce solo le date scritte accanto a «nato il», «data di nascita» e simili.">
+                        <label class="opt" data-tip="{{ t('tip_dates') }}">
                             <input type="checkbox" id="privacy-dates">
-                            <span class="opt-text"><span class="opt-title">Date di nascita</span><span class="opt-desc">Solo con contesto di nascita</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_dates_titolo') }}</span><span class="opt-desc">{{ t('opt_dates_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Spento di default: nelle fatture gli importi di solito servono. Attivalo se vuoi condividere un documento senza mostrarne le cifre.">
+                        <label class="opt" data-tip="{{ t('tip_amounts') }}">
                             <input type="checkbox" id="privacy-amounts">
-                            <span class="opt-text"><span class="opt-title">Importi in euro</span><span class="opt-desc">Cifre e totali</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_amounts_titolo') }}</span><span class="opt-desc">{{ t('opt_amounts_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Conserva anche il testo originale, così nella scheda «Confronto privacy» puoi vedere esattamente cosa è stato sostituito. Se lo spegni risparmi memoria ma perdi quel controllo.">
+                        <label class="opt" data-tip="{{ t('tip_include_raw') }}">
                             <input type="checkbox" id="include-raw" checked>
-                            <span class="opt-text"><span class="opt-title">Permetti il confronto prima/dopo</span><span class="opt-desc">Abilita la scheda di verifica</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_include_raw_titolo') }}</span><span class="opt-desc">{{ t('opt_include_raw_desc') }}</span></span>
                         </label>
                     </div>
-                    <span class="field-hint" id="privacy-off-hint">Il filtro è spento: il Markdown conterrà i dati personali così come sono nel documento.</span>
+                    <span class="field-hint" id="privacy-off-hint">{{ t('hint_privacy_spenta') }}</span>
                 </div>
 
                 <div class="group">
-                    <div class="eyebrow">Cosa mettere nel Markdown</div>
+                    <div class="eyebrow">{{ t('gruppo_contenuto') }}</div>
                     <div class="opt-grid">
-                        <label class="opt" data-tip="Cerca le tabelle dentro i PDF e le riscrive come tabelle Markdown, invece di sfilacciarle in righe di testo. Su PDF molto lunghi rallenta un po'.">
+                        <label class="opt" data-tip="{{ t('tip_include_tables') }}">
                             <input type="checkbox" id="include-tables" checked>
-                            <span class="opt-text"><span class="opt-title">Estrai le tabelle dai PDF</span><span class="opt-desc">Le ricostruisce come tabelle vere</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_tables_titolo') }}</span><span class="opt-desc">{{ t('opt_tables_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Utile per archiviare, inutile se devi solo incollare il testo da qualche parte.">
+                        <label class="opt" data-tip="{{ t('tip_frontmatter') }}">
                             <input type="checkbox" id="include-frontmatter" checked>
-                            <span class="opt-text"><span class="opt-title">Scheda informativa in cima</span><span class="opt-desc">Origine, data, sostituzioni fatte</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_frontmatter_titolo') }}</span><span class="opt-desc">{{ t('opt_frontmatter_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Toglie note a piè di pagina e commenti tecnici, lasciando solo il contenuto. Comodo quando il testo va incollato in un assistente AI.">
+                        <label class="opt" data-tip="{{ t('tip_clean') }}">
                             <input type="checkbox" id="clean-output">
-                            <span class="opt-text"><span class="opt-title">Togli le note tecniche</span><span class="opt-desc">Solo il contenuto, niente commenti</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_clean_titolo') }}</span><span class="opt-desc">{{ t('opt_clean_desc') }}</span></span>
                         </label>
                     </div>
                 </div>
 
                 <div class="group">
-                    <div class="eyebrow">Quando carichi più file insieme</div>
+                    <div class="eyebrow">{{ t('gruppo_piu_file') }}</div>
                     <div class="opt-grid">
-                        <label class="opt" data-tip="Senza questa spunta ottieni un risultato separato per ciascun file.">
+                        <label class="opt" data-tip="{{ t('tip_merge') }}">
                             <input type="checkbox" id="merge-batch">
-                            <span class="opt-text"><span class="opt-title">Unisci in un solo documento</span><span class="opt-desc">Invece di uno per file</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_merge_titolo') }}</span><span class="opt-desc">{{ t('opt_merge_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="Prende esattamente 2 file e li mette uno sotto l'altro come «Documento A» e «Documento B», per confrontarli a colpo d'occhio.">
+                        <label class="opt" data-tip="{{ t('tip_compare') }}">
                             <input type="checkbox" id="compare-mode">
-                            <span class="opt-text"><span class="opt-title">Metti 2 file a confronto</span><span class="opt-desc">Esattamente due, uno sotto l'altro</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_compare_titolo') }}</span><span class="opt-desc">{{ t('opt_compare_desc') }}</span></span>
                         </label>
                     </div>
                 </div>
@@ -265,32 +267,32 @@
 
     {# ═══════════════ 3. RISULTATO ═══════════════ #}
     <section class="flow-section" aria-labelledby="step-result" id="result-section">
-        <div class="flow-label" id="step-result" style="display:none"><span class="flow-num">3</span> Risultato</div>
+        <div class="flow-label" id="step-result" style="display:none"><span class="flow-num">3</span> {{ t('passo_risultato') }}</div>
 
         <div class="glass result-card" id="result-card">
             <div class="result-header">
-                <span class="result-title">Risultato Markdown
+                <span class="result-title">{{ t('risultato_titolo') }}
                     <span class="badge" id="redaction-badge"
-                          data-tip="Quanti dati personali sono stati sostituiti con segnaposto. Apri «Confronto privacy» per vedere quali.<br><br>Se compare <b>«da controllare»</b>, nel testo è rimasto qualcosa che <i>somiglia</i> a un dato personale ma non ha superato il controllo — tipicamente un codice storpiato dall'OCR. Non è stato sostituito perché non c'era certezza: passaci l'occhio."></span>
+                          data-tip="{{ t('tip_badge_redazioni') }}"></span>
                 </span>
                 <div class="btn-group">
                     <button type="button" class="btn" id="copy-btn"
-                            data-tip="Copia tutto negli appunti, scheda informativa compresa.">Copia</button>
+                            data-tip="{{ t('tip_copia') }}">{{ t('copia') }}</button>
                     <button type="button" class="btn" id="copy-clean-btn"
-                            data-tip="Copia solo il contenuto: via la scheda informativa in cima e le note tecniche. È la versione da incollare in un assistente AI o in una mail.">Copia solo il testo</button>
+                            data-tip="{{ t('tip_copia_pulita') }}">{{ t('copia_pulita') }}</button>
                     <button type="button" class="btn" id="download-txt-btn"
-                            data-tip="Scarica come testo semplice .txt, senza formattazione Markdown.">.txt</button>
+                            data-tip="{{ t('tip_scarica_txt') }}">{{ t('scarica_txt') }}</button>
                     <button type="button" class="btn btn-primary" id="download-btn" draggable="true"
-                            data-tip="Scarica il file Markdown. Puoi anche <b>trascinare questo pulsante</b> direttamente sul Desktop o in una cartella.">Scarica .md</button>
+                            data-tip="{{ t('tip_scarica_md') }}">{{ t('scarica_md') }}</button>
                 </div>
             </div>
             <div class="tabs">
                 <button type="button" class="tab active" id="tab-raw"
-                        data-tip="Il Markdown come viene salvato nel file, simboli compresi.">Testo Markdown</button>
+                        data-tip="{{ t('tip_scheda_testo') }}">{{ t('scheda_testo') }}</button>
                 <button type="button" class="tab" id="tab-preview"
-                        data-tip="Come apparirà una volta formattato, con titoli e grassetti al posto dei simboli.">Anteprima</button>
+                        data-tip="{{ t('tip_scheda_anteprima') }}">{{ t('scheda_anteprima') }}</button>
                 <button type="button" class="tab" id="tab-diff" style="display:none"
-                        data-tip="Mostra il testo prima e dopo la protezione dei dati, con i segnaposto evidenziati: così controlli cosa è stato tolto — e cosa è sfuggito.">Confronto privacy</button>
+                        data-tip="{{ t('tip_scheda_confronto') }}">{{ t('scheda_confronto') }}</button>
             </div>
             <div id="attachments-bar"></div>
             <div class="output-box">
@@ -298,7 +300,7 @@
                     <span class="dot dot-r"></span>
                     <span class="dot dot-y"></span>
                     <span class="dot dot-g"></span>
-                    <span class="output-lang">markdown · trascina il bottone .md sul Desktop</span>
+                    <span class="output-lang">{{ t('output_barra') }}</span>
                 </div>
                 <div class="markdown-output" id="markdown-output" draggable="true"></div>
                 <div class="preview-output" id="preview-output"></div>
@@ -309,66 +311,60 @@
 
     {# ═══════════════ 4. EXTRA (sessione + cartella) ═══════════════ #}
     <section class="flow-section reveal" aria-labelledby="step-extra">
-        <div class="flow-label" id="step-extra"><span class="flow-num">4</span> Extra</div>
+        <div class="flow-label" id="step-extra"><span class="flow-num">4</span> {{ t('passo_extra') }}</div>
 
         <div class="secondary-grid">
             <div class="glass side-card">
-                <h3 data-tip="Le conversioni fatte da quando hai aperto questa pagina. Clicca una voce per rivederne il risultato.">Conversioni di questa sessione</h3>
-                <div id="history-list"><p class="muted">Nessuna conversione in questa sessione.</p></div>
-                <p class="muted" style="margin-top:0.65rem">Restano solo finché la pagina è aperta: niente viene salvato sul disco.</p>
+                <h3 data-tip="{{ t('tip_sessione') }}">{{ t('sessione_titolo') }}</h3>
+                <div id="history-list"><p class="muted">{{ t('sessione_vuota') }}</p></div>
+                <p class="muted" style="margin-top:0.65rem">{{ t('sessione_nota') }}</p>
             </div>
 
             <details class="glass panel" id="watch">
                 <summary>
                     <svg class="panel-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                    Cartella automatica
+                    {{ t('watch_titolo') }}
                     <span class="panel-sub" id="watch-status"
-                          data-tip="Stato del monitoraggio e quanti file sono stati convertiti finora.">non attiva</span>
+                          data-tip="{{ t('tip_watch_stato') }}">{{ t('watch_non_attiva') }}</span>
                 </summary>
                 <div class="panel-body">
-                    <p class="muted" style="margin-top:0.15rem">
-                        Sorveglia una cartella al posto tuo: <strong>ogni file che ci trascini dentro
-                        viene convertito da solo</strong> e il <code>.md</code> compare nella cartella
-                        di uscita. Utile per convertire tanti documenti senza passare da questa pagina —
-                        ci pensa lui finché non premi «Ferma». Usa il profilo e le opzioni scelti qui sopra.
-                    </p>
-                    <p class="muted" id="watch-defaults-hint">
-                        Di default: <code>Documenti\Mr Rao\Da convertire</code> →
-                        <code>Documenti\Mr Rao\Convertiti</code> (create all'avvio se mancano).
-                    </p>
+                    {# |safe perche' il testo contiene <strong> e <code>: il valore
+                       viene dal nostro dizionario, mai da un documento convertito. #}
+                    <p class="muted" style="margin-top:0.15rem">{{ t('watch_intro')|safe }}</p>
+                    <p class="muted" id="watch-defaults-hint">{{ t('watch_predefinite')|safe }}</p>
                     <div class="settings-row">
                         <div class="field">
-                            <span class="field-label" data-tip="Ogni file che compare in questa cartella viene convertito.">Cartella da monitorare</span>
+                            <span class="field-label" data-tip="{{ t('tip_watch_inbox_etichetta') }}">{{ t('watch_inbox_etichetta') }}</span>
                             <div class="path-row">
                                 <input type="text" id="watch-inbox" class="input-text" readonly
-                                       placeholder="Scegli o usa la cartella predefinita"
-                                       data-tip="Percorso della cartella dove metterai i documenti da convertire. Usa «Sfoglia…» per sceglierla.">
+                                       placeholder="{{ t('watch_placeholder') }}"
+                                       data-tip="{{ t('tip_watch_inbox_campo') }}">
                                 <button type="button" class="btn" id="watch-browse-inbox"
-                                        data-tip="Apre la finestra di Windows per scegliere la cartella da monitorare.">Sfoglia…</button>
+                                        data-tip="{{ t('tip_sfoglia_inbox') }}">{{ t('sfoglia') }}</button>
                             </div>
                         </div>
                         <div class="field">
-                            <span class="field-label" data-tip="Dove finiscono i Markdown convertiti.">Dove salvare i .md</span>
+                            <span class="field-label" data-tip="{{ t('tip_watch_outbox_etichetta') }}">{{ t('watch_outbox_etichetta') }}</span>
                             <div class="path-row">
                                 <input type="text" id="watch-outbox" class="input-text" readonly
-                                       placeholder="Scegli o usa la cartella predefinita"
-                                       data-tip="Cartella di uscita dei file .md. Usa «Sfoglia…» per sceglierla.">
+                                       placeholder="{{ t('watch_placeholder') }}"
+                                       data-tip="{{ t('tip_watch_outbox_campo') }}">
                                 <button type="button" class="btn" id="watch-browse-outbox"
-                                        data-tip="Apre la finestra di Windows per scegliere dove salvare i .md.">Sfoglia…</button>
+                                        data-tip="{{ t('tip_sfoglia_outbox') }}">{{ t('sfoglia') }}</button>
                             </div>
                         </div>
                     </div>
                     <div class="opt-grid">
-                        <label class="opt" data-tip="A conversione fatta, sposta il documento originale in una sottocartella «done», così la cartella monitorata resta pulita e vedi a colpo d'occhio cosa manca ancora.">
+                        <label class="opt" data-tip="{{ t('tip_watch_move') }}">
                             <input type="checkbox" id="watch-move">
-                            <span class="opt-text"><span class="opt-title">Sposta gli originali in «done»</span><span class="opt-desc">Tiene pulita la cartella monitorata</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_watch_move_titolo') }}</span><span class="opt-desc">{{ t('opt_watch_move_desc') }}</span></span>
                         </label>
                     </div>
                     <div class="watch-actions">
                         <button type="button" class="btn btn-primary" id="watch-start"
-                                data-tip="Comincia a monitorare, usando il profilo e le opzioni impostati qui sopra.">Attiva monitoraggio</button>
+                                data-tip="{{ t('tip_watch_attiva') }}">{{ t('watch_attiva') }}</button>
                         <button type="button" class="btn" id="watch-stop"
-                                data-tip="Smette di monitorare. I file già convertiti restano dove sono.">Disattiva</button>
+                                data-tip="{{ t('tip_watch_disattiva') }}">{{ t('watch_disattiva') }}</button>
                     </div>
                 </div>
             </details>
@@ -379,16 +375,12 @@
         <div class="site-footer__brand">
             <strong>{{ app_name }}</strong> v{{ app_version }}
             <span class="site-footer__sep">·</span>
-            100% locale
+            {{ t('footer_locale') }}
             <span class="site-footer__sep">·</span>
-            zero cloud
+            {{ t('footer_cloud') }}
         </div>
-        <p class="site-footer__license">
-            Copyright © 2026 Rao — software libero sotto <strong>GNU AGPL-3.0</strong>,
-            fornito <strong>senza alcuna garanzia</strong>.
-            Sei libero di ridistribuirlo alle condizioni della licenza (vedi ⓘ).
-        </p>
-        <div class="footer-links" aria-label="Dipendenze open source">
+        <p class="site-footer__license">{{ t('footer_licenza')|safe }}</p>
+        <div class="footer-links" aria-label="{{ t('aria_dipendenze') }}">
             <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
             <a href="https://github.com/RapidAI/RapidOCR" target="_blank" rel="noopener">RapidOCR</a>
             <a href="https://github.com/pallets/flask" target="_blank" rel="noopener">Flask</a>
@@ -399,129 +391,94 @@
             <a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>
             <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener" title="LGPL-3.0">pystray (LGPL)</a>
         </div>
-        <p class="site-footer__lgpl">
-            Tray: <strong>pystray</strong> © Moses Palmér —
-            <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">sorgente</a>,
-            GNU LGPL v3 (testi in cartella <code>licenses/pystray/</code>).
-        </p>
+        <p class="site-footer__lgpl">{{ t('footer_lgpl')|safe }}</p>
         <div class="site-footer__actions">
             <button type="button" class="btn" id="open-about-footer"
-                    data-tip="Licenza Mr. Rao, elenco dipendenze e obblighi LGPL di pystray.">Licenza e dipendenze</button>
+                    data-tip="{{ t('tip_bottone_licenza') }}">{{ t('bottone_licenza') }}</button>
         </div>
     </footer>
 </div>
 
 <!-- Pulsante info fisso -->
-<button type="button" class="info-fab" id="open-about" aria-label="Informazioni, licenza e dipendenze"
-        data-tip="Trasparenza: dipendenze open source, repository e licenza di Mr. Rao.">i</button>
+<button type="button" class="info-fab" id="open-about" aria-label="{{ t('aria_info') }}"
+        data-tip="{{ t('tip_info') }}">i</button>
 
 <!-- Modal trasparenza -->
 <div class="modal-backdrop" id="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title" hidden>
     <div class="modal glass">
         <div class="modal__head">
             <div>
-                <div class="modal__title" id="about-title">Mr. Rao — trasparenza</div>
-                <p class="modal__sub">Dipendenze open source, repository e condizioni d’uso del progetto.</p>
+                <div class="modal__title" id="about-title">{{ t('about_titolo') }}</div>
+                <p class="modal__sub">{{ t('about_sub') }}</p>
             </div>
-            <button type="button" class="modal__close" id="close-about" aria-label="Chiudi">×</button>
+            <button type="button" class="modal__close" id="close-about" aria-label="{{ t('aria_chiudi') }}">×</button>
         </div>
 
         <div class="modal__section">
-            <h3>Licenza Mr. Rao</h3>
-            <div class="license-box">
-                Copyright © 2026 Rao<br><br>
-                Mr. Rao è <strong>software libero</strong> sotto
-                <strong>GNU Affero General Public License v3.0</strong>.
-                Puoi usarlo, studiarlo, modificarlo e ridistribuirlo — anche in ambito
-                professionale e commerciale — alle condizioni della licenza.<br><br>
-                <strong>Se lo offri ad altri attraverso una rete</strong>, l'articolo 13
-                dell'AGPL ti obbliga a mettere a disposizione degli utenti il codice
-                sorgente della tua versione. Usato in locale come qui, non cambia nulla.<br><br>
-                Distribuito <strong>SENZA ALCUNA GARANZIA</strong>, nemmeno implicita di
-                commerciabilità o idoneità a uno scopo particolare.<br><br>
-                Testo completo in <code>LICENSE</code> ·
-                <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">gnu.org/licenses/agpl-3.0</a><br>
-                I componenti di terzi restano sotto le <strong>loro</strong> licenze
-                (MIT, Apache-2.0, BSD, LGPL…): dettaglio in <code>THIRD_PARTY.md</code>.
-            </div>
+            <h3>{{ t('about_licenza_titolo') }}</h3>
+            <div class="license-box">{{ t('about_licenza_testo')|safe }}</div>
         </div>
 
         <div class="modal__section">
-            <h3>Dipendenze e repository</h3>
+            <h3>{{ t('about_dipendenze_titolo') }}</h3>
             <ul class="dep-list">
                 <li>
                     <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">MarkItDown</a>
                     <span class="dep-tag">MIT</span>
-                    <span class="dep-role">Conversione documenti Office/PDF → Markdown (Microsoft)</span>
+                    <span class="dep-role">{{ t('dep_markitdown') }}</span>
                 </li>
                 <li>
                     <a href="https://github.com/RapidAI/RapidOCR" target="_blank" rel="noopener">RapidOCR</a>
                     <span class="dep-tag">Apache-2.0</span>
-                    <span class="dep-role">OCR offline su immagini e PDF scansionati</span>
+                    <span class="dep-role">{{ t('dep_rapidocr') }}</span>
                 </li>
                 <li>
                     <a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a>
                     <span class="dep-tag">MIT</span>
-                    <span class="dep-role">Esecuzione modelli OCR / Magika</span>
+                    <span class="dep-role">{{ t('dep_onnx') }}</span>
                 </li>
                 <li>
                     <a href="https://github.com/pallets/flask" target="_blank" rel="noopener">Flask</a>
                     <span class="dep-tag">BSD-3</span>
-                    <span class="dep-role">Server web locale dell’interfaccia</span>
+                    <span class="dep-role">{{ t('dep_flask') }}</span>
                 </li>
                 <li>
                     <a href="https://www.crummy.com/software/BeautifulSoup/" target="_blank" rel="noopener">Beautiful Soup</a>
                     <span class="dep-tag">MIT</span>
-                    <span class="dep-role">HTML delle email → testo leggibile</span>
+                    <span class="dep-role">{{ t('dep_bs4') }}</span>
                 </li>
                 <li>
                     <a href="https://github.com/jsvine/pdfplumber" target="_blank" rel="noopener">pdfplumber</a>
                     <span class="dep-tag">MIT</span>
-                    <span class="dep-role">Tabelle PDF e rendering pagine per OCR</span>
+                    <span class="dep-role">{{ t('dep_pdfplumber') }}</span>
                 </li>
                 <li>
                     <a href="https://github.com/python-pillow/Pillow" target="_blank" rel="noopener">Pillow</a>
                     <span class="dep-tag">HPND</span>
-                    <span class="dep-role">Elaborazione immagini</span>
+                    <span class="dep-role">{{ t('dep_pillow') }}</span>
                 </li>
                 <li>
                     <a href="https://github.com/google/magika" target="_blank" rel="noopener">Magika</a>
                     <span class="dep-tag">Apache-2.0</span>
-                    <span class="dep-role">Riconoscimento tipo file (usato da MarkItDown)</span>
+                    <span class="dep-role">{{ t('dep_magika') }}</span>
                 </li>
                 <li>
                     <a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">pystray</a>
                     <span class="dep-tag dep-tag--warn">LGPL-3.0</span>
-                    <span class="dep-role">System tray © Moses Palmér — notice e testi in licenses/pystray/; sostituibile (docs/LGPL_PYSTRAY.md). Opzionale: MR_RAO_TRAY=0</span>
+                    <span class="dep-role">{{ t('dep_pystray') }}</span>
                 </li>
             </ul>
         </div>
 
         <div class="modal__section">
-            <h3>L'unica libreria LGPL</h3>
-            <div class="license-box">
-                <strong>pystray</strong> © 2016–2022 Moses Palmér — <strong>LGPL-3.0</strong> —
-                usata per l'icona nella barra di sistema
-                (<a href="https://github.com/moses-palmer/pystray" target="_blank" rel="noopener">sorgente</a>).
-                Testo di licenza, notice e istruzioni per sostituirla in
-                <code>licenses/pystray/</code>.<br><br>
-                Essendo Mr. Rao distribuito sotto AGPL-3.0 con il sorgente disponibile,
-                l'obbligo LGPL di permettere la sostituzione della libreria è soddisfatto
-                di conseguenza: hai già tutto il necessario per ricostruire il programma
-                con una versione diversa.
-            </div>
+            <h3>{{ t('about_lgpl_titolo') }}</h3>
+            <div class="license-box">{{ t('about_lgpl_testo')|safe }}</div>
         </div>
 
         <div class="modal__section">
-            <h3>Licenze permissive (MIT / Apache / BSD)</h3>
-            <p>
-                Consentono di costruire prodotti anche sopra le librerie, con attribuzione.
-                Mr. Rao limita solo il <strong>proprio</strong> codice/prodotto; le librerie restano libere.
-            </p>
-            <p style="margin-bottom:0">
-                Questo riquadro non è un parere legale. Uso commerciale di Mr. Rao: autorizzazione a Rao.
-                File: <code>LICENSE</code>, <code>THIRD_PARTY.md</code>, <code>licenses/</code>.
-            </p>
+            <h3>{{ t('about_permissive_titolo') }}</h3>
+            <p>{{ t('about_permissive_1')|safe }}</p>
+            <p style="margin-bottom:0">{{ t('about_permissive_2')|safe }}</p>
         </div>
     </div>
 </div>
@@ -530,7 +487,7 @@
 
 <div class="toast" id="toast" role="status">
     <span class="toast-icon" id="toast-icon">✅</span>
-    <span id="toast-msg">Operazione completata</span>
+    <span id="toast-msg">{{ t('toast_default') }}</span>
 </div>
 
 <script>window.MR_RAO_MAX_MB = {{ max_upload_mb }};</script>

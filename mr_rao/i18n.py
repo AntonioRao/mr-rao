@@ -125,6 +125,815 @@ TESTI: dict[str, dict[str, str]] = {
         "en": "Can't reach Mr. Rao. Check that the server is running.",
     },
     # ══════════════════════════════════════════════════════════════════
+    # La pagina.
+    #
+    # Alcuni di questi testi **descrivono i riconoscitori**, e li' la
+    # traduzione letterale direbbe una bugia: se il suggerimento inglese
+    # dicesse «a title in front (Dr., Eng.)» mentre il pacchetto italiano
+    # cerca `Dott.` e `Ing.`, l'interfaccia starebbe dichiarando il falso
+    # su cio' che il programma fa. Dove succede, l'inglese nomina
+    # *entrambi* i pacchetti o descrive il comportamento invece delle
+    # parole chiave. Sono segnati uno per uno qui sotto.
+    #
+    # Le virgolette basse italiane «…» diventano "…" in inglese.
+    # ══════════════════════════════════════════════════════════════════
+    "meta_descrizione": {
+        "it": "Mr. Rao converte documenti, immagini e email in Markdown. "
+              "100% offline, OCR, privacy IT.",
+        "en": "Mr. Rao turns documents, images and email into Markdown. "
+              "100% offline, OCR, personal data removed.",
+    },
+    # -- pastiglie sotto il titolo ---------------------------------------
+    "pill_offline": {"it": "Offline", "en": "Offline"},
+    "pill_anonimizza": {
+        "it": "Anonimizza nomi · indirizzi · codici",
+        "en": "Hides names · addresses · codes",
+    },
+    "pill_formati": {"it": "PDF · DOCX · XLSX", "en": "PDF · DOCX · XLSX"},
+    "pill_ocr": {"it": "OCR", "en": "OCR"},
+    "pill_eml": {"it": "Thread .eml", "en": ".eml threads"},
+    # -- 1. carica --------------------------------------------------------
+    "aria_carica_file": {"it": "Carica file", "en": "Load files"},
+    "tip_dropzone": {
+        "it": "Trascina qui uno o più file, oppure clicca per sceglierli. "
+              "Funziona anche da tastiera con Invio, e con <b>Ctrl+V</b> per "
+              "incollare un'immagine copiata (uno screenshot, per esempio).",
+        "en": "Drop one or more files here, or click to pick them. It works "
+              "from the keyboard too, with Enter, and with <b>Ctrl+V</b> to "
+              "paste a copied image (a screenshot, say).",
+    },
+    "tip_annulla": {
+        "it": "Interrompe la conversione in corso. Su un file singolo già "
+              "avviato può volerci qualche istante prima che si fermi davvero.",
+        "en": "Stops the conversion. On a single file already under way it can "
+              "take a moment before it really stops.",
+    },
+    # -- 2. imposta -------------------------------------------------------
+    "etichetta_profilo": {"it": "Profilo", "en": "Profile"},
+    "tip_profilo_etichetta": {
+        "it": "Una combinazione già pronta di tutte le opzioni. Scegli il "
+              "profilo che assomiglia al tuo lavoro e non pensare al resto: se "
+              "serve puoi ritoccare le singole voci in «Opzioni avanzate».",
+        "en": "A ready-made combination of every option. Pick the profile that "
+              "looks like your work and forget the rest: you can still adjust "
+              "individual settings under \"Advanced options\".",
+    },
+    "tip_profilo_scelte": {
+        "it": "<b>Predefinito</b> — buono per quasi tutto.<br>"
+              "<b>Email legali</b> — massima protezione dei dati personali, "
+              "testo pulito.<br>"
+              "<b>Fatture</b> — tiene le tabelle e lascia visibili gli importi.<br>"
+              "<b>Solo OCR</b> — per scansioni e foto di documenti.<br>"
+              "<b>Pronto per LLM</b> — testo da incollare in un assistente AI.<br>"
+              "<b>Nessuna redazione</b> — testo integrale, niente sostituzioni.",
+        "en": "<b>Default</b> — good for almost everything.<br>"
+              "<b>Legal email</b> — strongest protection of personal data, "
+              "cleaned-up text.<br>"
+              "<b>Invoices</b> — keeps the tables and leaves the figures "
+              "visible.<br>"
+              "<b>OCR only</b> — for scans and photographs of documents.<br>"
+              "<b>LLM-ready</b> — text to paste into an AI assistant.<br>"
+              "<b>No redaction</b> — the whole text, nothing replaced.",
+    },
+    "profilo_default": {"it": "Predefinito", "en": "Default"},
+    "profilo_email_legali": {"it": "Email legali", "en": "Legal email"},
+    "profilo_fatture": {
+        "it": "Fatture / contabili", "en": "Invoices / accounts",
+    },
+    "profilo_solo_ocr": {"it": "Solo OCR", "en": "OCR only"},
+    "profilo_llm_ready": {"it": "Pronto per LLM", "en": "LLM-ready"},
+    "profilo_no_privacy": {"it": "Nessuna redazione", "en": "No redaction"},
+    "hint_profilo_default": {
+        "it": "Va bene per quasi tutto: dati personali protetti, tabelle estratte.",
+        "en": "Fine for almost everything: personal data protected, tables "
+              "extracted.",
+    },
+    "hint_profilo_email_legali": {
+        "it": "Massima protezione dei dati; testo ripulito, pronto da condividere.",
+        "en": "Strongest protection; text cleaned up, ready to share.",
+    },
+    "hint_profilo_fatture": {
+        "it": "Tiene le tabelle e lascia visibili gli importi; nasconde CF, "
+              "P.IVA e IBAN.",
+        "en": "Keeps the tables and leaves the figures visible; hides codice "
+              "fiscale, VAT number and IBAN.",
+    },
+    "hint_profilo_solo_ocr": {
+        "it": "Legge il testo dalle immagini: per scansioni e foto di documenti.",
+        "en": "Reads text off images: for scans and photographs of documents.",
+    },
+    "hint_profilo_llm_ready": {
+        "it": "Testo essenziale con dati protetti, da incollare in un assistente AI.",
+        "en": "Bare text with personal data protected, to paste into an AI "
+              "assistant.",
+    },
+    "hint_profilo_no_privacy": {
+        "it": "Testo integrale, nessuna sostituzione. Usalo solo su questo computer.",
+        "en": "The whole text, nothing replaced. Use it only on this machine.",
+    },
+    "tip_interruttore_privacy": {
+        "it": "Sostituisce i dati personali con segnaposto tipo <b>{{EMAIL}}</b> "
+              "prima di consegnarti il Markdown. Serve soprattutto se poi "
+              "incolli il testo in un servizio online: quello che è stato tolto "
+              "lo vedi nella scheda «Confronto privacy».",
+        "en": "Replaces personal data with placeholders such as <b>{{EMAIL}}</b> "
+              "before handing you the Markdown. It matters most when the text "
+              "then goes into an online service: what was taken out is listed "
+              "under \"Privacy comparison\".",
+    },
+    "privacy_titolo": {
+        "it": "Nascondi i dati personali", "en": "Hide personal data",
+    },
+    "privacy_desc": {
+        "it": "Nomi, indirizzi, recapiti, codici, chiavi",
+        "en": "Names, addresses, contact details, codes, keys",
+    },
+    "aria_filtro_privacy": {
+        "it": "Attiva filtro privacy", "en": "Turn the privacy filter on",
+    },
+    "opzioni_avanzate": {"it": "Opzioni avanzate", "en": "Advanced options"},
+    "opzioni_avanzate_sub": {
+        "it": "lettura del file · dettaglio privacy · più file insieme",
+        "en": "how the file is read · privacy detail · several files at once",
+    },
+    "gruppo_lettura": {
+        "it": "Come viene letto il file", "en": "How the file is read",
+    },
+    "etichetta_metodo": {"it": "Metodo di lettura", "en": "Reading method"},
+    "tip_metodo_etichetta": {
+        "it": "Nel dubbio lascia Automatico: sceglie da solo e usa l'OCR solo "
+              "quando serve.",
+        "en": "When in doubt leave it on Automatic: it decides for itself and "
+              "only uses OCR when it has to.",
+    },
+    "tip_metodo_scelte": {
+        "it": "<b>Automatico</b> — legge il testo del documento; se non ne trova "
+              "(PDF scansionato) passa da solo all'OCR.<br>"
+              "<b>Forza OCR</b> — legge sempre l'immagine, riconoscendo il "
+              "testo. Più lento, ma è l'unica strada per scansioni e foto.<br>"
+              "<b>Solo testo nativo</b> — non usa mai l'OCR: se il documento non "
+              "contiene testo, il risultato è vuoto.",
+        "en": "<b>Automatic</b> — reads the document's own text; if there is "
+              "none (a scanned PDF) it moves to OCR by itself.<br>"
+              "<b>Force OCR</b> — always reads the image and recognises the "
+              "text. Slower, but the only route for scans and photographs.<br>"
+              "<b>Native text only</b> — never uses OCR: if the document holds "
+              "no text, the result is empty.",
+    },
+    "metodo_auto": {"it": "Automatico (consigliato)", "en": "Automatic (recommended)"},
+    "metodo_ocr": {
+        "it": "Forza OCR — scansioni e foto",
+        "en": "Force OCR — scans and photographs",
+    },
+    "metodo_nativo": {
+        "it": "Solo testo nativo — mai OCR", "en": "Native text only — never OCR",
+    },
+    "hint_ocr_locale": {
+        "it": "Il riconoscimento avviene sul tuo computer: nessun file esce da "
+              "qui, nessun modello viene scaricato. Il modello OCR è addestrato "
+              "sugli alfabeti latini, quindi legge italiano e inglese senza "
+              "doverlo impostare.",
+        "en": "Recognition happens on your own machine: no file leaves it, no "
+              "model is downloaded. The OCR model is trained on Latin scripts, "
+              "so it reads Italian and English without being told which.",
+    },
+    # I due suggerimenti sui pacchetti descrivono il pacchetto *stesso*:
+    # nominare le parole italiane sotto «Formati italiani» resta vero anche
+    # scrivendo in inglese.
+    "tip_pack_it": {
+        "it": "Codice fiscale, partita IVA, coordinate bancarie italiane, "
+              "indirizzi con via e piazza, telefoni e nomi italiani. Spegnilo "
+              "solo se lavori esclusivamente su documenti stranieri.",
+        "en": "Codice fiscale, VAT number, Italian bank details, addresses with "
+              "via and piazza, Italian phone numbers and names. Birth dates and "
+              "euro amounts come with this pack too. Turn it off only if you "
+              "work exclusively on documents from elsewhere.",
+    },
+    "tip_pack_en": {
+        "it": "SSN e ITIN statunitensi, National Insurance Number e NHS number "
+              "britannici, routing bancario, SIN canadese, ABN e TFN "
+              "australiani, indirizzi con Street e Road, e la zona a lettura "
+              "automatica dei passaporti.<br><br>Lasciarlo acceso su documenti "
+              "italiani non cambia nulla: questi riconoscitori pretendono una "
+              "punteggiatura precisa o una parola inglese a cui attaccarsi.",
+        "en": "US SSN and ITIN, UK National Insurance and NHS numbers, bank "
+              "routing numbers, Canadian SIN, Australian ABN and TFN, addresses "
+              "with Street and Road, and the machine-readable zone of "
+              "passports.<br><br>Leaving it on for Italian documents changes "
+              "nothing: these detectors want precise punctuation or an English "
+              "word to hold on to.",
+    },
+    # Le cifre restano quelle misurate. Gli esempi sono etichette di moduli
+    # italiani, e in inglese lo si dice invece di tradurle: sono il testo che
+    # il riconoscitore ha davvero incontrato.
+    "tip_tipo_documento": {
+        "it": "Su una lettera, due parole maiuscole di cui una risulta negli "
+              "elenchi sono quasi sempre una persona. Su un modulo sono quasi "
+              "sempre l'etichetta di un campo — «Imposta Lorda», «Quadro RN»."
+              "<br><br>Misurato: pretendere due riscontri toglie 2739 "
+              "sostituzioni sbagliate sui moduli e costa 609 nomi sulle "
+              "lettere. Non esiste un valore giusto per entrambi, quindi si "
+              "sceglie.<br><br><b>Automatico</b> lo deduce dal file: le email "
+              "sono prosa, i fogli di calcolo sono moduli, e nei PDF si contano "
+              "le caselle disegnate. Sulle scansioni non si puo' dedurre e "
+              "vince la prudenza. Cambialo se il documento ti sembra "
+              "classificato male.",
+        "en": "In a letter, two capitalised words with one of them on the name "
+              "lists are almost always a person. In a form they are almost "
+              "always a field label — on an Italian form, \"Imposta Lorda\" or "
+              "\"Quadro RN\".<br><br>Measured: demanding two matches removes "
+              "2739 wrong replacements on forms and costs 609 names in letters. "
+              "No single value is right for both, so it is a choice."
+              "<br><br><b>Automatic</b> works it out from the file: email is "
+              "prose, spreadsheets are forms, and in a PDF the drawn boxes are "
+              "counted. On a scan there is nothing to count and caution wins. "
+              "Change it if a document looks wrongly classified.",
+    },
+    # -- quali dati nascondere ---------------------------------------------
+    "tip_emails": {
+        "it": "Ogni indirizzo email diventa {{EMAIL}}.",
+        "en": "Every email address becomes {{EMAIL}}.",
+    },
+    "opt_emails_titolo": {"it": "Email", "en": "Email"},
+    "opt_emails_desc": {"it": "Indirizzi di posta", "en": "Email addresses"},
+    "tip_phones": {
+        "it": "Numeri di telefono fissi e cellulari. I numeri che non sembrano "
+              "telefoni (protocolli, codici) vengono lasciati stare.",
+        "en": "Landline and mobile numbers. Numbers that do not look like phone "
+              "numbers — protocol numbers, reference codes — are left alone.",
+    },
+    "opt_phones_titolo": {"it": "Telefoni", "en": "Phone numbers"},
+    "opt_phones_desc": {"it": "Fissi e cellulari", "en": "Landline and mobile"},
+    # Riscritto, non tradotto: «Dott., Ing., Geom.» sono le abbreviazioni che
+    # il pacchetto italiano cerca davvero. Renderle «Dr., Eng.» avrebbe fatto
+    # dire all'interfaccia una cosa falsa su cosa il programma riconosce.
+    "tip_names": {
+        "it": "Nomi e cognomi. Oltre all'elenco dei nomi italiani valgono le "
+              "regole di contesto: un titolo davanti (Dott., Ing., Geom.) e il "
+              "nome scritto accanto a un indirizzo email.",
+        "en": "First names and surnames. The Italian pack works from a list of "
+              "Italian names plus context: an Italian title in front (Dott., "
+              "Ing., Geom.) or a name written next to an email address. The "
+              "English pack has no list and goes by context alone — a title "
+              "(Mr, Mrs, Dr, Prof), a \"Dear …\" opening, or a sign-off such as "
+              "\"Kind regards\".",
+    },
+    "opt_names_titolo": {"it": "Nomi", "en": "Names"},
+    "opt_names_desc": {
+        "it": "Nomi e cognomi di persona", "en": "People's names and surnames",
+    },
+    # Riscritto: la regola confronta con il vocabolario **italiano**, e gli
+    # esempi sono etichette di moduli italiani. In inglese va detto, o
+    # sembrerebbe una regola che vale su qualunque documento.
+    "tip_name_guess": {
+        "it": "Due parole maiuscole di fila che non sono parole italiane spesso "
+              "sono nome e cognome, anche quando il cognome non sta in nessun "
+              "elenco. È la regola che copre i cognomi rari.<br><br><b>Spenta "
+              "di default, e per un motivo misurato:</b> su venti moduli "
+              "dell'Agenzia delle Entrate in bianco — che non contengono un "
+              "solo dato personale — produceva 8904 sostituzioni sbagliate, "
+              "mangiando «Redditi Persone Fisiche», «Quadro RN», «Imposta "
+              "Lorda».<br><br>Accendila su lettere e contratti, dove le "
+              "denominazioni sono poche. Tienila spenta su moduli, verbali e "
+              "documenti amministrativi.",
+        "en": "Two capitalised words in a row that are not ordinary Italian "
+              "words are often a first name and a surname, even when the "
+              "surname is on no list. It is the rule that covers rare surnames "
+              "— and it belongs to the Italian pack, so it is Italian "
+              "vocabulary it checks against.<br><br><b>Off by default, for a "
+              "measured reason:</b> on twenty blank forms from the Italian tax "
+              "office — which hold not one piece of personal data — it produced "
+              "8904 wrong replacements, eating \"Redditi Persone Fisiche\", "
+              "\"Quadro RN\", \"Imposta Lorda\".<br><br>Switch it on for "
+              "letters and contracts, where proper nouns are few. Leave it off "
+              "for forms, minutes and administrative documents.",
+    },
+    "opt_name_guess_titolo": {
+        "it": "Deduci i cognomi sconosciuti", "en": "Guess unknown surnames",
+    },
+    "opt_name_guess_desc": {
+        "it": "Regola aggressiva: spenta di default",
+        "en": "Aggressive rule: off by default",
+    },
+    # Riscritto: le parole italiane «via, piazza, corso» sono meta' del
+    # riconoscitore; l'altra meta' e' inglese e pretende il civico davanti.
+    # Tradurre solo le prime avrebbe descritto un programma diverso.
+    "tip_addresses": {
+        "it": "Via, viale, piazza, corso, largo, contrada... con il nome della "
+              "strada, il civico e, se c'è, CAP e comune.",
+        "en": "Italian formats: via, viale, piazza, corso, largo, contrada… "
+              "followed by the street name, the number and, where there is one, "
+              "the postcode and town. English formats: a house number in front "
+              "of Street, Road, Avenue, Lane and the like, with a UK postcode "
+              "or a US ZIP if present.",
+    },
+    "opt_addresses_titolo": {"it": "Indirizzi", "en": "Addresses"},
+    "opt_addresses_desc": {
+        "it": "Vie, piazze, civici, CAP",
+        "en": "Streets, squares, numbers, postcodes",
+    },
+    "tip_urls": {
+        "it": "Collegamenti che iniziano con http, https o www. Un link porta "
+              "con sé il dominio dell'azienda e spesso un identificativo di "
+              "pratica nella parte finale.",
+        "en": "Links starting with http, https or www. A link carries the "
+              "company's domain with it, and often a case reference at the end.",
+    },
+    "opt_urls_titolo": {"it": "Indirizzi web", "en": "Web addresses"},
+    "opt_urls_desc": {"it": "http, https, www.", "en": "http, https, www."},
+    # Riscritto: quali codici vengano cercati dipende dai pacchetti accesi
+    # sopra. L'elenco italiano da solo sarebbe incompleto in inglese.
+    "tip_fiscal": {
+        "it": "Gli IBAN sono verificati col calcolo di controllo e le carte di "
+              "pagamento con quello di Luhn, così un codice a caso non viene "
+              "scambiato per un conto corrente.",
+        "en": "IBANs are checked with their check digits and payment cards with "
+              "the Luhn calculation, so a stray code is not mistaken for an "
+              "account. Which codes are looked for depends on the packs above: "
+              "codice fiscale, VAT number and BBAN from the Italian one; SSN, "
+              "NINO, NHS number and the rest from the English one.",
+    },
+    "opt_fiscal_titolo": {
+        "it": "Codici fiscali e bancari", "en": "Tax and bank codes",
+    },
+    "opt_fiscal_desc": {
+        "it": "Codice fiscale, P.IVA, IBAN, carte",
+        "en": "Codice fiscale, VAT no., IBAN, cards",
+    },
+    "tip_secrets": {
+        "it": "Chiavi API, token, password scritte accanto alla loro etichetta e "
+              "blocchi di chiave privata. Sono i dati che non ci si accorge di "
+              "aver incollato.",
+        "en": "API keys, tokens, passwords written next to their label, and "
+              "private-key blocks. These are the ones you do not notice having "
+              "pasted.",
+    },
+    "opt_secrets_titolo": {"it": "Chiavi e password", "en": "Keys and passwords"},
+    "opt_secrets_desc": {
+        "it": "Token, API key, credenziali", "en": "Tokens, API keys, credentials",
+    },
+    # Riscritto: il riconoscitore accetta anche «born» e «DOB», e viaggia col
+    # pacchetto italiano. Entrambe le cose in inglese vanno dette.
+    "tip_dates": {
+        "it": "Spento di default: verrebbero tolte anche le date che servono. "
+              "Attivo, sostituisce solo le date scritte accanto a «nato il», "
+              "«data di nascita» e simili.",
+        "en": "Off by default: it would take out dates you need. Switched on, it "
+              "only replaces dates written next to a birth word — \"born\", "
+              "\"DOB\", or the Italian \"nato il\" and \"data di nascita\". It "
+              "comes with the Italian formats pack.",
+    },
+    "opt_dates_titolo": {"it": "Date di nascita", "en": "Dates of birth"},
+    "opt_dates_desc": {
+        "it": "Solo con contesto di nascita", "en": "Only in a birth context",
+    },
+    # Riscritto: il riconoscitore vede l'euro e le parole di una fattura
+    # italiana. «Amounts» avrebbe promesso sterline e dollari che non arrivano.
+    "tip_amounts": {
+        "it": "Spento di default: nelle fatture gli importi di solito servono. "
+              "Attivalo se vuoi condividere un documento senza mostrarne le "
+              "cifre.",
+        "en": "Off by default: on an invoice the figures are usually the point. "
+              "Switch it on to share a document without its numbers. It "
+              "recognises euro amounts only — a € sign, EUR, or an Italian "
+              "invoice word beside the figure — so pounds and dollars are left "
+              "alone. It comes with the Italian formats pack.",
+    },
+    "opt_amounts_titolo": {"it": "Importi in euro", "en": "Euro amounts"},
+    "opt_amounts_desc": {"it": "Cifre e totali", "en": "Figures and totals"},
+    "tip_include_raw": {
+        "it": "Conserva anche il testo originale, così nella scheda «Confronto "
+              "privacy» puoi vedere esattamente cosa è stato sostituito. Se lo "
+              "spegni risparmi memoria ma perdi quel controllo.",
+        "en": "Keeps the original text as well, so the \"Privacy comparison\" "
+              "tab can show exactly what was replaced. Turning it off saves "
+              "memory but loses that check.",
+    },
+    "opt_include_raw_titolo": {
+        "it": "Permetti il confronto prima/dopo",
+        "en": "Allow the before/after comparison",
+    },
+    "opt_include_raw_desc": {
+        "it": "Abilita la scheda di verifica", "en": "Enables the checking tab",
+    },
+    "hint_privacy_spenta": {
+        "it": "Il filtro è spento: il Markdown conterrà i dati personali così "
+              "come sono nel documento.",
+        "en": "The filter is off: the Markdown will carry the personal data "
+              "exactly as the document has it.",
+    },
+    # -- cosa mettere nel Markdown ------------------------------------------
+    "gruppo_contenuto": {
+        "it": "Cosa mettere nel Markdown", "en": "What goes into the Markdown",
+    },
+    "tip_include_tables": {
+        "it": "Cerca le tabelle dentro i PDF e le riscrive come tabelle "
+              "Markdown, invece di sfilacciarle in righe di testo. Su PDF molto "
+              "lunghi rallenta un po'.",
+        "en": "Finds the tables inside PDFs and rewrites them as Markdown "
+              "tables, instead of fraying them into lines of text. On very long "
+              "PDFs it slows things down a little.",
+    },
+    "opt_tables_titolo": {
+        "it": "Estrai le tabelle dai PDF", "en": "Extract tables from PDFs",
+    },
+    "opt_tables_desc": {
+        "it": "Le ricostruisce come tabelle vere", "en": "Rebuilt as real tables",
+    },
+    "tip_frontmatter": {
+        "it": "Utile per archiviare, inutile se devi solo incollare il testo da "
+              "qualche parte.",
+        "en": "Useful for filing, pointless if you only need to paste the text "
+              "somewhere.",
+    },
+    "opt_frontmatter_titolo": {
+        "it": "Scheda informativa in cima", "en": "Information block at the top",
+    },
+    "opt_frontmatter_desc": {
+        "it": "Origine, data, sostituzioni fatte",
+        "en": "Source, date, replacements made",
+    },
+    "tip_clean": {
+        "it": "Toglie note a piè di pagina e commenti tecnici, lasciando solo il "
+              "contenuto. Comodo quando il testo va incollato in un assistente AI.",
+        "en": "Removes footnotes and technical comments, leaving only the "
+              "content. Handy when the text is going into an AI assistant.",
+    },
+    "opt_clean_titolo": {
+        "it": "Togli le note tecniche", "en": "Drop the technical notes",
+    },
+    "opt_clean_desc": {
+        "it": "Solo il contenuto, niente commenti",
+        "en": "Content only, no comments",
+    },
+    # -- più file insieme ----------------------------------------------------
+    "gruppo_piu_file": {
+        "it": "Quando carichi più file insieme",
+        "en": "When you load several files at once",
+    },
+    "tip_merge": {
+        "it": "Senza questa spunta ottieni un risultato separato per ciascun file.",
+        "en": "Without this ticked you get a separate result for each file.",
+    },
+    "opt_merge_titolo": {
+        "it": "Unisci in un solo documento", "en": "Merge into one document",
+    },
+    "opt_merge_desc": {"it": "Invece di uno per file", "en": "Instead of one each"},
+    "tip_compare": {
+        "it": "Prende esattamente 2 file e li mette uno sotto l'altro come "
+              "«Documento A» e «Documento B», per confrontarli a colpo d'occhio.",
+        "en": "Takes exactly 2 files and puts one under the other as \"Document "
+              "A\" and \"Document B\", to compare them at a glance.",
+    },
+    "opt_compare_titolo": {
+        "it": "Metti 2 file a confronto", "en": "Compare 2 files",
+    },
+    "opt_compare_desc": {
+        "it": "Esattamente due, uno sotto l'altro",
+        "en": "Exactly two, one under the other",
+    },
+    # -- 3. risultato --------------------------------------------------------
+    "risultato_titolo": {"it": "Risultato Markdown", "en": "Markdown result"},
+    "tip_badge_redazioni": {
+        "it": "Quanti dati personali sono stati sostituiti con segnaposto. Apri "
+              "«Confronto privacy» per vedere quali.<br><br>Se compare <b>«da "
+              "controllare»</b>, nel testo è rimasto qualcosa che <i>somiglia</i> "
+              "a un dato personale ma non ha superato il controllo — tipicamente "
+              "un codice storpiato dall'OCR. Non è stato sostituito perché non "
+              "c'era certezza: passaci l'occhio.",
+        "en": "How many pieces of personal data were replaced with placeholders. "
+              "Open \"Privacy comparison\" to see which.<br><br>If <b>\"to "
+              "review\"</b> appears, something in the text <i>looks</i> like "
+              "personal data but did not pass the check — typically a code the "
+              "OCR mangled. It was left alone because there was no certainty: "
+              "give it a look.",
+    },
+    "tip_copia": {
+        "it": "Copia tutto negli appunti, scheda informativa compresa.",
+        "en": "Copies everything to the clipboard, information block included.",
+    },
+    "tip_copia_pulita": {
+        "it": "Copia solo il contenuto: via la scheda informativa in cima e le "
+              "note tecniche. È la versione da incollare in un assistente AI o "
+              "in una mail.",
+        "en": "Copies the content only: no information block at the top, no "
+              "technical notes. This is the version to paste into an AI "
+              "assistant or an email.",
+    },
+    "scarica_txt": {"it": ".txt", "en": ".txt"},
+    "tip_scarica_txt": {
+        "it": "Scarica come testo semplice .txt, senza formattazione Markdown.",
+        "en": "Downloads as plain .txt, with no Markdown formatting.",
+    },
+    "tip_scarica_md": {
+        "it": "Scarica il file Markdown. Puoi anche <b>trascinare questo "
+              "pulsante</b> direttamente sul Desktop o in una cartella.",
+        "en": "Downloads the Markdown file. You can also <b>drag this "
+              "button</b> straight onto the desktop or into a folder.",
+    },
+    "tip_scheda_testo": {
+        "it": "Il Markdown come viene salvato nel file, simboli compresi.",
+        "en": "The Markdown as it is saved to the file, symbols included.",
+    },
+    "tip_scheda_anteprima": {
+        "it": "Come apparirà una volta formattato, con titoli e grassetti al "
+              "posto dei simboli.",
+        "en": "How it will look once formatted, with headings and bold in place "
+              "of the symbols.",
+    },
+    "tip_scheda_confronto": {
+        "it": "Mostra il testo prima e dopo la protezione dei dati, con i "
+              "segnaposto evidenziati: così controlli cosa è stato tolto — e "
+              "cosa è sfuggito.",
+        "en": "Shows the text before and after the data was protected, with the "
+              "placeholders highlighted: so you can check what was taken out — "
+              "and what slipped through.",
+    },
+    "output_barra": {
+        "it": "markdown · trascina il bottone .md sul Desktop",
+        "en": "markdown · drag the .md button onto the desktop",
+    },
+    # -- 4. extra -------------------------------------------------------------
+    "sessione_titolo": {
+        "it": "Conversioni di questa sessione", "en": "This session's conversions",
+    },
+    "tip_sessione": {
+        "it": "Le conversioni fatte da quando hai aperto questa pagina. Clicca "
+              "una voce per rivederne il risultato.",
+        "en": "The conversions made since you opened this page. Click an entry "
+              "to see its result again.",
+    },
+    "sessione_vuota": {
+        "it": "Nessuna conversione in questa sessione.",
+        "en": "No conversions in this session.",
+    },
+    "sessione_nota": {
+        "it": "Restano solo finché la pagina è aperta: niente viene salvato sul "
+              "disco.",
+        "en": "They last only while the page is open: nothing is written to disk.",
+    },
+    "watch_titolo": {"it": "Cartella automatica", "en": "Watched folder"},
+    "tip_watch_stato": {
+        "it": "Stato del monitoraggio e quanti file sono stati convertiti finora.",
+        "en": "Whether the folder is being watched, and how many files have been "
+              "converted so far.",
+    },
+    "watch_non_attiva": {"it": "non attiva", "en": "not running"},
+    "watch_intro": {
+        "it": "Sorveglia una cartella al posto tuo: <strong>ogni file che ci "
+              "trascini dentro viene convertito da solo</strong> e il "
+              "<code>.md</code> compare nella cartella di uscita. Utile per "
+              "convertire tanti documenti senza passare da questa pagina — ci "
+              "pensa lui finché non premi «Ferma». Usa il profilo e le opzioni "
+              "scelti qui sopra.",
+        "en": "Watches a folder for you: <strong>every file you drop in there "
+              "gets converted on its own</strong> and the <code>.md</code> "
+              "appears in the output folder. Useful for converting many "
+              "documents without coming through this page — it carries on until "
+              "you stop it. It uses the profile and options chosen above.",
+    },
+    "watch_predefinite": {
+        "it": "Di default: <code>Documenti\\Mr Rao\\Da convertire</code> → "
+              "<code>Documenti\\Mr Rao\\Convertiti</code> (create all'avvio se "
+              "mancano).",
+        "en": "By default: <code>Documents\\Mr Rao\\Da convertire</code> → "
+              "<code>Documents\\Mr Rao\\Convertiti</code> (created on start-up "
+              "if missing).",
+    },
+    "watch_inbox_etichetta": {
+        "it": "Cartella da monitorare", "en": "Folder to watch",
+    },
+    "tip_watch_inbox_etichetta": {
+        "it": "Ogni file che compare in questa cartella viene convertito.",
+        "en": "Every file that turns up in this folder gets converted.",
+    },
+    "watch_placeholder": {
+        "it": "Scegli o usa la cartella predefinita",
+        "en": "Pick one, or use the default folder",
+    },
+    "tip_watch_inbox_campo": {
+        "it": "Percorso della cartella dove metterai i documenti da convertire. "
+              "Usa «Sfoglia…» per sceglierla.",
+        "en": "Path of the folder where you will put the documents to convert. "
+              "Use \"Browse…\" to pick it.",
+    },
+    "sfoglia": {"it": "Sfoglia…", "en": "Browse…"},
+    "tip_sfoglia_inbox": {
+        "it": "Apre la finestra di Windows per scegliere la cartella da monitorare.",
+        "en": "Opens the Windows dialogue to choose the folder to watch.",
+    },
+    "watch_outbox_etichetta": {
+        "it": "Dove salvare i .md", "en": "Where to save the .md files",
+    },
+    "tip_watch_outbox_etichetta": {
+        "it": "Dove finiscono i Markdown convertiti.",
+        "en": "Where the converted Markdown ends up.",
+    },
+    "tip_watch_outbox_campo": {
+        "it": "Cartella di uscita dei file .md. Usa «Sfoglia…» per sceglierla.",
+        "en": "Output folder for the .md files. Use \"Browse…\" to pick it.",
+    },
+    "tip_sfoglia_outbox": {
+        "it": "Apre la finestra di Windows per scegliere dove salvare i .md.",
+        "en": "Opens the Windows dialogue to choose where to save the .md files.",
+    },
+    "tip_watch_move": {
+        "it": "A conversione fatta, sposta il documento originale in una "
+              "sottocartella «done», così la cartella monitorata resta pulita e "
+              "vedi a colpo d'occhio cosa manca ancora.",
+        "en": "Once converted, moves the original document into a \"done\" "
+              "subfolder, so the watched folder stays clean and you can see at "
+              "a glance what is still to do.",
+    },
+    "opt_watch_move_titolo": {
+        "it": "Sposta gli originali in «done»",
+        "en": "Move originals into \"done\"",
+    },
+    "opt_watch_move_desc": {
+        "it": "Tiene pulita la cartella monitorata",
+        "en": "Keeps the watched folder clean",
+    },
+    "watch_attiva": {"it": "Attiva monitoraggio", "en": "Start watching"},
+    "tip_watch_attiva": {
+        "it": "Comincia a monitorare, usando il profilo e le opzioni impostati "
+              "qui sopra.",
+        "en": "Starts watching, using the profile and options set above.",
+    },
+    "watch_disattiva": {"it": "Disattiva", "en": "Stop"},
+    "tip_watch_disattiva": {
+        "it": "Smette di monitorare. I file già convertiti restano dove sono.",
+        "en": "Stops watching. Files already converted stay where they are.",
+    },
+    # -- piede di pagina -------------------------------------------------------
+    "footer_locale": {"it": "100% locale", "en": "100% local"},
+    "footer_cloud": {"it": "zero cloud", "en": "no cloud"},
+    "footer_licenza": {
+        "it": "Copyright © 2026 Rao — software libero sotto <strong>GNU "
+              "AGPL-3.0</strong>, fornito <strong>senza alcuna garanzia</strong>. "
+              "Sei libero di ridistribuirlo alle condizioni della licenza (vedi ⓘ).",
+        "en": "Copyright © 2026 Rao — free software under <strong>GNU "
+              "AGPL-3.0</strong>, provided <strong>with no warranty "
+              "whatsoever</strong>. You may redistribute it under the terms of "
+              "the licence (see ⓘ).",
+    },
+    "aria_dipendenze": {
+        "it": "Dipendenze open source", "en": "Open source dependencies",
+    },
+    "footer_lgpl": {
+        "it": "Tray: <strong>pystray</strong> © Moses Palmér — "
+              "<a href=\"https://github.com/moses-palmer/pystray\" "
+              "target=\"_blank\" rel=\"noopener\">sorgente</a>, GNU LGPL v3 "
+              "(testi in cartella <code>licenses/pystray/</code>).",
+        "en": "Tray icon: <strong>pystray</strong> © Moses Palmér — "
+              "<a href=\"https://github.com/moses-palmer/pystray\" "
+              "target=\"_blank\" rel=\"noopener\">source</a>, GNU LGPL v3 "
+              "(texts in the <code>licenses/pystray/</code> folder).",
+    },
+    "bottone_licenza": {
+        "it": "Licenza e dipendenze", "en": "Licence and dependencies",
+    },
+    "tip_bottone_licenza": {
+        "it": "Licenza Mr. Rao, elenco dipendenze e obblighi LGPL di pystray.",
+        "en": "Mr. Rao's licence, the list of dependencies, and pystray's LGPL "
+              "obligations.",
+    },
+    "aria_info": {
+        "it": "Informazioni, licenza e dipendenze",
+        "en": "About, licence and dependencies",
+    },
+    "tip_info": {
+        "it": "Trasparenza: dipendenze open source, repository e licenza di Mr. Rao.",
+        "en": "Transparency: open source dependencies, repositories and Mr. Rao's "
+              "licence.",
+    },
+    # -- riquadro trasparenza ---------------------------------------------------
+    "about_titolo": {"it": "Mr. Rao — trasparenza", "en": "Mr. Rao — transparency"},
+    "about_sub": {
+        "it": "Dipendenze open source, repository e condizioni d’uso del progetto.",
+        "en": "Open source dependencies, repositories and the project's terms of "
+              "use.",
+    },
+    "aria_chiudi": {"it": "Chiudi", "en": "Close"},
+    "about_licenza_titolo": {"it": "Licenza Mr. Rao", "en": "Mr. Rao's licence"},
+    "about_licenza_testo": {
+        "it": "Copyright © 2026 Rao<br><br>Mr. Rao è <strong>software "
+              "libero</strong> sotto <strong>GNU Affero General Public License "
+              "v3.0</strong>. Puoi usarlo, studiarlo, modificarlo e "
+              "ridistribuirlo — anche in ambito professionale e commerciale — "
+              "alle condizioni della licenza.<br><br><strong>Se lo offri ad "
+              "altri attraverso una rete</strong>, l'articolo 13 dell'AGPL ti "
+              "obbliga a mettere a disposizione degli utenti il codice sorgente "
+              "della tua versione. Usato in locale come qui, non cambia nulla."
+              "<br><br>Distribuito <strong>SENZA ALCUNA GARANZIA</strong>, "
+              "nemmeno implicita di commerciabilità o idoneità a uno scopo "
+              "particolare.<br><br>Testo completo in <code>LICENSE</code> · "
+              "<a href=\"https://www.gnu.org/licenses/agpl-3.0.html\" "
+              "target=\"_blank\" rel=\"noopener\">gnu.org/licenses/agpl-3.0</a>"
+              "<br>I componenti di terzi restano sotto le <strong>loro</strong> "
+              "licenze (MIT, Apache-2.0, BSD, LGPL…): dettaglio in "
+              "<code>THIRD_PARTY.md</code>.",
+        "en": "Copyright © 2026 Rao<br><br>Mr. Rao is <strong>free "
+              "software</strong> under the <strong>GNU Affero General Public "
+              "License v3.0</strong>. You may use it, study it, modify it and "
+              "redistribute it — professionally and commercially included — "
+              "under the terms of the licence.<br><br><strong>If you offer it "
+              "to others over a network</strong>, article 13 of the AGPL "
+              "requires you to make the source code of your version available "
+              "to those users. Run locally, as here, nothing changes.<br><br>"
+              "Distributed <strong>WITH NO WARRANTY WHATSOEVER</strong>, not "
+              "even the implied warranty of merchantability or fitness for a "
+              "particular purpose.<br><br>Full text in <code>LICENSE</code> · "
+              "<a href=\"https://www.gnu.org/licenses/agpl-3.0.html\" "
+              "target=\"_blank\" rel=\"noopener\">gnu.org/licenses/agpl-3.0</a>"
+              "<br>Third-party components stay under <strong>their own</strong> "
+              "licences (MIT, Apache-2.0, BSD, LGPL…): detail in "
+              "<code>THIRD_PARTY.md</code>.",
+    },
+    "about_dipendenze_titolo": {
+        "it": "Dipendenze e repository", "en": "Dependencies and repositories",
+    },
+    "dep_markitdown": {
+        "it": "Conversione documenti Office/PDF → Markdown (Microsoft)",
+        "en": "Office/PDF documents → Markdown (Microsoft)",
+    },
+    "dep_rapidocr": {
+        "it": "OCR offline su immagini e PDF scansionati",
+        "en": "Offline OCR on images and scanned PDFs",
+    },
+    "dep_onnx": {
+        "it": "Esecuzione modelli OCR / Magika", "en": "Runs the OCR / Magika models",
+    },
+    "dep_flask": {
+        "it": "Server web locale dell’interfaccia",
+        "en": "The interface's local web server",
+    },
+    "dep_bs4": {
+        "it": "HTML delle email → testo leggibile",
+        "en": "Email HTML → readable text",
+    },
+    "dep_pdfplumber": {
+        "it": "Tabelle PDF e rendering pagine per OCR",
+        "en": "PDF tables, and rendering pages for OCR",
+    },
+    "dep_pillow": {"it": "Elaborazione immagini", "en": "Image processing"},
+    "dep_magika": {
+        "it": "Riconoscimento tipo file (usato da MarkItDown)",
+        "en": "File-type recognition (used by MarkItDown)",
+    },
+    "dep_pystray": {
+        "it": "System tray © Moses Palmér — notice e testi in licenses/pystray/; "
+              "sostituibile (docs/LGPL_PYSTRAY.md). Opzionale: MR_RAO_TRAY=0",
+        "en": "System tray © Moses Palmér — notice and texts in "
+              "licenses/pystray/; replaceable (docs/LGPL_PYSTRAY.md). Optional: "
+              "MR_RAO_TRAY=0",
+    },
+    "about_lgpl_titolo": {
+        "it": "L'unica libreria LGPL", "en": "The one LGPL library",
+    },
+    "about_lgpl_testo": {
+        "it": "<strong>pystray</strong> © 2016–2022 Moses Palmér — "
+              "<strong>LGPL-3.0</strong> — usata per l'icona nella barra di "
+              "sistema (<a href=\"https://github.com/moses-palmer/pystray\" "
+              "target=\"_blank\" rel=\"noopener\">sorgente</a>). Testo di "
+              "licenza, notice e istruzioni per sostituirla in "
+              "<code>licenses/pystray/</code>.<br><br>Essendo Mr. Rao "
+              "distribuito sotto AGPL-3.0 con il sorgente disponibile, "
+              "l'obbligo LGPL di permettere la sostituzione della libreria è "
+              "soddisfatto di conseguenza: hai già tutto il necessario per "
+              "ricostruire il programma con una versione diversa.",
+        "en": "<strong>pystray</strong> © 2016–2022 Moses Palmér — "
+              "<strong>LGPL-3.0</strong> — used for the system tray icon "
+              "(<a href=\"https://github.com/moses-palmer/pystray\" "
+              "target=\"_blank\" rel=\"noopener\">source</a>). Licence text, "
+              "notice and instructions for replacing it are in "
+              "<code>licenses/pystray/</code>.<br><br>Since Mr. Rao is "
+              "distributed under AGPL-3.0 with its source available, the LGPL "
+              "obligation to allow the library to be replaced is met as a "
+              "consequence: you already have everything needed to rebuild the "
+              "program against a different version.",
+    },
+    "about_permissive_titolo": {
+        "it": "Licenze permissive (MIT / Apache / BSD)",
+        "en": "Permissive licences (MIT / Apache / BSD)",
+    },
+    "about_permissive_1": {
+        "it": "Consentono di costruire prodotti anche sopra le librerie, con "
+              "attribuzione. Mr. Rao limita solo il <strong>proprio</strong> "
+              "codice/prodotto; le librerie restano libere.",
+        "en": "They allow products to be built on top of the libraries, with "
+              "attribution. Mr. Rao restricts only <strong>its own</strong> "
+              "code and product; the libraries stay free.",
+    },
+    "about_permissive_2": {
+        "it": "Questo riquadro non è un parere legale. Uso commerciale di Mr. "
+              "Rao: autorizzazione a Rao. File: <code>LICENSE</code>, "
+              "<code>THIRD_PARTY.md</code>, <code>licenses/</code>.",
+        "en": "This panel is not legal advice. Commercial use of Mr. Rao: ask "
+              "Rao. Files: <code>LICENSE</code>, <code>THIRD_PARTY.md</code>, "
+              "<code>licenses/</code>.",
+    },
+    "toast_default": {"it": "Operazione completata", "en": "Done"},
+    # ══════════════════════════════════════════════════════════════════
     # Testo che finisce DENTRO il Markdown prodotto.
     #
     # Non e' interfaccia, e' il documento: la lingua la porta il lavoro di
