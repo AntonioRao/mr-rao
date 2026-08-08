@@ -57,7 +57,9 @@ def pdf_finto(monkeypatch):
     def _installa(pagine: int = 10):
         modulo = type("pdfplumber", (), {"open": staticmethod(lambda _p: _PdfFinto(pagine))})
         monkeypatch.setitem(sys.modules, "pdfplumber", modulo)
-        monkeypatch.setattr(ocr_service, "extract_pdf_tables", lambda _p: "")
+        monkeypatch.setattr(
+            ocr_service, "extract_pdf_tables", lambda _p, lingua="it": ""
+        )
         monkeypatch.setattr(
             ocr_service, "ocr_image", lambda p, language="it": "testo della pagina"
         )

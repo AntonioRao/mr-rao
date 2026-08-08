@@ -22,6 +22,7 @@ from config import (
     MAX_WORKERS,
 )
 from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
+from mr_rao.i18n import lingua_da, t
 from mr_rao.jobs import job_store
 from mr_rao.privacy import (
     FIELD_DEFAULTS,
@@ -92,12 +93,33 @@ def _merge_privacy(form, profile: dict) -> PrivacyOptions:
     )
 
 
+def _lingua_richiesta() -> str:
+    """La lingua di *questa* richiesta, con la pagina che ha l'ultima parola.
+
+    Il campo `lang` del modulo lo manda il JavaScript leggendo
+    `<html lang>`: e' l'unica fonte che sa davvero cosa l'utente sta
+    guardando in quel momento. Cookie e Accept-Language restano sotto per
+    chi chiama l'API a mano, e sono gli stessi che decidono la pagina, cosi'
+    schermo e documento non possono divergere.
+    """
+    return lingua_da(
+        request.headers.get("Accept-Language"),
+        cookie=request.cookies.get("mr_rao_lang"),
+        query=request.form.get("lang") or request.args.get("lang"),
+    )
+
+
 def _parse_options_from_request() -> ConvertOptions:
     form = request.form
+    lingua = _lingua_richiesta()
     profile_id = form.get("profile") or form.get("preset")
     if profile_id:
         opts = options_from_profile(profile_id)
         if opts:
+            # La lingua non e' un'opzione del profilo: il profilo dice *come*
+            # convertire, la lingua dice in che lingua sono scritte le nostre
+            # righe dentro il documento.
+            opts.lingua = lingua
             # Il profilo e' il punto di partenza, non l'ultima parola: quello
             # che l'utente ha toccato vince. Prima il profilo vinceva su
             # tutto, e siccome l'interfaccia manda sempre il profilo, l'intero
@@ -130,6 +152,7 @@ def _parse_options_from_request() -> ConvertOptions:
     return ConvertOptions(
         engine=engine,
         language=form.get("language", "it"),
+        lingua=lingua,
         privacy=privacy,
         include_tables=_truthy(form.get("include_tables"), True),
         include_frontmatter=_truthy(form.get("include_frontmatter"), True),
@@ -287,7 +310,7 @@ def _run_job_batch(
     items: list[tuple[bytes, str]],
     options: ConvertOptions,
     merge: bool,
-    merge_title: str,
+    merge_title: str | None,
     compare: bool = False,
 ) -> None:
     job = job_store.get(job_id)
@@ -304,7 +327,7 @@ def _run_job_batch_inner(
     items: list[tuple[bytes, str]],
     options: ConvertOptions,
     merge: bool,
-    merge_title: str,
+    merge_title: str | None,
     compare: bool = False,
 ) -> None:
     with job.lock:
@@ -340,8 +363,19 @@ def _run_job_batch_inner(
         return
 
     if merge or compare:
-        title = merge_title if not compare else (merge_title or "Confronto documenti")
-        merged = merge_markdowns(results, title=title, compare_mode=compare)
+        # Il titolo predefinito lo decide qui il server, nella lingua del
+        # lavoro. Prima si confrontava `merge_title` **per valore** con
+        # «Documento unificato» — una stringa che scriveva il client: bastava
+        # tradurla perche' il ramo non scattasse piu' e un confronto uscisse
+        # intitolato come un'unione. Ora il client o manda un titolo suo, o
+        # non manda niente.
+        title = merge_title or t(
+            "doc_titolo_confronto" if compare else "doc_titolo_unificato",
+            options.lingua,
+        )
+        merged = merge_markdowns(
+            results, title=title, compare_mode=compare, lingua=options.lingua
+        )
         redaction_total = sum(r.redaction.total for r in results)
         with job.lock:
             job.status = "done"
@@ -416,11 +450,11 @@ def convert_batch():
     options = _parse_options_from_request()
     merge = _truthy(request.form.get("merge"), False)
     compare = _truthy(request.form.get("compare"), False)
-    merge_title = request.form.get("merge_title", "Documento unificato")
+    # Vuoto = «decidilo tu»: il titolo predefinito lo sceglie il worker nella
+    # lingua del lavoro, invece di riconoscerlo dal valore che manda il client.
+    merge_title = (request.form.get("merge_title") or "").strip() or None
     if compare:
         merge = True
-        if merge_title == "Documento unificato":
-            merge_title = "Confronto documenti"
 
     items: list[tuple[bytes, str]] = []
     for f in files:
@@ -479,7 +513,7 @@ def convert_compare():
         items,
         options,
         True,
-        request.form.get("merge_title", "Confronto documenti"),
+        (request.form.get("merge_title") or "").strip() or None,
         True,
     )
     return jsonify({"job_id": job.id}), 202
@@ -583,6 +617,9 @@ def watch_start():
         options = options_from_profile(profile) if profile else ConvertOptions()
         if options is None:
             options = ConvertOptions()
+        # Anche la cartella sorvegliata scrive documenti: la lingua gliela fissa
+        # chi accende il monitoraggio, perche' poi lavora senza nessuna richiesta.
+        options.lingua = _lingua_richiesta()
     state = start_watch(inbox, outbox, options=options, interval=interval, move_done=move_done)
     return jsonify(state)
 

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Callable
 
 from config import APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
+from mr_rao.i18n import LINGUA_PREDEFINITA, t
 from mr_rao.ocr_service import extract_pdf_tables, ocr_image, ocr_pdf_fallback
 from mr_rao.privacy import (
     DETECTOR_FIELDS,
@@ -51,6 +52,13 @@ def _stop_if_cancelled(should_cancel: CancelCb | None) -> None:
 class ConvertOptions:
     engine: str = "auto"  # auto | rapidocr | markitdown
     language: str = "it"
+    # La lingua del testo che scriviamo *dentro* il Markdown prodotto.
+    # Appartiene al lavoro di conversione, non alla sessione del browser:
+    # la cartella sorvegliata e la riga di comando producono gli stessi
+    # documenti senza avere nessuna richiesta HTTP intorno, e un
+    # thread-local li lascerebbe fuori. Da non confondere con `language`,
+    # che e' un suggerimento per il modello OCR.
+    lingua: str = LINGUA_PREDEFINITA
     privacy: PrivacyOptions = field(default_factory=PrivacyOptions)
     include_tables: bool = True
     include_frontmatter: bool = True
@@ -81,7 +89,9 @@ def _file_sha256(path: Path) -> str:
     return h.hexdigest()[:16]
 
 
-def _empty_message(reason: str | None = None) -> str:
+def _empty_message(
+    reason: str | None = None, lingua: str = LINGUA_PREDEFINITA
+) -> str:
     """Il messaggio quando non esce testo.
 
     Se la conversione e' fallita per una causa nostra, quella causa va
@@ -92,17 +102,17 @@ def _empty_message(reason: str | None = None) -> str:
     """
     if reason:
         return (
-            "> ⚠️ **Conversione non riuscita.**\n>\n"
+            f"> ⚠️ **{t('doc_fallita_titolo', lingua)}**\n>\n"
             f"> {reason}\n>\n"
-            "> Non dipende dal documento."
+            f"> {t('doc_fallita_coda', lingua)}"
         )
     return (
-        "> ⚠️ **Nessun testo estratto.**\n>\n"
-        "> Il file caricato non contiene testo riconoscibile.\n>\n"
-        "> **Suggerimenti:**\n"
-        "> - Se è un'immagine, assicurati che il testo sia leggibile.\n"
-        "> - Se è un PDF, prova **Forza RapidOCR** o abilita le tabelle.\n"
-        "> - Se è protetto da password, rimuovi la protezione prima."
+        f"> ⚠️ **{t('doc_vuoto_titolo', lingua)}**\n>\n"
+        f"> {t('doc_vuoto_corpo', lingua)}\n>\n"
+        f"> {t('doc_vuoto_suggerimenti', lingua)}\n"
+        f"> - {t('doc_vuoto_sugg_immagine', lingua)}\n"
+        f"> - {t('doc_vuoto_sugg_pdf', lingua)}\n"
+        f"> - {t('doc_vuoto_sugg_password', lingua)}"
     )
 
 
@@ -145,7 +155,7 @@ def _is_ocr(engine_used: str) -> bool:
     return "rapidocr" in (engine_used or "")
 
 
-def _ocr_privacy_warning() -> str:
+def _ocr_privacy_warning(lingua: str = LINGUA_PREDEFINITA) -> str:
     """Avviso da allegare quando la redazione ha lavorato su testo OCR.
 
     I riconoscitori sono espressioni regolari: cercano un codice fiscale o un
@@ -157,12 +167,7 @@ def _ocr_privacy_warning() -> str:
     serve di più, perché i documenti scansionati sono spesso i più delicati.
     Chi legge il risultato deve saperlo.
     """
-    return (
-        "> ⚠️ *Testo ottenuto via OCR: l'anonimizzazione riconosce solo i dati "
-        "letti correttamente. Se il riconoscimento ha sbagliato un carattere, "
-        "un codice fiscale o un IBAN può essere sfuggito. "
-        "**Controlla il confronto prima/dopo prima di condividere.***"
-    )
+    return f"> ⚠️ *{t('doc_avviso_ocr_privacy', lingua)}*"
 
 
 def _togli_commenti_html(text: str) -> str:
@@ -354,28 +359,33 @@ def convert_file(
     except PermissionError:
         return ConvertResult(
             markdown=(
-                "> ⚠️ **Il file è aperto in un altro programma.**\n>\n"
-                f"> `{original_name}` è bloccato — succede quando il documento\n"
-                "> è aperto in Word, Excel o PowerPoint.\n>\n"
-                "> **Chiudilo e riprova.**"
+                f"> ⚠️ **{t('doc_file_bloccato_titolo', opts.lingua)}**\n>\n"
+                f"> {t('doc_file_bloccato_corpo', opts.lingua, nome=original_name)}"
+                "\n>\n"
+                f"> {t('doc_file_bloccato_azione', opts.lingua)}"
             ),
             engine_used="none",
             source_name=original_name,
             source_ext=ext,
             empty=True,
-            error="Il file è aperto in un altro programma: chiudilo e riprova.",
+            error=t("err_file_bloccato", opts.lingua),
         )
     except OSError as e:
         return ConvertResult(
             markdown=(
-                "> ⚠️ **Non riesco a leggere il file.**\n>\n"
-                f"> `{original_name}`: {e.strerror or e}"
+                f"> ⚠️ **{t('doc_file_illeggibile_titolo', opts.lingua)}**\n>\n"
+                "> " + t(
+                    "doc_file_illeggibile_corpo",
+                    opts.lingua,
+                    nome=original_name,
+                    motivo=e.strerror or e,
+                )
             ),
             engine_used="none",
             source_name=original_name,
             source_ext=ext,
             empty=True,
-            error=f"Impossibile leggere il file: {e.strerror or e}",
+            error=t("err_file_illeggibile", opts.lingua, motivo=e.strerror or e),
         )
 
     try:
@@ -383,14 +393,14 @@ def convert_file(
 
         if ext == ".eml":
             if progress:
-                progress(1, 1, "Parsing thread email…")
+                progress(1, 1, t("prog_email", opts.lingua))
             from mr_rao.eml_parser import extract_attachments, parse_eml
 
-            final_text = parse_eml(path)
+            final_text = parse_eml(path, opts.lingua)
             engine_used = "eml_parser"
             if opts.extract_attachments:
                 try:
-                    attachments = extract_attachments(path)
+                    attachments = extract_attachments(path, lingua=opts.lingua)
                 except Exception as e:
                     print(f"EML attachments error: {e}")
             # NOTE: no privacy override here. Whether an .eml defaults to redacted
@@ -400,7 +410,7 @@ def convert_file(
 
         elif ext in IMAGE_EXTENSIONS and opts.engine in ("auto", "rapidocr"):
             if progress:
-                progress(1, 1, "OCR immagine…")
+                progress(1, 1, t("prog_ocr_immagine", opts.lingua))
             final_text = ocr_image(path, language=opts.language)
             engine_used = "rapidocr"
 
@@ -408,20 +418,21 @@ def convert_file(
             # Must stay ahead of the generic branch: a PDF is not an image,
             # feeding it to ocr_image() fails with "cannot identify image file".
             if progress:
-                progress(0, 1, "OCR PDF…")
+                progress(0, 1, t("prog_ocr_pdf", opts.lingua))
             final_text = ocr_pdf_fallback(
                 path,
                 language=opts.language,
                 progress=progress,
                 should_cancel=should_cancel,
                 include_tables=opts.include_tables,
+                lingua=opts.lingua,
             )
             engine_used = "rapidocr_pdf"
 
         else:
             # MarkItDown for documents
             if progress:
-                progress(0, 2, "Conversione documento…")
+                progress(0, 2, t("prog_documento", opts.lingua))
             try:
                 md_result = get_markitdown().convert(str(path))
                 final_text = md_result.text_content
@@ -431,11 +442,8 @@ def convert_file(
                 final_text = None
                 mancante = missing_dependency_for(ext)
                 if mancante:
-                    failure_reason = (
-                        f"Manca la libreria **{mancante}**, necessaria per "
-                        f"leggere i file `{ext}`. Installala con "
-                        f"`pip install {mancante}`, oppure usa il pacchetto "
-                        f"portable, che la contiene."
+                    failure_reason = t(
+                        "doc_manca_libreria", opts.lingua, pacchetto=mancante, ext=ext
                     )
                 # Portable resilience if Magika models are missing
                 if ext in {".txt", ".csv", ".md", ".json", ".xml", ".html", ".htm", ".rtf"}:
@@ -448,7 +456,7 @@ def convert_file(
             tables_extra = ""
             if ext == ".pdf" and opts.include_tables:
                 try:
-                    tables_extra = extract_pdf_tables(path)
+                    tables_extra = extract_pdf_tables(path, opts.lingua)
                 except Exception as e:
                     print(f"Table extract error: {e}")
 
@@ -458,19 +466,24 @@ def convert_file(
             )
             if needs_ocr and ext == ".pdf":
                 if progress:
-                    progress(1, 2, "PDF vuoto o forzato OCR…")
+                    progress(1, 2, t("prog_pdf_vuoto", opts.lingua))
                 ocr_text = ocr_pdf_fallback(
                     path,
                     language=opts.language,
                     progress=progress,
                     should_cancel=should_cancel,
                     include_tables=opts.include_tables and not tables_extra,
+                    lingua=opts.lingua,
                 )
                 if ocr_text:
                     final_text = ocr_text
                     engine_used = "rapidocr_pdf_fallback"
             elif tables_extra and final_text:
-                final_text = final_text.rstrip() + "\n\n---\n\n## Tabelle estratte\n\n" + tables_extra
+                final_text = (
+                    final_text.rstrip()
+                    + f"\n\n---\n\n## {t('doc_tabelle_estratte', opts.lingua)}\n\n"
+                    + tables_extra
+                )
                 engine_used = "markitdown+tables"
             elif tables_extra and not final_text:
                 final_text = tables_extra
@@ -498,18 +511,20 @@ def convert_file(
                 privacy = replace(privacy, prosa=_e_prosa(path, ext, engine_used))
             final_text, redaction = apply_privacy_filter(final_text, privacy)
             if _is_ocr(engine_used):
-                final_text = final_text.rstrip() + "\n\n" + _ocr_privacy_warning()
+                final_text = (
+                    final_text.rstrip() + "\n\n" + _ocr_privacy_warning(opts.lingua)
+                )
 
         # Le note che scriviamo noi si aggiungono qui, a valle: il filtro ha
         # gia' finito e non puo' piu' riconoscerci dentro qualcosa.
         if engine_used == "eml_parser" and final_text:
             from mr_rao.eml_parser import nota_elaborazione
 
-            final_text = final_text.rstrip() + "\n" + nota_elaborazione()
+            final_text = final_text.rstrip() + "\n" + nota_elaborazione(opts.lingua)
 
         empty = not final_text or not str(final_text).strip()
         if empty:
-            final_text = _empty_message(failure_reason)
+            final_text = _empty_message(failure_reason, opts.lingua)
             empty = True
 
         _stop_if_cancelled(should_cancel)
@@ -541,7 +556,7 @@ def convert_file(
             engine_used="cancelled",
             source_name=original_name,
             source_ext=ext,
-            error="Conversione annullata",
+            error=t("err_annullata", opts.lingua),
         )
     except Exception as e:
         print(f"convert_file error: {e}")
@@ -550,7 +565,7 @@ def convert_file(
             engine_used=engine_used,
             source_name=original_name,
             source_ext=ext,
-            error="Errore durante la conversione. Controlla il file e riprova.",
+            error=t("err_conversione", opts.lingua),
         )
 
 
@@ -583,14 +598,25 @@ def convert_bytes(
 
 def merge_markdowns(
     results: list[ConvertResult],
-    title: str = "Documento unificato",
+    title: str | None = None,
     *,
     compare_mode: bool = False,
+    lingua: str = LINGUA_PREDEFINITA,
 ) -> str:
     """Merge multiple conversion results into one Markdown document.
 
     If compare_mode and exactly 2 results, labels them Documento A / B.
+
+    ``title`` a None significa «decidilo tu, nella lingua del lavoro». E'
+    l'unico modo perche' il titolo predefinito sia inglese su una pagina
+    inglese: un default scritto nella firma sarebbe italiano per sempre, e
+    chi chiama non ha modo di sapere se il titolo che ha in mano e' una
+    scelta dell'utente o il vecchio predefinito.
     """
+    if title is None:
+        title = t(
+            "doc_titolo_confronto" if compare_mode else "doc_titolo_unificato", lingua
+        )
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     parts = [
         "---",
@@ -603,10 +629,8 @@ def merge_markdowns(
     ]
     labels = None
     if compare_mode and len(results) == 2:
-        labels = ["Documento A", "Documento B"]
-        parts.append(
-            "> Confronto affiancato (stesso pipeline Mr. Rao su entrambi i file).\n"
-        )
+        labels = [t("doc_documento_a", lingua), t("doc_documento_b", lingua)]
+        parts.append("> " + t("doc_confronto_nota", lingua) + "\n")
     for i, r in enumerate(results, 1):
         if labels:
             heading = f"## {labels[i - 1]} — `{r.source_name}`\n"
@@ -614,7 +638,7 @@ def merge_markdowns(
             heading = f"## {i}. {r.source_name}\n"
         parts.append(f"\n---\n\n{heading}")
         if r.error:
-            parts.append(f"> Errore: {r.error}\n")
+            parts.append("> " + t("doc_errore", lingua, motivo=r.error) + "\n")
         else:
             parts.append(strip_frontmatter(r.markdown))
     return "\n".join(parts)

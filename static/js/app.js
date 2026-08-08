@@ -345,6 +345,10 @@
   function formPayload(extra) {
     extra = extra || {};
     const fd = new FormData();
+    // La lingua della pagina viaggia col lavoro: il testo che Mr. Rao scrive
+    // *dentro* il Markdown (intestazioni email, «Tabelle estratte», l'avviso
+    // sull'OCR) deve uscire nella lingua che l'utente sta guardando.
+    fd.append("lang", document.documentElement.lang || "it");
     if (els.profileSelect) fd.append("profile", els.profileSelect.value);
     fd.append("engine", els.engineSelect.value);
     fd.append("privacy_filter", els.privacyMaster.checked);
@@ -493,11 +497,11 @@
     try {
       let jobId;
       if (multi || compare) {
-        const fd = formPayload({
-          merge: merge,
-          compare: compare,
-          merge_title: compare ? "Confronto documenti" : "Documento unificato",
-        });
+        // Niente merge_title: il titolo predefinito lo scrive il server, nella
+        // lingua del lavoro. Mandarlo da qui significava che il server doveva
+        // riconoscerlo *per valore* per capire se era una scelta o il default
+        // — e bastava tradurlo perche' smettesse di funzionare.
+        const fd = formPayload({ merge: merge, compare: compare });
         files.forEach((f) => fd.append("files", f));
         const res = await fetch("/api/convert/batch", { method: "POST", body: fd });
         const body = await res.json();

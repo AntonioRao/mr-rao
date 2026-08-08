@@ -124,6 +124,168 @@ TESTI: dict[str, dict[str, str]] = {
         "it": "Impossibile contattare Mr. Rao. Verifica che il server sia avviato.",
         "en": "Can't reach Mr. Rao. Check that the server is running.",
     },
+    # ══════════════════════════════════════════════════════════════════
+    # Testo che finisce DENTRO il Markdown prodotto.
+    #
+    # Non e' interfaccia, e' il documento: la lingua la porta il lavoro di
+    # conversione (`ConvertOptions.lingua`), non la sessione del browser.
+    # La cartella sorvegliata e la riga di comando scrivono lo stesso testo
+    # senza avere nessuna richiesta HTTP intorno.
+    # ══════════════════════════════════════════════════════════════════
+    # -- intestazione delle email ---------------------------------------
+    "doc_campo": {"it": "Campo", "en": "Field"},
+    "doc_valore": {"it": "Valore", "en": "Value"},
+    "doc_da": {"it": "Da", "en": "From"},
+    "doc_a": {"it": "A", "en": "To"},
+    "doc_cc": {"it": "CC", "en": "Cc"},
+    "doc_data": {"it": "Data", "en": "Date"},
+    "doc_allegati": {"it": "Allegati", "en": "Attachments"},
+    "doc_ultimo_messaggio": {"it": "Ultimo messaggio", "en": "Latest message"},
+    "doc_messaggio_precedente": {
+        "it": "Messaggio precedente #{n}", "en": "Earlier message #{n}",
+    },
+    "doc_nessun_oggetto": {"it": "(nessun oggetto)", "en": "(no subject)"},
+    "doc_mittente_sconosciuto": {
+        "it": "(mittente sconosciuto)", "en": "(sender unknown)",
+    },
+    "doc_destinatario_sconosciuto": {
+        "it": "(destinatario sconosciuto)", "en": "(recipient unknown)",
+    },
+    "doc_data_sconosciuta": {"it": "(data sconosciuta)", "en": "(date unknown)"},
+    "doc_allegato_senza_nome": {
+        "it": "(allegato senza nome)", "en": "(unnamed attachment)",
+    },
+    "doc_allegato_oltre": {"it": "oltre {n} MB", "en": "over {n} MB"},
+    "doc_eml_senza_testo": {
+        "it": "Nessun contenuto testuale trovato nel file .eml.",
+        "en": "No text content found in the .eml file.",
+    },
+    "doc_nota_elaborazione": {
+        "it": "Documento elaborato da Mr. Rao. Se il filtro privacy è attivo, "
+              "i dati personali sono stati sostituiti con segnaposto.",
+        "en": "Document processed by Mr. Rao. If the privacy filter is on, "
+              "personal data has been replaced with placeholders.",
+    },
+    # -- OCR -------------------------------------------------------------
+    "doc_tabelle_estratte": {"it": "Tabelle estratte", "en": "Extracted tables"},
+    "doc_testo_ocr": {"it": "Testo OCR", "en": "OCR text"},
+    "doc_pagina": {"it": "Pagina {n}", "en": "Page {n}"},
+    "doc_tabella_pagina": {
+        "it": "Tabella (pagina {n})", "en": "Table (page {n})",
+    },
+    "doc_tabella_pagina_indice": {
+        "it": "Tabella (pagina {n}, #{k})", "en": "Table (page {n}, #{k})",
+    },
+    "doc_ocr_avviso": {
+        "it": "Testo estratto tramite OCR (PDF scansionato o con poco testo nativo).",
+        "en": "Text extracted with OCR (a scanned PDF, or one with little "
+              "native text).",
+    },
+    "doc_ocr_troncato_titolo": {
+        "it": "OCR interrotto dopo {n} pagine su {tot}:",
+        "en": "OCR stopped after {n} pages out of {tot}:",
+    },
+    "doc_ocr_troncato_corpo": {
+        "it": "superato il limite di tempo. Il testo qui sotto è **parziale**, e "
+              "con esso la rimozione dei dati personali. Alza "
+              "`MR_RAO_OCR_TIMEOUT` per completarlo.",
+        "en": "the time limit was reached. The text below is **partial**, and so "
+              "is the removal of personal data. Raise `MR_RAO_OCR_TIMEOUT` to "
+              "finish it.",
+    },
+    "doc_avviso_ocr_privacy": {
+        "it": "Testo ottenuto via OCR: l'anonimizzazione riconosce solo i dati "
+              "letti correttamente. Se il riconoscimento ha sbagliato un "
+              "carattere, un codice fiscale o un IBAN può essere sfuggito. "
+              "**Controlla il confronto prima/dopo prima di condividere.**",
+        "en": "Text obtained with OCR: anonymisation only catches data that was "
+              "read correctly. If recognition got a character wrong, a codice "
+              "fiscale or an IBAN may have slipped through. "
+              "**Check the before/after comparison before sharing.**",
+    },
+    # -- quando non esce testo -------------------------------------------
+    "doc_vuoto_titolo": {"it": "Nessun testo estratto.", "en": "No text extracted."},
+    "doc_vuoto_corpo": {
+        "it": "Il file caricato non contiene testo riconoscibile.",
+        "en": "The uploaded file contains no recognisable text.",
+    },
+    "doc_vuoto_suggerimenti": {"it": "**Suggerimenti:**", "en": "**Suggestions:**"},
+    "doc_vuoto_sugg_immagine": {
+        "it": "Se è un'immagine, assicurati che il testo sia leggibile.",
+        "en": "If it is an image, check that the text is legible.",
+    },
+    "doc_vuoto_sugg_pdf": {
+        "it": "Se è un PDF, prova **Forza RapidOCR** o abilita le tabelle.",
+        "en": "If it is a PDF, try **Force OCR** or turn table extraction on.",
+    },
+    "doc_vuoto_sugg_password": {
+        "it": "Se è protetto da password, rimuovi la protezione prima.",
+        "en": "If it is password-protected, remove the protection first.",
+    },
+    "doc_fallita_titolo": {
+        "it": "Conversione non riuscita.", "en": "Conversion failed.",
+    },
+    "doc_fallita_coda": {
+        "it": "Non dipende dal documento.", "en": "The document is not the problem.",
+    },
+    "doc_manca_libreria": {
+        "it": "Manca la libreria **{pacchetto}**, necessaria per leggere i file "
+              "`{ext}`. Installala con `pip install {pacchetto}`, oppure usa il "
+              "pacchetto portable, che la contiene.",
+        "en": "The **{pacchetto}** library is missing, and it is needed to read "
+              "`{ext}` files. Install it with `pip install {pacchetto}`, or use "
+              "the portable package, which already has it.",
+    },
+    # -- file che non si lascia leggere -----------------------------------
+    "doc_file_bloccato_titolo": {
+        "it": "Il file è aperto in un altro programma.",
+        "en": "The file is open in another program.",
+    },
+    "doc_file_bloccato_corpo": {
+        "it": "`{nome}` è bloccato — succede quando il documento è aperto in "
+              "Word, Excel o PowerPoint.",
+        "en": "`{nome}` is locked — that happens when the document is open in "
+              "Word, Excel or PowerPoint.",
+    },
+    "doc_file_bloccato_azione": {
+        "it": "**Chiudilo e riprova.**", "en": "**Close it and try again.**",
+    },
+    "doc_file_illeggibile_titolo": {
+        "it": "Non riesco a leggere il file.", "en": "The file could not be read.",
+    },
+    "doc_file_illeggibile_corpo": {"it": "`{nome}`: {motivo}", "en": "`{nome}`: {motivo}"},
+    "err_file_illeggibile": {
+        "it": "Impossibile leggere il file: {motivo}",
+        "en": "The file could not be read: {motivo}",
+    },
+    "err_annullata": {"it": "Conversione annullata", "en": "Conversion cancelled"},
+    # -- unione e confronto ------------------------------------------------
+    "doc_titolo_unificato": {"it": "Documento unificato", "en": "Merged document"},
+    "doc_titolo_confronto": {"it": "Confronto documenti", "en": "Document comparison"},
+    "doc_documento_a": {"it": "Documento A", "en": "Document A"},
+    "doc_documento_b": {"it": "Documento B", "en": "Document B"},
+    "doc_confronto_nota": {
+        "it": "Confronto affiancato (stesso pipeline Mr. Rao su entrambi i file).",
+        "en": "Side-by-side comparison (the same Mr. Rao pipeline on both files).",
+    },
+    "doc_errore": {"it": "Errore: {motivo}", "en": "Error: {motivo}"},
+    # -- avanzamento, mentre la conversione lavora --------------------------
+    "prog_email": {"it": "Parsing thread email…", "en": "Parsing email thread…"},
+    "prog_ocr_immagine": {"it": "OCR immagine…", "en": "OCR on image…"},
+    "prog_ocr_pdf": {"it": "OCR PDF…", "en": "OCR on PDF…"},
+    "prog_documento": {"it": "Conversione documento…", "en": "Converting document…"},
+    "prog_pdf_vuoto": {
+        "it": "PDF vuoto o forzato OCR…", "en": "Empty PDF, or OCR forced…",
+    },
+    "prog_ocr_limite_pagine": {
+        "it": "Limite {max} pagine OCR (PDF ne ha {totale})",
+        "en": "OCR page limit is {max} (the PDF has {totale})",
+    },
+    "prog_ocr_limite_tempo": {
+        "it": "Limite di tempo OCR a pagina {n}/{tot}",
+        "en": "OCR time limit reached at page {n}/{tot}",
+    },
+    "prog_ocr_pagina": {"it": "OCR pagina {n}/{tot}…", "en": "OCR page {n}/{tot}…"},
 }
 
 

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Callable
 
 from config import MAX_OCR_PAGES, MAX_OCR_SECONDS, OCR_DPI
+from mr_rao.i18n import LINGUA_PREDEFINITA, t
 
 # Lazy singleton. The lock matters: two concurrent requests would otherwise
 # each build a RapidOCR instance (hundreds of MB of ONNX models).
@@ -42,7 +43,9 @@ def ocr_image(filepath: str | Path, language: str = "it") -> str | None:
     return "\n\n".join(lines) if lines else None
 
 
-def extract_pdf_tables(filepath: str | Path) -> str:
+def extract_pdf_tables(
+    filepath: str | Path, lingua: str = LINGUA_PREDEFINITA
+) -> str:
     """Extract tables from PDF via pdfplumber → Markdown tables."""
     try:
         import pdfplumber
@@ -58,7 +61,12 @@ def extract_pdf_tables(filepath: str | Path) -> str:
                     continue
                 md = _table_to_markdown(table)
                 if md:
-                    chunks.append(f"### Tabella (pagina {i + 1}" + (f", #{t_idx + 1}" if t_idx else "") + ")\n\n" + md)
+                    intestazione = (
+                        t("doc_tabella_pagina_indice", lingua, n=i + 1, k=t_idx + 1)
+                        if t_idx
+                        else t("doc_tabella_pagina", lingua, n=i + 1)
+                    )
+                    chunks.append(f"### {intestazione}\n\n" + md)
     return "\n\n".join(chunks)
 
 
@@ -92,6 +100,7 @@ def ocr_pdf_fallback(
     max_pages: int | None = None,
     include_tables: bool = True,
     max_seconds: float | None = None,
+    lingua: str = LINGUA_PREDEFINITA,
 ) -> str | None:
     """Rasterize PDF pages and OCR each. Optionally prepend extracted tables.
 
@@ -118,7 +127,7 @@ def ocr_pdf_fallback(
 
     all_text: list[str] = []
     total = 0
-    tables_md = extract_pdf_tables(filepath) if include_tables else ""
+    tables_md = extract_pdf_tables(filepath, lingua) if include_tables else ""
 
     try:
         # Page rasters are intermediate data of a "100% local, minimal disk
@@ -129,7 +138,16 @@ def ocr_pdf_fallback(
             with pdfplumber.open(str(filepath)) as pdf:
                 total = min(len(pdf.pages), max_pages)
                 if len(pdf.pages) > max_pages and progress:
-                    progress(0, total, f"Limite {max_pages} pagine OCR (PDF ne ha {len(pdf.pages)})")
+                    progress(
+                        0,
+                        total,
+                        t(
+                            "prog_ocr_limite_pagine",
+                            lingua,
+                            max=max_pages,
+                            totale=len(pdf.pages),
+                        ),
+                    )
 
                 for i, page in enumerate(pdf.pages[:max_pages]):
                     if should_cancel and should_cancel():
@@ -137,10 +155,18 @@ def ocr_pdf_fallback(
                     if scadenza is not None and time.monotonic() > scadenza:
                         interrotto_per_tempo = i
                         if progress:
-                            progress(i, total, f"Limite di tempo OCR a pagina {i}/{total}")
+                            progress(
+                                i,
+                                total,
+                                t("prog_ocr_limite_tempo", lingua, n=i, tot=total),
+                            )
                         break
                     if progress:
-                        progress(i + 1, total, f"OCR pagina {i + 1}/{total}…")
+                        progress(
+                            i + 1,
+                            total,
+                            t("prog_ocr_pagina", lingua, n=i + 1, tot=total),
+                        )
 
                     temp_img_path = tmp / f"page_{i}.png"
                     try:
@@ -149,7 +175,8 @@ def ocr_pdf_fallback(
                         )
                         page_text = ocr_image(temp_img_path, language=language)
                         if page_text:
-                            all_text.append(f"<!-- Pagina {i + 1} -->\n\n{page_text}")
+                            etichetta = t("doc_pagina", lingua, n=i + 1)
+                            all_text.append(f"<!-- {etichetta} -->\n\n{page_text}")
                     except Exception as page_err:
                         print(f"OCR page {i + 1} error: {page_err}")
                         continue
@@ -165,21 +192,26 @@ def ocr_pdf_fallback(
     # messaggio "nessun testo riconoscibile" manderebbe a cercare il problema
     # nel documento, che invece era solo lento.
 
-    header = (
-        "> ℹ️ *Testo estratto tramite OCR (PDF scansionato o con poco testo nativo).*\n\n---\n\n"
-    )
+    # La forma `> ℹ️ *…*` la riconosce `_RE_NOTA_PRIVACY` (converter.py) e la
+    # sua gemella in app.js: emoji e `> ` iniziale restano fuori dalla
+    # traduzione proprio perche' sono la chiave con cui le note si tolgono.
+    header = f"> ℹ️ *{t('doc_ocr_avviso', lingua)}*\n\n---\n\n"
     if interrotto_per_tempo is not None:
         # In cima, non in fondo: chi legge un documento troncato deve saperlo
         # prima di fidarsi di quello che c'è scritto — e prima di credere che
         # l'anonimizzazione dei dati personali abbia visto tutto il documento.
+        titolo = t(
+            "doc_ocr_troncato_titolo", lingua, n=interrotto_per_tempo, tot=total
+        )
         header = (
-            f"> ⚠️ **OCR interrotto dopo {interrotto_per_tempo} pagine su {total}:**\n"
-            "> superato il limite di tempo. Il testo qui sotto è **parziale**, e con esso\n"
-            "> la rimozione dei dati personali. Alza `MR_RAO_OCR_TIMEOUT` per completarlo.\n\n"
+            f"> ⚠️ **{titolo}**\n"
+            f"> {t('doc_ocr_troncato_corpo', lingua)}\n\n"
         ) + header
     parts: list[str] = []
     if tables_md:
-        parts.append("## Tabelle estratte\n\n" + tables_md)
+        parts.append(f"## {t('doc_tabelle_estratte', lingua)}\n\n" + tables_md)
     if all_text:
-        parts.append("## Testo OCR\n\n" + "\n\n---\n\n".join(all_text))
+        parts.append(
+            f"## {t('doc_testo_ocr', lingua)}\n\n" + "\n\n---\n\n".join(all_text)
+        )
     return header + "\n\n---\n\n".join(parts)

@@ -8,6 +8,8 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
+from mr_rao.i18n import LINGUA_PREDEFINITA, t
+
 # Reply / quote start patterns (IT + EN)
 _REPLY_PATTERNS = [
     re.compile(r"^\s*On .+wrote:\s*$", re.IGNORECASE | re.MULTILINE),
@@ -158,7 +160,7 @@ def split_thread(body: str, _depth: int = 0, _max_depth: int = 40) -> list[str]:
     return segments or [body.strip()]
 
 
-def list_attachments(msg) -> list[tuple[str, int]]:
+def list_attachments(msg, lingua: str = LINGUA_PREDEFINITA) -> list[tuple[str, int]]:
     attachments: list[tuple[str, int]] = []
     if msg.is_multipart():
         for part in msg.walk():
@@ -167,15 +169,19 @@ def list_attachments(msg) -> list[tuple[str, int]]:
                 # Il nome dell'allegato lo dichiara il mittente dentro il
                 # Content-Disposition: puo' contenere un a capo e spezzare
                 # l'elenco in due voci, una delle quali senza nome.
-                fname = intestazione_su_una_riga(part.get_filename() or "") or (
-                    "(allegato senza nome)"
+                fname = intestazione_su_una_riga(part.get_filename() or "") or t(
+                    "doc_allegato_senza_nome", lingua
                 )
                 size = len(part.get_payload(decode=True) or b"")
                 attachments.append((fname, size))
     return attachments
 
 
-def extract_attachments(filepath: str | Path, max_bytes: int | None = None) -> list[dict]:
+def extract_attachments(
+    filepath: str | Path,
+    max_bytes: int | None = None,
+    lingua: str = LINGUA_PREDEFINITA,
+) -> list[dict]:
     """Extract attachment payloads as base64 for download in the UI.
 
     Skips oversized parts (default from config.MAX_ATTACHMENT_BYTES).
@@ -208,15 +214,22 @@ def extract_attachments(filepath: str | Path, max_bytes: int | None = None) -> l
         }
         if len(raw) > limit:
             entry["skipped"] = True
-            entry["reason"] = f"oltre {limit // (1024 * 1024)} MB"
+            entry["reason"] = t(
+                "doc_allegato_oltre", lingua, n=limit // (1024 * 1024)
+            )
         else:
             entry["content_base64"] = base64.b64encode(raw).decode("ascii")
         out.append(entry)
     return out
 
 
-def parse_eml(filepath: str | Path) -> str:
-    """Read .eml and produce structured Markdown for the full thread."""
+def parse_eml(filepath: str | Path, lingua: str = LINGUA_PREDEFINITA) -> str:
+    """Read .eml and produce structured Markdown for the full thread.
+
+    ``lingua`` e' quella del *lavoro* di conversione, non della pagina: qui
+    ci arriva anche la cartella sorvegliata, che di richieste HTTP non ne
+    vede nessuna.
+    """
     filepath = Path(filepath)
     with open(filepath, "rb") as f:
         msg = BytesParser(policy=policy.default).parse(f)
@@ -226,25 +239,27 @@ def parse_eml(filepath: str | Path) -> str:
     # Nessuna di queste cinque righe e' testo nostro: le scrive chi manda la
     # mail. Vanno ripulite *prima* di entrare in un titolo o in una cella,
     # non dopo -- vedi intestazione_su_una_riga() e cella_tabella().
-    subject = intestazione_su_una_riga(msg["subject"] or "") or "(nessun oggetto)"
-    from_addr = cella_tabella(msg["from"] or "") or "(mittente sconosciuto)"
-    to_addr = cella_tabella(msg["to"] or "") or "(destinatario sconosciuto)"
+    subject = intestazione_su_una_riga(msg["subject"] or "") or t(
+        "doc_nessun_oggetto", lingua
+    )
+    from_addr = cella_tabella(msg["from"] or "") or t("doc_mittente_sconosciuto", lingua)
+    to_addr = cella_tabella(msg["to"] or "") or t("doc_destinatario_sconosciuto", lingua)
     cc_addr = cella_tabella(msg.get("cc", "") or "")
-    date_str = cella_tabella(msg["date"] or "") or "(data sconosciuta)"
+    date_str = cella_tabella(msg["date"] or "") or t("doc_data_sconosciuta", lingua)
 
     md_lines.append(f"# 📧 {subject}\n")
-    md_lines.append("| Campo | Valore |")
+    md_lines.append(f"| {t('doc_campo', lingua)} | {t('doc_valore', lingua)} |")
     md_lines.append("|-------|--------|")
-    md_lines.append(f"| **Da** | {from_addr} |")
-    md_lines.append(f"| **A** | {to_addr} |")
+    md_lines.append(f"| **{t('doc_da', lingua)}** | {from_addr} |")
+    md_lines.append(f"| **{t('doc_a', lingua)}** | {to_addr} |")
     if cc_addr:
-        md_lines.append(f"| **CC** | {cc_addr} |")
-    md_lines.append(f"| **Data** | {date_str} |")
+        md_lines.append(f"| **{t('doc_cc', lingua)}** | {cc_addr} |")
+    md_lines.append(f"| **{t('doc_data', lingua)}** | {date_str} |")
     md_lines.append("")
 
-    attachments = list_attachments(msg)
+    attachments = list_attachments(msg, lingua)
     if attachments:
-        md_lines.append("### 📎 Allegati")
+        md_lines.append(f"### 📎 {t('doc_allegati', lingua)}")
         for fname, size in attachments:
             md_lines.append(f"- `{fname}` ({size / 1024:.1f} KB)")
         md_lines.append("")
@@ -256,15 +271,17 @@ def parse_eml(filepath: str | Path) -> str:
         segments = split_thread(body)
         for i, segment in enumerate(segments):
             if i == 0:
-                md_lines.append("### ✉️ Ultimo messaggio\n")
+                md_lines.append(f"### ✉️ {t('doc_ultimo_messaggio', lingua)}\n")
             else:
                 md_lines.append("\n---\n")
-                md_lines.append(f"### 💬 Messaggio precedente #{i}\n")
+                md_lines.append(
+                    f"### 💬 {t('doc_messaggio_precedente', lingua, n=i)}\n"
+                )
             cleaned = re.sub(r"\n{3,}", "\n\n", segment.strip())
             md_lines.append(cleaned)
             md_lines.append("")
     else:
-        md_lines.append("> ⚠️ *Nessun contenuto testuale trovato nel file .eml.*")
+        md_lines.append(f"> ⚠️ *{t('doc_eml_senza_testo', lingua)}*")
 
     # La nota in fondo NON si aggiunge qui. Questo testo passa dal filtro
     # privacy, e «Mr.» è un titolo esattamente come «Dott.» o «Ing.»: il
@@ -275,15 +292,15 @@ def parse_eml(filepath: str | Path) -> str:
     return "\n".join(md_lines)
 
 
-def nota_elaborazione() -> str:
+def nota_elaborazione(lingua: str = LINGUA_PREDEFINITA) -> str:
     """La riga in fondo alle email convertite.
 
     Va aggiunta **dopo** il filtro privacy, mai prima: è testo nostro, non
     contenuto dell'utente, e non ha niente da farsi riconoscere dentro.
+
+    La forma `> 🛡️ *…*` non è decorazione: `_RE_NOTA_PRIVACY` in
+    converter.py e la sua gemella in app.js riconoscono le note *da lì*.
+    Costruirla qui, in tutte le lingue, è quello che tiene le due
+    espressioni valide anche in inglese.
     """
-    return (
-        "\n---\n\n"
-        "> 🛡️ *Documento elaborato da Mr. Rao. "
-        "Se il filtro privacy è attivo, i dati personali sono stati sostituiti "
-        "con segnaposto.*"
-    )
+    return "\n---\n\n" + f"> 🛡️ *{t('doc_nota_elaborazione', lingua)}*"
