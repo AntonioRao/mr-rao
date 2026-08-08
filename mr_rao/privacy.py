@@ -767,6 +767,31 @@ _WORDLIKE_SUFFIXES = (
 )
 
 
+# Parole che dicono «questa sequenza e' un ente, non una persona».
+# Trovate sui documenti veri, non immaginate: la sezione dell'otto per
+# mille di un modello Redditi ne e' fatta quasi per intero.
+_ENTITY_WORDS = frozenset(
+    {
+        "chiesa", "chiese", "parrocchia", "diocesi", "curia", "arcidiocesi",
+        "congregazione", "confessione", "unione", "comunita", "comunità",
+        "associazione", "associazioni", "fondazione", "fondazioni",
+        "istituto", "istituti", "ente", "enti", "organizzazione", "onlus",
+        "societa", "società", "cooperativa", "consorzio", "azienda",
+        "agenzia", "ministero", "dipartimento", "direzione", "ufficio",
+        "comune", "provincia", "regione", "prefettura", "questura",
+        "camera", "tribunale", "procura", "corte", "commissione",
+        "universita", "università", "ospedale", "banca", "cassa",
+        "federazione", "confederazione", "sindacato", "partito",
+        "repubblica", "stato", "governo", "presidenza", "segreteria",
+        "gazzetta", "bollettino", "registro", "albo", "elenco",
+    }
+)
+
+
+def _is_entity_word(token: str) -> bool:
+    return token.lower().strip("'’-.,;:") in _ENTITY_WORDS
+
+
 def _looks_like_word(token: str) -> bool:
     t = token.lower().strip("'’-")
     if len(t) < 5:
@@ -978,6 +1003,14 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
         # con gli spazi originali.
         parts = re.split(rf"({_SP})", m.group(0))
         tokens, seps = parts[0::2], parts[1::2]
+        # Una parola d'ente da' un nome all'intera sequenza, e quel nome
+        # non e' di una persona: «CHIESA EVANGELICA VALDESE» e' un ente,
+        # non un cognome, e sui moduli dell'otto per mille compare a
+        # decine. E' lo stesso presidio che nel pacchetto inglese impedisce
+        # a «Green Lane Logistics» di diventare una persona -- li' lo fanno
+        # i tipi di via, qui le parole di ente.
+        if any(_is_entity_word(t) for t in tokens):
+            return m.group(0)
         common = [_is_common_word(t) for t in tokens]
 
         pieces: list[tuple[str, int]] = []  # (testo, indice ultimo token)
@@ -1016,7 +1049,30 @@ def _scrub_names(text: str, report: RedactionReport, guess: bool) -> str:
     #    resta un fiore, "Costa" da sola resta un costo.
     def _lone_sub(m: re.Match) -> str:
         tok = m.group(0).lower().strip("'’-")
+        # Sotto le quattro lettere una parola isolata non e' una prova.
+        # «Re» e' un cognome italiano vero, ed e' anche una parola, un
+        # titolo e mezza abbreviazione: su un modello Redditi in bianco
+        # veniva sostituito cinque volte. Stessa sorte per «Rao», che sta
+        # nel nostro stesso nome.
+        #
+        # Un elenco di eccezioni non basterebbe: i cognomi corti che sono
+        # anche parole sono decine, e ne salterebbero fuori altri a ogni
+        # documento nuovo. Meglio una regola che si spiega in una riga.
+        #
+        # Il prezzo: un cognome corto scritto da solo, senza titolo e
+        # senza indirizzo accanto, non viene piu' preso. Era l'appiglio
+        # piu' debole che avevamo, ed e' quello che sbagliava di piu'.
+        if len(tok) < 4:
+            return m.group(0)
         if tok in _AMBIGUOUS_ALONE or tok in COMMON_CAPITALIZED:
+            return m.group(0)
+        # Il veto morfologico c'era gia', ma girava solo sulle coppie e non
+        # sulla parola isolata -- che e' l'appiglio piu' debole dei due, e
+        # avrebbe quindi dovuto essere il piu' protetto. Le terminazioni
+        # italiane (-zione, -mento, -ale) dicono «questa e' una parola»
+        # meglio di qualunque elenco di eccezioni scritto a mano, che va
+        # allungato a ogni documento nuovo.
+        if _looks_like_word(tok):
             return m.group(0)
         if tok not in FIRST_NAMES and tok not in SURNAMES:
             return m.group(0)
