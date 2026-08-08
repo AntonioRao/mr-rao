@@ -99,7 +99,7 @@ body {
 .orb--c {
   width: 360px; height: 360px;
   bottom: -8%; left: 30%;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.28), transparent 68%);
+  background: radial-gradient(circle, rgba(94, 234, 212, 0.28), transparent 68%);
   animation-duration: 20s;
   animation-delay: -3s;
 }
@@ -250,11 +250,14 @@ body {
   flex-shrink: 0;
 }
 
+/* L'alone segue la forma di cio' che illumina: il marchio e' un disco,
+   quindi il cerchio -- con un raggio da riquadro si vedevano gli angoli
+   sporgere oltre il logo. */
 .hero__mark::after {
   content: "";
   position: absolute;
   inset: -8px;
-  border-radius: 22px;
+  border-radius: 50%;
   background: conic-gradient(from 180deg, var(--primary), var(--accent), var(--cyan), var(--primary));
   opacity: 0.45;
   filter: blur(14px);
@@ -269,9 +272,10 @@ body {
 .hero__mark img {
   width: 100%;
   height: 100%;
-  border-radius: 18px;
   display: block;
-  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.45);
+  /* `filter: drop-shadow` e non `box-shadow`: la seconda segue il riquadro
+     dell'elemento e proiettava un'ombra quadrata sotto un logo tondo. */
+  filter: drop-shadow(0 12px 30px rgba(16, 185, 129, 0.45));
 }
 
 .hero__wordmark {
@@ -388,7 +392,7 @@ body {
   border: 1.5px dashed rgba(94, 234, 212, 0.22);
   background:
     radial-gradient(ellipse 80% 70% at 50% 100%, rgba(52, 211, 153, 0.12), transparent 60%),
-    rgba(10, 16, 32, 0.7);
+    rgba(10, 18, 13, 0.7);
   backdrop-filter: blur(20px) saturate(140%);
   overflow: hidden;
   transition: transform 0.4s var(--ease-out), border-color 0.3s, box-shadow 0.4s;
@@ -443,26 +447,27 @@ body {
 
 .drop-zone > * { position: relative; z-index: 1; }
 
+/* Niente cornice attorno al marchio: il logo ha gia' il suo disco e il suo
+   contorno nero, e un riquadro stondato attorno a una forma tonda si legge
+   come un errore. Restano la misura, il galleggiamento e l'alone, che ora
+   e' circolare come cio' che illumina. */
 .drop-icon {
   width: 84px;
   height: 84px;
-  border-radius: 24px;
   margin: 0 auto 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, rgba(30, 45, 85, 0.9), rgba(15, 22, 45, 0.95));
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 16px 40px -12px rgba(37, 99, 235, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: transform 0.45s var(--ease-spring);
+  transition: transform 0.45s var(--ease-spring), filter 0.45s var(--ease-out);
+  filter: drop-shadow(0 14px 34px rgba(16, 185, 129, 0.45));
 }
 
 .drop-zone:hover .drop-icon {
   transform: translateY(-4px) rotate(-3deg) scale(1.06);
-  box-shadow: 0 20px 50px -10px rgba(52, 211, 153, 0.65), 0 0 30px rgba(45, 212, 191, 0.3);
+  filter: drop-shadow(0 18px 44px rgba(52, 211, 153, 0.65));
 }
 
-.drop-icon img { width: 48px; height: 48px; border-radius: 12px; }
+.drop-icon img { width: 84px; height: 84px; display: block; }
 
 .drop-title {
   font-size: 1.28rem;
@@ -510,9 +515,9 @@ body {
 
 .fmt-badge.highlight {
   color: var(--cyan);
-  border-color: rgba(34, 211, 238, 0.35);
-  background: rgba(34, 211, 238, 0.08);
-  box-shadow: 0 0 16px -6px rgba(34, 211, 238, 0.5);
+  border-color: rgba(94, 234, 212, 0.35);
+  background: rgba(94, 234, 212, 0.08);
+  box-shadow: 0 0 16px -6px rgba(94, 234, 212, 0.5);
 }
 
 #file-input { display: none; }
@@ -1417,7 +1422,7 @@ input[data-tip] { cursor: pointer; }
   overflow: auto;
   padding: 1.5rem 1.55rem 1.4rem;
   border-radius: var(--radius-lg);
-  background: rgba(10, 16, 32, 0.94);
+  background: rgba(10, 18, 13, 0.94);
   border: 1px solid var(--glass-border-hi);
   box-shadow: var(--shadow-float), 0 0 60px -20px rgba(52, 211, 153, 0.45);
   transform: translateY(16px) scale(0.97);
