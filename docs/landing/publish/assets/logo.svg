@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mr RAO">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="55%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1e3a8a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)" filter="url(#soft)"/>
+  <rect x="36" y="36" width="440" height="440" rx="100" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
+  <text x="256" y="175" text-anchor="middle"
+        font-family="Segoe UI, system-ui, -apple-system, sans-serif"
+        font-size="120" font-weight="700" fill="rgba(236,240,255,0.98)" letter-spacing="0.06em">Mr</text>
+  <text x="256" y="330" text-anchor="middle"
+        font-family="Segoe UI, system-ui, -apple-system, sans-serif"
+        font-size="175" font-weight="800" fill="#ffffff" letter-spacing="0.04em">RAO</text>
+  <rect x="168" y="372" width="176" height="10" rx="5" fill="rgba(180,195,255,0.65)"/>
+</svg>

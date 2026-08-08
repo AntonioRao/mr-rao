@@ -1,0 +1,23 @@
+# Security headers — Mr. Rao landing (Cloudflare Pages)
+# CSP hashes must match the inline <style> and <script> in index.html exactly.
+# Recompute with: python -c "import re,hashlib,base64;from pathlib import Path;t=Path('index.html').read_text(encoding='utf-8');..."
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-x8A3L1R1V4p0SABPjRLPHswFqklL5Q78A8akoQbRu6k='; style-src 'self' 'sha256-nTTnuWi7weGDBiWWNQlyeTVSnzU1z567hpPQ1loHpbY='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+  Cross-Origin-Resource-Policy: same-origin
+
+/assets/*
+  Cache-Control: public, max-age=604800
+  X-Content-Type-Options: nosniff
+  Cross-Origin-Resource-Policy: same-origin

@@ -47,3 +47,12 @@ test_output.txt
 # Uscita di scripts/misura_su_mail_tue.py: numeri su posta personale.
 # Non va nel repository nemmeno mascherata.
 scripts/misura_mail.txt
+
+# Landing page: si tracciano la sorgente scelta e cio che viene pubblicato.
+# Restano fuori le proposte scartate, le anteprime e gli artefatti locali di
+# wrangler: sono lavoro intermedio, non la pagina che sta online.
+docs/landing/02-*.html
+docs/landing/03-*.html
+docs/landing/preview-*
+docs/landing/publish/.wrangler/
+docs/landing/publish/test-results/
