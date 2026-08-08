@@ -1,21 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mr RAO">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 512 512" role="img" aria-label="Mr. Rao">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2563eb"/>
-      <stop offset="55%" stop-color="#7c3aed"/>
-      <stop offset="100%" stop-color="#0891b2"/>
-    </linearGradient>
-    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1e3a8a" flood-opacity="0.35"/>
-    </filter>
+    <g id="mr">
+      <path transform="translate(0.00 0) scale(0.05371 -0.05371)" d="M145 1466H741L971 574L1200 1466H1794V0H1424V1118L1137 0H802L516 1118V0H145Z"/>
+      <path transform="translate(103.82 0) scale(0.05371 -0.05371)" d="M127 1062H508V888Q563 1001 621.5 1043.5Q680 1086 766 1086Q856 1086 963 1030L837 740Q765 770 723 770Q643 770 599 704Q536 611 536 356V0H127Z"/>
+      <path transform="translate(152.65 0) scale(0.05371 -0.05371)" d="M124 408H559V0H124Z"/>
+    </g>
+    <g id="erre-outer">
+      <path transform="translate(0 0) scale(0.14648 -0.14648)" d="M156 0V1466H911Q1121 1466 1232.0 1430.0Q1343 1394 1411.0 1296.5Q1479 1199 1479 1059Q1479 937 1427.0 848.5Q1375 760 1284 705Q1226 670 1125 647Q1206 620 1243 593Q1268 575 1315.5 516.0Q1363 457 1379 425L1598 0H1086L844 448Q798 535 762 561Q713 595 651 595H611V0Z"/>
+    </g>
+    <g id="erre">
+      <path transform="translate(0 0) scale(0.14648 -0.14648)" d="M156 0V1466H911Q1121 1466 1232.0 1430.0Q1343 1394 1411.0 1296.5Q1479 1199 1479 1059Q1479 937 1427.0 848.5Q1375 760 1284 705Q1226 670 1125 647Q1206 620 1243 593Q1268 575 1315.5 516.0Q1363 457 1379 425L1598 0H1086L844 448Q798 535 762 561Q713 595 651 595H611V0ZM611 872H802Q833 872 922 892Q967 901 995.5 938.0Q1024 975 1024 1023Q1024 1094 979.0 1132.0Q934 1170 810 1170H611Z"/>
+    </g>
+    <g id="erre-inner">
+      <path transform="translate(0 0) scale(0.14648 -0.14648)" d="M611 872H802Q833 872 922 892Q967 901 995.5 938.0Q1024 975 1024 1023Q1024 1094 979.0 1132.0Q934 1170 810 1170H611Z"/>
+    </g>
   </defs>
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)" filter="url(#soft)"/>
-  <rect x="36" y="36" width="440" height="440" rx="100" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
-  <text x="256" y="175" text-anchor="middle"
-        font-family="Segoe UI, system-ui, -apple-system, sans-serif"
-        font-size="120" font-weight="700" fill="rgba(236,240,255,0.98)" letter-spacing="0.06em">Mr</text>
-  <text x="256" y="330" text-anchor="middle"
-        font-family="Segoe UI, system-ui, -apple-system, sans-serif"
-        font-size="175" font-weight="800" fill="#ffffff" letter-spacing="0.04em">RAO</text>
-  <rect x="168" y="372" width="176" height="10" rx="5" fill="rgba(180,195,255,0.65)"/>
+
+  <circle cx="266" cy="266" r="190" fill="#F0B429" stroke="#050705" stroke-width="16"/>
+  <circle cx="246" cy="246" r="190" fill="#3DFF9A" stroke="#050705" stroke-width="16"/>
+
+  <g transform="translate(174 185) scale(0.8636)">
+    <use xlink:href="#mr" href="#mr" fill="none" stroke="#050705"
+         stroke-width="345" stroke-linejoin="round" stroke-linecap="round"/>
+    <use xlink:href="#mr" href="#mr" fill="#050705"/>
+  </g>
+  <g transform="translate(164 175) scale(0.8636)">
+    <use xlink:href="#mr" href="#mr" fill="none" stroke="#050705"
+         stroke-width="345" stroke-linejoin="round" stroke-linecap="round"/>
+    <use xlink:href="#mr" href="#mr" fill="#E8F5EC"/>
+  </g>
+
+  <g transform="translate(172 382) scale(0.74)">
+    <use xlink:href="#erre-outer" href="#erre-outer" fill="none" stroke="#050705"
+         stroke-width="221.4" stroke-linejoin="round" stroke-linecap="round"/>
+    <use xlink:href="#erre" href="#erre" fill="#050705"/>
+  </g>
+  <g transform="translate(160 370) scale(0.74)">
+    <use xlink:href="#erre-outer" href="#erre-outer" fill="none" stroke="#050705"
+         stroke-width="221.4" stroke-linejoin="round" stroke-linecap="round"/>
+    <use xlink:href="#erre-inner" href="#erre-inner" fill="none" stroke="#050705"
+         stroke-width="74" stroke-linejoin="round" stroke-linecap="round"/>
+    <use xlink:href="#erre" href="#erre" fill="#E8F5EC"/>
+  </g>
+
+  <path d="M404 96 L419 138 L461 153 L419 168 L404 210 L389 168 L347 153 L389 138 Z"
+        fill="#F0B429" stroke="#050705" stroke-width="12" stroke-linejoin="round"/>
 </svg>

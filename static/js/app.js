@@ -334,9 +334,22 @@
         els.redactionBadge.style.display = "inline-flex";
         // «1 redazioni» e «1 redactions» erano sbagliati entrambi: il numero
         // lo sceglie l'utente caricando il file, e capita spesso che sia 1.
-        els.redactionBadge.textContent =
-          "🛡️ " + plurale("redazioni", total) +
-          (sospetti.length ? " · ⚠️ " + plurale("sospetti", sospetti.length) : "");
+        // Due parti, non una stringa sola: i sospetti vanno in ambra perche'
+        // chiedono di fare qualcosa, mentre le redazioni riuscite sono
+        // lavoro finito. Nodi di testo e non innerHTML -- qui passano
+        // conteggi, ma questo e' il programma sbagliato in cui prendere
+        // l'abitudine di incollare stringhe nel DOM.
+        els.redactionBadge.replaceChildren();
+        els.redactionBadge.classList.toggle("ha-sospetti", sospetti.length > 0);
+        // «1 redazioni» e «1 redactions» erano sbagliati entrambi: il numero
+        // lo sceglie l'utente caricando il file, e capita spesso che sia 1.
+        els.redactionBadge.append("🛡️ " + plurale("redazioni", total));
+        if (sospetti.length) {
+          const parte = document.createElement("span");
+          parte.className = "badge-sospetti";
+          parte.textContent = " · ⚠️ " + plurale("sospetti", sospetti.length);
+          els.redactionBadge.append(parte);
+        }
         // I sospetti sono il motivo per cui questo riquadro esiste: "3
         // redazioni" da solo non distingue un documento pulito da un
         // documento che il riconoscitore non ha saputo leggere.

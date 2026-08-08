@@ -1,16 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mr RAO">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 512 512" role="img" aria-label="Mr. Rao">
+  <!-- La riduzione del marchio, per favicon, barra delle applicazioni e ICO.
+
+       Non e' logo.svg rimpicciolito: a 16 px quello diventa un puntino
+       verde, perche' scintilla, ombra sfalsata e «Mr.» collassano insieme.
+       Un marchio ridotto e' un disegno diverso che dice la stessa cosa con
+       un elemento solo: qui il disco riempie la tela e resta la sola R.
+
+       Il contorno e' sul tracciato ESTERNO della R, e l'occhiello ha il suo
+       contorno a parte: cosi' il tratto grosso non chiude la pancia. Stessa
+       tecnica di logo.svg.
+
+       Attenzione ai numeri di `stroke-width`: dichiarato su <use> viene
+       ereditato dal <path>, e li' vale nello spazio del path -- quindi passa
+       anche per lo scale interno 0.14648. Per ottenere 24 unita' effettive
+       sulla griglia 512 servono 24/(0.14648*1.35) = 121.3. Non e' un numero
+       arbitrario, e cambiarlo "a occhio" non produce l'effetto che sembra. -->
+
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2563eb"/>
-      <stop offset="55%" stop-color="#7c3aed"/>
-      <stop offset="100%" stop-color="#0891b2"/>
-    </linearGradient>
+    <g id="erre-outer">
+      <path transform="translate(0 0) scale(0.14648 -0.14648)" d="M156 0V1466H911Q1121 1466 1232.0 1430.0Q1343 1394 1411.0 1296.5Q1479 1199 1479 1059Q1479 937 1427.0 848.5Q1375 760 1284 705Q1226 670 1125 647Q1206 620 1243 593Q1268 575 1315.5 516.0Q1363 457 1379 425L1598 0H1086L844 448Q798 535 762 561Q713 595 651 595H611V0Z"/>
+    </g>
+    <g id="erre">
+      <path transform="translate(0 0) scale(0.14648 -0.14648)" d="M156 0V1466H911Q1121 1466 1232.0 1430.0Q1343 1394 1411.0 1296.5Q1479 1199 1479 1059Q1479 937 1427.0 848.5Q1375 760 1284 705Q1226 670 1125 647Q1206 620 1243 593Q1268 575 1315.5 516.0Q1363 457 1379 425L1598 0H1086L844 448Q798 535 762 561Q713 595 651 595H611V0ZM611 872H802Q833 872 922 892Q967 901 995.5 938.0Q1024 975 1024 1023Q1024 1094 979.0 1132.0Q934 1170 810 1170H611Z"/>
+    </g>
+    <g id="erre-inner">
+      <path transform="translate(0 0) scale(0.14648 -0.14648)" d="M611 872H802Q833 872 922 892Q967 901 995.5 938.0Q1024 975 1024 1023Q1024 1094 979.0 1132.0Q934 1170 810 1170H611Z"/>
+    </g>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#g)"/>
-  <rect x="4" y="4" width="56" height="56" rx="12" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
-  <text x="32" y="26" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif"
-        font-size="15" font-weight="700" fill="rgba(236,240,255,0.98)" letter-spacing="0.04em">Mr</text>
-  <text x="32" y="46" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif"
-        font-size="18" font-weight="800" fill="#ffffff" letter-spacing="0.04em">RAO</text>
-  <rect x="20" y="51" width="24" height="2" rx="1" fill="rgba(180,195,255,0.65)"/>
+
+  <circle cx="256" cy="256" r="236" fill="#3DFF9A" stroke="#050705" stroke-width="16"/>
+
+  <g transform="translate(99 401) scale(1.35)">
+    <use xlink:href="#erre-outer" href="#erre-outer" fill="none" stroke="#050705"
+         stroke-width="121.3" stroke-linejoin="round" stroke-linecap="round"/>
+    <use xlink:href="#erre-inner" href="#erre-inner" fill="none" stroke="#050705"
+         stroke-width="40.4" stroke-linejoin="round" stroke-linecap="round"/>
+    <use xlink:href="#erre" href="#erre" fill="#E8F5EC"/>
+  </g>
 </svg>
