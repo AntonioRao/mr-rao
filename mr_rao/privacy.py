@@ -1468,8 +1468,13 @@ def _scrub_mrz(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
 # la' sa dove chiederlo; chi legge il report vede il divario nei sospetti
 # invece di scoprirlo dopo.
 
+# «Rev.» e «Hon.» erano in questo elenco e sono stati tolti dopo averli
+# visti mordere su documenti veri: su un modulo fiscale statunitense in
+# bianco, «(Rev. January 2011)» -- cioe' *revised* -- diventava
+# «(Rev. {{NAME}} 2011)». Un titolo che vale anche come abbreviazione di
+# un'altra parola non e' una prova di contesto: e' un'ambiguita'.
 _EN_TITOLI = (
-    r"mr|mrs|ms|miss|mx|dr|prof|professor|sir|dame|rev|reverend|hon|"
+    r"mr|mrs|ms|miss|mx|dr|prof|professor|sir|dame|"
     r"capt|captain|lord|lady|madam"
 )
 
