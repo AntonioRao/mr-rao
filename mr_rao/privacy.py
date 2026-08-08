@@ -396,7 +396,18 @@ class PrivacyOptions:
     # italiane sono quasi sempre nome e cognome. Copre i cognomi che nessun
     # elenco contiene, ma e' anche la regola che puo' sbagliare: si spegne
     # da sola, senza rinunciare al resto del riconoscimento dei nomi.
-    name_guess: bool = True
+    #
+    # **Spenta di default dalla 1.7.2** (#5). Era accesa, e su documenti
+    # veri il conto e' questo: 8904 sostituzioni sbagliate su venti moduli
+    # dell'Agenzia delle Entrate in bianco, 14376 su otto Gazzette
+    # storiche, 2888 su novantanove moduli fiscali statunitensi. Tutti
+    # documenti che non contengono un solo dato personale: mangiava
+    # «Redditi Persone Fisiche», «Quadro RN», «Imposta Lorda».
+    #
+    # Non se n'era accorto nessuno perche' il banco a due corpora li
+    # avevamo scritti noi, e un corpus scritto a mano contiene solo le
+    # trappole a cui chi lo scrive ha pensato.
+    name_guess: bool = False
     # Quali famiglie di riconoscitori eseguire. Il valore predefinito e' il
     # comportamento di sempre: nucleo universale piu' formati italiani.
     # Un documento inglese vorra' ``(CORE,)`` oggi e ``(CORE, EN)`` domani;
@@ -1705,7 +1716,7 @@ FIELD_DEFAULTS: dict[str, bool] = {
     "addresses": True,
     "secrets": True,
     "dates": False,
-    "name_guess": True,
+    "name_guess": False,
 }
 
 # I campi che accendono davvero una sostituzione. ``name_guess`` non c'e':
