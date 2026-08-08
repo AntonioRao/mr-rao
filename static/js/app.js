@@ -9,6 +9,39 @@
   const POLL_MS = 400;
   const RE_YAML_KEY = /^[A-Za-z_][A-Za-z0-9_-]*\s*:/;
 
+  // ── Le due lingue, di qua ──
+  // Le stringhe arrivano dallo stesso dizionario del server, in un blob
+  // inline: un secondo elenco «solo per la pagina» sarebbe il posto dove
+  // una traduzione manca senza che nessuno se ne accorga.
+  const I18N = window.MR_RAO_I18N || {};
+
+  /** Il testo nella lingua della pagina, coi segnaposto sostituiti.
+   *
+   * Una chiave che non esiste torna se stessa invece di dare `undefined`:
+   * una stringa mancante deve produrre un'interfaccia brutta, non un
+   * messaggio vuoto. Gemello di `t()` in mr_rao/i18n.py.
+   *
+   * La sostituzione usa split/join e non `String.replace`: dentro i campi
+   * ci sono nomi di file, e in un rimpiazzo di `replace` un `$&` o un `$1`
+   * verrebbero interpretati. */
+  function t(chiave, campi) {
+    let testo = I18N[chiave];
+    if (testo === undefined) return chiave;
+    if (campi) {
+      for (const k in campi) testo = testo.split("{" + k + "}").join(campi[k]);
+    }
+    return testo;
+  }
+
+  /** Singolare e plurale, come `plurale()` in mr_rao/i18n.py.
+   *  «1 redazioni» e' sbagliato in italiano quanto «1 redactions» in
+   *  inglese, e la pagina lo scriveva in tre punti diversi. */
+  function plurale(base, n) {
+    let chiave = base + (n === 1 ? "_una" : "_molte");
+    if (I18N[chiave] === undefined) chiave = base + (n === 1 ? "_uno" : "_molti");
+    return t(chiave, { n: n });
+  }
+
   /**
    * Remove the leading YAML block, if there really is one.
    * "starts with ---" is not enough: a document whose first line is a
@@ -46,12 +79,12 @@
   ];
 
   const PROFILE_HINTS = {
-    default: "Va bene per quasi tutto: dati personali protetti, tabelle estratte.",
-    email_legali: "Massima protezione dei dati; testo ripulito, pronto da condividere.",
-    fatture: "Tiene le tabelle e lascia visibili gli importi; nasconde CF, P.IVA e IBAN.",
-    solo_ocr: "Legge il testo dalle immagini: per scansioni e foto di documenti.",
-    llm_ready: "Testo essenziale con dati protetti, da incollare in un assistente AI.",
-    no_privacy: "Testo integrale, nessuna sostituzione. Usalo solo su questo computer.",
+    default: t("hint_profilo_default"),
+    email_legali: t("hint_profilo_email_legali"),
+    fatture: t("hint_profilo_fatture"),
+    solo_ocr: t("hint_profilo_solo_ocr"),
+    llm_ready: t("hint_profilo_llm_ready"),
+    no_privacy: t("hint_profilo_no_privacy"),
   };
 
   const $ = (id) => document.getElementById(id);
@@ -200,13 +233,13 @@
     html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
     html = html.replace(/(<li>.*<\/li>\n?)+/g, (m) => "<ul>" + m + "</ul>");
     html = html.replace(/\n\n/g, "<br><br>");
-    els.previewOut.innerHTML = html || "<em>Vuoto</em>";
+    els.previewOut.innerHTML = html || "<em>" + escapeHtml(t("js_vuoto")) + "</em>";
   }
 
   function renderDiff(raw, scrubbed) {
     if (!els.diffOut) return;
     if (!raw) {
-      els.diffOut.textContent = "Nessun testo pre-privacy disponibile.";
+      els.diffOut.textContent = t("js_no_raw");
       return;
     }
     // Highlight placeholders in scrubbed view vs note raw length
@@ -217,16 +250,17 @@
     );
     els.diffOut.innerHTML =
       '<div style="margin-bottom:0.75rem;color:var(--text-2);font-size:0.8rem">' +
-      "Prima (grezzo) " +
-      raw.length +
-      " car. · Dopo (redatto) " +
-      (scrubbed || "").length +
-      " car. · Segnaposto evidenziati sotto</div>" +
+      escapeHtml(
+        t("js_diff_intestazione", { prima: raw.length, dopo: (scrubbed || "").length })
+      ) +
+      "</div>" +
       '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:#c9d5f0">' +
       highlighted +
       "</pre>" +
       '<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">' +
-      '<div style="font-size:0.75rem;color:var(--text-3);margin-bottom:0.35rem">ORIGINALE (pre-privacy)</div>' +
+      '<div style="font-size:0.75rem;color:var(--text-3);margin-bottom:0.35rem">' +
+      escapeHtml(t("js_diff_originale")) +
+      "</div>" +
       '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:#94a3b8;max-height:240px;overflow:auto">' +
       escapeHtml(raw) +
       "</pre>";
@@ -241,11 +275,15 @@
     }
     els.attachmentsBar.style.display = "flex";
     els.attachmentsBar.innerHTML =
-      '<span class="muted" style="width:100%">Allegati email:</span>' +
+      `<span class="muted" style="width:100%">${escapeHtml(t("js_allegati_email"))}</span>` +
       list
         .map((a, i) => {
           if (a.skipped) {
-            return `<span class="fmt-badge">${escapeHtml(a.filename)} (saltato: ${escapeHtml(a.reason || "troppo grande")})</span>`;
+            const etichetta = t("js_allegato_saltato", {
+              nome: a.filename,
+              motivo: a.reason || t("js_allegato_troppo_grande"),
+            });
+            return `<span class="fmt-badge">${escapeHtml(etichetta)}</span>`;
           }
           return `<button type="button" class="btn" data-att="${i}">📎 ${escapeHtml(a.filename)} (${(a.size / 1024).toFixed(1)} KB)</button>`;
         })
@@ -268,7 +306,7 @@
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
-        showToast("Allegato scaricato: " + att.filename);
+        showToast(t("js_allegato_scaricato", { nome: att.filename }));
       });
     });
   }
@@ -294,9 +332,11 @@
       const sospetti = (redaction && redaction.suspects) || [];
       if (total > 0 || sospetti.length > 0) {
         els.redactionBadge.style.display = "inline-flex";
+        // «1 redazioni» e «1 redactions» erano sbagliati entrambi: il numero
+        // lo sceglie l'utente caricando il file, e capita spesso che sia 1.
         els.redactionBadge.textContent =
-          "🛡️ " + total + " redazioni" +
-          (sospetti.length ? " · ⚠️ " + sospetti.length + " da controllare" : "");
+          "🛡️ " + plurale("redazioni", total) +
+          (sospetti.length ? " · ⚠️ " + plurale("sospetti", sospetti.length) : "");
         // I sospetti sono il motivo per cui questo riquadro esiste: "3
         // redazioni" da solo non distingue un documento pulito da un
         // documento che il riconoscitore non ha saputo leggere.
@@ -321,7 +361,8 @@
   function renderHistory() {
     if (!els.historyList) return;
     if (!history.length) {
-      els.historyList.innerHTML = '<p class="muted">Nessuna conversione in questa sessione.</p>';
+      els.historyList.innerHTML =
+        '<p class="muted">' + escapeHtml(t("sessione_vuota")) + "</p>";
       return;
     }
     els.historyList.innerHTML = history
@@ -396,7 +437,7 @@
     }
     currentJobId = null;
     setLoading(false);
-    showToast("Conversione annullata", "error");
+    showToast(t("err_annullata"), "error");
   }
   if (els.cancelBtn)
     els.cancelBtn.addEventListener("click", (e) => {
@@ -417,10 +458,10 @@
           const r = await fetch("/api/jobs/" + jobId);
           const d = await r.json();
           if (!r.ok) {
-            reject(new Error(d.error || "Job non trovato"));
+            reject(new Error(d.error || t("err_job_assente")));
             return;
           }
-          updateProgress(d.percent || 0, d.message || "Elaborazione…");
+          updateProgress(d.percent || 0, d.message || t("js_elaborazione"));
           if (d.status === "done") {
             currentJobId = null;
             resolve(d.result);
@@ -428,7 +469,7 @@
           }
           if (d.status === "error") {
             currentJobId = null;
-            reject(new Error(d.error || "Errore conversione"));
+            reject(new Error(d.error || t("err_conversione")));
             return;
           }
           if (d.status === "cancelled") {
@@ -455,7 +496,7 @@
     for (const f of files) {
       if (f.size > MAX_BYTES) {
         showToast(
-          "File troppo grande: " + f.name + " (" + mb(f.size) + " MB). Max " + MAX_MB + " MB.",
+          t("js_file_troppo_grande", { nome: f.name, mb: mb(f.size), max: MAX_MB }),
           "error"
         );
         return false;
@@ -464,8 +505,7 @@
     const total = files.reduce((sum, f) => sum + f.size, 0);
     if (total > MAX_BYTES) {
       showToast(
-        "Invio troppo grande (" + mb(total) + " MB in totale). Il limite di " +
-          MAX_MB + " MB vale per l'intera richiesta: carica meno file per volta.",
+        t("js_invio_troppo_grande", { mb: mb(total), max: MAX_MB }),
         "error"
       );
       return false;
@@ -487,11 +527,16 @@
     const merge = (multi && els.mergeBatch && els.mergeBatch.checked) || compare;
 
     if (compare && files.length !== 2) {
-      showToast("Il confronto richiede esattamente 2 file", "error");
+      showToast(t("err_confronto_due_file"), "error");
       return;
     }
 
-    setLoading(true, multi ? "Batch: " + files.length + " file…" : "Conversione in corso…");
+    setLoading(
+      true,
+      multi
+        ? t("js_batch_in_corso", { n: files.length })
+        : t("conversione_in_corso")
+    );
     els.resultCard.style.display = "none";
 
     try {
@@ -505,14 +550,14 @@
         files.forEach((f) => fd.append("files", f));
         const res = await fetch("/api/convert/batch", { method: "POST", body: fd });
         const body = await res.json();
-        if (!res.ok) throw new Error(body.error || "Errore batch");
+        if (!res.ok) throw new Error(body.error || t("err_batch"));
         jobId = body.job_id;
       } else {
         const fd = formPayload();
         fd.append("file", files[0]);
         const res = await fetch("/api/convert", { method: "POST", body: fd });
         const body = await res.json();
-        if (!res.ok) throw new Error(body.error || "Errore conversione");
+        if (!res.ok) throw new Error(body.error || t("err_conversione"));
         jobId = body.job_id;
       }
 
@@ -536,13 +581,15 @@
               attachments: item.attachments,
             });
         });
-        showToast(result.items.length + " file convertiti");
+        showToast(plurale("file_convertiti", result.items.length));
       } else {
         setResult(result.markdown, result.filename, result.redaction, {
           markdown_raw: result.markdown_raw,
           attachments: result.attachments,
         });
-        showToast(compare ? "Confronto completato" : "Conversione completata");
+        // Le chiavi restano letterali dentro `t(...)`: e' cosi' che il test
+        // che le raccoglie dal sorgente riesce a vederle.
+        showToast(compare ? t("js_confronto_completato") : t("js_conversione_completata"));
       }
     } catch (e) {
       setLoading(false);
@@ -557,8 +604,8 @@
         e instanceof TypeError || /failed to fetch|network|NotReadable/i.test(e.message || "");
       showToast(
         nonLeggibile
-          ? "Non riesco a leggere il file: se e' aperto in Word o Excel, chiudilo e riprova."
-          : e.message || "Impossibile contattare Mr. Rao. Verifica che il server sia avviato.",
+          ? t("err_file_non_leggibile")
+          : e.message || t("err_server_irraggiungibile"),
         "error"
       );
     }
@@ -608,7 +655,7 @@
         const ext = (item.type.split("/")[1] || "png").replace("jpeg", "jpg");
         const file = new File([blob], "clipboard." + ext, { type: item.type });
         handleFiles([file]);
-        showToast("Immagine incollata dagli appunti");
+        showToast(t("js_immagine_incollata"));
         return;
       }
     }
@@ -666,16 +713,16 @@
   els.copyBtn.addEventListener("click", () => {
     navigator.clipboard
       .writeText(currentMarkdown)
-      .then(() => showToast("Copiato negli appunti!"))
-      .catch(() => showToast("Impossibile copiare", "error"));
+      .then(() => showToast(t("js_copiato")))
+      .catch(() => showToast(t("js_copia_fallita"), "error"));
   });
 
   if (els.copyCleanBtn) {
     els.copyCleanBtn.addEventListener("click", () => {
       navigator.clipboard
         .writeText(stripFrontmatterAndNotes(currentMarkdown))
-        .then(() => showToast("Copia pulita (per LLM) copiata!"))
-        .catch(() => showToast("Impossibile copiare", "error"));
+        .then(() => showToast(t("js_copiato_pulito")))
+        .catch(() => showToast(t("js_copia_fallita"), "error"));
     });
   }
 
@@ -691,7 +738,7 @@
 
   els.downloadBtn.addEventListener("click", () => {
     downloadBlob(currentMarkdown, currentFilename + ".md", "text/markdown;charset=utf-8");
-    showToast("File .md scaricato!");
+    showToast(t("js_md_scaricato"));
   });
 
   if (els.downloadTxtBtn) {
@@ -701,7 +748,7 @@
         currentFilename + ".txt",
         "text/plain;charset=utf-8"
       );
-      showToast("File .txt scaricato!");
+      showToast(t("js_txt_scaricato"));
     });
   }
 
@@ -815,19 +862,19 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           initial: inputEl.value || undefined,
-          title: title || "Scegli cartella",
+          title: title || t("js_scegli_cartella"),
         }),
       });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "Sfoglia non disponibile");
+      if (!r.ok) throw new Error(d.error || t("js_sfoglia_non_disponibile"));
       if (d.cancelled || !d.path) {
-        showToast("Nessuna cartella selezionata");
+        showToast(t("js_nessuna_cartella"));
         return;
       }
       inputEl.value = d.path;
-      showToast("Cartella impostata");
+      showToast(t("js_cartella_impostata"));
     } catch (e) {
-      showToast(e.message || "Impossibile aprire Sfoglia…", "error");
+      showToast(e.message || t("js_sfoglia_fallita"), "error");
     }
   }
 
@@ -836,11 +883,10 @@
       const r = await fetch("/api/watch");
       const d = await r.json();
       if (els.watchStatus) {
-        const convertiti =
-          (d.processed || 0) === 1 ? "1 file convertito" : (d.processed || 0) + " file convertiti";
+        const convertiti = plurale("file_convertiti", d.processed || 0);
         els.watchStatus.textContent = d.running
-          ? "in ascolto · " + (d.message || "") + " · " + convertiti
-          : d.message || "non attivo";
+          ? t("js_in_ascolto") + " · " + (d.message || "") + " · " + convertiti
+          : d.message || t("watch_non_attiva");
       }
       if (d.running) {
         if (els.watchInbox && d.inbox) els.watchInbox.value = d.inbox;
@@ -854,12 +900,12 @@
 
   if (els.watchBrowseInbox) {
     els.watchBrowseInbox.addEventListener("click", () =>
-      browseFolderInto(els.watchInbox, "Cartella da monitorare")
+      browseFolderInto(els.watchInbox, t("watch_inbox_etichetta"))
     );
   }
   if (els.watchBrowseOutbox) {
     els.watchBrowseOutbox.addEventListener("click", () =>
-      browseFolderInto(els.watchOutbox, "Dove salvare i file .md")
+      browseFolderInto(els.watchOutbox, t("watch_outbox_etichetta"))
     );
   }
 
@@ -873,7 +919,7 @@
         outbox = (els.watchOutbox.value || (defs && defs.outbox) || "").trim();
       }
       if (!inbox || !outbox) {
-        showToast("Scegli le cartelle con Sfoglia…", "error");
+        showToast(t("js_scegli_cartelle"), "error");
         return;
       }
       try {
@@ -885,12 +931,15 @@
             outbox,
             move_done: els.watchMove && els.watchMove.checked,
             profile: els.profileSelect ? els.profileSelect.value : "default",
+            // Anche il monitoraggio scrive documenti: la lingua che parte da
+            // qui e' quella che vedra' chi apre i .md della cartella di uscita.
+            lang: document.documentElement.lang || "it",
             interval: 2,
           }),
         });
         const d = await r.json();
-        if (!r.ok) throw new Error(d.error || "Watch fallito");
-        showToast("Monitoraggio attivo");
+        if (!r.ok) throw new Error(d.error || t("err_watch_fallito"));
+        showToast(t("js_monitoraggio_attivo"));
         refreshWatch();
       } catch (e) {
         showToast(e.message, "error");
@@ -900,7 +949,7 @@
   if (els.watchStop) {
     els.watchStop.addEventListener("click", async () => {
       await fetch("/api/watch", { method: "DELETE" });
-      showToast("Monitoraggio disattivato");
+      showToast(t("js_monitoraggio_disattivo"));
       refreshWatch();
     });
   }

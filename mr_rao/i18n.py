@@ -934,6 +934,104 @@ TESTI: dict[str, dict[str, str]] = {
     },
     "toast_default": {"it": "Operazione completata", "en": "Done"},
     # ══════════════════════════════════════════════════════════════════
+    # Quello che scrive il JavaScript.
+    #
+    # Arrivano tutte dallo stesso dizionario, per `window.MR_RAO_I18N`:
+    # un secondo elenco «solo per la pagina» sarebbe il posto dove una
+    # traduzione manca senza che nessuno se ne accorga.
+    # ══════════════════════════════════════════════════════════════════
+    "js_vuoto": {"it": "Vuoto", "en": "Empty"},
+    "js_no_raw": {
+        "it": "Nessun testo pre-privacy disponibile.",
+        "en": "No pre-redaction text available.",
+    },
+    "js_diff_intestazione": {
+        "it": "Prima (grezzo) {prima} car. · Dopo (redatto) {dopo} car. · "
+              "Segnaposto evidenziati sotto",
+        "en": "Before (raw) {prima} chars · After (redacted) {dopo} chars · "
+              "placeholders highlighted below",
+    },
+    "js_diff_originale": {
+        "it": "ORIGINALE (pre-privacy)", "en": "ORIGINAL (before redaction)",
+    },
+    "js_allegati_email": {"it": "Allegati email:", "en": "Email attachments:"},
+    "js_allegato_saltato": {
+        "it": "{nome} (saltato: {motivo})", "en": "{nome} (skipped: {motivo})",
+    },
+    "js_allegato_troppo_grande": {"it": "troppo grande", "en": "too large"},
+    "js_allegato_scaricato": {
+        "it": "Allegato scaricato: {nome}", "en": "Attachment downloaded: {nome}",
+    },
+    # Il plurale si sbagliava in tre punti: «1 redazioni» è sbagliato in
+    # italiano quanto «1 redactions» in inglese.
+    "file_convertiti_uno": {"it": "{n} file convertito", "en": "{n} file converted"},
+    "file_convertiti_molti": {"it": "{n} file convertiti", "en": "{n} files converted"},
+    "js_elaborazione": {"it": "Elaborazione…", "en": "Working…"},
+    "err_batch": {"it": "Errore batch", "en": "Batch error"},
+    "js_file_troppo_grande": {
+        "it": "File troppo grande: {nome} ({mb} MB). Max {max} MB.",
+        "en": "File too large: {nome} ({mb} MB). Maximum {max} MB.",
+    },
+    "js_invio_troppo_grande": {
+        "it": "Invio troppo grande ({mb} MB in totale). Il limite di {max} MB "
+              "vale per l'intera richiesta: carica meno file per volta.",
+        "en": "The upload is too large ({mb} MB in total). The {max} MB limit "
+              "applies to the whole request: load fewer files at a time.",
+    },
+    "err_confronto_due_file": {
+        "it": "Il confronto richiede esattamente 2 file",
+        "en": "The comparison needs exactly 2 files",
+    },
+    "js_batch_in_corso": {"it": "Batch: {n} file…", "en": "Batch: {n} files…"},
+    "js_confronto_completato": {
+        "it": "Confronto completato", "en": "Comparison done",
+    },
+    "js_conversione_completata": {
+        "it": "Conversione completata", "en": "Conversion done",
+    },
+    "err_file_non_leggibile": {
+        "it": "Non riesco a leggere il file: se e' aperto in Word o Excel, "
+              "chiudilo e riprova.",
+        "en": "The file could not be read: if it is open in Word or Excel, "
+              "close it and try again.",
+    },
+    "js_immagine_incollata": {
+        "it": "Immagine incollata dagli appunti",
+        "en": "Image pasted from the clipboard",
+    },
+    "js_copiato": {"it": "Copiato negli appunti", "en": "Copied to the clipboard"},
+    "js_copia_fallita": {"it": "Impossibile copiare", "en": "Could not copy"},
+    "js_copiato_pulito": {
+        "it": "Copia pulita negli appunti", "en": "Clean copy on the clipboard",
+    },
+    "js_md_scaricato": {"it": "File .md scaricato", "en": ".md file downloaded"},
+    "js_txt_scaricato": {"it": "File .txt scaricato", "en": ".txt file downloaded"},
+    "js_scegli_cartella": {"it": "Scegli cartella", "en": "Choose a folder"},
+    "js_sfoglia_non_disponibile": {
+        "it": "Sfoglia non disponibile", "en": "Browse is not available",
+    },
+    "js_nessuna_cartella": {
+        "it": "Nessuna cartella selezionata", "en": "No folder chosen",
+    },
+    "js_cartella_impostata": {"it": "Cartella impostata", "en": "Folder set"},
+    "js_sfoglia_fallita": {
+        "it": "Impossibile aprire Sfoglia…", "en": "Could not open Browse…",
+    },
+    "js_in_ascolto": {"it": "in ascolto", "en": "watching"},
+    "js_scegli_cartelle": {
+        "it": "Scegli le cartelle con Sfoglia…",
+        "en": "Choose the folders with Browse…",
+    },
+    "err_watch_fallito": {
+        "it": "Watch fallito", "en": "Could not start watching",
+    },
+    "js_monitoraggio_attivo": {
+        "it": "Monitoraggio attivo", "en": "Watching started",
+    },
+    "js_monitoraggio_disattivo": {
+        "it": "Monitoraggio disattivato", "en": "Watching stopped",
+    },
+    # ══════════════════════════════════════════════════════════════════
     # Testo che finisce DENTRO il Markdown prodotto.
     #
     # Non e' interfaccia, e' il documento: la lingua la porta il lavoro di

@@ -92,3 +92,46 @@ def test_la_scelta_esplicita_vince_sul_browser():
 
 def test_una_lingua_inventata_viene_ignorata():
     assert lingua_da("it-IT", cookie="klingon") == "it"
+
+
+# ---------------------------------------------------------------------------
+# Le chiavi che la pagina chiede devono esistere.
+#
+# `t()` restituisce la chiave stessa quando non la trova: e' la scelta
+# giusta -- un'interfaccia brutta e' meglio di una pagina di errore -- ma
+# vuol dire che una chiave scritta male non alza niente. Si vede solo
+# guardando la pagina, e solo nel punto in cui si guarda: un suggerimento
+# in fondo a un pannello chiuso puo' dire «tip_amounst» per mesi.
+#
+# Questi due test sono l'unico controllo che passa da *tutte* le chiavi.
+# ---------------------------------------------------------------------------
+
+_RADICE = __import__("pathlib").Path(__file__).resolve().parent.parent
+
+
+def _chiavi_usate(percorso: str, modello: str) -> set[str]:
+    testo = (_RADICE / percorso).read_text(encoding="utf-8")
+    return set(__import__("re").findall(modello, testo))
+
+
+def test_ogni_chiave_del_template_esiste():
+    chiavi = _chiavi_usate("templates/index.html", r"\bt\(\s*'([a-z0-9_]+)'")
+    assert chiavi, "nel template non si chiama piu' t(): il controllo e' morto"
+    mancanti = sorted(chiavi - set(TESTI))
+    assert not mancanti, f"il template chiede chiavi che non esistono: {mancanti}"
+
+
+def test_ogni_chiave_del_javascript_esiste():
+    """Comprese quelle di `plurale()`, che ne compone due dalla stessa radice."""
+    js = "static/js/app.js"
+    chiavi = _chiavi_usate(js, r'\bt\(\s*"([a-z0-9_]+)"')
+    assert chiavi, "in app.js non si chiama piu' t(): il controllo e' morto"
+    mancanti = sorted(chiavi - set(TESTI))
+    assert not mancanti, f"app.js chiede chiavi che non esistono: {mancanti}"
+
+    for base in _chiavi_usate(js, r'\bplurale\(\s*"([a-z0-9_]+)"'):
+        coppia = [f"{base}_una", f"{base}_molte"]
+        if coppia[0] not in TESTI:
+            coppia = [f"{base}_uno", f"{base}_molti"]
+        assenti = [c for c in coppia if c not in TESTI]
+        assert not assenti, f"plurale(«{base}») non ha {assenti}"
