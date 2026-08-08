@@ -3,12 +3,13 @@
 **English** · [Italiano](README.it.md)
 
 **Turn PDFs, Office files, scans and emails into clean Markdown — with the personal data already stripped out.**
+**Export as `.md`, `.txt` or `.docx` — all three already redacted.**
 **All on your own machine, without sending anything anywhere.**
 
 [![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.9.0-3b82f6)](docs/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.0-3b82f6)](docs/CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-705%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
@@ -19,6 +20,10 @@
 
 *Extract the zip, double-click `Installa Mr Rao.bat`. That's it.*
 <sub>The download starts straight away. [All releases and release notes](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
+
+![Mr. Rao — from file to redacted Markdown in ten seconds](docs/img/demo.gif)
+
+<sub>An `.eml` with invented data: names, emails, phone numbers and IBANs become placeholders. The protocol number and the date stay where they were — the engine does not redact what it should not.</sub>
 
 ![Mr. Rao — interface](docs/img/schermata-en.png)
 
@@ -36,6 +41,12 @@ You want to hand a document to an AI assistant. You need two things:
 Online converters solve the first problem by creating the second: to convert the file, you have to upload it. If that file is an invoice, a medical record, a contract or an email thread with real people in it, you have just shipped it to a server you know nothing about.
 
 Mr. Rao does the conversion **and** the redaction on your own computer. The file never moves.
+
+### And not everything ends up in a prompt
+
+A notice going up on a public register, a contract to be filed, a redacted decision **have to stay documents** — Markdown is not one. So the output is not only `.md`: there is plain `.txt`, and a **Word `.docx`** with the same redaction applied.
+
+One thing worth knowing before you use it. **This is not the original document with black boxes drawn over it.** That is the classic redaction trap — the boxes come off and the text is still underneath, and every year somebody publishes a court filing that way. Here the document is rebuilt from the already-redacted Markdown, so the data is not covered: it is absent. The price is the layout of the original, which is lost.
 
 ---
 
@@ -145,7 +156,7 @@ The recognition is code, not a neural network. The same document always yields t
 | 🛡️ **Personal data** | Names, postal addresses, phone numbers, emails, URLs, tax IDs, VAT numbers, IBANs, payment cards, API keys → replaced with placeholders |
 | 🔍 **Verification** | A before/after view showing exactly what was removed |
 | 📁 **Watched folder** | Drop files in one folder, the `.md` files appear in another |
-| 📝 **Export** | Markdown, plain text and **Word document** — for records that have to stay documents |
+| 📝 **Export** | Markdown `.md`, plain text `.txt` and a **Word document `.docx`** — for records that have to stay documents |
 | ⌨️ **Command line** | `convert`, `watch`, `health` — also from the portable executable |
 
 ---
@@ -238,6 +249,9 @@ The "invoices" profile rebuilds the tables and hides tax ID, VAT number and IBAN
 **Anyone working with AI assistants.**
 The "LLM-ready" profile produces lean text, no technical headers, personal data already replaced. Copy, paste, stop worrying.
 
+**Public bodies — a record that has to be published.**
+A decision going on a public register cannot go up as Markdown: it has to stay a document. The `.docx` export rebuilds it from the already-redacted text, so the data is not hidden under anything — it is not there. What does not survive is the layout of the original.
+
 **Digitised paper archives.**
 Watched folder plus the "OCR only" profile: empty your scanner into one folder and find the Markdown in the other, without sitting in front of the screen.
 
@@ -250,7 +264,7 @@ Each file can carry a header with its origin, date, engine used and **how many r
 
 Better said upfront:
 
-- **It is not a layout translator.** It produces structured text, not a graphical clone of the PDF.
+- **It is not a layout translator.** It produces structured text, not a graphical clone of the PDF. That goes for the `.docx` export too: it is a new document built from the redacted text, not the original cleaned up, so margins, fonts and page breaks do not survive.
 - **Name redaction is not infallible.** It relies on a list of common Italian names, so an unusual surname can slip through. That is exactly why the before/after view exists — **always check** before sharing.
 - **OCR works no miracles.** On a skewed, blurry scan it gets things wrong, like everything else.
 - **Redaction is weaker on scanned documents.** The detectors look for a correctly spelled tax ID or IBAN: if OCR reads `A01` as `AD1`, the code is not recognised and stays in the text. The output flags this with a warning, but that is where the before/after view really earns its keep.

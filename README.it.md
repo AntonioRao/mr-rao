@@ -3,12 +3,13 @@
 [English](README.md) · **Italiano**
 
 **Trasforma PDF, Word, Excel, scansioni ed email in Markdown pulito — con i dati personali già rimossi.**
+**In uscita `.md`, `.txt` o `.docx`: tutti e tre già anonimizzati.**
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
 [![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.9.0-3b82f6)](docs/CHANGELOG.md)
+[![Versione](https://img.shields.io/badge/versione-1.10.0-3b82f6)](docs/CHANGELOG.md)
 [![Test](https://img.shields.io/badge/test-705%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
@@ -19,6 +20,10 @@
 
 *Estrai lo zip, doppio clic su `Installa Mr Rao.bat`. Fatto.*
 <sub>Lo scaricamento parte subito. [Tutte le versioni e le note di rilascio](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
+
+![Mr. Rao — dal file al Markdown redatto, in dieci secondi](docs/img/demo.gif)
+
+<sub>Un `.eml` con dati inventati: nomi, email, telefoni e IBAN diventano segnaposto. Il numero di protocollo e la data restano dov'erano — il motore non redige quello che non deve.</sub>
 
 ![Mr. Rao — interfaccia](docs/img/schermata.png)
 
@@ -36,6 +41,12 @@ Vuoi dare un documento in pasto a un assistente AI. Ti servono due cose:
 Gli strumenti online risolvono il primo problema creando il secondo: per convertire il file glielo devi caricare. Se quel file è una fattura, una cartella clinica, un contratto o un thread email con dentro persone reali, l'hai appena spedito a un server di cui non sai nulla.
 
 Mr. Rao fa la conversione **e** l'anonimizzazione dei dati personali sul tuo computer. Il file non si muove.
+
+### E non tutto finisce dentro un prompt
+
+Un atto da pubblicare all'albo pretorio, un contratto da depositare, una delibera anonimizzata **devono restare documenti** — in Markdown non lo sono. Per questo l'uscita non è solo `.md`: c'è anche il testo semplice `.txt` e il **documento Word `.docx`**, con la stessa redazione applicata.
+
+Una precisazione che conviene leggere prima di usarlo. **Non è il documento originale con sopra dei rettangoli neri.** Quella è la trappola classica della redazione: i rettangoli si tolgono e il testo è ancora lì sotto, e ogni anno qualcuno pubblica un atto così. Qui il documento viene rigenerato dal Markdown già redatto, quindi il dato non è coperto — è assente. Il prezzo è l'impaginazione dell'originale, che si perde.
 
 ---
 
@@ -145,7 +156,7 @@ Il riconoscimento è codice, non una rete neurale. Lo stesso documento dà **sem
 | 🛡️ **Dati personali** | Nomi, indirizzi, telefoni, email, URL, codice fiscale, P.IVA, IBAN, carte, chiavi API → sostituiti con segnaposto |
 | 🔍 **Verifica** | Scheda «prima / dopo» che mostra esattamente cosa è stato tolto |
 | 📁 **Cartella automatica** | Butti i file in una cartella, i `.md` compaiono nell'altra |
-| 📝 **Esportazione** | Markdown, testo semplice e **documento Word** — per gli atti che devono restare documenti |
+| 📝 **Esportazione** | Markdown `.md`, testo semplice `.txt` e **documento Word `.docx`** — per gli atti che devono restare documenti |
 | ⌨️ **Riga di comando** | `convert`, `watch`, `health` — anche dall'eseguibile portable |
 
 
@@ -241,6 +252,9 @@ Il profilo «Fatture» ricostruisce le tabelle e nasconde codice fiscale, P.IVA 
 **Chi lavora con gli assistenti AI.**
 Il profilo «Pronto per LLM» produce testo essenziale, senza intestazioni tecniche, coi dati personali già sostituiti. Copi e incolli senza pensarci due volte.
 
+**Ente pubblico — un atto da pubblicare.**
+Una delibera che va all'albo pretorio non può andarci in Markdown: deve restare un documento. L'esportazione in `.docx` lo ricostruisce dal testo già redatto, quindi il dato non è nascosto sotto qualcosa — non c'è. Quello che non torna è l'impaginazione dell'originale.
+
 **Archivi cartacei digitalizzati.**
 Cartella automatica più profilo «Solo OCR»: svuoti lo scanner dentro una cartella e ti ritrovi i Markdown nell'altra, senza restare davanti allo schermo.
 
@@ -253,7 +267,7 @@ Ogni file può portare in cima una scheda con origine, data, motore usato e **qu
 
 Meglio dirlo subito:
 
-- **Non è un traduttore di layout.** Produce testo strutturato, non un clone grafico del PDF.
+- **Non è un traduttore di layout.** Produce testo strutturato, non un clone grafico del PDF. Vale anche per l'uscita in `.docx`: è un documento nuovo costruito dal testo redatto, non l'originale ripulito, quindi margini, caratteri e disposizione delle pagine non si conservano.
 - **Il riconoscimento dei nomi non è infallibile.** Oltre a un elenco di nomi italiani valgono le regole di contesto — un titolo davanti, un indirizzo email accanto, due parole maiuscole che non sono parole italiane — ma un cognome che assomiglia a una parola comune può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
 - **L'OCR non fa miracoli.** Su una scansione storta e sfocata sbaglia, come tutti.
 - **Sui documenti scansionati la protezione è più debole.** I riconoscitori cercano un codice fiscale o un IBAN scritti bene: se l'OCR legge `A01` come `AD1`, il codice non viene riconosciuto e resta nel testo. Il risultato lo segnala con un avviso, ma è lì che il confronto «prima / dopo» va guardato davvero.

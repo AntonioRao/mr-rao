@@ -1,6 +1,6 @@
 # Backlog & piano di priorità — Mr. Rao
 
-Lo stato delle voci vale alla **1.9.0**. La fonte di verità resta git e il
+Lo stato delle voci vale alla **1.10.0**. La fonte di verità resta git e il
 [changelog](CHANGELOG.md): se una riga qui dice DONE e il codice dice altro,
 ha ragione il codice.
 
@@ -222,7 +222,7 @@ parole.
 
 | ID | Item | Note | Stato |
 |----|------|------|-------|
-| P1.6 | Estrarre le stringhe della UI in un dizionario `it` / `en` + selettore lingua | `mr_rao/i18n.py`: 320 chiavi fra template, JS e messaggi del server; lingua dedotta dal browser, scelta esplicita ricordata in un cookie | **DONE** (1.8.0) |
+| P1.6 | Estrarre le stringhe della UI in un dizionario `it` / `en` + selettore lingua | `mr_rao/i18n.py`: 326 chiavi fra template, JS e messaggi del server; lingua dedotta dal browser, scelta esplicita ricordata in un cookie | **DONE** (1.8.0) |
 | P1.7 | **Prima** di P1.6: rendere i riconoscitori estendibili ad altri Paesi | Pacchetti `core` / `it` / `en`, cumulativi e selezionabili: 7 riconoscitori universali, 8 italiani, 8 anglosassoni. La priorità è per **tipo di dato** e non per pacchetto, così CF e SSN convivono | **DONE** (1.8.0) |
 
 **Perché in quest'ordine.** L'inglese nell'interfaccia dice «questo strumento

@@ -42,6 +42,8 @@ Tray ──► open browser / quit
 | `mr_rao/converter.py` | Pipeline unica + frontmatter + merge + fallback text |
 | `mr_rao/eml_parser.py` | Thread email → Markdown + allegati |
 | `mr_rao/ocr_service.py` | OCR immagini/PDF + tabelle |
+| `mr_rao/docx_export.py` | Markdown redatto → `.docx`. **Rigenera** il documento invece di coprire l'originale: sotto un rettangolo nero il testo resterebbe |
+| `mr_rao/i18n.py` | Le due lingue in un dizionario solo, condiviso fra server, template e JavaScript. La lingua dell'interfaccia **non** sceglie i riconoscitori |
 | `mr_rao/privacy.py` | Motore: sequenza dei riconoscitori, pacchetti, sospetti, recupero OCR |
 | `mr_rao/it_names.py` | Vocabolari italiani: nomi, cognomi, parole comuni maiuscole |
 | `mr_rao/en_formats.py` | Validatori anglosassoni (NHS, NINO, SSN, ITIN, ABA, SIN, ABN, TFN, MRZ) con i vettori di prova accanto |

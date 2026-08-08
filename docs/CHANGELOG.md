@@ -1,5 +1,60 @@
 # Changelog
 
+## 1.10.0 — Non tutto finisce dentro un prompt
+
+Fino a ieri l'uscita era `.md` e `.txt`, e questo legava Mr. Rao a un caso
+d'uso solo: incollare in un'AI. Ma un atto da pubblicare all'albo pretorio,
+un contratto da depositare, una delibera anonimizzata **devono restare
+documenti** — in Markdown non lo sono.
+
+Da questa versione si esporta anche in **`.docx`**.
+
+### La cosa da capire prima di usarlo
+
+**Non è il documento originale con sopra dei rettangoli neri.** Quella è la
+trappola classica della redazione: i rettangoli si tolgono e il testo è
+ancora lì sotto, e ogni anno qualcuno pubblica un atto giudiziario così.
+
+Qui il documento viene **rigenerato dal Markdown già redatto**: il dato non è
+coperto, è assente. Il prezzo è l'impaginazione dell'originale, che si perde.
+È scritto nel suggerimento del pulsante, non solo qui.
+
+### Cosa si converte
+
+Il sottoinsieme di Markdown che Mr. Rao *produce*: intestazioni, paragrafi,
+elenchi puntati e numerati, tabelle, citazioni, righelli, blocchi di codice,
+grassetto e corsivo. Quello che il convertitore non genera non è gestito, e
+non si finge il contrario.
+
+Nove test, e quello che controllano non è «il file si apre» ma che il
+documento consegnato **non contenga i dati personali** — celle delle tabelle
+comprese, perché un dato lasciato in una cella non è meno leggibile di uno
+lasciato in un paragrafo. Uno prova a passare `../../etc/passwd` come nome
+del file.
+
+`python-docx` è MIT e tira dietro solo `lxml` (BSD-3-Clause): nessun copyleft
+nuovo.
+
+### Una demo in cima al README
+
+Dieci secondi, 398 KB: un `.eml` trascinato, la conversione, i segnaposto, e
+il confronto prima/dopo. I dati sono inventati — su uno strumento che esiste
+per proteggere quelli veri, una demo con dati reali sarebbe un autogol.
+
+Nel fotogramma finale si vedono anche `Protocollo interno: 0123456789` e
+`Registrata il 01.02.2024` **non** redatti: è la parte difficile da
+raccontare a parole, cioè che il motore non redige quello che non deve.
+
+### Documenti
+
+`ARCHITECTURE.md` non elencava `i18n.py` — stava indietro dalla 1.8.0 — né il
+nuovo `docx_export.py`. Trovati con un confronto fra i moduli citati e quelli
+che esistono davvero, non rileggendo il documento.
+
+**705 test.**
+
+---
+
 ## 1.9.0 — Il motore OCR perdeva gli spazi, e con loro i dati personali
 
 Il pacchetto OCR che usavamo, `rapidocr_onnxruntime`, è stato **rinominato**:
