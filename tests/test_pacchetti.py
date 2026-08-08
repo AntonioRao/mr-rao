@@ -66,11 +66,13 @@ def test_ogni_interruttore_ha_almeno_un_passo():
     assert not scoperti, f"interruttori senza riconoscitore: {sorted(scoperti)}"
 
 
-def test_ci_sono_passi_di_entrambi_i_pacchetti():
-    """Se la classificazione collassasse tutta su un pacchetto solo, i test
-    di selezione qui sotto passerebbero senza dimostrare niente."""
+def test_ogni_pacchetto_noto_ha_dei_passi():
+    """Se la classificazione collassasse su un pacchetto solo, i test di
+    selezione qui sotto passerebbero senza dimostrare niente. E un
+    pacchetto dichiarato e vuoto sarebbe una voce nell'interfaccia che non
+    fa nulla."""
     pacchetti = {p.pacchetto for p in SEQUENZA}
-    assert pacchetti == {CORE, IT}
+    assert pacchetti == set(PACCHETTI_NOTI)
 
 
 # ---------------------------------------------------------------------------

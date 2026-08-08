@@ -18,6 +18,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable
 
+from mr_rao.en_formats import (
+    aba_routing_ok,
+    itin_ok,
+    nhs_number_ok,
+    nino_ok,
+    sin_ok,
+    ssn_ok,
+)
 from mr_rao.it_names import COMMON_CAPITALIZED, FIRST_NAMES, SURNAMES
 
 
@@ -365,8 +373,9 @@ _AMBIGUOUS_ALONE = frozenset(
 # l'interfaccia avra' un selettore di lingua i due vocabolari coincidono.
 CORE = "core"
 IT = "it"
+EN = "en"
 
-PACCHETTI_NOTI: tuple[str, ...] = (CORE, IT)
+PACCHETTI_NOTI: tuple[str, ...] = (CORE, IT, EN)
 
 
 @dataclass
@@ -675,7 +684,27 @@ def _phone_is_plausible(m: re.Match) -> bool:
     has_sep = any(sep in body for sep in (" ", "-", "."))
     ctx = bool(_RE_PHONE_CTX.search(_context_before(m.string, m.start())))
 
-    if m.group("prefix"):
+    prefix = m.group("prefix")
+    if prefix:
+        # Lo "00" internazionale e' anche l'inizio di moltissimi numeri di
+        # pratica: "0034578921" e' un protocollo, e il pattern lo leggeva
+        # come una chiamata in Spagna (00-34, poi sei cifre). Trovato su un
+        # documento amministrativo inglese vero, dove ogni sostituzione e'
+        # per definizione un errore.
+        #
+        # La differenza e' come sono scritti: un numero internazionale per
+        # esteso ha quasi sempre una spaziatura -- "0044 7700 900412" --
+        # mentre un codice di riferimento e' un blocco unico. Il "+" resta
+        # affidabile senza altre prove, perche' dentro un numero di
+        # protocollo non ci finisce.
+        #
+        # Il separatore va cercato in **tutta** la corrispondenza, non solo
+        # nel corpo: in "0039 3391234567" lo spazio sta fra prefisso e
+        # corpo, e guardare il solo corpo faceva rifiutare un numero vero.
+        tutto = m.group(0)
+        sep_ovunque = any(s in tutto for s in (" ", "-", "."))
+        if prefix.startswith("00") and not sep_ovunque and not ctx:
+            return False
         return 6 <= n <= (11 if m.group("cc") == "39" else 14)
 
     if ctx:
@@ -1113,6 +1142,146 @@ def _scrub_amounts(text: str, report: RedactionReport, opts: PrivacyOptions) -> 
     return _RE_AMOUNT.sub(_sub, text)
 
 
+# ---------------------------------------------------------------------------
+# Pacchetto EN: gli identificativi anglosassoni
+# ---------------------------------------------------------------------------
+#
+# La regola che decide qui e' una sola, e viene da una misura: su 20.000
+# sequenze casuali di nove cifre, il controllo strutturale del SSN ne accetta
+# quasi il novanta per cento. Non e' un validatore, e' un filtro di forma.
+# Quindi **niente si sostituisce sulle cifre nude**: o c'e' la punteggiatura
+# che identifica il formato (i trattini 3-2-4 del SSN), o c'e' una parola di
+# contesto accanto. Dove invece esiste un checksum vero -- NHS mod-11,
+# routing 3-7-1, SIN Luhn -- il validatore fa meta' del lavoro e il contesto
+# copre l'altra meta'.
+#
+# Senza questa regola il pacchetto EN redigerebbe numeri di protocollo,
+# codici articolo e riferimenti di fattura: esattamente il difetto che il
+# corpus amministrativo esiste per intercettare.
+
+_RE_SSN = re.compile(r"(?<![\w-])(\d{3}-\d{2}-\d{4})(?![\w-])")
+# Due lettere qualsiasi, non solo quelle ammesse: le esclusioni di HMRC le
+# applica ``nino_ok``. Metterle nel pattern sembra piu' efficiente e invece
+# rompe la regola della casa -- il pattern propone, il validatore decide --
+# e soprattutto rende invisibile il caso che conta: un NINO vero con le due
+# lettere storpiate dall'OCR non somiglierebbe piu' a niente, e non
+# finirebbe nemmeno fra i sospetti.
+_RE_NINO = re.compile(
+    r"(?<![\w])([A-Z]{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?[A-D])(?![\w])"
+)
+# Dieci cifre, nella spaziatura 3-3-4 in cui l'NHS le stampa oppure attaccate.
+_RE_NHS = re.compile(r"(?<![\w-])(\d{3}[ -]?\d{3}[ -]?\d{4})(?![\w-])")
+_RE_NOVE_CIFRE = re.compile(r"(?<![\w-])(\d{3}[ -]?\d{3}[ -]?\d{3}|\d{9})(?![\w-])")
+
+_CTX_NHS = ("nhs", "health number", "patient number")
+_CTX_ROUTING = ("routing", "aba", "rtn", "transit number")
+_CTX_SIN = ("sin", "social insurance", "numero di assicurazione sociale")
+
+
+def _con_contesto(m: re.Match, parole: tuple[str, ...], finestra: int = 40) -> bool:
+    ctx = _context_before(m.string, m.start(), finestra).lower()
+    return any(p in ctx for p in parole)
+
+
+def _scrub_en_ssn(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    """SSN e ITIN, solo nella forma trattinata 3-2-4.
+
+    Nove cifre attaccate non si toccano: sarebbero indistinguibili da un
+    numero di pratica. I trattini nelle posizioni giuste sono l'unica cosa
+    che rende il formato riconoscibile, e le esclusioni della SSA (aree
+    000, 666, 900-999; gruppo 00; seriale 0000) fanno il resto.
+
+    L'ITIN va provato per primo: comincia per 9, che ``ssn_ok`` rifiuta.
+    """
+    def _sub(m: re.Match) -> str:
+        raw = m.group(1)
+        if itin_ok(raw):
+            report.add("itin")
+            return "{{ITIN}}"
+        if ssn_ok(raw):
+            report.add("ssn")
+            return "{{SSN}}"
+        # La forma c'e' ma la SSA quel numero non l'ha mai emesso: non si
+        # sostituisce, e lo si dice.
+        report.suspect(
+            "ssn",
+            raw,
+            "ha la forma di un SSN ma cade in un intervallo mai assegnato: "
+            "o non e' un SSN, o e' storpiato",
+        )
+        return raw
+
+    return _RE_SSN.sub(_sub, text)
+
+
+def _scrub_en_nino(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    """National Insurance Number britannico.
+
+    Nessun checksum, ma le esclusioni di HMRC -- D, F, I, Q, U, V mai come
+    prima o seconda lettera, O mai come seconda, sette prefissi mai
+    allocati -- tolgono buona parte dello spazio delle lettere, e la forma
+    «due lettere, sei cifre, una lettera fra A e D» in un testo normale non
+    capita per caso.
+    """
+    def _sub(m: re.Match) -> str:
+        if not nino_ok(m.group(1)):
+            # La forma c'e' ma il prefisso non e' fra quelli allocati.
+            # Succede in due casi opposti: qualcuno ha copiato l'esempio di
+            # gov.uk (che usa QQ apposta, perche' non viene mai emesso),
+            # oppure un OCR ha storpiato le lettere di un NINO vero. Il
+            # secondo caso e' il motivo per cui va segnalato.
+            report.suspect(
+                "nino",
+                m.group(1),
+                "ha la forma di un National Insurance Number ma il prefisso "
+                "non e' mai stato allocato: o e' un esempio, o e' storpiato",
+            )
+            return m.group(0)
+        report.add("nino")
+        return "{{NINO}}"
+
+    return _RE_NINO.sub(_sub, text)
+
+
+def _scrub_en_nhs(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
+    """NHS number: mod-11, ma serve comunque il contesto.
+
+    Il mod-11 lascia passare circa una sequenza di dieci cifre su nove: da
+    solo redigerebbe numeri di fattura. Con la parola «NHS» accanto invece
+    e' quasi certo, ed e' cosi' che compare nei documenti veri.
+    """
+    def _sub(m: re.Match) -> str:
+        if not _con_contesto(m, _CTX_NHS) or not nhs_number_ok(m.group(1)):
+            return m.group(0)
+        report.add("nhs_number")
+        return "{{NHS_NUMBER}}"
+
+    return _RE_NHS.sub(_sub, text)
+
+
+def _scrub_en_nove_cifre(
+    text: str, report: RedactionReport, opts: PrivacyOptions
+) -> str:
+    """Routing bancario statunitense e SIN canadese.
+
+    Stessa lunghezza, checksum diversi, e nessuno dei due si puo' cercare
+    senza contesto: nove cifre sono la forma piu' comune che esista in un
+    documento amministrativo. Sono un passo solo perche' competono per lo
+    stesso testo, e chi decide e' la parola che sta davanti.
+    """
+    def _sub(m: re.Match) -> str:
+        raw = m.group(1)
+        if _con_contesto(m, _CTX_ROUTING) and aba_routing_ok(raw):
+            report.add("routing_number")
+            return "{{ROUTING_NUMBER}}"
+        if _con_contesto(m, _CTX_SIN) and sin_ok(raw):
+            report.add("sin")
+            return "{{SIN}}"
+        return raw
+
+    return _RE_NOVE_CIFRE.sub(_sub, text)
+
+
 @dataclass(frozen=True)
 class Passo:
     """Un riconoscitore nella sequenza, con il pacchetto che lo possiede.
@@ -1154,6 +1323,14 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("codice_fiscale_ocr", IT, "fiscal", 44, _scrub_fuzzy_cf),
     Passo("iban_ocr", CORE, "fiscal", 45, _scrub_fuzzy_iban),
     Passo("partita_iva", IT, "fiscal", 46, _scrub_piva),
+    # Gli identificativi anglosassoni stanno nella stessa fascia dei codici
+    # italiani, non dopo: e' la ragione per cui la priorita' e' del tipo di
+    # dato. Un SSN deve essere deciso prima che il riconoscitore dei
+    # telefoni veda nove cifre e le prenda per un recapito.
+    Passo("ssn", EN, "fiscal", 47, _scrub_en_ssn),
+    Passo("nino", EN, "fiscal", 47, _scrub_en_nino),
+    Passo("nhs_number", EN, "fiscal", 48, _scrub_en_nhs),
+    Passo("routing_sin", EN, "fiscal", 49, _scrub_en_nove_cifre),
     Passo("date_nascita", IT, "dates", 50, lambda t, r, o: _scrub_birth_dates(t, r)),
     # Il pattern e' internazionale (prefisso +CC, parola di contesto anche
     # in inglese); restano italiane solo le due scorciatoie senza contesto,
