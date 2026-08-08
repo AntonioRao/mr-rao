@@ -1,5 +1,114 @@
 # Changelog
 
+## 1.8.0 — Quello che nessuno aveva mai misurato
+
+Il banco di prova erano due testi scritti da noi: una mail dove tutto
+doveva sparire, un verbale dove non doveva sparire niente. Passavano
+entrambi, e per mesi è bastato.
+
+Poi abbiamo puntato il motore su un **modulo fiscale statunitense in
+bianco**, scaricato dall'IRS. Un foglio senza un solo dato personale.
+
+```
+22 redazioni
+```
+
+Ventidue. Su un documento vuoto. Diventavano `{{NAME}}` cose come
+*Federal Tax Return* e *Internal Revenue Service*.
+
+Il banco fatto in casa non l'aveva mai visto, e non poteva: **un corpus
+scritto a mano contiene solo le trappole a cui chi lo scrive ha
+pensato.** Un modulo dell'Agenzia delle Entrate contiene quelle a cui
+non penseremmo mai.
+
+### Il conto vero
+
+Costruito un banco su documenti veri — moduli fiscali italiani e
+americani in bianco, Gazzette Ufficiali dal 1890, volumi statistici — dove
+**la risposta giusta è zero**, quindi ogni sostituzione è un errore senza
+bisogno di giudicarlo a occhio. Più 6 000 messaggi di mailing list
+italiane e 1 500 inglesi, per la prosa vera.
+
+| | prima | dopo |
+|---|---|---|
+| falsi positivi sui nomi | **6 339** | **1 637** |
+| IBAN inventati dal recupero OCR | 12 | **0** |
+
+**L'euristica dei cognomi è spenta di default.** «Due parole maiuscole
+che non sono parole italiane» produceva 8 904 sostituzioni sbagliate su
+venti moduli dell'Agenzia delle Entrate e 14 376 su otto Gazzette
+storiche. Resta accendibile per lettere e contratti, dove serve
+davvero — ma il valore predefinito cambia, ed è il motivo per cui questa
+è una 1.8 e non una 1.7.3.
+
+**Il riconoscimento dei nomi ragiona per livelli di prova.** Prima
+bastava che *una* parola di una sequenza fosse negli elenchi perché
+l'intera sequenza sparisse — e gli elenchi contengono «Chiesa», «Costa»,
+«Monte», «Villa». Ora servono due riscontri, oppure un contesto che
+dichiari la persona: un titolo, una firma, un indirizzo di posta
+accanto. Quello che non si riesce a provare diventa un **sospetto**: il
+documento resta leggibile e chi controlla sa dove guardare.
+
+**Lettera o modulo cambiano la regola.** Su una lettera un riscontro solo
+basta; su un modulo è quasi sempre l'etichetta di un campo. Non esiste un
+valore giusto per entrambi, quindi Mr. Rao lo deduce dal file — le email
+sono prosa, i fogli di calcolo sono moduli, e nei PDF conta le caselle
+disegnate sulla pagina. Il segnale sta nel PDF e muore nella conversione
+in testo: un primo tentativo di indovinarlo dal testo estratto
+classificava 79 moduli fiscali su 99 come prosa.
+
+**L'IBAN non si fida più del solo mod-97.** Quel controllo scarta 96
+candidati su 97, che su un volume pieno di codici lunghi non basta: il
+recupero OCR *inventava* IBAN su documenti che non ne contenevano. Ora
+servono anche il codice Paese e la lunghezza attesa per quel Paese.
+
+### Fuori dall'Italia
+
+Il motore riconosce i formati anglosassoni: **NHS number** (mod-11),
+**National Insurance number**, **SSN** e **ITIN**, **routing bancario
+ABA**, **SIN** canadese, **ABN** e **TFN** australiani, codice postale
+britannico, indirizzi con Street e Road, e la **zona a lettura automatica
+dei passaporti** — che contiene cognome, nome, cittadinanza e data di
+nascita tutti insieme.
+
+Ognuno con il suo validatore dove esiste. Dove non esiste lo diciamo: su
+20 000 sequenze casuali di nove cifre, il controllo strutturale del SSN
+ne accetta l'89% e quello dei telefoni americani il 63%. Non sono
+validatori, sono filtri di forma, e infatti niente si sostituisce sulle
+cifre nude senza una parola di contesto accanto.
+
+I riconoscitori sono divisi in **pacchetti** — nucleo universale,
+italiani, anglosassoni — cumulabili e scegliibili dall'interfaccia. Il
+nucleo non si spegne: l'IBAN passa il mod-97 in tutti i Paesi SEPA.
+
+### L'interfaccia parla due lingue
+
+Italiano e inglese, scelte dal browser e cambiabili con un clic. **Anche
+il documento prodotto**: le intestazioni delle email, le note dell'OCR,
+i titoli delle tabelle. Uno schermo inglese e un file italiano sarebbe
+stato metà lavoro.
+
+I segnaposto restano quelli: `{{CODICE_FISCALE}}` non diventa
+`{{TAX_CODE}}`. Nominano lo strumento, non l'interfaccia.
+
+### Due difetti trovati per strada
+
+Un `.eml` con un a capo nell'oggetto poteva scrivere sopra la tabella una
+riga `| **Da** | banca@truffa.it |` — un mittente inventato, leggibile
+come se fosse vero. E un file ancora in scrittura nella cartella
+sorvegliata veniva convertito **a metà**, producendo un `.md` ben formato
+con dentro solo la prima parte: anonimizzare mezzo documento senza
+accorgersene.
+
+### In breve
+
+- 693 test (erano 390)
+- `name_guess` spenta di default — **cambia il comportamento**
+- pacchetti di riconoscitori scegliibili, formati anglosassoni
+- interfaccia e documento in due lingue
+- banco su documenti veri, non più solo su testi scritti da noi
+
+
 ## 1.7.2 — Quello che il programma sapeva e non diceva
 
 Il tasto destro converte un documento e mette il `.md` accanto
