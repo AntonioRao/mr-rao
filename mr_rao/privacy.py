@@ -426,16 +426,29 @@ class PrivacyOptions:
     # uno studio italiano che segue un cliente estero li vorra' entrambi.
     pacchetti: tuple[str, ...] = (CORE, IT, EN)
     # Prosa o modulo. La stessa regola ha segno opposto sulle due
-    # popolazioni, e non e' un'opinione -- e' misurato su 127 documenti
-    # amministrativi (verita' di riferimento zero) e 1500 email vere:
+    # popolazioni, e non e' un'opinione -- e' misurato. Su quali corpora,
+    # perche' senza quello i numeri sembrano piu' forti di quanto siano:
     #
-    #   riscontro singolo negli elenchi   moduli: falsi pos.   email: nomi
-    #   -> sospetto                                    1 637        2 823
-    #   -> sostituzione                                4 376        3 432
+    #   A) 127 documenti amministrativi (moduli in bianco, gazzette,
+    #      volumi statistici): la verita' di riferimento e' zero, quindi
+    #      ogni sostituzione e' un errore;
+    #   B) 1500 messaggi di python-list, prosa **inglese** tecnica;
+    #   C) 168 messaggi di mailing list italiane (lists.linux.it), prosa
+    #      italiana -- il corpus che conta per una regola italiana.
     #
-    # Su un modulo «sospetto» toglie 2 739 errori; su una lettera costa
-    # 609 nomi che restano nel documento. Un valore solo peggiora una
-    # delle due meta' per far contenta l'altra.
+    #   riscontro singolo negli elenchi   A: falsi pos.   B: nomi   C: nomi
+    #   -> sospetto                              1 637      2 823       710
+    #   -> sostituzione                          4 376      3 432     1 067
+    #
+    # Su un modulo «sospetto» toglie 2 739 errori. Su prosa italiana costa
+    # il 50% dei nomi (1067 -> 710) e triplica i sospetti, da 2,9 a 6,9 per
+    # messaggio: a quel punto l'elenco dei sospetti smette di essere
+    # consultabile, che e' la funzione su cui si regge l'onesta' del
+    # prodotto.
+    #
+    # La prima taratura era stata fatta sul corpus B, cioe' misurando una
+    # regola italiana su testo inglese: dava +21% invece di +50%. Direzione
+    # giusta, grandezza sbagliata di piu' del doppio.
     #
     # ``None`` = non si sa. In quel caso si sceglie la prudenza sul
     # documento (sospetto) e non sul richiamo, perche' un falso positivo
