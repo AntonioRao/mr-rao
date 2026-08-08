@@ -148,6 +148,17 @@
                 </div>
 
                 <div class="group">
+                    <div class="eyebrow">Formati di quale Paese</div>
+                    <div class="opt-grid" id="pack-panel" style="display:none">
+                        <label class="opt" data-tip="Codice fiscale, partita IVA, coordinate bancarie italiane, indirizzi con via e piazza, telefoni e nomi italiani. Spegnilo solo se lavori esclusivamente su documenti stranieri.">
+                            <input type="checkbox" id="privacy-pack_it" checked>
+                            <span class="opt-text"><span class="opt-title">Formati italiani</span><span class="opt-desc">Codice fiscale, P.IVA, BBAN, vie, nomi</span></span>
+                        </label>
+                        <label class="opt" data-tip="SSN e ITIN statunitensi, National Insurance Number e NHS number britannici, routing bancario, SIN canadese, ABN e TFN australiani, indirizzi con Street e Road, e la zona a lettura automatica dei passaporti.&lt;br&gt;&lt;br&gt;Lasciarlo acceso su documenti italiani non cambia nulla: questi riconoscitori pretendono una punteggiatura precisa o una parola inglese a cui attaccarsi.">
+                            <input type="checkbox" id="privacy-pack_en" checked>
+                            <span class="opt-text"><span class="opt-title">Formati anglosassoni</span><span class="opt-desc">SSN, NINO, NHS, passaporti, vie inglesi</span></span>
+                        </label>
+                    </div>
                     <div class="eyebrow">Quali dati nascondere</div>
                     <div class="opt-grid" id="privacy-panel" style="display:none">
                         <label class="opt" data-tip="Ogni indirizzo email diventa {{ '{{EMAIL}}' }}.">
