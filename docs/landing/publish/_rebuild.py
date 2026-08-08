@@ -11,6 +11,7 @@ non si guarda il sito pubblicato.
 from pathlib import Path
 from html.parser import HTMLParser
 import re
+import shutil
 import hashlib
 import base64
 
@@ -23,9 +24,16 @@ if re.search(r"""\sstyle\s*=""", src):
 if "el.style" in src:
     raise SystemExit("el.style still present in source")
 
-html = src.replace("../../static/img/logo.svg", "assets/logo.svg").replace(
-    "../../static/img/favicon.svg", "assets/favicon.svg"
-)
+html = (src.replace("../../static/img/logo.svg", "assets/logo.svg")
+           .replace("../../static/img/favicon.svg", "assets/favicon.svg")
+           .replace("../../static/img/favicon.ico", "assets/favicon.ico"))
+
+# Una copia di favicon.ico anche alla radice, senza impronta. Non e' una
+# ridondanza: ogni browser chiede /favicon.ico da solo, senza guardare
+# l'HTML, e su Pages un percorso che non esiste restituisce index.html.
+# Il browser riceve HTML dove si aspetta un'icona, non lo dice a nessuno e
+# continua a mostrare quella che aveva in cache.
+shutil.copyfile(root / "assets" / "favicon.ico", root / "favicon.ico")
 
 # Gli asset portano l'impronta del proprio contenuto nell'indirizzo.
 #
@@ -108,10 +116,10 @@ hdr_path = root / "_headers"
 hdr = hdr_path.read_text(encoding="utf-8")
 # `re.sub` che non trova niente restituisce la stringa com'era, senza dire
 # niente: e' cosi' che l'impronta e' rimasta vecchia una volta.
-for direttiva, impronta in (("script-src", script_h), ("style-src", style_h)):
+for direttiva, hash_atteso in (("script-src", script_h), ("style-src", style_h)):
     hdr, sostituite = re.subn(
         rf"{direttiva} 'self' 'sha256-[^']+'",
-        f"{direttiva} 'self' '{impronta}'",
+        f"{direttiva} 'self' '{hash_atteso}'",
         hdr,
     )
     if sostituite != 1:

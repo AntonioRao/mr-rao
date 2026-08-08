@@ -6,6 +6,13 @@
 <title>Mr. Rao — Protocollo Zero</title>
 <meta name="description" content="Il contratto non esce dalla stanza. Mr. Rao: conversione e redazione dati personali, 100% locale." />
 <link rel="icon" href="assets/favicon.svg?v=354c7fcf8b" type="image/svg+xml" />
+<!-- Il .ico serve a due cose che l'SVG non copre: i browser che non
+     accettano favicon vettoriali, e la richiesta automatica a /favicon.ico
+     che ogni browser fa comunque. Su Cloudflare Pages quel percorso, se il
+     file non c'e', restituisce index.html -- il browser non riesce a
+     leggerlo come icona e tiene quella vecchia in cache, che e' esattamente
+     il sintomo per cui sembrava non fosse cambiata. -->
+<link rel="alternate icon" href="assets/favicon.ico?v=780f2c412d" sizes="16x16 32x32 48x48" />
 <link rel="canonical" href="https://rao.valor-cyber.com/" />
 <style>
   /* Fonts self-hosted — no Google / no third-party CDN at runtime */

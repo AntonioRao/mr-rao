@@ -254,14 +254,14 @@
         t("js_diff_intestazione", { prima: raw.length, dopo: (scrubbed || "").length })
       ) +
       "</div>" +
-      '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:#c9d5f0">' +
+      '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:var(--text)">' +
       highlighted +
       "</pre>" +
       '<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">' +
       '<div style="font-size:0.75rem;color:var(--text-3);margin-bottom:0.35rem">' +
       escapeHtml(t("js_diff_originale")) +
       "</div>" +
-      '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:#94a3b8;max-height:240px;overflow:auto">' +
+      '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:var(--text-2);max-height:240px;overflow:auto">' +
       escapeHtml(raw) +
       "</pre>";
   }
