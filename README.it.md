@@ -21,7 +21,7 @@
 *Estrai lo zip, doppio clic su `Installa Mr Rao.bat`. Fatto.*
 <sub>Lo scaricamento parte subito. [Tutte le versioni e le note di rilascio](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
 
-<sub>**Vuoi essere sicuro che sia il file giusto?** Il pacchetto è firmato con [Sigstore](https://www.sigstore.dev/): `gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao` dice se è uscito davvero da questo repository, da quale commit e da quale build. Nessuna chiave da procurarsi. Dettagli e limiti in [PORTABLE.md](docs/PORTABLE.md#verificare-il-pacchetto).</sub>
+<sub>**Vuoi essere sicuro che sia il file giusto?** Il pacchetto è firmato con [Sigstore](https://www.sigstore.dev/): `gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao` dice se è uscito davvero da questo repository, da quale commit e da quale build. Nessuna chiave da procurarsi. Dettagli e limiti in [PORTABLE.md](docs/PORTABLE.md#verificare-il-pacchetto). Il pacchetto **non** è ancora firmato per Windows, quindi Windows continua a chiamare sconosciuto l'editore: è stata inviata una domanda di firma gratuita alla [SignPath Foundation](https://signpath.org/), e la [policy di firma del codice](docs/CODE-SIGNING-POLICY.md) dice cosa cambierà e cosa no quando verrà accolta.</sub>
 
 ![Mr. Rao — dal file al Markdown redatto, in dieci secondi](docs/img/demo.gif)
 
