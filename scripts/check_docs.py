@@ -246,6 +246,48 @@ def segnaposto_non_documentati() -> list[str]:
     ]
 
 
+def moduli_non_mappati() -> list[str]:
+    """Ogni modulo di `mr_rao/` dev'essere nella tabella di ARCHITECTURE.
+
+    Meta' meccanica di **P3.19**, e nasce da un difetto reale: la scorciatoia
+    sugli appunti e' uscita nella 1.18.0 con il suo modulo `appunti.py`, e la
+    mappa del progetto continuava a non nominarlo. E' proprio la pagina che
+    si legge per orientarsi prima di toccare qualcosa: un modulo che non c'e'
+    e' un pezzo di programma che, per chi arriva, non esiste.
+
+    Il presidio dei segnaposto (sopra) non poteva vederlo — un modulo nuovo
+    non porta per forza un segnaposto nuovo.
+
+    **L'altra meta' di P3.19 resta fuori di proposito.** Sarebbe contare i
+    «segnali» dei nomi dentro la prosa di tre documenti per verificare che
+    dicano lo stesso numero: un controllo che estrae un concetto dal testo
+    approssima cio' che verifica, e si perde proprio il caso scritto in un
+    modo che non aveva previsto. Qui invece il confronto e' fra nomi di file
+    veri e testo letterale, e non c'e' niente da interpretare.
+
+    Vale per **tutte** le lingue della pagina: una tabella tradotta che
+    dimentica un modulo lascia indietro chi legge quella lingua, che e'
+    esattamente il lettore che la traduzione doveva servire.
+    """
+    moduli = sorted(
+        p.name
+        for p in (ROOT / "mr_rao").glob("*.py")
+        if p.name != "__init__.py"
+    )
+    problemi: list[str] = []
+    for pagina in ("ARCHITECTURE.md", "ARCHITECTURE.en.md"):
+        percorso = ROOT / "docs" / pagina
+        if not percorso.is_file():
+            continue
+        testo = percorso.read_text(encoding="utf-8")
+        problemi += [
+            f"docs/{pagina}: il modulo mr_rao/{m} non e' nella tabella dei moduli"
+            for m in moduli
+            if m not in testo
+        ]
+    return problemi
+
+
 def opzioni_cli_non_documentate() -> list[str]:
     """Ogni opzione della riga di comando dev'essere in docs/CLI.md.
 
@@ -408,6 +450,7 @@ def main() -> int:
         + versioni_incoerenti()
         + conteggi_incoerenti(reale)
         + segnaposto_non_documentati()
+        + moduli_non_mappati()
         + opzioni_cli_non_documentate()
         + versione_senza_changelog()
         + landing_invecchiate(reale)

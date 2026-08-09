@@ -56,6 +56,7 @@ Scorciatoia ──► appunti ──► stesso motore privacy ──► appunti
 | `mr_rao/tray.py` | System tray opzionale; ospita la notifica e il ripristino della scorciatoia |
 | `mr_rao/appunti.py` | Scorciatoia da tastiera che redige gli appunti. Tre strati: la parte che **decide** riceve lettura e scrittura dall'esterno ed e' quella sotto test; il resto parla con Windows. Usa `RegisterHotKey`, **mai** un gancio di tastiera — vedi [SCORCIATOIA-APPUNTI.md](SCORCIATOIA-APPUNTI.md) |
 | `mr_rao/cli.py` | CLI convert / watch / health |
+| `mr_rao/__main__.py` | Punto d'ingresso di `python -m mr_rao`: due righe che chiamano `cli.main` |
 | `mr_rao/portcheck.py` | Porta libera + messaggi multi-istanza |
 
 ## Il motore privacy

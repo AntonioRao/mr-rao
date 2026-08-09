@@ -56,6 +56,7 @@ Shortcut ──► clipboard ──► same privacy engine ──► clipboard
 | `mr_rao/tray.py` | Optional system tray; hosts the shortcut's notification and restore |
 | `mr_rao/appunti.py` | Keyboard shortcut that redacts the clipboard. Three layers: the part that **decides** receives read and write from outside and is the one under test; the rest talks to Windows. Uses `RegisterHotKey`, **never** a keyboard hook — see [SCORCIATOIA-APPUNTI.en.md](SCORCIATOIA-APPUNTI.en.md) |
 | `mr_rao/cli.py` | CLI convert / watch / health |
+| `mr_rao/__main__.py` | Entry point for `python -m mr_rao`: two lines calling `cli.main` |
 | `mr_rao/portcheck.py` | Free port + multi-instance messages |
 
 ## The privacy engine

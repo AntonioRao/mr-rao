@@ -1,5 +1,54 @@
 # Changelog
 
+## 1.18.2 — Nessuno aveva mai premuto quei tasti
+
+Due controlli, nessun cambio di comportamento.
+
+### La scorciatoia non era mai stata provata premendola
+
+La 1.18.0 è uscita con 22 test: lo strato che **decide** (lettura e
+scrittura degli appunti iniettate) e lo strato che parla con gli **appunti**
+di Windows, quest'ultimo aggiunto dopo che una prova dal vivo aveva trovato
+gli handle troncati. Restava fuori quello in mezzo — `avvia_scorciatoia`,
+cioè la registrazione presso il sistema, il ciclo dei messaggi e il richiamo
+— e non lo copriva nessun test **né una prova a mano**: la funzione era
+stata spedita senza che nessuno avesse mai premuto Ctrl+Alt+R.
+
+Ora c'è un test che registra la combinazione per davvero e la preme per
+davvero, con `SendInput`. Funziona: tasti premuti, appunti redatti.
+
+**Ma la prima esecuzione diceva di no, e il colpevole era il banco.** La
+struttura `INPUT` a 64 bit va dimensionata sull'unione più grande
+(`MOUSEINPUT`: 40 byte) e `dwExtraInfo` è un `ULONG_PTR`, non un puntatore.
+La prima versione ne dichiarava 32: `SendInput` non inseriva niente, tornava
+`0`, e quel valore di ritorno non veniva controllato. Il banco concludeva
+«la combinazione non scatta» — **un controllo che diceva sempre di no**,
+l'altra faccia di quello che non può fallire e altrettanto inutile. Adesso
+`sizeof(INPUT)` e il ritorno di `SendInput` sono due asserzioni: se il banco
+non sa premere i tasti lo dice, invece di accusare il prodotto.
+
+### P3.19, la metà meccanica
+
+Ogni modulo di `mr_rao/` deve comparire nella tabella di `ARCHITECTURE.md`,
+**in tutte e due le lingue**. Nasce dal fatto che `appunti.py` è uscito
+nella 1.18.0 e la mappa del progetto continuava a non nominarlo: è proprio
+la pagina che si legge per orientarsi prima di toccare qualcosa, e un modulo
+che non c'è è un pezzo di programma che per chi arriva non esiste. Il
+presidio dei segnaposto non poteva vederlo — un modulo nuovo non porta per
+forza un segnaposto nuovo.
+
+Acceso, ha trovato subito un buco vero: **`mr_rao/__main__.py` non era in
+nessuna delle due tabelle**. Aggiunto.
+
+**L'altra metà di P3.19 resta fuori di proposito.** Sarebbe contare i
+«segnali» dei nomi dentro la prosa di tre documenti per verificare che
+dicano lo stesso numero: un controllo che estrae un concetto dal testo
+approssima ciò che verifica, e si perde proprio il caso scritto in un modo
+che non aveva previsto. Il confronto fra nomi di file veri e testo letterale
+non ha niente da interpretare; quello sì.
+
+1040 test.
+
 ## 1.18.1 — L'indirizzo usciva dalla riga
 
 Due difetti nel riconoscitore di indirizzi, trovati **costruendo un esempio
