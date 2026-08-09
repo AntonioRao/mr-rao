@@ -9,8 +9,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
+import re
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION
@@ -84,6 +87,210 @@ def _scrivi(riga: str) -> None:
         print(riga.encode("ascii", "replace").decode("ascii"), flush=True)
 
 
+def _scrivi_err(riga: str) -> None:
+    """Come `_scrivi`, ma sul canale degli errori."""
+    try:
+        print(riga, file=sys.stderr, flush=True)
+    except UnicodeEncodeError:
+        print(riga.encode("ascii", "replace").decode("ascii"), file=sys.stderr, flush=True)
+
+
+# --- P0.4: la traccia dell'ultimo errore ----------------------------------
+#
+# Il problema: dal tasto destro la finestra puo' sparire prima che si legga
+# qualcosa. `--attendi` (1.7.x) copre solo il caso in cui l'utente e' davanti
+# allo schermo *e* c'e' una console vera: se il processo muore prima che
+# Python parli, se stdin non e' un terminale, o se semplicemente l'utente e'
+# andato a prendere un caffe', resta un lampo e nient'altro.
+#
+# Fra le due forme possibili — finestra di messaggio nativa o file — qui si
+# sceglie il **file**, per tre motivi:
+#
+#   1. la richiesta e' «una traccia che si puo' leggere DOPO». Una MessageBox
+#      e' esattamente lo stesso limite di `--attendi`: se non c'e' nessuno
+#      davanti, non serve a niente e sparisce quando qualcuno clicca OK;
+#   2. MessageBoxW e' modale e bloccante. In `watch`, in una pipeline o in CI
+#      terrebbe fermo il processo per sempre senza che nessuno la veda: ogni
+#      guardia che si aggiunge per evitarlo e' un modo in cui il feedback
+#      puo' di nuovo non comparire;
+#   3. un eseguibile che muore prima di arrivare a Python non puo' aprire
+#      nessuna finestra. Quel caso lo copre il *lanciatore* (il `pause` nel
+#      .bat e nel comando del menu contestuale), non il programma.
+#
+# Ma un registro, su uno strumento di privacy, e' esso stesso un dato. Un
+# file che elenca `C:\clienti\Rossi\cartella-clinica.pdf` racconta di chi
+# sono i documenti che l'utente converte: e' proprio il metadato che questo
+# programma esiste per non far girare. Quindi, dichiarato:
+#
+#   COSA C'E'    data e ora, l'estensione e la dimensione approssimativa del
+#                documento, e il motivo del fallimento.
+#   COSA NON     il nome del file, il percorso, la cartella, il contenuto,
+#   C'E'         l'elenco delle conversioni riuscite. Il motivo viene ripulito
+#                da qualunque percorso prima di essere scritto: i messaggi di
+#                sistema (`[Errno 13] ... 'C:\\...\\x.pdf'`) se lo portano
+#                dietro.
+#   QUANTO       una riga sola, riscritta ogni volta: c'e' l'ultimo errore,
+#   RESTA        non una cronologia. Dopo sette giorni la prima conversione
+#                successiva lo cancella.
+#   DOVE STA     %LOCALAPPDATA%\Mr Rao, cioe' `user_folders.app_data_dir()`.
+#                NON `config.WRITABLE_DIR`, che nel portable e' la cartella
+#                dell'eseguibile: da li' seguirebbe il programma dentro
+#                OneDrive, nei backup e nello zip passato a un collega — lo
+#                stesso ragionamento che in config.py tiene SECRET_KEY fuori
+#                dal disco. E nemmeno `folders_root()`, che puo' essere
+#                Documenti: un file di errori in mezzo ai documenti sembra un
+#                documento.
+#
+# Chi non ne vuole sapere niente: MR_RAO_TRACCIA=0 e non viene scritto nulla.
+
+TRACCIA_GIORNI = 7
+TRACCIA_NOME = "ultimo-errore.txt"
+_ENV_TRACCIA = "MR_RAO_TRACCIA"
+_TRACCIA_SPENTA = {"", "0", "no", "off", "none", "false"}
+
+# Percorsi Windows (`C:\...`, `\\server\...`) e POSIX, quello che si infila
+# nei messaggi di sistema senza che nessuno lo abbia chiesto.
+#
+# Il ramo POSIX pretende **due** segmenti e nessuna lettera prima della barra.
+# Una barra sola, presa da sola, mangiava «and/or» e «I/O» trasformando un
+# messaggio leggibile in «and<percorso>»: una ripulitura troppo larga non
+# protegge di piu', rende solo illeggibile la sola frase utile del file.
+_RE_PERCORSO = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\)[^\s'\"<>|,;]+"
+    r"|(?<![\w.])/[^\s'\"<>|,;/]+/[^\s'\"<>|,;]*"
+)
+
+
+def percorso_traccia() -> Path | None:
+    """Dove finisce la traccia, o None se l'utente l'ha spenta."""
+    scelta = os.environ.get(_ENV_TRACCIA)
+    if scelta is not None:
+        if scelta.strip().lower() in _TRACCIA_SPENTA:
+            return None
+        return Path(scelta).expanduser()
+    from mr_rao.user_folders import app_data_dir
+
+    return app_data_dir() / TRACCIA_NOME
+
+
+def _senza_percorsi(motivo: str, path: Path | None) -> str:
+    """Toglie dal messaggio tutto cio' che identifica il documento.
+
+    Prima i nomi veri (che un percorso generico non intercetta se il file si
+    chiama `Rossi.pdf` e sta nella cartella corrente), poi qualunque cosa
+    somigli a un percorso. In fondo resta la sola frase utile."""
+    testo = str(motivo)
+    if path is not None:
+        pezzi = {str(path), path.name, path.stem}
+        try:
+            risolto = path.resolve()
+            pezzi |= {str(risolto), str(risolto.parent)}
+        except OSError:
+            pass
+        for pezzo in sorted((p for p in pezzi if len(p) > 2), key=len, reverse=True):
+            testo = re.sub(re.escape(pezzo), "<documento>", testo, flags=re.IGNORECASE)
+    return _RE_PERCORSO.sub("<percorso>", testo).strip()
+
+
+def _descrivi_documento(path: Path | None) -> str:
+    """Il documento senza dire di chi e': estensione e ordine di grandezza."""
+    if path is None:
+        return "un documento"
+    ext = path.suffix.lower() or "senza estensione"
+    try:
+        byte = path.stat().st_size
+    except OSError:
+        return f"un file {ext}"
+    if byte >= 1024 * 1024:
+        misura = f"{byte / (1024 * 1024):.1f} MB".replace(".", ",")
+    elif byte >= 1024:
+        misura = f"{round(byte / 1024)} KB"
+    else:
+        misura = f"{byte} byte"
+    return f"un file {ext} da {misura}"
+
+
+def scade_traccia(adesso: float | None = None) -> None:
+    """Cancella la traccia se e' piu' vecchia di TRACCIA_GIORNI.
+
+    Si chiama all'inizio di ogni conversione: la ritenzione e' limitata da
+    sola, senza che l'utente debba ricordarsi di niente. Non fa rumore se
+    fallisce — non riuscire a cancellare un file di appoggio non e' un buon
+    motivo per non convertire un documento.
+    """
+    f = percorso_traccia()
+    if f is None:
+        return
+    try:
+        if not f.is_file():
+            return
+        eta = (adesso if adesso is not None else time.time()) - f.stat().st_mtime
+        if eta > TRACCIA_GIORNI * 86400:
+            f.unlink()
+    except OSError:
+        pass
+
+
+def scrivi_traccia(motivo: str, path: Path | None, quanti: int = 1) -> Path | None:
+    """Scrive (riscrivendola) la traccia dell'ultimo errore.
+
+    Restituisce il file scritto, o None se la traccia e' spenta o il disco
+    non collabora. In UTF-8 **con BOM**: questo file lo apre un umano con
+    doppio clic, e senza BOM il Blocco note di Windows 8/10 vecchi mostra
+    «e' aperto» al posto di «è aperto» — cioe' il testo sembra guasto proprio
+    mentre sta spiegando un guasto.
+    """
+    f = percorso_traccia()
+    if f is None:
+        return None
+    quando = datetime.now().strftime("%d/%m/%Y %H:%M")
+    riga_extra = (
+        f"\nIn questa esecuzione i file non convertiti sono {quanti}; qui sotto\n"
+        "c'è l'ultimo.\n"
+        if quanti > 1
+        else ""
+    )
+    testo = (
+        f"{APP_NAME} {APP_VERSION} - ultimo errore\n"
+        f"{quando}\n"
+        f"{riga_extra}\n"
+        f"Non sono riuscito a convertire {_descrivi_documento(path)}.\n\n"
+        f"    {_senza_percorsi(motivo, path) or 'motivo non disponibile'}\n\n"
+        "-- come leggere questo file --------------------------------------\n"
+        "\n"
+        "Contiene SOLO l'ultimo errore e viene riscritto da capo ogni volta:\n"
+        "non è una cronologia delle tue conversioni.\n"
+        "\n"
+        "Di proposito non ci trovi il nome del documento, il suo percorso,\n"
+        "la cartella o il contenuto. Un elenco dei file che converti sarebbe\n"
+        "esso stesso un dato personale, ed è il genere di cosa che Mr. Rao\n"
+        "esiste per non far girare.\n"
+        "\n"
+        f"Puoi cancellarlo quando vuoi. Se non lo fai, dopo {TRACCIA_GIORNI} "
+        "giorni lo\ncancella da sola la prima conversione successiva.\n"
+        f"Per non scriverlo affatto, imposta {_ENV_TRACCIA}=0\n"
+    )
+    try:
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(testo, encoding="utf-8-sig")
+    except OSError as e:
+        # Detto, non taciuto: se la traccia non si scrive, chi legge la
+        # console deve saperlo, altrimenti andra' a cercare un file che non
+        # c'e' e concludera' che il programma mente.
+        _scrivi_err(f"  (non riesco a scrivere la traccia in {f}: {e.strerror or e})")
+        return None
+    return f
+
+
+def segnala_errore(motivo: str, path: Path | None, quanti: int = 1) -> None:
+    """Stampa l'errore e lascia la traccia, dicendo dov'e'."""
+    _scrivi_err(f"  ERRORE: {motivo}")
+    f = scrivi_traccia(motivo, path, quanti)
+    if f is not None:
+        _scrivi_err("  Se la finestra si chiude, il motivo resta scritto qui:")
+        _scrivi_err(f"    {f}")
+
+
 def _stampa_esito(r) -> bool:
     """Racconta cosa e' successo. Torna True se c'e' qualcosa da guardare.
 
@@ -143,6 +350,7 @@ def _attendi_se_serve(args: argparse.Namespace, da_guardare: bool) -> None:
 
 
 def cmd_convert(args: argparse.Namespace) -> int:
+    scade_traccia()
     paths: list[Path] = []
     for p in args.files:
         path = Path(p)
@@ -153,24 +361,31 @@ def cmd_convert(args: argparse.Namespace) -> int:
         elif path.exists():
             paths.append(path)
         else:
-            print(f"File non trovato: {p}", file=sys.stderr)
+            # Anche questo e' un fallimento del tasto destro, e sparisce con
+            # la finestra come tutti gli altri: lascia la sua traccia.
+            segnala_errore(f"File non trovato: {path.name}", path)
+            _attendi_se_serve(args, True)
             return 1
 
     if not paths:
-        print("Nessun file da convertire.", file=sys.stderr)
+        segnala_errore("Nessun file da convertire.", None)
+        _attendi_se_serve(args, True)
         return 1
 
     opts = _build_options(args)
     results = []
     da_guardare = False
+    falliti = 0
     for path in paths:
         _scrivi(f"> {path.name}...")
         r = convert_file(path, options=opts)
         if r.error:
-            print(f"  ERRORE: {r.error}", file=sys.stderr)
+            falliti += 1
+            segnala_errore(r.error, path, falliti)
             if not args.merge:
                 _attendi_se_serve(args, True)
                 return 1
+            da_guardare = True
         else:
             da_guardare = _stampa_esito(r) or da_guardare
         results.append(r)
@@ -206,6 +421,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
     inbox.mkdir(parents=True, exist_ok=True)
     outbox.mkdir(parents=True, exist_ok=True)
     opts = _build_options(args)
+    scade_traccia()
     seen: set[str] = set()
     print(f"{APP_NAME} watch: {inbox} -> {outbox} (Ctrl+C per uscire)")
     try:
@@ -230,7 +446,9 @@ def cmd_watch(args: argparse.Namespace) -> int:
                 r = convert_file(path, options=opts)
                 seen.add(key)
                 if r.error:
-                    print(f"  ERRORE: {r.error}")
+                    # Una cartella osservata gira per ore senza nessuno
+                    # davanti: e' il caso in cui la traccia serve di piu'.
+                    segnala_errore(r.error, path)
                     continue
                 dest = output_path_for(outbox, path)
                 write_atomic(dest, r.markdown)
@@ -266,6 +484,17 @@ def cmd_health(_args: argparse.Namespace) -> int:
         print("beautifulsoup4: ok")
     except Exception as e:
         print(f"beautifulsoup4: FAIL ({e})")
+
+    # Il percorso della traccia si stampa **sempre**, anche quando il file
+    # non c'e'. Una traccia che l'utente non sa dove cercare non e' una
+    # traccia: e quando serve davvero la finestra si e' gia' chiusa, quindi
+    # il posto dove dirlo dev'essere raggiungibile a freddo.
+    f = percorso_traccia()
+    if f is None:
+        print(f"traccia errori: disattivata ({_ENV_TRACCIA})")
+    else:
+        stato = "presente" if f.is_file() else "nessun errore registrato"
+        print(f"traccia errori: {f} ({stato})")
     return 0
 
 

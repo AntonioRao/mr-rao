@@ -112,7 +112,41 @@ function Install-Shell {
     # leggibile ed era falso: si poteva cambiare il comando vero lasciando
     # la prova a dire la cosa giusta. Una prova che ricalcola invece di
     # mostrare descrive un programma che non esiste.
-    $comando = '"{0}" "%1"' -f $Bersaglio
+    #
+    # P0.4 - la finestra non deve sparire quando qualcosa va storto.
+    #
+    # Da sorgente il bersaglio e' open_with_mr_rao.bat, che di suo aggiunge
+    # gia' `convert --attendi` e chiude con `if errorlevel 1 pause`: li' non
+    # serve altro, e infilarci un secondo pause vorrebbe dire due prompt in
+    # fila sullo stesso errore.
+    #
+    # Nel pacchetto portable, invece, il bersaglio e' MrRao.exe e il comando
+    # era `"MrRao.exe" "%1"`: nessun `--attendi` (app.py ricostruisce
+    # `convert <file>` e basta) e nessun pause. Bastava un errore perche' la
+    # finestra facesse un lampo e sparisse -- che e' esattamente il difetto
+    # da chiudere.
+    #
+    # Due pezzi, e servono tutti e due:
+    #   `convert --attendi`  fa fermare il programma quando c'e' qualcosa da
+    #                        leggere (redazioni, sospetti, errori);
+    #   `|| pause`           tiene la finestra anche quando il programma non
+    #                        arriva a parlare: DLL mancante, estrazione del
+    #                        bundle fallita, eseguibile spostato. In quei casi
+    #                        Python non gira, quindi nessuna cortesia scritta
+    #                        in Python puo' salvare la situazione: l'unico che
+    #                        sopravvive al figlio e' chi lo ha lanciato.
+    #
+    # Sul quoting: con `cmd /d /c "..."` cmd toglie la coppia di virgolette
+    # piu' esterna ed esegue il resto, quindi percorsi e `%1` con spazi
+    # restano interi. Verificato con eseguibile e documento entrambi con
+    # spazi nel nome, sia in uscita 0 (nessun pause) sia in uscita diversa da
+    # zero (pause). `/d` salta gli AutoRun del registro, che altrimenti
+    # possono stampare roba propria prima di noi.
+    if ($ApriCon) {
+        $comando = '"{0}" "%1"' -f $Bersaglio
+    } else {
+        $comando = 'cmd /d /c ""{0}" convert --attendi "%1" || pause"' -f $Bersaglio
+    }
 
     Write-Host "  avvio:  $Exe"
     Write-Host "  apri:   $Bersaglio"

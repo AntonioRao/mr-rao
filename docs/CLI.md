@@ -76,6 +76,48 @@ python -m mr_rao.cli convert atto.pdf \
 > le due liste restano sul disco di chi converte, e non passano da nessuna
 > cronologia.
 
+### Quando qualcosa va storto
+
+Dal tasto destro la finestra può chiudersi prima che tu abbia letto niente —
+e `--attendi` aiuta solo se sei lì davanti in quel momento. Perciò **una
+conversione fallita lascia una traccia su file**, che puoi leggere dopo:
+
+```
+%LOCALAPPDATA%\Mr Rao\ultimo-errore.txt
+```
+
+Il percorso viene stampato sulla console insieme all'errore, e lo ripete
+`mr-rao health` anche quando il file non c'è. In quella cartella non arriva
+mai OneDrive: è la stessa cartella locale che Mr. Rao usa quando «Documenti»
+risulta sincronizzata. Non sta accanto all'eseguibile portable apposta —
+da lì seguirebbe il programma dentro i backup e dentro lo zip che passi a un
+collega.
+
+**Cosa c'è dentro, e cosa no.** Un registro, su un programma che esiste per
+non far girare i dati personali, è esso stesso un dato: un file che elenca
+`C:\clienti\Rossi\cartella-clinica.pdf` racconta di chi sono i documenti che
+converti. Quindi la traccia contiene **data e ora, il tipo di file, la
+dimensione approssimativa e il motivo del fallimento**, e non contiene il
+nome del documento, il percorso, la cartella né il contenuto. Il motivo viene
+ripulito da qualunque percorso prima di essere scritto, perché i messaggi di
+sistema se lo portano dietro.
+
+È **una riga sola, riscritta ogni volta**: c'è l'ultimo errore, non una
+cronologia delle tue conversioni. Una conversione riuscita non scrive niente.
+Dopo sette giorni il file lo cancella da sola la prima conversione
+successiva; puoi cancellarlo a mano quando vuoi.
+
+| variabile d'ambiente | cosa fa |
+|---------|---------|
+| `MR_RAO_TRACCIA=0` | Non scrivere niente su disco, mai. Vale anche `no`, `off`, `none`, `false` o vuoto |
+| `MR_RAO_TRACCIA=<percorso>` | Scrivi la traccia in quel file invece che in `%LOCALAPPDATA%\Mr Rao\ultimo-errore.txt` |
+
+Nel pacchetto portable la voce «Apri con Mr. Rao» lancia l'eseguibile dentro
+`cmd /d /c ... || pause`: se il programma non arriva nemmeno a partire — una
+DLL che manca, l'eseguibile spostato — la finestra resta aperta lo stesso.
+Nessun messaggio scritto in Python può comparire se Python non gira, e quel
+caso lo può coprire solo chi ha lanciato il processo.
+
 ---
 
 ## `watch` — osserva una cartella e converti da solo
@@ -105,6 +147,8 @@ python -m mr_rao.cli health
 ```
 
 Dice quali librerie opzionali sono installate e quali no. Non converte niente.
+In fondo stampa **dove sta la traccia dell'ultimo errore** e se c'è: è il modo
+di ritrovarla quando la finestra si è già chiusa.
 
 ---
 
