@@ -1,5 +1,80 @@
 # Changelog
 
+## 1.17.0 — Una regola da due righe dove un modello da 64 MiB non arrivava
+
+Due cose, e la seconda serve a non perdere la prima.
+
+### «Il Ministro: GIORGETTI»
+
+È la forma con cui si firmano gli atti pubblici italiani: **un ruolo, i due
+punti, e un cognome solo in maiuscolo**. Nessuna regola la vedeva — il
+riconoscitore a coppie pretende due parole maiuscole adiacenti, e qui la
+parola è una. Contata sulle dodici Gazzette Ufficiali del corpus pubblico:
+**107 occorrenze intatte**, fra cui i cognomi di sei ministri in carica.
+
+Gli elenchi qui non servono, ed è il numero che ha deciso il disegno: dei
+114 cognomi trovati in quella forma, **28** stanno nei nostri elenchi.
+Pretendere il riscontro avrebbe lasciato passare gli altri 86. Quello che
+decide è il **ruolo davanti ai due punti**.
+
+Vale la pena dirlo per esteso, perché è il contrario di quel che si
+suppone: l'indagine P3.6 aveva misurato su questa stessa forma un modello
+NER da **64 MiB**, che ne prendeva **3 su 42**. Una regola da due righe
+arriva dove il modello non arriva, perché il segnale non sta nella
+semantica — sta nella punteggiatura.
+
+Tre guardie, e nessuna è stata immaginata: ognuna nasce da un falso
+positivo visto sul corpus.
+
+- **Niente virgola** fra il ruolo e i due punti. *«Responsabile della
+  protezione dei dati, all'indirizzo: INPS»* ha un ruolo davanti, ma i due
+  punti sono di «indirizzo»: la virgola dice che la frase è andata avanti.
+- **Una riga sola.** Attraversando l'a capo si prendeva *«IACHINO ↵
+  MINISTERO DELLA»*, cioè il cognome più l'intestazione della sezione dopo.
+- **Tutto maiuscolo, e nessuna parola comune.** È il presidio contro
+  l'altra faccia della stessa forma, che su un modulo è un'etichetta di
+  campo: *«Responsabile: SETTORE TECNICO»*, *«Direttore: UFFICIO
+  ACQUISTI»*. Il maiuscolo non è un dettaglio estetico: in un atto firmato
+  il cognome è in maiuscolo perché è una firma, e chiederlo costa un
+  richiamo che non abbiamo mai avuto invece di aprire la porta a *«Il
+  presidente: Vedi allegato»*.
+
+Costo misurato: **zero** sui 42 moduli in bianco (27 italiani, 15
+statunitensi). Tutte e 107 le sostituzioni stanno nella prosa vera.
+
+### Il richiamo non può più scendere in silenzio
+
+Tutti i banchi di questo progetto contano gli **errori** su documenti che
+non contengono niente. È la metà giusta da guardare per prima, ma è una
+metà: se domani una modifica facesse smettere il motore di vedere *«piazza
+G. Verdi, 1»*, quei banchi resterebbero tutti verdi. **Zero errori su un
+documento vuoto è anche il risultato di un motore spento.**
+
+`scripts/bench_corpus_pubblico.py` guarda l'altra metà, sui documenti che
+non abbiamo scritto noi, e fallisce in **due** direzioni: se compare una
+sostituzione sui moduli in bianco, e se il numero di sostituzioni sulla
+prosa vera **scende**. I numeri sono congelati in
+`tests/dati/corpus_pubblico_atteso.json` insieme all'impronta dell'elenco
+dei file, così puntare il banco a un corpus diverso viene detto invece di
+sembrare una regressione.
+
+Il corpus non sta nel repository — decine di megabyte, e non sono nostri da
+ridistribuire: si passa con `MRRAO_CORPUS` e il test si salta dicendolo.
+Ma i tre test che provano il **meccanismo** girano sempre, anche in CI: un
+controllo che gira solo sulla macchina di chi sviluppa non è un controllo.
+
+Provato all'indietro sul motore della 1.15.0: il banco segnala
+`gu/addresses: da 42 a 0` e `gu/names: da 107 a 0`.
+
+### Inoltre
+
+Nove parole di lessico amministrativo aggiunte all'elenco delle parole
+comuni (`area`, `gestione`, `bilancio`, `anagrafe`, `vigilanza`…):
+nessuna è un cognome o un nome proprio, quindi non costano richiamo, e
+chiudono le etichette di campo che sfuggivano alla guardia sopra.
+
+1002 test, 30 nuovi, 22 dei quali rossi sul commit precedente.
+
 ## 1.16.0 — Il cognome che sopravviveva al nome
 
 Terza girata della stessa manopola: **valori diversi**, questa volta sul
@@ -48,13 +123,19 @@ invece del nome per esteso. Il corpo dell'indirizzo non poteva nemmeno
 **cominciare** — pretendeva una lettera minuscola oppure tre maiuscole, e
 `A.` non ha né l'una né le altre.
 
-Misurato sul corpus a verità zero, dove il motore prima non sostituiva
+Misurato sul corpus pubblico, dove il motore prima non sostituiva
 **nulla**: la correzione tira fuori **41 indirizzi veri** dai dodici numeri
 di Gazzetta Ufficiale, fra cui la sede del Ministero dell'ambiente e quella
 dell'Istituto Poligrafico stampata su ogni fascicolo. **Zero** falsi
 positivi: `via PEC, 30` e `via FTP, 12` restano intatti, perché l'elenco
 delle parole-trappola continua a decidere sulla prima parola vera, non
 sull'iniziale.
+
+*(Nota aggiunta nella 1.17.0: qui sopra e sotto avevamo scritto «54
+documenti a verità zero». I documenti a verità zero sono **42** — i moduli
+in bianco italiani e statunitensi. Le dodici Gazzette sono prosa vera, e i
+nomi e gli indirizzi ce li hanno davvero: è esattamente per questo che
+sono state loro a trovare i difetti.)*
 
 Nella stessa riga: aggiunte le abbreviazioni postali che mancavano
 (`P.le`, `L.go`, `V.lo`, `B.go` — c'erano già `V.le`, `P.zza`, `C.so`,
@@ -77,9 +158,9 @@ ne ha uno. Ventidue casi su duecento che sembravano una perdita. È lo stesso
 errore dei SIN canadesi che cominciavano per zero nella 1.15.0, ed è scritto
 nel docstring del generatore perché non si ripeta.
 
-**Costo sui 54 documenti a verità zero: nessuna sostituzione nuova che non
-sia un indirizzo vero.** 979 test, 24 nuovi, 16 dei quali rossi sul commit
-precedente.
+**Costo sui 42 moduli in bianco: zero.** Tutte le sostituzioni nuove stanno
+nella prosa vera, e sono indirizzi veri. 979 test, 24 nuovi, 16 dei quali
+rossi sul commit precedente.
 
 ## 1.15.0 — Cambiare la frase non basta: bisogna cambiare il valore
 

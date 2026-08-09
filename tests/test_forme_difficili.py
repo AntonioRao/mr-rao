@@ -69,7 +69,11 @@ ATTESO = {
     "nome straniero, nudo": "perso",
     "nome straniero, titolo davanti": "redatto",
     "nome straniero, firma": "redatto",
-    "solo cognome dopo i due punti": "sospetto",
+    # Era «sospetto» fino alla 1.16.0: nessuna regola vedeva un cognome da
+    # solo, perche' il riconoscitore a coppie pretende due parole adiacenti.
+    # Dalla 1.17.0 lo prende il **ruolo davanti ai due punti**, che e' la
+    # firma degli atti pubblici italiani.
+    "solo cognome dopo i due punti": "redatto",
     "cognome che e' parola comune": "sospetto",
     "indirizzo senza civico": "redatto",
 }

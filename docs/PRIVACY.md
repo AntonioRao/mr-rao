@@ -124,12 +124,32 @@ passare tutti i cognomi non comuni. Valgono quindi anche le regole di
 contesto, dal segnale più forte al più debole:
 
 1. **Titolo professionale davanti** — Dott., Ing., Geom., Avv., Sig.
-2. **Nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`.
+2. **Ruolo, due punti, cognome in maiuscolo** — `Il Ministro: GIORGETTI`.
+   È la firma degli atti pubblici italiani.
+3. **Nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`.
    È il caso più frequente nelle email.
-3. **Nome proprio riconosciuto** che tira dentro la parola successiva.
+4. **Nome proprio riconosciuto** che tira dentro la parola successiva.
 
-Tutte e tre chiedono **un riscontro**. Ce n'era una quarta che non lo
-chiedeva, ed è stata tolta.
+Tutte chiedono **un riscontro**. Ce n'era una quinta che non lo chiedeva,
+ed è stata tolta.
+
+### La firma degli atti pubblici
+
+La seconda regola merita una nota, perché è l'unica in cui gli elenchi non
+contano niente — di proposito. Sulle dodici Gazzette Ufficiali del corpus
+pubblico quella forma compare **107 volte**, e dei 114 cognomi trovati
+**28** stanno nei nostri elenchi: pretendere il riscontro avrebbe lasciato
+passare gli altri 86. Quello che decide è il ruolo davanti ai due punti.
+
+Sulla stessa forma un modello NER da 64 MiB prendeva 3 casi su 42. Non è
+una questione di quanto sa un modello: il segnale sta nella punteggiatura.
+
+Il permesso si paga con tre vincoli, ognuno nato da un falso positivo
+misurato: fra il ruolo e i due punti non ci può essere una **virgola**
+(*«Responsabile della protezione dei dati, all'indirizzo: INPS»* — quei due
+punti non sono del ruolo); il cognome non attraversa l'**a capo**; e deve
+essere **tutto maiuscolo e non una parola comune**, altrimenti su un modulo
+si mangerebbe le etichette dei campi (*«Responsabile: SETTORE TECNICO»*).
 
 ### Quando la parola comune è anche un cognome
 
@@ -294,6 +314,28 @@ Lo stesso documento in dieci formati — `.txt`, `.html`, `.csv`, `.json`,
 deve proteggere allo stesso modo, perché fra un formato e l'altro cambia
 l'estrattore. **Otto dati su otto in tutti e dieci**, nessuno lasciato
 leggibile. Banco: `scripts/bench_formati.py`.
+
+### Che il richiamo non possa scendere in silenzio
+
+Tutte le misure sopra contano gli **errori** su documenti che non
+contengono niente. È la metà giusta da guardare per prima — un motore che
+sovra-redige è inutilizzabile — ma è una metà, e l'altra è invisibile per
+costruzione: se una modifica facesse smettere il motore di vedere «piazza
+G. Verdi, 1», ogni banco a verità zero resterebbe verde. **Zero errori su un
+documento vuoto è anche il risultato di un motore spento.**
+
+`scripts/bench_corpus_pubblico.py` guarda l'altra metà, e lo fa sui
+documenti **che non abbiamo scritto noi**: Gazzette Ufficiali e moduli
+scaricati dagli enti che li pubblicano. Fallisce in due direzioni — se
+compare una sostituzione sui moduli in bianco (dove l'atteso è zero), e se
+il numero di sostituzioni sulla prosa vera **scende**. I numeri sono
+congelati insieme all'impronta dell'elenco dei file, così un corpus diverso
+viene detto invece di sembrare una regressione.
+
+Il corpus non sta nel repository: sono decine di megabyte e non sono nostri
+da ridistribuire. Il test si salta dicendolo, ma i tre test che provano il
+**meccanismo** girano sempre — un controllo che gira solo sulla macchina di
+chi sviluppa non è un controllo.
 
 ## I sospetti
 

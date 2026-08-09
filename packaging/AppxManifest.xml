@@ -36,7 +36,7 @@
   <Identity
     Name="AntonioAndreaRao.Mr.Rao"
     Publisher="CN=F8F25019-FE94-449C-9D17-67D97BE7C904"
-    Version="1.16.0.0"
+    Version="1.17.0.0"
     ProcessorArchitecture="x64" />
 
   <Properties>

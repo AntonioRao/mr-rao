@@ -81,7 +81,15 @@ RIGENERATE = {
 
 _RE_ID = re.compile(r"^\| ([PSA]\d*\.\d+[a-z]?) \|", re.MULTILINE)
 _RE_VERSIONE = re.compile(r"(?:versione|version)[-\s:]+(\d+\.\d+\.\d+)", re.I)
-_RE_CONTEGGIO = re.compile(r"(\d{3})(?:%20)?[\s-]*(?:test|tests|passing|passati)", re.I)
+# Da tre a cinque cifre, non esattamente tre.
+#
+# Con `\d{3}` la 1.17.0 ha superato i mille test e il controllo ha cominciato
+# a leggere «002» dentro «1002»: diceva che i documenti erano disallineati
+# quando erano giusti. Un controllo che sbaglia in questo verso e' meno grave
+# di uno che tace, ma e' lo stesso difetto — un numero letto male — proprio
+# in cio' che esiste per accorgersi dei numeri letti male.
+_RE_CONTEGGIO = re.compile(
+    r"(\d{3,5})(?:%20)?[\s-]*(?:test|tests|passing|passati)", re.I)
 _RE_LINK = re.compile(r"\]\(([^)#:]+\.(?:md|py|txt|ico|png|yml|bat|ps1))[^)]*\)")
 _RE_VOCE_CHANGELOG = re.compile(r"^#{1,3}[ \t]*\[?v?(\d+\.\d+\.\d+)\]?", re.MULTILINE)
 

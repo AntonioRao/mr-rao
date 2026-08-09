@@ -618,6 +618,54 @@ _RE_FIRMA_IT = re.compile(
     rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
 )
 
+# «Il Ministro: GIORGETTI» — un ruolo, due punti, e un cognome solo.
+#
+# E' la forma con cui si firmano gli atti pubblici italiani, e nessuna delle
+# altre regole la vedeva: il riconoscitore a coppie pretende **due** parole
+# adiacenti, e qui la parola e' una sola. Contata sulle Gazzette Ufficiali
+# del corpus: 107 occorrenze intatte, GIORGETTI, NORDIO, PIANTEDOSI,
+# LOLLOBRIGIDA, IACOVONI. Nemmeno un modello NER da 64 MiB la prendeva
+# (3 casi su 42 misurati): non e' una questione di quanto sa un modello, e'
+# che il segnale sta nella punteggiatura.
+#
+# Gli elenchi non servono a niente qui, ed e' il punto: dei 114 cognomi
+# trovati, **28** stanno nei nostri elenchi. Pretendere il riscontro
+# avrebbe lasciato passare gli altri 86. Quello che decide e' il ruolo
+# davanti ai due punti.
+#
+# Tre guardie, ognuna nata da un falso positivo visto davvero:
+#
+#  * **niente virgola** fra il ruolo e i due punti. «Responsabile della
+#    protezione dei dati, all'indirizzo: INPS» ha un ruolo davanti, ma i
+#    due punti non sono i suoi: sono di «indirizzo». La virgola dice che la
+#    frase e' andata avanti;
+#  * **una riga sola**. Attraversando l'a capo si prendeva
+#    «IACHINO\nMINISTERO DELLA», cioe' il cognome piu' l'intestazione della
+#    sezione dopo;
+#  * **tutto maiuscolo, e nessuna parola comune**. E' il presidio contro
+#    l'altra faccia della stessa forma, che su un modulo e' un'etichetta di
+#    campo: «Responsabile: SETTORE TECNICO», «Direttore: UFFICIO
+#    ACQUISTI». Sono etichette, non persone.
+#
+# Il maiuscolo non e' un dettaglio estetico: e' il terzo segnale. In un
+# atto firmato il cognome sta in maiuscolo perche' e' una firma, e chiederlo
+# costa un richiamo che non abbiamo mai avuto invece di aprire «Il
+# presidente: Vedi allegato».
+_RUOLI_FIRMA = (
+    r"ministr[oa]|presidente|vicepresidente|guardasigilli|direttor[ei]|"
+    r"direttrice|dirigente|capo|sindaco|prefetto|rettore|assessore|"
+    r"commissario|segretari[oa]|procuratore|questore|comandante|"
+    r"provveditore|so[vp]rintendente|amministratore|coordinatore|"
+    r"ragioniere|responsabile|funzionario"
+)
+
+_TOK_FIRMA = r"[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ'’\-]{2,}"
+
+_RE_RUOLO_COGNOME = re.compile(
+    rf"(?<!\w)(?i:{_RUOLI_FIRMA})(?!\w)[^:,;\n]{{0,60}}:[ \t]*"
+    rf"(?P<name>{_TOK_FIRMA}(?:[ \t]+{_TOK_FIRMA})?)(?!\w)"
+)
+
 _RE_NAME_BEFORE_EMAIL = re.compile(
     rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})(?P<sep>\s*[<\(\[]?\s*)\{{\{{EMAIL\}}\}}"
 )
@@ -1524,6 +1572,17 @@ def _scrub_names(
         return m.group(0).replace(name, "{{NAME}}" + name[len(kept):], 1)
 
     text = _RE_TITLE_NAME.sub(_title_sub, text)
+
+    # 1-bis. Ruolo, due punti, cognome in maiuscolo: «Il Ministro: URSO».
+    def _ruolo_sub(m: re.Match) -> str:
+        name = m.group("name")
+        tokens = name.split()
+        if any(_is_common_word(t) or _is_entity_word(t) for t in tokens):
+            return m.group(0)
+        report.add("names")
+        return m.group(0).replace(name, "{{NAME}}", 1)
+
+    text = _RE_RUOLO_COGNOME.sub(_ruolo_sub, text)
 
     # 2. Nome accanto a un indirizzo di posta.
     def _email_name_sub(m: re.Match) -> str:

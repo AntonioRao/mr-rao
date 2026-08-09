@@ -470,6 +470,8 @@ friuli venezia giulia trentino alto adige valle aosta
 europa europea unione comunita nazionale internazionale mondiale
 gdpr privacy garante regolamento decreto legge codice normativa direttiva
 articolo comma allegato titolo capo sezione paragrafo
+area gestione patrimonio contabilita bilancio urbanistica anagrafe
+ragioneria vigilanza
 pratica pratiche fascicolo protocollo procedura procedimento istanza
 domanda richiesta comunicazione lettera raccomandata pec mail email posta
 telefono cellulare fax indirizzo sede legale operativa
