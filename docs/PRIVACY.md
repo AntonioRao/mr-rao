@@ -191,12 +191,43 @@ e, soprattutto, cosa è sfuggito.
 
 - **Nessun elenco di cognomi è completo.** L'euristica copre molto ma non
   tutto, e un cognome che assomiglia a una parola italiana può restare.
-- **Sulle scansioni la protezione è più debole.** I riconoscitori cercano un
-  codice scritto correttamente. Per codice fiscale e IBAN il motore prova a
-  correggere fino a due caratteri e a verificare il checksum, quindi molti
-  casi si chiudono; ma un telefono non ha cifra di controllo, un nome nemmeno,
-  e tre caratteri storpiati sono troppi. Quello che resta viene **segnalato**,
-  non sostituito: è lì che il confronto «prima / dopo» va guardato davvero.
+- **Sulle scansioni la protezione è più debole, e adesso c'è il numero.**
+  `scripts/bench_scansioni.py` stampa 8 documenti con dati personali inventati
+  — le cifre di controllo le calcola lui, con un'implementazione indipendente
+  da quella del motore e verificata sui vettori pubblicati ISO 13616 e Luhn —
+  li fa passare per uno scanner simulato, poi per l'OCR e l'anonimizzatore
+  veri. Su 64 dati attesi per livello:
+
+  | scansione | redatti | segnalati | **persi in silenzio** | non letti dall'OCR |
+  |---|---|---|---|---|
+  | testo, senza OCR | 100% | 0% | 0% | 0% |
+  | scanner in ordine, 300 / 200 / 150 / 100 DPI | 89–97% | 0% | 3–9% | 0–3% |
+  | fotocopia sbiadita, 300 DPI | 92% | 2% | 5% | 2% |
+  | fotocopia sbiadita, 200 DPI | 45% | 6% | **39%** | 9% |
+  | fotocopia sbiadita, 150 DPI | 5% | 2% | **27%** | 67% |
+
+  **Non è la risoluzione.** Fra 300 e 100 DPI, su una scansione pulita, la
+  copertura non peggiora: le differenze sono rumore. Quello che conta è la
+  qualità del segno — una fotocopia sbiadita a 200 DPI perde più della metà
+  dei dati, e quel documento a occhio si legge benissimo.
+
+  **E la perdita è quasi sempre silenziosa.** Questa riga diceva che «quello
+  che resta viene segnalato»: la misura dice di no. Dei dati rimasti leggibili
+  nel Markdown i sospetti ne intercettano una minoranza — 0 su 5 sulle
+  scansioni pulite, 4 su 29 sulla fotocopia a 200 DPI. Il motivo è
+  meccanico: dove il degrado è forte l'OCR **incolla il dato all'etichetta
+  che lo precede** (`IBANIT60X05…`, `Tel.02 1234567`, un numero di carta
+  attaccato ai puntini di guida di un modulo), e lì non parte né il
+  riconoscitore né la segnalazione. La scheda **«Confronto privacy»** resta
+  l'unico controllo che vede tutto.
+
+  **I falsi positivi non peggiorano:** sui documenti di controllo a verità
+  zero le sostituzioni sbagliate restano **zero a ogni livello di degrado**,
+  anche quando l'OCR restituisce spazzatura.
+
+  Un avvertimento sul banco stesso: **la carta è simulata, non vera.** Misura
+  l'OCR e l'anonimizzatore su immagini degradate in modo controllato e
+  ripetibile; non sostituisce un corpus di scansioni fatte davvero.
 - **Un OCR troncato produce un'anonimizzazione parziale.** Se una scansione supera
   il tetto di tempo (`MR_RAO_OCR_TIMEOUT`, 15 minuti di default), l'estrazione si
   ferma e il motore ha visto solo le pagine lette. Il documento lo dichiara in

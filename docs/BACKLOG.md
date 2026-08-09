@@ -1,6 +1,6 @@
 # Backlog & piano di priorità — Mr. Rao
 
-Lo stato delle voci vale alla **1.10.0**. La fonte di verità resta git e il
+Lo stato delle voci vale alla **1.10.0**, piu' il lavoro gia' su `main` e non ancora rilasciato (segnato «1.11»). La fonte di verità resta git e il
 [changelog](CHANGELOG.md): se una riga qui dice DONE e il codice dice altro,
 ha ragione il codice.
 
@@ -29,7 +29,7 @@ scompare**.
 | P0.1 | **L'esito di una conversione da tasto destro non deve sparire quando c'è qualcosa da guardare** | Il `.bat` passa ora `--attendi`: la finestra si ferma se qualcosa è stato tolto o segnalato, e si chiude da sola su un documento pulito | **DONE** (1.7.2) |
 | P0.2 | **La CLI deve stampare anche i sospetti**, non solo il conteggio delle redazioni | Stampa tipo e campione mascherato di ognuno, con il perché. Maschera con `*` e non col pallino: in cp1252 sarebbe diventato un punto interrogativo, cioè il carattere che segnala un guasto | **DONE** (1.7.2) |
 | P0.3 | Se server già su: riusa porta, non aprire seconda istanza cieca | Evita porte occupate / finestre morte | TODO (parziale: portcheck) |
-| P0.4 | Feedback visibile su fallimento shell (message box o log file) | Shell che flasha e sparisce = zero fiducia. Parzialmente coperto: dalla 1.7.1 un file bloccato dice perché invece di mostrare un traceback | TODO |
+| P0.4 | Feedback visibile su fallimento shell (message box o log file) | Shell che flasha e sparisce = zero fiducia | **DONE** (1.11) — un fallimento lascia una traccia in `%LOCALAPPDATA%`, e il menu contestuale del portable passa per `cmd /c "... || pause"`, così la finestra resta anche se il processo muore prima di Python. Scelto il file e non una finestra di messaggio: una MessageBox ha lo stesso limite di `--attendi` ed è bloccante. **Contiene data, estensione, dimensione e motivo; non il nome del documento, il percorso né il contenuto** — un registro, su questo programma, è esso stesso un dato. Una riga sola riscritta ogni volta; `MR_RAO_TRACCIA=0` lo spegne |
 
 **Perché P0.1 e P0.2 contano più di quanto sembri.** La FAQ dice che il
 confronto prima/dopo «è il controllo che conta», e `PRIVACY.md` che «zero
@@ -69,9 +69,9 @@ proprio documento.
 | ID | Item | Perché | Stato |
 |----|------|--------|--------|
 | P2.1 | Test E2E portable (health + convert) | Il build avvia l'eseguibile, interroga `/api/health`, converte **.docx, .xlsx e .pptx** — uno per libreria opzionale — e confronta l'icona: se qualcosa non torna, **respinge il pacchetto** | **DONE in locale** (1.4.2, esteso ai tre formati nella 1.7.0) |
-| P2.2 | Test job cancel / watch start-stop | Race conditions | TODO |
+| P2.2 | Test job cancel / watch start-stop | Race conditions | **DONE** (1.11) — 9 test, e hanno trovato **tre difetti veri**: un avanzamento resuscitava un lavoro annullato (la barra ripartiva dopo Annulla), riavviare la sorveglianza durante una conversione lasciava due thread per sempre (segnale di stop condiviso), un annullamento in coda veniva sovrascritto dal worker. Restano segnalati due casi senza test deterministico: due `POST /api/watch` simultanei, e i contatori scritti dal giro orfano prima di morire |
 | P2.3 | Test shell integration | Il passaggio `-Prova` di `mr_rao_shell.ps1` stampa cosa scriverebbe e si ferma: da li' l'integrazione OS e' verificabile senza sporcare registro e Desktop di chi lancia i test | **DONE** (1.7.0) |
-| P2.4 | Gate pre-commit automatico (hook git opzionale) | Disciplina | TODO |
+| P2.4 | Gate pre-commit automatico (hook git opzionale) | Disciplina | **DONE** (1.11) — `scripts/install_hooks.py --install/--status/--uninstall`; punta `core.hooksPath` a `.githooks/` invece di copiare, così non resta in giro una copia vecchia. Esegue solo compileall + import: mezzo secondo contro i 18 del gate intero, perché un hook lento non viene tolto, viene aggirato con `--no-verify` |
 | P2.9 | **Build del portable in CI**, non solo in locale | Workflow `portable.yml`: parte senza venv, quindi il pacchetto non può ereditare niente dalla macchina di sviluppo. Non a ogni commit — quando cambia qualcosa che può romperlo, una volta a settimana per le derive a monte, e a mano prima di una release | **DONE** (1.7.0) |
 
 ---
@@ -110,9 +110,10 @@ può citare un identificativo non serve a niente.
 | P3.1 | OCR multi-lingua reale (modelli aggiuntivi) | Il selettore che non faceva nulla è stato **rimosso** in 1.3.2: meglio nessun comando che uno che promette e non mantiene. Il modello attuale copre gli alfabeti latini | TODO |
 | P3.2 | Diff semantico 2 PDF (non solo A/B stacked) | Compare attuale è merge etichettato | TODO |
 | P3.3 | Tray: stato job + “apri ultimo risultato” | Tray oggi minimale | TODO |
-| P3.4 | Portable firmato / zip release versionato | Distribuzione team | TODO |
+| P3.4 | Portable firmato / zip release versionato | Distribuzione team | **METÀ FATTA** (1.11) — archivio versionato, archivio a nome fisso e `SHA256SUMS.txt`. Il nome fisso **non deve cambiare**: è ciò che tiene in piedi `/releases/latest/download/...` nei README e nella landing, e la versione la porta già il tag. La **firma** resta fuori: richiede un certificato, e Azure Trusted Signing non valida gli individui nell'UE. Alternativa gratuita da valutare: SignPath Foundation — ma il publisher che Windows mostra è «SignPath Foundation», non l'autore |
 | P3.5 | **Documenti d'identità: carta d'identità, patente, passaporto** | Oggi non c'è nessun riconoscitore. Sono fra i dati più sensibili che passano da uno studio, e hanno formati regolari — la patente italiana ha una struttura fissa, il passaporto una riga MRZ leggibile a vista. Va fatto col metodo di casa: il pattern propone, un validatore decide, e il verbale amministrativo deve restare a zero | **DONE** (1.11) — carta d'identità elettronica, patente e passaporto, interruttore proprio (`documenti`), non dentro `fiscal`. Questi numeri **non hanno una cifra di controllo** e la loro forma è identica a quella di mille protocolli: si sostituiscono solo con il tipo di documento scritto vicino, altrimenti diventano un sospetto. Sui 127 documenti a verità zero: zero sostituzioni sbagliate |
-| P3.6 | **NER opzionale per i nomi (modello ONNX leggero)** | Serve a una cosa sola che le liste non possono fare: leggere il **ruolo nella frase**. «Lavoro a Milano» e «ho parlato con Mario Milano» contengono la stessa parola, e oggi il motore o la lascia passare o la segna come sospetto. Il guadagno è sui cognomi che coincidono con parole comuni — Chiesa, Costa, Monte, Villa. **Il costo va detto:** un modello fa sparire il *perché*. Oggi ogni sostituzione ha una regola citabile e due esecuzioni danno lo stesso esito; un modello dà un punteggio, e il giorno che sbaglia non si può spiegare a un cliente perché un nome è rimasto. Quindi: spento di default, **mai al posto** dei validatori — il modello propone, contesto e aritmetica decidono, i sospetti restano. Vedi issue #4 | TODO |
+| P3.7 | **L'OCR incolla il dato all'etichetta, e il riconoscitore non parte** | Trovato dal banco delle scansioni (A.9), non immaginato. Sui documenti degradati l'OCR perde lo spazio e produce `IBANIT60X0542811101000000123456`, `Tel.02 1234567`, un numero di carta attaccato ai puntini di guida di un modulo, `NT86O02008…` con «IT» letto «NT». In tutti e quattro i casi il dato **passerebbe il proprio validatore** — il mod-97 e il Luhn tornano — ma il pattern non arriva nemmeno a proporlo, perché i lookbehind `(?<![\w.+])` lo rifiutano quando è preceduto da lettere o da un punto. Risultato: **perdita silenziosa**, nemmeno un sospetto. Allentare quei lookbehind è facile; farlo **senza pagare falsi positivi** va misurato sui 127 documenti a verità zero prima di toccare qualsiasi cosa | TODO |
+| P3.6 | **NER opzionale per i nomi (modello ONNX leggero)** | Serve a una cosa sola che le liste non possono fare: leggere il **ruolo nella frase**. «Lavoro a Milano» e «ho parlato con Mario Milano» contengono la stessa parola, e oggi il motore o la lascia passare o la segna come sospetto. Il guadagno è sui cognomi che coincidono con parole comuni — Chiesa, Costa, Monte, Villa. **Il costo va detto:** un modello fa sparire il *perché*. Oggi ogni sostituzione ha una regola citabile e due esecuzioni danno lo stesso esito; un modello dà un punteggio, e il giorno che sbaglia non si può spiegare a un cliente perché un nome è rimasto. Quindi: spento di default, **mai al posto** dei validatori — il modello propone, contesto e aritmetica decidono, i sospetti restano. Vedi issue #4. **Precisazione (2026-08-09): non serve installare nessuna «AI».** `onnxruntime` è già una dipendenza dichiarata dalla 1.9.0 e RapidOCR porta con sé 30,3 MB di modelli `.onnx` che girano già oggi in locale, offline, sul processore: un NER sarebbe un altro file caricato dalla stessa libreria. Il costo vero è altrove — peso nel portable (15–60 MB), una licenza in più da rispettare, e la riga «Nessun modello» che i due README e la landing usano come argomento di vendita | TODO |
 
 ---
 
@@ -121,7 +122,7 @@ può citare un identificativo non serve a niente.
 | ID | Item | Stato |
 |----|------|--------|
 | P4.1 | Rinominare cartella repo `markitdown-webapp` → `mr-rao` | TODO |
-| P4.2 | Rimuovere shim MarkItDown quando nessuno li usa più | TODO |
+| P4.2 | Rimuovere shim MarkItDown quando nessuno li usa più | **NON SI APPLICA** — verificato: nei sorgenti non è rimasto nessuno shim, MarkItDown è una dipendenza viva. I ponti di compatibilità superstiti sono altri e hanno ancora senso: `paddleocr`→`rapidocr`, `--no-name-guess` che non fa niente, `file1`/`file2` nella rotta di confronto. Toglierli romperebbe script altrui senza guadagnarci nulla |
 | P4.3 | Spezzare `app.js` in moduli ES se cresce ancora | TODO |
 | P4.4 | CSS già estratto in `static/css/app.css` | **DONE** |
 | P4.5 | **Migrare da `rapidocr_onnxruntime` a `rapidocr`** — fatto in 1.9.0. Non era manutenzione: la 1.2.3 perdeva gli spazi fra le parole (`PartitaIVA12345678903-tel.+390951234567`) e sullo stesso documento il filtro privacy trovava **1** dato personale invece di **4** — IBAN, partita IVA e telefono restavano in chiaro. L'API non era compatibile (`RapidOCROutput` invece della tupla), `onnxruntime` va dichiarato a parte, e l'intera suite passava anche col motore OCR rotto, perche' ogni test lo sostituiva con testo finto: aggiunto `tests/test_ocr_motore.py` | **DONE** (1.9.0) |
@@ -188,9 +189,9 @@ Aggiunto dopo l'audit di agosto 2026. Tutti verificati eseguendo, non ipotizzati
 
 | ID | Item | Perché | Stato |
 |----|------|--------|-------|
-| P2.5 | `gen_third_party.py --check` dentro il quality gate | Le licenze scadono in silenzio | TODO |
-| P2.6 | Gate: `APP_VERSION` senza voce di changelog = errore | Ha già sbagliato una volta | TODO |
-| P2.7 | Verifica «HEAD è importabile» in CI | È già successo di committarne uno rotto | TODO |
+| P2.5 | `gen_third_party.py --check` dentro il quality gate | Le licenze scadono in silenzio | **ERA GIÀ FATTO** — è nel gate, con la via d'uscita `MR_RAO_GATE_NO_LICENCE_CHECK` per i runner puliti, dove il confronto fallirebbe per il motivo sbagliato. Questa riga è rimasta TODO per mesi: anche il backlog invecchia |
+| P2.6 | Gate: `APP_VERSION` senza voce di changelog = errore | Ha già sbagliato una volta | **DONE** (1.11) — si aggancia alle **intestazioni**, non al numero cercato nel testo: qui le voci si citano a vicenda, e una menzione di sfuggita avrebbe fatto passare il controllo. Zero intestazioni riconosciute = errore, non «pulito», altrimenti un cambio di formato lo renderebbe verde per sempre |
+| P2.7 | Verifica «HEAD è importabile» in CI | È già successo di committarne uno rotto | **DONE** (1.11) — `scripts/check_import.py` importa i 21 moduli **uno per uno**, svuotando `sys.modules` fra l'uno e l'altro: senza, il primo import tira dentro gli altri e una coppia circolare passa inosservata (misurato). Gira in CI, nell'hook **e nel gate locale**, dove mancava proprio a chi lo usa più spesso |
 | P2.8 | Valutare la rimozione di Scrubadub | Misurato su testo inglese: stesse redazioni con e senza, e da solo spezzava il testo. Rimosso | **DONE** (1.3.3) |
 
 ## P0-ter — Riconoscimento tollerante agli errori OCR
@@ -206,7 +207,7 @@ riconoscono più il codice, che resta nel testo deformato ma ancora identificant
 |----|------|------|-------|
 | A.7 | Avviso nel risultato quando la redazione ha lavorato su testo OCR | Mitigazione immediata: chi legge sa che lì deve controllare | **DONE** (1.3.2) |
 | A.8 | Riconoscimento tollerante alle confusioni tipiche dell'OCR sui formati a struttura fissa | Fatto per CF e IBAN, fino a 2 correzioni, e si accetta solo se il checksum torna. Attenzione: il checksum **non basta** — la prima versione trasformava un numero d'ordine in un IBAN valido. Serve anche restringere i candidati | **DONE** (1.6.0) |
-| A.9 | Banco di prova con scansioni a qualità decrescente | Serve un numero, non un'impressione: quante redazioni si perdono a 300, 200, 150 DPI | TODO |
+| A.9 | Banco di prova con scansioni a qualità decrescente | Serve un numero, non un'impressione: quante redazioni si perdono a 300, 200, 150 DPI | **MISURATO IN SIMULAZIONE** (1.11) — `scripts/bench_scansioni.py`, ripetibile (stessa impronta su tre esecuzioni) e con due controprove. **La risposta è che non è il DPI**: fra 300 e 100 DPI su una scansione pulita la copertura non peggiora; il crollo è sulla *fotocopia sbiadita a 200 DPI*, dove il 39% dei dati resta in chiaro **senza che nessuno lo dica**. PRIVACY.md aggiornato: la riga «quello che resta viene segnalato» non reggeva alla misura. **Non è chiuso**: la carta è simulata, servono scansioni vere |
 
 **Perché A.8 è fattibile senza peggiorare i falsi positivi.** Un IBAN ha un
 checksum: si possono generare le varianti plausibili di una stringa dubbia e
