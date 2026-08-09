@@ -48,6 +48,34 @@ _RE_CF = re.compile(
     re.IGNORECASE,
 )
 
+# L'OMOCODIA, cioe' il codice fiscale che non ha piu' le cifre dove il
+# pattern se le aspetta.
+#
+# Quando due persone otterrebbero lo stesso codice, l'Agenzia delle Entrate
+# ne cambia una: sostituisce le cifre, partendo da destra, con le lettere
+# L M N P Q R S T U V. `RSSMRA85T10A562S` diventa `RSSMRA85T1NA562...`, e la
+# forma «sei lettere, due cifre, una lettera, due cifre...» non torna piu'.
+#
+# Misurato su 300 codici con omocodia: **zero** riconosciuti. Il 60% finiva
+# fra i sospetti perche' qualche altro pattern ci inciampava, il 40% spariva
+# del tutto -- e sono codici fiscali veri, di persone vere, emessi
+# regolarmente.
+#
+# QUI LE CIFRE POSSONO ESSERE LETTERE, MA IL PREZZO E' CHE IL CONTO DEVE
+# TORNARE. Il pattern stretto qui sopra sostituisce anche quando il
+# carattere di controllo non torna, perche' su un dato personale l'errore va
+# fatto nella direzione prudente. Questo no: ammettendo lettere dove
+# andrebbero cifre la forma diventa quasi una parola qualsiasi di sedici
+# caratteri, e senza l'aritmetica a smentirla si redigerebbe mezzo
+# documento. E' la stessa regola di P3.7 -- si allenta solo dove c'e' un
+# conto che possa dire di no.
+_OMOCODIA_LETTERE = "LMNPQRSTUV"
+_RE_CF_OMOCODIA = re.compile(
+    rf"\b([A-Z]{{6}}[\dLMNPQRSTUV]{{2}}[A-EHLMPRST][\dLMNPQRSTUV]{{2}}"
+    rf"[A-Z][\dLMNPQRSTUV]{{3}}[A-Z])\b",
+    re.IGNORECASE,
+)
+
 # Partita IVA (IT + 11 digits, or bare 11 digits in fiscal context)
 _RE_PIVA = re.compile(
     r"\b(?:IT)?(\d{11})\b",
@@ -149,10 +177,18 @@ _RE_URL = re.compile(
 # facoltativi, eventualmente preceduta da un prefisso internazionale. Il
 # pattern propone soltanto: _phone_is_plausible() decide, perche' un numero
 # di protocollo e una data hanno esattamente la stessa forma.
+# La barra fra prefisso e numero — «Tel. 011/7323929» — e' la forma
+# standard delle carte intestate italiane, e mancava: misurato, 300 numeri
+# su 300 scritti cosi' venivano **persi in silenzio**, mentre gli stessi
+# numeri con lo spazio o il trattino venivano presi. Non era una scelta:
+# era una dimenticanza nell'elenco dei separatori.
+#
+# Ammetterla qui obbliga ad ammetterla anche in `_RE_DATELIKE`, che e' la
+# guardia contro le date: senza, `01/02/2024` sarebbe diventato un recapito.
 _RE_PHONE = re.compile(
     r"(?<![\w.+])"
-    r"(?P<prefix>(?:\+|00)(?P<cc>\d{1,3})[\s.\-]?)?"
-    r"(?P<body>\d(?:[\s.\-]?\d){5,14})"
+    r"(?P<prefix>(?:\+|00)(?P<cc>\d{1,3})[\s./\-]?)?"
+    r"(?P<body>\d(?:[\s./\-]?\d){5,14})"
     r"(?![\w])"
 )
 
@@ -190,8 +226,12 @@ _RE_PHONE_ETICHETTA = re.compile(
 
 # Una data scritta con i separatori ha la stessa forma di un numero di
 # telefono: "01.02.2024" sono otto cifre che iniziano per zero.
+# La barra e' stata aggiunta insieme a quella dei telefoni, e l'ordine non
+# e' casuale: `01/02/2024` e' la forma piu' comune di data in italiano, e
+# ammettere la barra fra i separatori di un recapito senza ammetterla qui
+# avrebbe trasformato ogni data in un numero di telefono.
 _RE_DATELIKE = re.compile(
-    r"^\d{1,2}[.\-]\d{1,2}[.\-]\d{2,4}$|^\d{4}[.\-]\d{1,2}[.\-]\d{1,2}$"
+    r"^\d{1,2}[./\-]\d{1,2}[./\-]\d{2,4}$|^\d{4}[./\-]\d{1,2}[./\-]\d{1,2}$"
 )
 
 # Gruppi di cifre separati, per riconoscere una numerazione di colonne.
@@ -1048,12 +1088,28 @@ def _phone_is_plausible(m: re.Match, contesto: bool | None = None) -> bool:
 
     digits = re.sub(r"\D", "", body)
     n = len(digits)
-    has_sep = any(sep in body for sep in (" ", "-", "."))
+    has_sep = any(sep in body for sep in (" ", "-", ".", "/"))
     ctx = (
         contesto
         if contesto is not None
         else bool(_RE_PHONE_CTX.search(_context_before(m.string, m.start())))
     )
+
+    # LA BARRA COSTA UNA PAROLA DI CONTESTO, e la ragione e' la stessa per
+    # cui in P3.7 i telefoni non sono stati allentati come IBAN e carte: un
+    # recapito **non ha nessuna aritmetica** che possa smentirne la forma,
+    # quindi ogni permesso in piu' si paga chiedendo qualcos'altro.
+    #
+    # Misurato: ammettendo la barra senza condizioni, su 3,3 milioni di
+    # caratteri di moduli fiscali comparivano 2 sostituzioni sbagliate --
+    # numerazioni di colonne come «315 316 317 318 319 /» che la barra
+    # saldava in un numero unico abbastanza lungo. Chiedendo la parola di
+    # contatto il costo torna a zero, e il caso vero non si perde: su una
+    # carta intestata la barra viene sempre dopo «Tel.».
+    # Il prefisso internazionale vale quanto la parola di contatto: «+39
+    # 011/7323929» si dichiara da solo.
+    if "/" in body and not ctx and not m.group("prefix"):
+        return False
 
     # Una numerazione di colonne si riconosce dalla forma, ma una parola di
     # contesto vale piu' della forma: se davanti c'e' scritto «tel.», e'
@@ -1599,7 +1655,18 @@ def _scrub_cf(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
         report.add("codice_fiscale")
         return "{{CODICE_FISCALE}}"
 
-    return _RE_CF.sub(_sub, text)
+    def _sub_omocodia(m: re.Match) -> str:
+        # Nessun sospetto e nessuna indulgenza: o il carattere di controllo
+        # torna, o non e' un codice fiscale. Vedi il commento sul pattern.
+        if not cf_check_char_ok(m.group(1)):
+            return m.group(0)
+        report.add("codice_fiscale")
+        return "{{CODICE_FISCALE}}"
+
+    out = _RE_CF.sub(_sub, text)
+    # Dopo quello stretto: cosi' un codice normale viene preso da chi lo sa
+    # gia' fare, e questo vede solo cio' che l'altro ha lasciato.
+    return _RE_CF_OMOCODIA.sub(_sub_omocodia, out)
 
 
 def _scrub_iban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:

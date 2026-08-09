@@ -1,5 +1,77 @@
 # Changelog
 
+## 1.15.0 — Cambiare la frase non basta: bisogna cambiare il valore
+
+La 1.14.0 aveva misurato il motore su **una cornice diversa**: lo stesso
+dato scritto in posti diversi. Dava 100%, e non era una buona notizia —
+usava un solo valore per tipo. Dimostrava che le cornici funzionano, non
+che i riconoscitori reggano la varietà dei valori veri.
+
+Girando l'altra manopola — trecento valori distinti per tipo, tutti validi,
+con le cifre di controllo calcolate fuori dal motore — sono usciti **due
+difetti**. Nessuno dei due è esotico: sono due casi italiani ordinari.
+
+### Il codice fiscale con omocodia non veniva riconosciuto
+
+Quando due persone otterrebbero lo stesso codice fiscale, l'Agenzia delle
+Entrate ne cambia una: sostituisce alcune cifre, partendo da destra, con le
+lettere **L M N P Q R S T U V**. Sono codici veri, di persone vere, emessi
+regolarmente — e la forma «sei lettere, due cifre, una lettera, due
+cifre…» non torna più.
+
+Su 300 campioni: **zero riconosciuti**. Il 60% finiva fra i sospetti perché
+qualche altro riconoscitore ci inciampava, il **40% spariva del tutto**.
+
+**Il rimedio ammette le lettere dove il codice vuole le cifre, ma pretende
+che il conto torni.** È una differenza deliberata rispetto al riconoscitore
+normale, che sostituisce anche quando il carattere di controllo non torna
+(su un dato personale l'errore va fatto nella direzione prudente). Qui no:
+ammettendo lettere in quelle posizioni la forma diventa quasi una parola
+qualsiasi di sedici caratteri, e senza l'aritmetica a smentirla si
+redigerebbe mezzo documento. È la regola di P3.7 — **si allenta solo dove
+c'è un conto che possa dire di no**.
+
+Misurato: su 200 000 token costruiti apposta con la forma esatta, il
+carattere di controllo ne respinge il **96,2%**. L'atteso teorico è 1 su 26,
+cioè il 3,85%: il filtro fa esattamente il suo mestiere, né più né meno.
+
+### Il telefono con la barra si perdeva
+
+`Tel. 011/7323929` — la forma standard delle carte intestate italiane. Su
+300 numeri: **zero riconosciuti**, mentre gli stessi numeri con lo spazio o
+il trattino venivano presi. Non era una scelta: la barra mancava
+dall'elenco dei separatori.
+
+**Ma ammetterla costa una parola di contesto**, e la ragione è la stessa per
+cui in P3.7 i telefoni non erano stati allentati come IBAN e carte: un
+recapito **non ha nessuna aritmetica** che possa smentirne la forma.
+Misurato: ammettendo la barra senza condizioni, su 3,3 milioni di caratteri
+di moduli fiscali comparivano **2 sostituzioni sbagliate** — numerazioni di
+colonne come «315 316 317 318 319 /» che la barra saldava in un numero
+unico. Chiedendo la parola di contatto il costo torna a **zero**, e il caso
+vero non si perde: su una carta intestata la barra viene sempre dopo «Tel.».
+
+**Nella stessa passata la guardia contro le date è stata estesa alla
+barra.** Non è un di più: `01/02/2024` è la forma più comune di data in
+italiano, e ammettere la barra fra i separatori di un recapito senza
+ammetterla lì avrebbe trasformato ogni data in un numero di telefono.
+
+### Cosa invece regge
+
+American Express da 15 cifre, Mastercard, Discover; prefissi fissi da 2, 3 e
+4 cifre (02 Milano, 011 Torino, 0121 Pinerolo); IBAN con CIN e ABI
+qualsiasi; indirizzi con dieci parole diverse per «via»; cinquanta domini di
+posta diversi. **Tutti al 100%.**
+
+Resta a 0% la partita IVA **nuda**, senza prefisso `IT` né contesto fiscale
+vicino — ed è documentato: undici cifre da sole sono indistinguibili da un
+numero qualsiasi.
+
+### Il banco resta
+
+`scripts/bench_varieta.py`, più 17 test. È la terza manopola dopo il degrado
+dell'immagine e la forma della frase, e la prima che guarda il **valore**.
+
 ## 1.14.0 — Il percorso senza OCR non era mai stato misurato
 
 Quasi tutti i numeri che pubblichiamo riguardano le scansioni, dove il

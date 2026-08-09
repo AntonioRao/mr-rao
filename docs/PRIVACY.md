@@ -48,8 +48,9 @@ avanti in questa pagina, non un'ipotesi.
 |------|-----------|-------------------|
 | Email | `{{EMAIL}}` | Forma dell'indirizzo, comprese quelle offuscate (`[at]`, `chiocciola`, `punto`) |
 | Indirizzi web | `{{URL}}` | `http`, `https`, `www.` — solo questi |
-| Telefoni | `{{PHONE}}` | Prefisso `+39`, cellulari `3xx`, parola di contesto (`cell`, `tel`, `fax`), oppure fisso con separatori |
+| Telefoni | `{{PHONE}}` | Prefisso `+39`, cellulari `3xx`, parola di contesto (`cell`, `tel`, `fax`), oppure fisso con separatori. La **barra** (`011/7323929`) vale solo con la parola di contatto o il prefisso internazionale davanti |
 | Codice fiscale | `{{CODICE_FISCALE}}` | Struttura a 16 caratteri. Il **carattere di controllo** non rifiuta, segnala |
+| | | Riconosce anche l'**omocodia** — le cifre sostituite da lettere quando due persone collidono — ma lì il carattere di controllo **deve** tornare |
 | | | Recupera anche la forma storpiata dall'OCR, se il controllo del candidato corretto torna |
 | P.IVA | `{{PARTITA_IVA}}` | Prefisso `IT` o contesto fiscale vicino. La **cifra di controllo** non rifiuta, segnala |
 | IBAN | `{{IBAN}}` | **Mod-97** (ISO 13616), anche scritto a gruppi di quattro come lo stampano le banche |
@@ -210,6 +211,37 @@ a chi legge la possibilità di intervenire, **perso in silenzio** no.
 dall'estrattore — `g.moretti@` a fine riga e il dominio su quella dopo —
 spariva in silenzio in 20 casi su 20. Corretto nella 1.14.0, con il permesso
 più stretto possibile: un solo a capo, solo dopo la chiocciola.
+
+### La varietà dei valori — misurato il 2026-08-09
+
+Le due misure sopra cambiano la **frase** in cui il dato compare. Cambiare
+il **valore** è una domanda diversa, e ha trovato due difetti che nessuna
+delle altre vedeva. Trecento valori distinti per tipo, tutti validi:
+`scripts/bench_varieta.py`.
+
+Reggono al 100%: IBAN con CIN e ABI qualsiasi; carte Visa, Mastercard,
+Discover e **American Express da 15 cifre**; numeri fissi con prefisso da 2,
+3 e 4 cifre; indirizzi con dieci parole diverse per «via»; cinquanta domini
+di posta.
+
+Due non reggevano, e sono stati corretti nella 1.15.0:
+
+- il **codice fiscale con omocodia** — quello in cui l'Agenzia sostituisce
+  alcune cifre con le lettere `L M N P Q R S T U V` perché due persone
+  otterrebbero lo stesso codice: **zero riconosciuti su 300**, il 40% perso
+  in silenzio. Ora viene tolto, ma **solo se il carattere di controllo
+  torna**: ammettere lettere dove il codice vuole cifre rende la forma quasi
+  una parola qualsiasi, e lì l'aritmetica non è un di più, è ciò che regge
+  tutto;
+- il **telefono con la barra**, `Tel. 011/7323929`, forma standard delle
+  carte intestate italiane: **zero su 300**, mentre gli stessi numeri con lo
+  spazio o il trattino venivano presi. Ora viene tolto **se davanti c'è una
+  parola di contatto** — un recapito non ha nessun conto che possa
+  smentirne la forma, quindi il permesso si paga chiedendo il contesto.
+
+Resta a zero, per scelta documentata, la **partita IVA nuda**: undici cifre
+senza prefisso `IT` né contesto fiscale vicino sono indistinguibili da un
+numero qualsiasi.
 
 ### La parità fra i formati
 
