@@ -62,17 +62,35 @@ def test_ci_sono_landing_tracciate():
 
 
 def test_le_bozze_gitignorate_restano_fuori():
-    """`02-carta-bianca.html` e `03-motore-vivo.html` stanno nella cartella,
-    dichiarano la 1.7.2 e non li aggiornera' mai nessuno: sono scarti di
-    lavoro, non fanno parte del progetto. Un glob sul disco li pescherebbe e
-    il gate diventerebbe rosso per file che chi clona il repository non ha
-    nemmeno — il modo piu' rapido per far disattivare un controllo."""
+    """Una bozza `02-*.html` nella cartella non dev'essere letta dal gate.
+
+    Le bozze sono scarti di lavoro: dichiarano versioni vecchie e non le
+    aggiornera' mai nessuno. Un glob sul disco le pescherebbe e il gate
+    diventerebbe rosso per file che chi clona il repository non ha nemmeno —
+    il modo piu' rapido per far disattivare un controllo.
+
+    **La bozza se la crea il test.** La prima versione pretendeva invece che
+    `02-carta-bianca.html` e `03-motore-vivo.html` esistessero gia' sul
+    disco, e in CI e' fallita: sono gitignorate, quindi esistono solo sulla
+    macchina di chi le ha scritte. Un test che dipende da un file fuori dal
+    repository non prova niente a chiunque altro — ed e' la stessa forma di
+    A.1, meta' del lavoro che viveva solo su un disco.
+    """
     cartella = RADICE / "docs" / "landing"
-    tracciate = set(landing())
-    fuori = [p for p in cartella.glob("0[23]-*.html") if p.exists()]
-    assert fuori, "le bozze non ci sono piu': questo test non prova piu' niente"
-    for bozza in fuori:
-        assert bozza not in tracciate, f"{bozza.name} e' gitignorata ma il controllo la legge"
+    bozza = cartella / "02-bozza-di-prova.html"
+    assert not bozza.exists(), f"{bozza.name} esiste gia': il test non lo sovrascrive"
+    bozza.write_text(
+        "<html lang='it'><body><p>Edizione 0.0.1</p></body></html>",
+        encoding="utf-8",
+    )
+    try:
+        # Il nome combacia con `docs/landing/02-*.html` in .gitignore, quindi
+        # git non la traccia e `landing()` non deve vederla.
+        assert bozza not in set(landing()), (
+            f"{bozza.name} non e' tracciata da git ma il controllo la legge"
+        )
+    finally:
+        bozza.unlink(missing_ok=True)
 
 
 # --- lo stato attuale dei file veri -----------------------------------------
