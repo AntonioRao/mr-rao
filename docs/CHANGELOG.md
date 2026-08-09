@@ -52,7 +52,7 @@ catastali. Da sole farebbero strage su un verbale.
 Al posto del validatore c'è il **contesto obbligatorio**: si sostituisce
 solo se accanto c'è scritto di che documento si tratta. Senza contesto la
 forma diventa un **sospetto** — il documento resta intero e chi rilegge sa
-dove guardare. Sui 127 documenti a verità zero: zero sostituzioni sbagliate.
+dove guardare. Su oltre cento documenti a verità zero: zero sostituzioni sbagliate.
 
 ### I moduli numerano le colonne, non telefonano
 

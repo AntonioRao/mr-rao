@@ -75,7 +75,7 @@ sbagliata invece che come un errore di ordinamento.
 
 **Prosa o modulo** (`PrivacyOptions.prosa`) decide quanto pretendere prima
 di sostituire un nome: su una lettera un riscontro solo negli elenchi
-basta, su un modulo è quasi sempre l'etichetta di un campo. Misurato su 127
+basta, su un modulo è quasi sempre l'etichetta di un campo. Misurato su oltre cento
 documenti amministrativi e 1500 email vere: pretendere due riscontri toglie
 2739 sostituzioni sbagliate sui moduli e ne costa 609 sulle lettere.
 
@@ -121,7 +121,7 @@ Dettaglio e ragioni in [SECURITY.md](../SECURITY.md).
   Mitigato in due modi — recupero vincolato dal checksum per CF e IBAN, e segnalazione
   dei sospetti per il resto — ma resta il limite di efficacia principale (P0-ter).
 - **Nomi italiani**: sui documenti amministrativi il riconoscitore produce ancora migliaia di
-  sostituzioni sbagliate, misurate su 127 documenti in bianco (#5). Il parametro prosa/modulo
+  sostituzioni sbagliate, misurate su oltre cento documenti in bianco (#5). Il parametro prosa/modulo
   ne toglie la maggior parte, ma il metodo a elenchi ha un tetto di precisione che i vincoli
   incrementali non alzano.
 - **Interfaccia in italiano e inglese** (#1, fase 3): scelta dal browser, cambiabile con un clic, e il

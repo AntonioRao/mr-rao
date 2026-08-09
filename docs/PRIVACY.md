@@ -113,7 +113,7 @@ Ha un interruttore suo, `documenti`, e non sta dentro `fiscal`: un numero di
 documento non è un dato tributario, e chi spegne i codici fiscali non intende
 scoprire il passaporto.
 
-Sui 127 documenti a verità zero il costo misurato è **zero**: nessuna
+Su oltre cento documenti a verità zero il costo misurato è **zero**: nessuna
 sostituzione sbagliata, nessun sospetto in più.
 
 ## I nomi di persona: quattro segnali
@@ -274,7 +274,7 @@ e, soprattutto, cosa è sfuggito.
   ferma e il motore ha visto solo le pagine lette. Il documento lo dichiara in
   cima, prima del testo: chi legge deve saperlo *prima* di fidarsi.
 - **Sui nomi resta la parte difficile.** Il banco non è più sintetico: dalla
-  1.8.0 sono 127 documenti veri presi dal web, scansioni comprese, dove la
+  1.8.0 sono oltre cento documenti amministrativi pubblici presi dal web, scansioni comprese, dove la
   risposta attesa è **zero** — quindi ogni sostituzione è un errore per
   costruzione — più 7 500 messaggi di mailing list. I falsi positivi sui nomi
   sono scesi da 6 339 a 1 637: **misurati, non stimati**. Ma 1 637 non è zero,

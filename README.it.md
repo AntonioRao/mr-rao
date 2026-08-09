@@ -122,7 +122,7 @@ Un filtro che redige tutto è inutile esattamente come uno che non redige niente
 
 | | attese | a cosa serve |
 |---|---|---|
-| **127 documenti in bianco** — moduli fiscali italiani e americani, Gazzette dal 1890, volumi statistici | **zero** | ogni sostituzione è un errore, per costruzione: non c'è niente da giudicare a occhio |
+| **oltre 100 documenti in bianco** — moduli fiscali italiani e americani, Gazzette dal 1890, volumi statistici | **zero** | ogni sostituzione è un errore, per costruzione: non c'è niente da giudicare a occhio |
 | 6 000 messaggi di mailing list italiane | — | come si comporta sulla prosa vera |
 | 1 500 messaggi in inglese | — | lo stesso, sull'altra lingua |
 

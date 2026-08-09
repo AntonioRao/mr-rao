@@ -122,7 +122,7 @@ A filter that redacts everything is as useless as one that redacts nothing. The 
 
 | | expected | what it is for |
 |---|---|---|
-| **127 blank documents** — Italian and US tax forms, Gazzetta issues back to 1890, statistical volumes | **zero** | every replacement is an error by construction: there is nothing to judge by eye |
+| **100+ blank documents** — Italian and US tax forms, Gazzetta issues back to 1890, statistical volumes | **zero** | every replacement is an error by construction: there is nothing to judge by eye |
 | 6,000 messages from Italian mailing lists | — | how it behaves on real prose |
 | 1,500 messages in English | — | the same, in the other language |
 

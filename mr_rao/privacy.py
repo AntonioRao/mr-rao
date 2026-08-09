@@ -654,8 +654,9 @@ class PrivacyOptions:
     # popolazioni, e non e' un'opinione -- e' misurato. Su quali corpora,
     # perche' senza quello i numeri sembrano piu' forti di quanto siano:
     #
-    #   A) 127 documenti amministrativi (moduli in bianco, gazzette,
-    #      volumi statistici): la verita' di riferimento e' zero, quindi
+    #   A) oltre cento documenti amministrativi pubblici (moduli in bianco,
+    #      gazzette, volumi statistici): la verita' di riferimento e' zero,
+    #      quindi
     #      ogni sostituzione e' un errore;
     #   B) 1500 messaggi di python-list, prosa **inglese** tecnica;
     #   C) 6000 messaggi di mailing list italiane (lists.linux.it, 1103
