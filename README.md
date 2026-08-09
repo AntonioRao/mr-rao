@@ -301,6 +301,40 @@ Not a slogan — something you can check:
 
 ---
 
+## Windows will say the publisher is unknown
+
+It will, and you deserve to know why.
+
+**It has nothing to do with the price of the software.** The package is not
+signed with a code signing certificate — those cost a few hundred euros a
+year, and there isn't one yet — and Windows has not built up reputation on
+this file. Those are the two things SmartScreen looks at: signature and
+reputation. Free signed software raises no warning; paid unsigned software
+does.
+
+But you don't have to take anyone's word for it. Before you even open the
+zip, you can check **where it actually came from**:
+
+```bash
+gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao
+```
+
+It tells you which repository, which commit and which build produced that
+file. The signature is [Sigstore](https://www.sigstore.dev/), made by the
+workflow that builds the package: there is no private key lying around, and
+the signature is recorded in a public log that cannot be quietly cleaned up
+afterwards. That is a stronger guarantee than a GPG signature, where whoever
+verifies still has to obtain the key and know that it is yours.
+
+To check the file arrived intact, every release ships `SHA256SUMS.txt`:
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
+
+Then, if you decide to go ahead, the Windows warning is cleared with *More
+info* → *Run anyway*.
+
 ## What's inside, transparently
 
 Mr. Rao is **not** a fork of any of these projects: it uses them as dependencies, and their licences stay intact.

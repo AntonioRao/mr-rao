@@ -304,6 +304,40 @@ Non è uno slogan, è verificabile:
 
 ---
 
+## Windows dirà che l'editore è sconosciuto
+
+Succede, ed è giusto sapere perché.
+
+**Non c'entra il prezzo del software.** Il pacchetto non è firmato con un
+certificato di *code signing* — costa qualche centinaio di euro l'anno, e per
+ora non c'è — e Windows non ha ancora accumulato reputazione su questo file.
+Sono le due cose che SmartScreen guarda: firma e reputazione. Un programma
+gratuito e firmato non dà nessun avviso; uno a pagamento e non firmato lo dà.
+
+Però non devi fidarti sulla parola. Prima ancora di aprire lo zip puoi
+verificare **da dove viene davvero**:
+
+```bash
+gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao
+```
+
+Ti risponde da quale repository, da quale commit e da quale build è uscito
+quel file. La firma è [Sigstore](https://www.sigstore.dev/), fatta dal
+workflow che costruisce il pacchetto: non c'è nessuna chiave privata in giro,
+e la firma è registrata in un registro pubblico che non si può ripulire a
+posteriori. È una garanzia più forte di una firma GPG, dove chi verifica deve
+comunque procurarsi la chiave e sapere che è la tua.
+
+E per sapere se il file è arrivato intero, ogni release allega
+`SHA256SUMS.txt`:
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
+
+Poi, se decidi di procedere, l'avviso di Windows si supera con *Ulteriori
+informazioni* → *Esegui comunque*.
+
 ## Trasparenza su cosa c'è dentro
 
 Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze, e le loro licenze restano intatte.
