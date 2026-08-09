@@ -197,9 +197,6 @@ TESTI: dict[str, dict[str, str]] = {
     },
     "profilo_default": {"it": "Predefinito", "en": "Default"},
     "profilo_email_legali": {"it": "Email legali", "en": "Legal email"},
-    "profilo_fatture": {
-        "it": "Fatture / contabili", "en": "Invoices / accounts",
-    },
     "profilo_solo_ocr": {"it": "Solo OCR", "en": "OCR only"},
     "profilo_llm_ready": {"it": "Pronto per LLM", "en": "LLM-ready"},
     "profilo_no_privacy": {"it": "Nessuna redazione", "en": "No redaction"},
@@ -211,12 +208,6 @@ TESTI: dict[str, dict[str, str]] = {
     "hint_profilo_email_legali": {
         "it": "Massima protezione dei dati; testo ripulito, pronto da condividere.",
         "en": "Strongest protection; text cleaned up, ready to share.",
-    },
-    "hint_profilo_fatture": {
-        "it": "Tiene le tabelle e lascia visibili gli importi; nasconde CF, "
-              "P.IVA e IBAN.",
-        "en": "Keeps the tables and leaves the figures visible; hides codice "
-              "fiscale, VAT number and IBAN.",
     },
     "hint_profilo_solo_ocr": {
         "it": "Legge il testo dalle immagini: per scansioni e foto di documenti.",

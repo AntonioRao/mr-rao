@@ -37,23 +37,6 @@ PROFILES: dict[str, dict] = {
         "force_ocr_pdf": False,
         "include_raw": True,
     },
-    "fatture": {
-        "label": "Fatture / contabili",
-        "description": "PDF con tabelle; CF/P.IVA/IBAN redatti, importi visibili",
-        "engine": "auto",
-        "language": "it",
-        "privacy_filter": True,
-        "privacy_amounts": False,
-        # Una fattura e' piena di ragioni sociali: l'euristica del cognome
-        # farebbe piu' danni che bene, e i dati che contano davvero
-        # (IBAN, P.IVA, codice fiscale) hanno un riconoscitore proprio.
-        "privacy_name_guess": False,
-        "include_tables": True,
-        "include_frontmatter": True,
-        "clean_output": False,
-        "force_ocr_pdf": False,
-        "include_raw": True,
-    },
     "solo_ocr": {
         "label": "Solo OCR",
         "description": "Forza RapidOCR (scansioni e immagini)",

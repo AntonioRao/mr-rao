@@ -82,7 +82,6 @@
   const PROFILE_HINTS = {
     default: t("hint_profilo_default"),
     email_legali: t("hint_profilo_email_legali"),
-    fatture: t("hint_profilo_fatture"),
     solo_ocr: t("hint_profilo_solo_ocr"),
     llm_ready: t("hint_profilo_llm_ready"),
     no_privacy: t("hint_profilo_no_privacy"),
@@ -229,7 +228,6 @@
       const map = {
         default: { privacy: true, tables: true, fm: true, clean: false, ocr: false },
         email_legali: { privacy: true, tables: false, fm: true, clean: true, ocr: false },
-        fatture: { privacy: true, tables: true, fm: true, clean: false, ocr: false },
         solo_ocr: { privacy: false, tables: true, fm: false, clean: true, ocr: true },
         llm_ready: { privacy: true, tables: true, fm: false, clean: true, ocr: false },
         no_privacy: { privacy: false, tables: true, fm: true, clean: false, ocr: false },
