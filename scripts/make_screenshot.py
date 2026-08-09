@@ -109,6 +109,10 @@ fetch('/__LANG__').then(r => r.text()).then(html => {
   }
   }
   document.replaceChild(doc.documentElement, document.documentElement);
+  // Lo scatto per lo Store inquadra una finestra, non la pagina intera:
+  // senza uno scorrimento mostrerebbe solo l'area di rilascio vuota, cioe'
+  // il prodotto prima che faccia qualcosa.
+  if (__SCROLL__) { window.scrollTo(0, __SCROLL__); }
 });
 </script>
 </body>
@@ -165,9 +169,78 @@ def ritaglia_e_salva(grezzo: Path, larghezza_finale: int = 1500,
     return finale.size
 
 
+# --- Schermate per il Microsoft Store ---------------------------------------
+#
+# Sono un'altra cosa dalle schermate del README, e non per gusto: lo Store
+# accetta PNG **fra 1366x768 e 3840x2160**, e le nostre erano 1500x2420 --
+# troppo alte, quindi respinte. La pagina intera lunga e stretta e' giusta in
+# un README e sbagliata in una vetrina che le mostra in orizzontale.
+#
+# 1600x900 a fattore 2 fa 3200x1800: dentro il limite con margine, e nitido.
+# Andare a 1920x1080 x2 darebbe esattamente 3840x2160, cioe' il massimo
+# esatto -- e appoggiarsi al confine di un limite altrui e' il modo di
+# scoprire, a invio respinto, che era escluso.
+STORE_DIR = ROOT / "packaging" / "Store"
+
+# Le bande, in frazione dell'altezza della pagina intera.
+#
+# Sono **ritagli di una cattura vera**, non composizioni: quello che si vede
+# nella vetrina e' esattamente cio' che la pagina mostra a chi la usa.
+#
+# La prima strada tentata era un'altra -- finestra 1600x900 e `scrollTo` --
+# e produceva immagini completamente nere: in headless lo scatto inquadra la
+# finestra e lo scorrimento non fa in tempo ad avere effetto. Il ritaglio da
+# una cattura a pagina intera non ha quel problema perche' non dipende da
+# nessun tempismo.
+#
+# I confini sono stati scelti **guardando** l'immagine, e vanno riguardati
+# quando la disposizione della pagina cambia: sono l'unica cosa qui dentro
+# che nessun controllo automatico puo' validare. Il controllo sulle misure,
+# quello si', c'e'.
+STORE_BANDE = (
+    ("01-conversione", 0.000, 0.285),   # marchio, promessa, area di rilascio
+    ("02-risultato", 0.365, 0.660),     # il Markdown redatto e il conteggio
+    # Questa banda e' piu' larga di cio' che le serve: i controlli occupano
+    # poco, e ritagliati stretti facevano 2720x575, cioe' sotto i 768 px di
+    # altezza minima dello Store. Meglio aria attorno che un invio respinto.
+    ("03-controlli", 0.245, 0.445),     # profilo e interruttore privacy
+)
+
+
+def scatti_store(grezzo: Path, lingua: str) -> list[tuple[Path, int, int]]:
+    """Ritaglia dalla cattura a pagina intera le schermate della scheda.
+
+    Lo Store accetta PNG **fra 1366x768 e 3840x2160**. Le schermate del
+    README sono 1500x2420: troppo alte, quindi respinte. Una pagina lunga e
+    stretta e' giusta in un README e sbagliata in una vetrina orizzontale.
+    """
+    from PIL import Image
+
+    im = Image.open(grezzo).convert("RGB")
+    larg, alt = im.size
+    STORE_DIR.mkdir(parents=True, exist_ok=True)
+
+    prodotti: list[tuple[Path, int, int]] = []
+    for nome, da, a in STORE_BANDE:
+        banda = im.crop((0, round(alt * da), larg, round(alt * a)))
+        # Larghezza oltre il massimo: si riduce mantenendo le proporzioni.
+        if banda.size[0] > 3840:
+            nuova_alt = round(banda.size[1] * 3840 / banda.size[0])
+            banda = banda.resize((3840, nuova_alt), Image.LANCZOS)
+        uscita = STORE_DIR / f"{nome}-{lingua}.png"
+        banda.save(uscita, optimize=True)
+        prodotti.append((uscita, *banda.size))
+    return prodotti
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description="Screenshot dell'interfaccia per il README")
     ap.add_argument("--url", default="http://127.0.0.1:5000", help="URL dell'app già avviata")
+    ap.add_argument(
+        "--store",
+        action="store_true",
+        help="schermate orizzontali per la scheda del Microsoft Store, in packaging/Store/",
+    )
     # La schermata del README inglese deve mostrare l'interfaccia inglese:
     # promettere due lingue e mostrarne una sola e' la stessa incoerenza
     # che abbiamo appena tolto dai documenti.
@@ -192,7 +265,8 @@ def main(argv: list[str]) -> int:
         PONTE_HTML.replace("__CONTENUTO__", json.dumps(DOCUMENTO_DEMO))
                    .replace("__LANG__", "" if args.lang == "it" else "?lang=" + args.lang)
                    .replace("__REDAZIONI__", "redazioni" if args.lang == "it" else "redactions")
-                   .replace("__ADESSO__", "adesso" if args.lang == "it" else "just now"),
+                   .replace("__ADESSO__", "adesso" if args.lang == "it" else "just now")
+                   .replace("__SCROLL__", "0"),
         encoding="utf-8",
     )
     grezzo = OUT_DIR / "_grezzo.png"
@@ -205,6 +279,15 @@ def main(argv: list[str]) -> int:
                 "--headless=new",
                 "--disable-gpu",
                 "--hide-scrollbars",
+                # Le animazioni d'ingresso (`.reveal`) partono da opacita' 0.
+                # Senza questo lo scatto le coglie a meta': la 1.11.0 e'
+                # uscita con la card del risultato **invisibile** e un vuoto
+                # al suo posto, e la schermata del README lo mostrava.
+                # L'app gestisce gia' `prefers-reduced-motion` spegnendo il
+                # `.reveal`, quindi qui non si aggira niente: si chiede la
+                # variante che il prodotto sa gia' servire, invece di sperare
+                # in un tempo di attesa abbastanza lungo.
+                "--force-prefers-reduced-motion",
                 "--force-device-scale-factor=2",
                 f"--window-size={args.width},{args.height}",
                 "--virtual-time-budget=6000",
@@ -219,9 +302,28 @@ def main(argv: list[str]) -> int:
             print("Chrome non ha prodotto l'immagine.", file=sys.stderr)
             return 1
         dimensioni = ritaglia_e_salva(grezzo, lingua=args.lang)
-        peso = (OUT_DIR / "schermata.png").stat().st_size // 1024
-        print(f"docs/img/schermata.png      {dimensioni[0]}x{dimensioni[1]}  {peso} KB")
-        print("docs/img/social-preview.png 1280x640")
+        # Il nome dipende dalla lingua: prima si stampava sempre
+        # `schermata.png`, quindi lo scatto inglese riferiva il peso di
+        # quello italiano e diceva di aver scritto un file che non aveva
+        # toccato.
+        nome = "schermata.png" if args.lang == "it" else f"schermata-{args.lang}.png"
+        peso = (OUT_DIR / nome).stat().st_size // 1024
+        print(f"docs/img/{nome:24s} {dimensioni[0]}x{dimensioni[1]}  {peso} KB")
+        if args.lang == "it":
+            print("docs/img/social-preview.png  1280x640")
+
+        if args.store:
+            fuori = 0
+            for percorso, larg, alt in scatti_store(grezzo, args.lang):
+                dentro = 1366 <= larg <= 3840 and 768 <= alt <= 2160
+                if not dentro:
+                    fuori += 1
+                print(f"  {percorso.relative_to(ROOT)}  {larg}x{alt}  "
+                      f"{'ok' if dentro else 'FUORI DAI LIMITI DELLO STORE'}")
+            if fuori:
+                print("  Lo Store rifiuta le immagini fuori misura all'invio.",
+                      file=sys.stderr)
+                return 1
         return 0
     finally:
         PONTE.unlink(missing_ok=True)
