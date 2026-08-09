@@ -120,6 +120,33 @@ _RE_DATELIKE = re.compile(
     r"^\d{1,2}[.\-]\d{1,2}[.\-]\d{2,4}$|^\d{4}[.\-]\d{1,2}[.\-]\d{1,2}$"
 )
 
+# Gruppi di cifre separati, per riconoscere una numerazione di colonne.
+_RE_GRUPPI = re.compile(r"\d+")
+
+
+def _is_numbering_sequence(testo: str) -> bool:
+    """Una numerazione di colonne non e' un recapito.
+
+    Sui moduli — 730, Redditi PF, Gazzetta — le colonne sono numerate in
+    testa alla tabella: «00 1 2 3 4 5 6 7 8», «33 34 35 36 37». Hanno la
+    forma di un numero di telefono spaziato ed erano la prima voce dei falsi
+    positivi sui documenti italiani.
+
+    Il segno distintivo e' che i gruppi **contano**: letti come interi
+    crescono di uno alla volta. Nessun recapito si scrive cosi'. Si guarda
+    la coda e non tutta la sequenza perche' la numerazione e' spesso
+    preceduta da un'intestazione ereditata dal pattern («00» da un totale).
+    """
+    gruppi = [int(g) for g in _RE_GRUPPI.findall(testo)]
+    if len(gruppi) < 4:
+        return False
+    corsa = 1
+    for a, b in zip(reversed(gruppi[1:]), reversed(gruppi[:-1])):
+        if a - b != 1:
+            break
+        corsa += 1
+    return corsa >= 3
+
 # Email
 _RE_EMAIL = re.compile(
     r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"
@@ -891,6 +918,12 @@ def _phone_is_plausible(m: re.Match) -> bool:
     has_sep = any(sep in body for sep in (" ", "-", "."))
     ctx = bool(_RE_PHONE_CTX.search(_context_before(m.string, m.start())))
 
+    # Una numerazione di colonne si riconosce dalla forma, ma una parola di
+    # contesto vale piu' della forma: se davanti c'e' scritto «tel.», e'
+    # un recapito anche se le cifre per caso contano.
+    if not ctx and _is_numbering_sequence(m.group(0)):
+        return False
+
     prefix = m.group("prefix")
     if prefix:
         # Lo "00" internazionale e' anche l'inizio di moltissimi numeri di
@@ -912,15 +945,27 @@ def _phone_is_plausible(m: re.Match) -> bool:
         sep_ovunque = any(s in tutto for s in (" ", "-", "."))
         if prefix.startswith("00") and not sep_ovunque and not ctx:
             return False
+        # Nessun indicativo di Paese comincia per zero: sono numeri da 1 a
+        # 999 e lo zero e' proprio il carattere che li introduce. Le tabelle
+        # statistiche invece sono piene di «000 000 000 116», che il
+        # pattern leggeva come una chiamata verso il Paese numero 0.
+        if not ctx and (m.group("cc") or "").startswith("0"):
+            return False
         return 6 <= n <= (11 if m.group("cc") == "39" else 14)
 
     if ctx:
         return 6 <= n <= 13
 
-    if digits.startswith("3") and 9 <= n <= 10:  # cellulare italiano
+    # Cellulare italiano. La decade 30x non e' assegnata a nessun operatore:
+    # «300 000 201», che su una tabella e' un valore, non e' un recapito.
+    if digits.startswith("3") and digits[1:2] != "0" and 9 <= n <= 10:
         return True
 
-    if digits.startswith("0") and 8 <= n <= 11 and has_sep:  # fisso italiano
+    # Fisso italiano. Il prefisso di distretto e' 0 seguito da una cifra
+    # significativa — 02, 06, 011, 081 — mai da un altro zero: «000 000 52»
+    # su una tabella di valori non e' un recapito.
+    if (digits.startswith("0") and digits[1:2] != "0"
+            and 8 <= n <= 11 and has_sep):
         return True
 
     return False

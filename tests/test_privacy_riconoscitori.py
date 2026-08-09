@@ -667,3 +667,56 @@ def test_documenti_id_si_possono_spegnere():
     # spegnere i codici fiscali non deve scoprire il passaporto
     _, solo_fiscal_off = apply_privacy_filter(testo, PrivacyOptions(fiscal=False))
     assert solo_fiscal_off.counts.get("documenti") == 1
+
+
+def test_numerazione_di_colonna_non_e_un_recapito():
+    """I moduli numerano le colonne, e il pattern le leggeva come telefoni.
+
+    Erano la prima voce dei falsi positivi sui documenti italiani veri:
+    l'intestazione di una tabella del 730 o di un prospetto della Gazzetta.
+    Il segno distintivo e' che i gruppi contano.
+    """
+    for testo in (
+        "colonne 00 1 2 3 4 5 6 7 8 del prospetto",
+        "righe 33 34 35 36 37 della tabella",
+        "periodi 05-06-07-08-09 a confronto",
+        "quadri 00 20 21 22 compilati",
+    ):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert not report.counts.get("phones"), f"tolto per sbaglio: {testo!r}"
+        assert out == testo
+
+
+def test_il_contesto_vince_sulla_forma():
+    """Se davanti c'e' scritto «tel.», e' un recapito anche se le cifre
+    per caso contano: la parola vale piu' della forma."""
+    out, report = apply_privacy_filter("tel. 02 12 13 14", PrivacyOptions())
+    assert report.counts.get("phones") == 1
+    assert "12 13 14" not in out
+
+
+def test_le_tabelle_statistiche_non_chiamano_il_paese_zero():
+    """Nessun indicativo di Paese comincia per zero.
+
+    «000 000 000 116» su un volume statistico veniva letto come una chiamata
+    internazionale verso il Paese numero 0.
+    """
+    for testo in ("valori 000 000 000 116 in migliaia",
+                  "importi 000 000 52 rilevati",
+                  "quota 300 000 201 sul totale"):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert not report.counts.get("phones"), f"tolto per sbaglio: {testo!r}"
+        assert out == testo
+
+
+def test_i_recapiti_veri_restano_riconosciuti():
+    """La correzione non deve costare un numero vero."""
+    for testo, atteso in (
+        ("chiamare il 335 412 7788", "335 412 7788"),
+        ("fisso 0817 445566", "0817 445566"),
+        ("cell. 347-9981223", "347-9981223"),
+        ("dall'estero +39 06 55512340", "+39 06 55512340"),
+    ):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert report.counts.get("phones") == 1, f"non tolto: {testo!r}"
+        assert atteso not in out
