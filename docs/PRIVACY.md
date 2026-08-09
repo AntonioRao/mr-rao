@@ -131,8 +131,11 @@ contesto, dal segnale più forte al più debole:
 
 La quarta è l'unica che può sbagliare, ed è l'unica che si può spegnere da
 sola: casella **«Deduci i cognomi sconosciuti»**, campo
-`privacy_name_guess`, opzione `--no-name-guess`. È spenta di default nel
-profilo **Fatture**, dove le denominazioni sociali abbondano.
+`privacy_name_guess`, opzione `--no-name-guess`. **È spenta di default in
+tutti i profili** dalla 1.7.2, e il motivo è un numero: su venti moduli
+dell'Agenzia delle Entrate in bianco — documenti che non contengono un solo
+dato personale — produceva 8 904 sostituzioni sbagliate. Chi la accende lo
+fa sapendo cosa compra.
 
 Due controlli la tengono a bada: un elenco di parole italiane che capita di
 trovare con l'iniziale maiuscola (mesi, saluti, enti, città, termini

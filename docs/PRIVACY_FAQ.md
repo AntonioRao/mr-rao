@@ -97,8 +97,8 @@ Segnali, dal più forte al più debole:
 3. Nome proprio noto che «tira» la parola dopo  
 4. Euristica: due parole maiuscole che non sembrano parole italiane  
 
-Solo la (4) è aggressiva e **si spegne da sola** (`name_guess` /
-`--no-name-guess` / profilo Fatture). Un cognome raro senza contesto può
+Solo la (4) è aggressiva, ed è **spenta di default** dalla 1.7.2
+(`name_guess` / `--no-name-guess`): va accesa apposta. Un cognome raro senza contesto può
 restare. Un cognome che è anche parola comune può restare. Per questo
 esiste il confronto **prima / dopo** nell’UI: non è cosmesi, è il
 controllo previsto.
