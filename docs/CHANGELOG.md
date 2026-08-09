@@ -1,5 +1,121 @@
 # Changelog
 
+## 1.12.0 — «Nessun modello» non era vero, e «Fatture» non faceva niente
+
+Nessuna di queste cose l'ha chiesta un utente. Sono tutte uscite dal
+guardare di nuovo pezzi che davamo per buoni — la promessa scritta in
+prima pagina, una voce della tendina, la larghezza della finestra — e
+scoprire che tre su tre non stavano in piedi.
+
+### Un dato incollato all'etichetta non veniva nemmeno proposto
+
+Su una scansione degradata l'OCR perde lo spazio: `IBANIT60X05428…`,
+`Tel.02 1234567`, il numero di carta attaccato ai puntini di guida. In
+tutti quei casi il dato **supererebbe il proprio validatore** — mod-97 e
+Luhn tornano — ma il pattern non arrivava a proporlo, perché lo rifiutava
+quando preceduto da lettere o da un punto. Perdita silenziosa: nemmeno un
+sospetto da rivedere.
+
+**Cosa è stato allentato, e cosa no.** IBAN e carte sì, perché dietro c'è
+un'aritmetica capace di smentire la forma: ammessa la parola incollata
+davanti, mai una cifra — una cifra vorrebbe dire ritagliare un pezzo da un
+numero più lungo. Decide il Luhn.
+
+I telefoni **no**. Un telefono non ha nessun conto che possa smentirne la
+forma, quindi allentare lì sarebbe stato allentare e basta. Al suo posto un
+pattern che *chiede di più*: la parola di contatto dev'essere prima del
+punto (`Tel.02…`).
+
+**Guadagno:** dati persi in silenzio da 60 a 46 su 640 (−23%). Le scansioni
+da scanner in ordine non perdono più niente: a 300, 200 e 150 DPI si passa
+da 5, 2, 2 a 0, 0, 0. **Costo:** zero falsi positivi a ogni livello, prima e
+dopo.
+
+Ma quello zero, la prima volta, **non poteva fallire**: sui documenti usati
+per misurarlo i pattern nuovi avevano proposto zero candidati. Un costo di
+zero che non aveva modo di essere diverso da zero non è una misura. Rifatto
+con banchi capaci di dire di no, compresa una prova a volume su 200 000
+candidati che spiega perché sulle carte siamo stati stretti: il mod-97
+lascia passare lo 0,01%, il Luhn il 10,03%.
+
+### La promessa «nessun modello» era falsa, e si è spostata dove regge
+
+I documenti pubblici dicevano «nessun modello, nessuna rete neurale». Nel
+pacchetto portable di file `.onnx` ce ne sono **quattro**, 33 MB su 165: tre
+sono l'OCR, il quarto è magika, il riconoscitore di tipo file di Google, che
+MarkItDown si porta dietro e che gira su **ogni conversione**, non solo
+sulle scansioni.
+
+Scrivere «nessun modello *AI*» avrebbe peggiorato le cose: un modello OCR
+*è* un modello AI, e la frase sarebbe diventata più precisa e più falsa.
+
+La promessa si sposta dove regge, e non si indebolisce: **la decisione** non
+passa da nessun modello. L'OCR trasforma pixel in caratteri e si ferma lì;
+cosa sia un dato personale lo stabiliscono a valle un'espressione regolare e
+un validatore aritmetico. E vale il rovescio, che è la parte utile per chi
+lo usa: quando l'OCR legge male, il motore non può decidere bene. Ora il
+README lo dice, invece di lasciarlo scoprire a chi ci casca.
+
+### «Fatture / contabili» era il profilo predefinito con un altro nome
+
+Il profilo si distingueva per una cosa sola: spegneva l'euristica del
+cognome. Nella **1.7.2** quell'euristica è stata spenta *di default*, e da
+quel giorno l'unica differenza è diventata un'istruzione che non istruiva
+più niente. Le due voci producevano opzioni **identiche, campo per campo**.
+
+Nessuno se n'è accorto per quattro release, e il perché conta più del
+difetto: i test controllavano che ogni profilo fosse coerente **con sé
+stesso** e con l'interfaccia, mai che fosse **diverso dagli altri**. Non
+esisteva un confronto fra profili, quindi non esisteva modo di vedere un
+clone.
+
+Il danno non è tecnico, è di fiducia: chi sceglieva «Fatture» credeva di
+aver detto qualcosa al programma, e non aveva detto niente. La voce è stata
+tolta, e ora un test confronta fra loro le opzioni **risolte** di tutti i
+profili — con accanto un secondo test che ricostruisce il difetto storico,
+per dimostrare che il primo può davvero fallire.
+
+### Tablet e finestre strette: 260 pixel di pagina fuori schermo
+
+A 375 px di larghezza la pagina ne occupava 635. Duecentosessanta fuori
+schermo e irraggiungibili, perché tagliati.
+
+Il metodo prima del risultato: `overflow-x: hidden` sul body **nasconde** lo
+scorrimento invece di risolverlo, e falsa qualunque verifica. Ogni misura è
+stata presa azzerandolo temporaneamente e confrontando la larghezza reale
+con quella visibile — altrimenti si misura il tappeto, non la polvere.
+
+Trovati e sistemati per la stessa strada: il nome di un allegato da 480 px
+dentro un pulsante da 284, i campi del percorso ridotti a 61 px quando ne
+servono 345, i due riquadri dei termini **senza nessuna regola CSS**
+(bianchi su fondo scuro, ridimensionabili fin fuori dal pannello), aree di
+tocco da 19,6 px. Ora sono sopra il minimo di 24×24 richiesto da WCAG 2.2.
+
+### Le pagine pubblicate non possono più invecchiare in silenzio
+
+Il gate che tiene allineati i documenti guardava solo i `.md`. Le landing
+HTML no — e infatti una dichiarava ancora la **1.7.2** mentre il programma
+era alla 1.11.0: venti release di scarto, e nessun controllo capace di
+vederlo. Ottava invariante, con due guardie contro il caso peggiore, cioè un
+controllo che diventa verde per sempre perché non trova più niente da
+guardare.
+
+### Una pagina in inglese, non una traduzione
+
+La landing inglese non racconta il prodotto italiano in un'altra lingua:
+apre sui formati che riguardano chi legge — NHS, National Insurance, SSN,
+ITIN, ABA, SIN, ABN, TFN, righe MRZ del passaporto — e porta le prove fatte
+in inglese. Ogni paragone con l'italiano è stato tolto: a chi valuta questo
+programma non serve sapere cosa fa in un'altra lingua.
+
+### Microsoft Store
+
+Prima pubblicazione inviata e in certificazione, con la 1.11.0. `STORE.md`
+è stato riscritto **dopo** averlo fatto davvero, e porta cinque correzioni a
+cose che sembravano diverse da come sono — a partire dal fatto che il
+pacchetto va caricato *per primo*, perché le lingue della scheda le decide
+il manifest.
+
 ## 1.11.0 — «Se scansiono una patente, anonimizza qualcosa?»
 
 La domanda l'ha fatta chi lo usa. La risposta, misurata invece che

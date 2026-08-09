@@ -9,7 +9,7 @@
 [![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.11.0-3b82f6)](docs/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.12.0-3b82f6)](docs/CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-909%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)

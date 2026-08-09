@@ -43,6 +43,14 @@ Partner Center, e non c'è modo di aggirarlo.
 Submission ✓, Pre-processing ✓, poi Certification e Publishing. Microsoft
 dichiara «qualche ora, in certi casi fino a tre giorni lavorativi».
 
+> **Perché lo Store resta indietro rispetto a git.** Il repository intanto è
+> andato avanti (1.12.0), lo Store no: **non si tocca una submission in
+> certificazione**. Sostituire il pacchetto adesso significa ricominciare la
+> coda da capo, e in cambio di niente. La regola è: si aspetta la **prima
+> pubblicazione**, poi si allinea la build dello Store a dove è arrivato
+> GitHub in quel momento — con una submission nuova, che è la strada normale
+> per gli aggiornamenti.
+
 ---
 
 # Parte 1 — La prima pubblicazione, passo per passo
