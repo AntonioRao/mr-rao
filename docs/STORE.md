@@ -329,6 +329,12 @@ pubblicata.
 Serve solo dalla **seconda** pubblicazione in poi: la prima resta manuale
 comunque, perché l'automazione aggiorna e non inserisce.
 
+**Configurata il 2026-08-09, mai ancora eseguita.** I quattro segreti ci
+sono e la registrazione ha il suo ruolo, ma la catena non è stata provata
+dal vivo: la prima volta che si scriverà `si` in `pubblica_store` sarà anche
+la prima volta che quel percorso gira davvero. Va lanciata guardando
+l'esecuzione, non a fine giornata.
+
 Si accende scrivendo `si` nel campo `pubblica_store` quando si lancia il
 workflow. Finché i quattro segreti non ci sono, il workflow si ferma subito
 dicendo **quali** mancano, invece di scoprirlo a metà pubblicazione.
@@ -339,30 +345,64 @@ Vanno in **Settings → Secrets and variables → Actions** del repository, con
 **esattamente** questi nomi — il workflow li cerca così, e un nome diverso
 diventa un errore di autenticazione a metà pubblicazione:
 
-| Segreto | Dove si trova | Stato |
-|---|---|---|
-| `AZURE_AD_TENANT_ID` | [entra.microsoft.com](https://entra.microsoft.com/) → Identity → Overview → *Tenant ID* | **fatto** (2026-08-09) |
-| `AZURE_AD_APPLICATION_CLIENT_ID` | Entra → Identity → Applications → App registrations → la tua app → *Application (client) ID* | da fare |
-| `AZURE_AD_APPLICATION_SECRET` | stessa app → Certificates & secrets → New client secret. **Il valore si vede una volta sola** | da fare |
-| `SELLER_ID` | Partner Center → Account settings → *Publisher ID* / *Seller ID* | da fare |
+**Tutti e quattro configurati il 2026-08-09.** Qui sotto c'è dove si
+trovano, per quando andranno rifatti — il *client secret* scade.
+
+| Segreto | Dove si trova |
+|---|---|
+| `AZURE_AD_TENANT_ID` | [entra.microsoft.com](https://entra.microsoft.com/) → Panoramica → *ID tenant* |
+| `AZURE_AD_APPLICATION_CLIENT_ID` | Entra → **Registrazioni app** → scheda **«Tutte le applicazioni»** → *ID applicazione (client)* |
+| `AZURE_AD_APPLICATION_SECRET` | stessa app → Certificati e segreti → Nuovo segreto client. **Il valore si vede una volta sola** |
+| `SELLER_ID` | Partner Center → Account settings → **Legal info** → *Seller ID* |
+
+**⚠ due dettagli che fanno perdere tempo.** Dopo la registrazione, l'app non
+compare sotto «Applicazioni di cui si è proprietari» ma solo sotto **«Tutte
+le applicazioni»**. E il **Seller ID non è in *Identifiers***, dov'è
+ragionevole cercarlo e dove questo documento diceva di guardare: è in
+**Legal info**, insieme a User Id e ai publisher ID.
 
 ## Nell'ordine, cosa fare
 
-1. **Entra → App registrations → New registration.** Nome: `mr-rao-store-publisher`.
-   Account types: «Accounts in this organizational directory only». Nessun
-   Redirect URI: questa registrazione non fa accedere nessuno, serve solo a
-   farsi riconoscere da un programma. Copiare l'*Application (client) ID*.
-2. **Certificates & secrets → New client secret.** Scadenza: la più corta
-   che sia sostenibile, perché una credenziale che non scade è una
-   credenziale che nessuno ruota. **Il valore si legge una volta sola**:
-   incollarlo subito in GitHub e poi chiudere la pagina.
+1. **Entra → Registrazioni app → Nuova registrazione.** Nome
+   `mr-rao-store-publisher`, tipo «Solo tenant singolo», **nessun URI di
+   reindirizzamento**: quello serve a far accedere delle persone, e qui non
+   accede nessuno — un programma si autentica da solo col segreto. Metterlo
+   sarebbe superficie in più che non si usa.
+2. **Certificati e segreti → Nuovo segreto client.** Scadenza: la più corta
+   sostenibile, perché una credenziale che non scade è una credenziale che
+   nessuno ruota. Serve la colonna **Valore**, non «ID segreto», e **si
+   legge una volta sola**: si incolla subito in GitHub.
 3. **Partner Center → Account settings → User management → Microsoft Entra
-   applications → Add Azure AD application.** Scegliere la registrazione
-   appena creata e assegnarle il ruolo **Manager**. Senza quel ruolo
-   l'autenticazione riesce e la pubblicazione no — che è il modo più
-   confuso di fallire.
-4. **Account settings → Account settings (o Legal info) → *Seller ID***.
-   Copiarlo.
+   applications → Add Microsoft Entra application.** Scegliere **«Add»**,
+   non «Create»: la registrazione esiste già.
+
+   ### Il ruolo: **Developer**, non Manager
+
+   **⚠ qui questo documento diceva Manager, ed era la scelta sbagliata.**
+
+   `Developer` recita: *«può caricare pacchetti e inviare app e add-on…
+   non può accedere a informazioni finanziarie né alle impostazioni
+   dell'account»*. È esattamente il mestiere del workflow, e niente di più.
+
+   `Manager` invece dà accesso completo all'account e permette di
+   **gestire utenti, ruoli e tenant**. Su una credenziale che vive dentro
+   GitHub Secrets è sproporzionato: se trapelasse, con Developer si può
+   pubblicare un pacchetto — grave ma circoscritto — con Manager si prende
+   l'account.
+
+   E c'è una trappola nell'interfaccia: **spuntare «Manager» seleziona da
+   solo tutti e quattro gli altri ruoli**, compresi *Finance Contributor* e
+   *Business Contributor*, cioè profili di pagamento e dati finanziari. Se
+   si clicca senza guardare si concede molto più di quanto si crede.
+
+   Se un giorno una pubblicazione automatica fallisse per permessi, il
+   ruolo si allarga da questa stessa pagina in pochi secondi — meglio
+   allargarlo con una prova in mano che stringerlo dopo.
+
+   A cose fatte l'app compare **due volte**, come *Microsoft Entra Apps* e
+   come *Service Principal*: è normale, sono due facce della stessa
+   registrazione.
+4. **Account settings → Legal info → *Seller ID***.
 
 > Il *client secret* lo crei e lo incolli tu, direttamente in GitHub. È una
 > credenziale: non passa da nessun'altra parte, e non va scritta in un file
