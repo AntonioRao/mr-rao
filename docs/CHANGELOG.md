@@ -67,10 +67,33 @@ Resta a 0% la partita IVA **nuda**, senza prefisso `IT` né contesto fiscale
 vicino — ed è documentato: undici cifre da sole sono indistinguibili da un
 numero qualsiasi.
 
-### Il banco resta
+### E gli altri riconoscitori? Nessun difetto
 
-`scripts/bench_varieta.py`, più 17 test. È la terza manopola dopo il degrado
-dell'immagine e la forma della frase, e la prima che guarda il **valore**.
+La domanda ovvia dopo i due difetti italiani era se il resto avesse lo
+stesso problema. **Non ce l'ha.** Venti tipi provati con centinaia di valori
+distinti ciascuno — NHS, National Insurance, SSN, ITIN, routing ABA, SIN,
+ABN, TFN, **tutti e sei** i formati di codice postale britannico, MRZ,
+coordinate BBAN, carta d'identità, patente, passaporto, chiavi e token —
+tutti al 100%.
+
+Quattro cose sembravano difetti ed erano il banco, e vale la pena averle
+scritte perché sono il modo tipico in cui un banco mente: SIN che iniziano
+per 0 o 8 (il Canada non li assegna, e il motore li rifiuta di proposito
+con la ragione scritta nel codice); MRZ di una riga sola invece di due; MRZ
+di 43 caratteri invece di 44, per la cifra di controllo del numero personale
+dimenticata; passaporti con serie che l'Italia non emette. **In tutti e
+quattro i casi il motore aveva ragione e il generatore torto.**
+
+Perché qui zero e sul pacchetto italiano due, resta un'ipotesi che vale la
+pena scrivere: questi riconoscitori sono nati insieme nella 1.8.0, **con i
+vettori di prova presi dalle specifiche degli enti che emettono i
+documenti**. Quelli italiani sono cresciuti una versione alla volta.
+
+### I banchi restano
+
+`scripts/bench_varieta.py` e `scripts/bench_varieta_en.py`, più 20 test. È
+la terza manopola dopo il degrado dell'immagine e la forma della frase, ed è
+la prima che guarda il **valore**.
 
 ## 1.14.0 — Il percorso senza OCR non era mai stato misurato
 
