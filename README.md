@@ -29,7 +29,7 @@
 
 ![Mr. Rao — interface](docs/img/schermata-en.png)
 
-> **Interface and output in English or Italian**, chosen from your browser and switchable with one click — the produced Markdown follows the same language. Alongside the Italian formats (*codice fiscale*, *partita IVA*, BBAN) the engine recognises UK, US, Canadian and Australian ones: NHS number, National Insurance number, SSN, ITIN, ABA routing number, SIN, ABN, TFN, UK postcodes and passport MRZ lines — each with its own checksum where one exists. English name detection is context-driven and deliberately narrower than the Italian: [PRIVACY.md](docs/PRIVACY.md) says what that costs.
+> **Interface and output in English or Italian**, chosen from your browser and switchable with one click — the produced Markdown follows the same language. Alongside the Italian formats (*codice fiscale*, *partita IVA*, BBAN) the engine recognises UK, US, Canadian and Australian ones: NHS number, National Insurance number, SSN, ITIN, ABA routing number, SIN, ABN, TFN, UK postcodes and passport MRZ lines — each with its own checksum where one exists. English name detection is context-driven and deliberately narrower than the Italian: [PRIVACY.en.md](docs/PRIVACY.en.md) says what that costs.
 
 ---
 
@@ -161,7 +161,7 @@ What they do not do is **decide**. OCR turns pixels into characters and stops th
 
 The reverse holds too, and it is why the scan bench finds what it finds: **when OCR reads badly, the engine cannot decide well.** On a faded photocopy a mangled IBAN never reaches mod-97, and no rule can recover a value the reader never read. That limit is measured, not hidden — it is written on the page below.
 
-**→ [How it works in detail, limits included](docs/PRIVACY.md)**
+**→ [How it works in detail, limits included](docs/PRIVACY.en.md)**
 
 ---
 
@@ -175,7 +175,7 @@ The reverse holds too, and it is why the scan bench finds what it finds: **when 
 | 📧 **Email** | `.eml` files with the thread split message by message, attachments extractable |
 | 🛡️ **Personal data** | Names, postal addresses, phone numbers, emails, URLs, tax IDs, VAT numbers, IBANs, payment cards, API keys → replaced with placeholders |
 | 🔍 **Verification** | A before/after view showing exactly what was removed |
-| ⌨️ **Clipboard shortcut** | Copy the text, press **Ctrl+Alt+R**, paste: what lands is already redacted — [how it works, and why it is not a keylogger](docs/SCORCIATOIA-APPUNTI.md) |
+| ⌨️ **Clipboard shortcut** | Copy the text, press **Ctrl+Alt+R**, paste: what lands is already redacted — [how it works, and why it is not a keylogger](docs/SCORCIATOIA-APPUNTI.en.md) |
 | 📁 **Watched folder** | Drop files in one folder, the `.md` files appear in another |
 | 📝 **Export** | Markdown `.md`, plain text `.txt` and a **Word document `.docx`** — for records that have to stay documents |
 | ⌨️ **Command line** | `convert`, `watch`, `health` — also from the portable executable |
@@ -388,12 +388,12 @@ The tests do not just cover the happy path. They cover the defects that cost the
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md) · [Privacy](docs/PRIVACY.md) · [Privacy FAQ (reviewers)](docs/PRIVACY_FAQ.md) · [Changelog](docs/CHANGELOG.md)
+- [Architecture](docs/ARCHITECTURE.md) · [Privacy](docs/PRIVACY.en.md) · [Privacy FAQ (reviewers)](docs/PRIVACY_FAQ.en.md) · [Changelog](docs/CHANGELOG.md)
 - [Backlog](docs/BACKLOG.md) — what's missing, in priority order
 - [Command line](docs/CLI.md) — every command and every option
 - [Microsoft Store](docs/STORE.md) — the MSIX package and how it is published
 - [Code signing policy](docs/CODE-SIGNING-POLICY.md) — who can cause a binary to be signed, and what has to be true first
-- [Portable build](docs/PORTABLE.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+- [Portable build](docs/PORTABLE.md) · [Security](SECURITY.en.md) · [Contributing](CONTRIBUTING.md)
 
 ## Configuration
 
@@ -406,7 +406,7 @@ The tests do not just cover the happy path. They cover the defects that cost the
 | `MR_RAO_MAX_WORKERS` | `2` | Concurrent conversions; the rest queue |
 | `MR_RAO_FOLDER_ROOT` | automatic | Where to create the working folders |
 | `MR_RAO_ALLOWED_HOSTS` | this machine's own addresses | Hosts accepted in the `Host` header |
-| `MR_RAO_SECRET` | random at each start | Signing key; nothing uses it today ([why](SECURITY.md#chiave-di-firma)) |
+| `MR_RAO_SECRET` | random at each start | Signing key; nothing uses it today ([why](SECURITY.en.md#signing-key)) |
 
 ---
 

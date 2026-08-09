@@ -57,15 +57,23 @@ def test_l_esempio_e_ancora_nel_readme(pagina, testo, _):
 
 @pytest.mark.parametrize("pagina", README, ids=lambda p: p.name)
 def test_il_readme_rimanda_alla_documentazione_del_motore(pagina):
-    """La pagina che spiega il motore era linkata in fondo, fra le note."""
+    """La pagina che spiega il motore era linkata in fondo, fra le note.
+
+    **Ognuno alla sua lingua.** Il README inglese deve puntare a
+    `PRIVACY.en.md`: mandare un lettore inglese su un documento italiano
+    equivale a non linkarlo, e quello e' il documento in cui vive la
+    credibilita' del motore — proprio la pagina che non puo' permettersi di
+    risultare illeggibile.
+    """
     if not pagina.is_file():
         pytest.skip(f"{pagina} non presente")
     testo = pagina.read_text(encoding="utf-8")
-    assert "docs/PRIVACY.md" in testo
+    atteso = "docs/PRIVACY.en.md" if pagina.name == "README.md" else "docs/PRIVACY.md"
+    assert atteso in testo, f"{pagina.name} non rimanda a {atteso}"
     # deve stare nella prima meta' della pagina, non in coda
-    posizione = testo.index("docs/PRIVACY.md") / len(testo)
+    posizione = testo.index(atteso) / len(testo)
     assert posizione < 0.5, (
-        f"il rimando a docs/PRIVACY.md sta al {posizione:.0%} della pagina: "
+        f"il rimando a {atteso} sta al {posizione:.0%} della pagina: "
         f"e' la spiegazione della cosa che distingue questo progetto, "
         f"non una nota a pie' di pagina"
     )

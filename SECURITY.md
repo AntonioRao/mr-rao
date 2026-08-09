@@ -1,5 +1,7 @@
 # Sicurezza
 
+*This document in English: [SECURITY.en.md](SECURITY.en.md).*
+
 ## Modello di minaccia
 
 Mr. Rao è un **tool locale monoutente**. Serve un server web perché

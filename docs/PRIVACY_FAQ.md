@@ -1,5 +1,7 @@
 # FAQ per chi ispeziona il motore di redazione
 
+*This document in English: [PRIVACY_FAQ.en.md](PRIVACY_FAQ.en.md).*
+
 Undici domande che un reviewer (umano o assistito da AI) fa aprendo
 [`mr_rao/privacy.py`](../mr_rao/privacy.py), i test e questo documento.
 Le risposte sono allineate al codice: se il codice cambia e questa pagina
@@ -76,8 +78,9 @@ Obiettivi vincolanti del tool:
 
 Presidio + NLP o un LLM locale alzerebbero il recall sui nomi in molti casi,
 al prezzo di peso, di risultati non più ripetibili, di dipendenze in più e di
-un motore che non si verifica leggendolo. Qui i nomi usano **tre segnali**
-(titolo, email, elenco — ognuno con un riscontro) e liste in
+un motore che non si verifica leggendolo. Qui i nomi usano **quattro
+segnali** (titolo, ruolo davanti ai due punti, email, elenco — ognuno con un
+riscontro) e liste in
 [`mr_rao/it_names.py`](../mr_rao/it_names.py) — incompleti per definizione.
 
 A chi serve una pipeline multi-lingua enterprise conviene guardare altrove
@@ -92,12 +95,14 @@ ispezionabile prima di ChatGPT, questo è il perimetro giusto.
 
 Segnali, dal più forte al più debole:
 
-1. Titolo professionale (Dott., Ing., Avv., …)  
-2. Nome accanto a un’email  
-3. Nome proprio noto che «tira» la parola dopo  
+1. Titolo professionale (Dott., Ing., Avv., …)
+2. Ruolo, due punti, cognome in maiuscolo (`Il Ministro: GIORGETTI`) — la
+   firma degli atti pubblici italiani, aggiunta nella 1.17.0
+3. Nome accanto a un’email
+4. Nome proprio noto che «tira» la parola dopo
 
 
-C'era una quarta regola — due parole maiuscole che non sembrano parole
+C'era una quinta regola — due parole maiuscole che non sembrano parole
 italiane — che decideva **senza nessun riscontro**: è stata **ritirata nella
 1.13.0**, perché su ventisette moduli amministrativi in bianco costava 2 529
 sostituzioni sbagliate contro 27. Il prezzo è dichiarato: un nome fuori
@@ -130,8 +135,12 @@ Limiti restanti:
 
 - tre o più errori → spesso né recovery né certezza  
 - telefono e nome **non** hanno checksum  
-- il banco OCR nei test è **sintetico** (stringhe scritte a mano), non un
-  corpus di scanner reali — l’efficacia su carta è stimata, non misurata  
+- il degrado **è stato misurato** dalla 1.11 (`scripts/bench_scansioni.py`,
+  tabella in [PRIVACY.md](PRIVACY.md#limiti-dichiarati)): su una fotocopia
+  sbiadita a 200 DPI si perde in silenzio il **38%** dei dati, e i sospetti
+  ne intercettano una minoranza. Resta vero però che **la carta è simulata,
+  non vera**: il banco degrada le immagini in modo controllato e ripetibile,
+  non sostituisce un corpus di scansioni fatte davvero  
 
 Vedi anche l’avviso se l’OCR viene troncato per timeout: il testo in cima
 al documento lo dichiara.

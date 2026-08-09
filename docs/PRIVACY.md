@@ -1,5 +1,7 @@
 # Privacy — Mr. Rao
 
+*This document in English: [PRIVACY.en.md](PRIVACY.en.md).*
+
 ## Principi
 
 1. **Tutto locale** — nessun invio a servizi esterni

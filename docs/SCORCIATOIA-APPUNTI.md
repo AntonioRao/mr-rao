@@ -1,5 +1,7 @@
 # La scorciatoia da tastiera che redige gli appunti
 
+*This document in English: [SCORCIATOIA-APPUNTI.en.md](SCORCIATOIA-APPUNTI.en.md).*
+
 Copi il testo, premi la combinazione, incolli. Quello che arriva è già
 redatto.
 
