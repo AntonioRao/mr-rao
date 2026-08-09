@@ -48,6 +48,20 @@ test_output.txt
 # Non va nel repository nemmeno mascherata.
 scripts/misura_mail.txt
 
+# Scansioni reali di terzi, usate SOLO per misurare com'e' fatto il degrado di
+# una scansione vera (scripts/misura_degrado_reale.py). Restano locali per due
+# ragioni indipendenti, e ne basterebbe una:
+#
+#  1. LICENZA. FUNSD e i corpus analoghi permettono ricerca e didattica ma
+#     **non la ridistribuzione**. Committarle qui sarebbe ridistribuirle.
+#  2. DATI PERSONALI. Sono documenti di persone reali. Su uno strumento che
+#     esiste per non far girare i dati personali, tenerne un archivio dentro
+#     il proprio repository pubblico sarebbe la contraddizione peggiore.
+#
+# Nel repository entrano solo i **parametri misurati** e lo script che li
+# ricava: chi vuole rifare la misura si scarica il corpus da se'.
+corpora-locali/
+
 # Landing page: si tracciano la sorgente scelta e cio che viene pubblicato.
 # Restano fuori le proposte scartate, le anteprime e gli artefatti locali di
 # wrangler: sono lavoro intermedio, non la pagina che sta online.
