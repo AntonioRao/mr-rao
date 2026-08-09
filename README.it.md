@@ -9,8 +9,8 @@
 [![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.12.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-915%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.13.0-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-916%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -114,7 +114,7 @@ Non è un'impressione, è misurato:
 
 Non esiste un valore giusto per entrambi, quindi Mr. Rao **lo deduce dal file** — le email sono prosa, i fogli di calcolo sono moduli, e nei PDF conta le caselle disegnate — e ti lascia cambiarlo quando sbaglia.
 
-L'euristica più aggressiva, «due parole maiuscole che non sono parole italiane», è **spenta di default** dalla 1.8.0. Il motivo è un numero: su venti moduli dell'Agenzia delle Entrate in bianco produceva 8 904 sostituzioni sbagliate, e su otto Gazzette Ufficiali storiche 14 376. Resta accendibile per lettere e contratti, dove le denominazioni sono poche.
+C'era una quarta regola che non chiedeva nessun riscontro — «due parole maiuscole che non sono parole italiane» — ed è stata **ritirata nella 1.13.0**. Il motivo è un numero: su venti moduli dell'Agenzia delle Entrate in bianco produceva 8 904 sostituzioni sbagliate, e su ventisette moduli scaricati dagli enti nel 2026 passava da 27 a 2 529. Il difetto non era che indovinava: è che decideva da sola. **Il prezzo è dichiarato**: un nome fuori elenco, senza titolo né firma né indirizzo di posta accanto, ora resta — e non produce nemmeno un sospetto.
 
 ### Il controllo che conta di più
 
@@ -393,7 +393,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **915 test**, allineamento dei documenti pubblicati.
+Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **916 test**, allineamento dei documenti pubblicati.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 

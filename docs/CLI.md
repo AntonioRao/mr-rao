@@ -54,8 +54,8 @@ accendono.
 | `--no-privacy` | Spegne tutto. Il documento esce come è entrato |
 | `--scrub-amounts` | Toglie anche gli importi in euro. Spento di serie: in una fattura le cifre di solito servono |
 | `--scrub-dates` | Toglie le date **accanto a un contesto di nascita** (`nato il`, `data di nascita`, `born`, `DOB`). Spento di serie |
-| `--name-guess` | Accende l'euristica «due parole maiuscole che non sono parole italiane». Spenta di serie, e conviene lasciarla spenta: misurata, porta il richiamo da 89% a 91% e i falsi positivi da 3 257 a 27 637 |
-| `--no-name-guess` | Non fa niente. Accettata perché è finita in script e appunti di chi la usava per difendersi da quella stessa euristica, che oggi è già spenta |
+| `--name-guess` | **Non fa più niente.** Accendeva l'euristica «due parole maiuscole che non sono parole italiane», **ritirata nella 1.13.0**: decideva senza nessun riscontro e su ventisette moduli amministrativi in bianco costava 2 529 sostituzioni sbagliate contro 27. Resta accettata per non far fallire gli script che la contengono |
+| `--no-name-guess` | **Non fa più niente**, ed è il caso felice: chi la scriveva per difendersi da quell'euristica ottiene ora esattamente ciò che chiedeva, senza doverlo chiedere |
 | `--no-pack-it` | Spegne i riconoscitori italiani: codice fiscale, P.IVA, BBAN, vie, nomi |
 | `--no-pack-en` | Spegne quelli anglosassoni: SSN, NINO, NHS number, passaporti |
 | `--sempre TERMINE` | Nascondi sempre questo termine. **Ripetibile.** I nomi che ricorrono in ogni tua pratica e che nessuna regola generale può indovinare |
@@ -133,7 +133,8 @@ python -m mr_rao.cli watch "Da convertire" "Convertiti" --move-done
 
 Accetta anche `--engine`, `--language`, `--force-ocr`, `--no-tables`,
 `--no-frontmatter`, `--clean`, `--no-privacy`, `--scrub-amounts`,
-`--scrub-dates`, `--no-name-guess`, con lo stesso significato di `convert`.
+`--scrub-dates`, con lo stesso significato di `convert`. Accetta anche
+`--no-name-guess`, che come in `convert` non fa più niente.
 
 Le due liste `--sempre` e `--mai` **non** ci sono: una cartella osservata gira
 per ore senza nessuno davanti, e i termini si scrivono dall'interfaccia.

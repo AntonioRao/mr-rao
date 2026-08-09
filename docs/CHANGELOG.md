@@ -1,5 +1,88 @@
 # Changelog
 
+## 1.13.0 — La regola che indovinava è stata ritirata
+
+Il motore aveva quattro modi di riconoscere un nome. Tre chiedevano un
+riscontro — un titolo davanti, un indirizzo di posta accanto, un nome
+proprio riconosciuto. Il quarto no: **due parole maiuscole che non sembrano
+parole italiane sono nome e cognome**, e basta.
+
+Era spenta di default dalla 1.7.2. Adesso non c'è più.
+
+### Perché adesso, e non prima
+
+La decisione è arrivata da un lavoro che doveva riguardare altro: la
+valutazione di un modello NER per i nomi. Misurando quanto un modello
+avrebbe guadagnato, è stato rimisurato anche il costo della regola che
+c'era già — **su corpora che non abbiamo scritto noi**, che è la parte che
+conta.
+
+Ventisette moduli amministrativi italiani in bianco, scaricati direttamente
+da Agenzia delle Entrate, INPS, Agenzia Dogane, Giustizia, Camere di
+Commercio: 3,3 milioni di caratteri che **non contengono un solo dato
+personale**. Con la regola spenta, 27 sostituzioni sbagliate. Con la regola
+accesa, **2 529**. Novantaquattro volte tanto. Su quindici moduli fiscali
+statunitensi, da 15 a 622.
+
+Non erano numeri nuovi — i primi (8 904 su venti moduli dell'Agenzia delle
+Entrate) risalgono alla 1.7.2. La novità è **da dove vengono**: la prima
+volta il banco l'avevamo scritto noi, e un banco scritto in casa contiene
+solo le trappole a cui ha pensato chi lo scrive. Stavolta i documenti li
+hanno scelti gli enti che li pubblicano.
+
+### Il difetto non era che indovinava
+
+È che **decideva da sola**. Un'euristica che propone e poi deve superare le
+prove del motore sarebbe stata utile; una che sostituisce senza nessuna
+corroborazione è un'altra cosa. Su un modulo in bianco le prove non
+esistono, e quella regola sostituiva lo stesso: «Redditi Persone Fisiche»,
+«Quadro RN», «Imposta Lorda».
+
+E tenerla spenta ma disponibile non era neutrale: lasciava in interfaccia
+una casella che nessuno doveva accendere. **Una scelta che non va mai fatta
+non è una scelta, è una trappola con un'etichetta.**
+
+### Il prezzo, detto per intero
+
+Un nome e cognome che non stanno in nessuno dei due elenchi, **senza**
+titolo davanti, **senza** firma e **senza** indirizzo di posta accanto, ora
+resta nel documento. E non diventa nemmeno un sospetto, perché il sospetto
+richiede almeno un riscontro. Un nome straniero isolato in mezzo a un testo
+è il caso tipico.
+
+È una perdita vera, ed è sotto test: se un giorno una regola nuova la
+coprisse, il test lo dice e la pagina dei limiti va aggiornata con lui.
+
+**Cosa invece non si perde:** i nomi che stanno negli elenchi restano
+riconosciuti, anche scritti tutti in maiuscolo. «Firma: MARIO ROSSI» e «Da:
+GIUSEPPE ESPOSITO» spariscono come prima — verificato, non supposto.
+
+### I due interruttori restano accettati
+
+`--name-guess` e `--no-name-guess` non fanno più niente ma **non danno
+errore**: sono finiti in script e appunti di chi li usava, e farli fallire
+adesso romperebbe quei comandi per comunicare una cosa che è già il
+comportamento del programma. Chi scriveva `--no-name-guess` per difendersi
+ottiene ancora esattamente ciò che chiedeva, senza doverlo chiedere.
+
+### Il NER, e perché non si fa
+
+La ricerca che ha portato qui aveva un altro scopo, e la sua risposta è
+**no, non adesso**. Non per la licenza né per il peso: per il guadagno.
+
+Dentro il vincolo che ci eravamo dati — *il modello propone, le regole
+decidono* — il guadagno misurato è **zero**, su 4,5 milioni di caratteri e
+con due modelli diversi. La ragione è precisa: nei casi che interessano il
+cognome è **una parola sola**, e una parola sola ambigua è difficile per un
+modello quanto per un'espressione regolare. Il candidato con licenza pulita
+ne recupera il 24% col titolo davanti e lo 0% sulle firme.
+
+Il vincolo però è stato **validato**: senza, lo stesso modello produce 326
+sostituzioni sbagliate sui moduli in bianco; con, ne produce 1. Resta
+scritto, e vale per qualunque modello si valuti in futuro.
+
+Dettaglio, corpora e numeri in [BACKLOG.md](BACKLOG.md), voce P3.6.
+
 ## 1.12.0 — «Nessun modello» non era vero, e «Fatture» non faceva niente
 
 Nessuna di queste cose l'ha chiesta un utente. Sono tutte uscite dal

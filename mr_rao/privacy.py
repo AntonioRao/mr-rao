@@ -9,8 +9,14 @@ con prefisso, separatore o parola di contesto.
 Per i nomi di persona gli elenchi non bastano mai, quindi valgono anche le
 regole di contesto: un titolo professionale davanti, un indirizzo di posta
 accanto, un nome proprio riconosciuto che tira dentro la parola successiva.
-L'ultima regola — due parole maiuscole che non sono parole italiane — e'
-la piu' aggressiva, e infatti si puo' spegnere da sola (``name_guess``).
+C'era una quarta regola, ``name_guess``: due parole maiuscole che non
+sembrano parole italiane sono nome e cognome, **senza nessun riscontro
+negli elenchi**. E' stata spenta di default nella 1.7.2 e **ritirata nella
+1.13.0**, perche' indovinava senza corroborazione: su 27 moduli
+amministrativi in bianco -- documenti che non contengono un solo dato
+personale -- costava 2 529 sostituzioni sbagliate contro 27, novantaquattro
+volte tanto. Un'opzione che nessuno deve accendere non e' una scelta, e'
+una trappola con un'etichetta.
 """
 from __future__ import annotations
 
@@ -618,22 +624,30 @@ class PrivacyOptions:
     # dentro `fiscal`: un numero di documento non e' un dato fiscale, e
     # chi spegne i codici tributari non intende scoprire il passaporto.
     documenti: bool = True
-    # Euristica del cognome: due parole maiuscole che non sono parole
-    # italiane sono quasi sempre nome e cognome. Copre i cognomi che nessun
-    # elenco contiene, ma e' anche la regola che puo' sbagliare: si spegne
-    # da sola, senza rinunciare al resto del riconoscimento dei nomi.
+    # QUI C'ERA `name_guess`, RITIRATA NELLA 1.13.0.
     #
-    # **Spenta di default dalla 1.7.2** (#5). Era accesa, e su documenti
-    # veri il conto e' questo: 8904 sostituzioni sbagliate su venti moduli
-    # dell'Agenzia delle Entrate in bianco, 14376 su otto Gazzette
-    # storiche, 2888 su novantanove moduli fiscali statunitensi. Tutti
-    # documenti che non contengono un solo dato personale: mangiava
-    # «Redditi Persone Fisiche», «Quadro RN», «Imposta Lorda».
+    # Era l'euristica del cognome: due parole maiuscole che non sembrano
+    # parole italiane sono nome e cognome, **senza nessun riscontro negli
+    # elenchi**. Spenta di default dalla 1.7.2 (#5), tolta del tutto adesso.
     #
-    # Non se n'era accorto nessuno perche' il banco a due corpora li
-    # avevamo scritti noi, e un corpus scritto a mano contiene solo le
-    # trappole a cui chi lo scrive ha pensato.
-    name_guess: bool = False
+    # Il conto su documenti che non contengono un solo dato personale:
+    # 8 904 sostituzioni sbagliate su venti moduli dell'Agenzia delle
+    # Entrate in bianco, 14 376 su otto Gazzette, 2 888 su novantanove
+    # moduli fiscali statunitensi. Mangiava «Redditi Persone Fisiche»,
+    # «Quadro RN», «Imposta Lorda».
+    #
+    # **Riprodotto nel 2026-08 su corpora che non abbiamo scritto noi**, che
+    # e' cio' che ha chiuso la questione: 27 moduli amministrativi italiani
+    # in bianco scaricati da Agenzia Entrate, INPS, ADM e altri passano da
+    # 27 sostituzioni sbagliate a 2 529 -- novantaquattro volte. Sui moduli
+    # IRS da 15 a 622.
+    #
+    # Il difetto non era che indovinava: e' che DECIDEVA DA SOLA. Le altre
+    # tre regole chiedono un riscontro (titolo, posta, adiacenza); questa
+    # no. Lasciarla spenta ma disponibile significava tenere in interfaccia
+    # una casella che nessuno deve accendere -- e una scelta che non va mai
+    # fatta non e' una scelta, e' una trappola con un'etichetta.
+    #
     # Le due liste dello studio (P1.8). Il motore decide con regole generali,
     # ma ogni studio ha nomi propri che ricorrono in ogni pratica — clienti,
     # controparti — e denominazioni interne che non vanno toccate mai. Prima
@@ -1329,9 +1343,13 @@ def _scrub_addresses(text: str, report: RedactionReport) -> str:
 
 
 def _scrub_names(
-    text: str, report: RedactionReport, guess: bool, prosa: bool | None = None
+    text: str, report: RedactionReport, prosa: bool | None = None
 ) -> str:
-    """Sostituisce i nomi di persona, dal segnale piu' forte al piu' debole."""
+    """Sostituisce i nomi di persona, dal segnale piu' forte al piu' debole.
+
+    Aveva un parametro ``guess`` in piu', ritirato nella 1.13.0 insieme
+    all'euristica che comandava: vedi il docstring del modulo.
+    """
 
     # 1. Titolo professionale: "il geom. Nazzareno Sbrolli".
     def _title_sub(m: re.Match) -> str:
@@ -1434,8 +1452,12 @@ def _scrub_names(
             # decide «Sarah Whitfield». Il riscontro singolo non si butta,
             # diventa un **sospetto**: il documento resta intatto e chi
             # legge sa dove guardare.
+            #
+            # Fino alla 1.13.0 qui c'era una terza strada: `guessed`, che
+            # sostituiva quando NESSUNA delle parole sembrava italiana --
+            # cioe' senza nessun riscontro negli elenchi. E' quella che e'
+            # stata ritirata: indovinava e decideva da sola.
             noti = sum(1 for t in run if t in FIRST_NAMES or t in SURNAMES)
-            guessed = guess and not any(_looks_like_word(t) for t in run)
             lungo_giusto = 2 <= len(run) <= _MAX_TOKEN_NOME
             # Su prosa un riscontro solo basta: «da Ludovica Sbrancagnoli»
             # in una frase e' quasi sempre una persona, e pretendere due
@@ -1443,7 +1465,7 @@ def _scrub_names(
             # modulo lo stesso riscontro e' quasi sempre un'etichetta, e
             # accettarlo costa 2 739 sostituzioni sbagliate.
             bastano = 1 if prosa else 2
-            if lungo_giusto and (noti >= bastano or guessed):
+            if lungo_giusto and noti >= bastano:
                 report.add("names")
                 pieces.append(("{{NAME}}", j - 1))
             else:
@@ -2176,7 +2198,7 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("addresses_en", EN, "addresses", 71, _scrub_en_addresses),
     Passo(
         "names", IT, "names", 90,
-        lambda t, r, o: _scrub_names(t, r, guess=o.name_guess, prosa=o.prosa),
+        lambda t, r, o: _scrub_names(t, r, prosa=o.prosa),
     ),
     # Stessa fascia dei nomi italiani: se i due pacchetti sono accesi
     # insieme gira prima quello italiano, che e' piu' aggressivo, e questo
@@ -2383,14 +2405,14 @@ FIELD_DEFAULTS: dict[str, bool] = {
     "secrets": True,
     "dates": False,
     "documenti": True,
-    "name_guess": False,
 }
 
-# I campi che accendono davvero una sostituzione. ``name_guess`` non c'e':
-# non e' un riconoscitore, e' un modo di riconoscere i nomi.
-DETECTOR_FIELDS: tuple[str, ...] = tuple(
-    k for k in FIELD_DEFAULTS if k != "name_guess"
-)
+# Ogni campo qui e' un riconoscitore. Finche' c'e' stata `name_guess` non
+# era vero -- non era un riconoscitore, era un modo di riconoscere i nomi --
+# e questa tupla esisteva per escluderla. Ritirata quella nella 1.13.0, le
+# due cose coincidono: se un giorno tornassero a divergere, il filtro va
+# rimesso qui e non aggirato a valle.
+DETECTOR_FIELDS: tuple[str, ...] = tuple(FIELD_DEFAULTS)
 
 
 def no_redaction() -> PrivacyOptions:

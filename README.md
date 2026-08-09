@@ -9,8 +9,8 @@
 [![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.12.0-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-915%20passing-10b981)](tests/)
+[![Version](https://img.shields.io/badge/version-1.13.0-3b82f6)](docs/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-916%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -114,7 +114,7 @@ That is not an impression, it is measured:
 
 There is no single value that is right for both, so Mr. Rao **works it out from the file** — email is prose, spreadsheets are forms, and in PDFs it counts the boxes drawn on the page — and lets you override it when it gets that wrong.
 
-The most aggressive heuristic, "two capitalised words that are not Italian words", is **off by default** as of 1.8.0. The reason is a number: on twenty blank Agenzia delle Entrate forms it produced 8,904 wrong replacements, and on eight historical issues of the Gazzetta Ufficiale, 14,376. It can still be switched on for letters and contracts, where proper titles are rare.
+There was a fourth rule that asked for no corroboration at all — "two capitalised words that are not Italian words" — and it was **retired in 1.13.0**. The reason is a number: on twenty blank Italian tax-office forms it produced 8,904 wrong replacements, and on twenty-seven forms downloaded from the issuing bodies in 2026 it went from 27 to 2,529. The flaw was not that it guessed: it is that it decided alone. **The price is stated plainly**: a name on neither list, with no title, signature or email address beside it, now stays — and does not even become a suspect.
 
 ### The guard that matters most
 
@@ -379,7 +379,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Six steps: compilation, importing every module one by one, dependency health, licence alignment, **915 tests**, published-docs alignment.
+Six steps: compilation, importing every module one by one, dependency health, licence alignment, **916 tests**, published-docs alignment.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 

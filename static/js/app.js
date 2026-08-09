@@ -69,7 +69,6 @@
     "emails",
     "phones",
     "names",
-    "name_guess",
     "addresses",
     "urls",
     "fiscal",

@@ -74,7 +74,7 @@ def test_un_termine_protetto_non_diventa_un_sospetto():
     in chiaro e' rumore, non un avviso."""
     testo = "Il referente e' Dott. Nazzareno Sbrolli, come da incarico."
     _, rep = apply_privacy_filter(
-        testo, PrivacyOptions(mai=termini_da("Nazzareno Sbrolli"), name_guess=True)
+        testo, PrivacyOptions(mai=termini_da("Nazzareno Sbrolli"))
     )
     assert not any(
         "Sbrolli" in str(s.get("sample", "")) for s in rep.suspects

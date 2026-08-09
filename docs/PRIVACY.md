@@ -116,7 +116,7 @@ scoprire il passaporto.
 Su oltre cento documenti a verità zero il costo misurato è **zero**: nessuna
 sostituzione sbagliata, nessun sospetto in più.
 
-## I nomi di persona: quattro segnali
+## I nomi di persona: tre segnali, tutti con un riscontro
 
 Un elenco di nomi non è mai completo, e affidarsi solo a quello lascia
 passare tutti i cognomi non comuni. Valgono quindi anche le regole di
@@ -126,21 +126,38 @@ contesto, dal segnale più forte al più debole:
 2. **Nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`.
    È il caso più frequente nelle email.
 3. **Nome proprio riconosciuto** che tira dentro la parola successiva.
-4. **Euristica del cognome** — due parole maiuscole di fila che non sono
-   parole italiane sono quasi sempre nome e cognome.
 
-La quarta è l'unica che può sbagliare, ed è l'unica che si può spegnere da
-sola: casella **«Deduci i cognomi sconosciuti»**, campo
-`privacy_name_guess`, opzione `--no-name-guess`. **È spenta di default in
-tutti i profili** dalla 1.7.2, e il motivo è un numero: su venti moduli
-dell'Agenzia delle Entrate in bianco — documenti che non contengono un solo
-dato personale — produceva 8 904 sostituzioni sbagliate. Chi la accende lo
-fa sapendo cosa compra.
+Tutte e tre chiedono **un riscontro**. Ce n'era una quarta che non lo
+chiedeva, ed è stata tolta.
 
-Due controlli la tengono a bada: un elenco di parole italiane che capita di
-trovare con l'iniziale maiuscola (mesi, saluti, enti, città, termini
-amministrativi) e un controllo sulle terminazioni — «Industriale» e
-«Tecnico» finiscono come finiscono le parole, non come finiscono i cognomi.
+### La regola ritirata, e cosa costa averla tolta
+
+Fino alla 1.12.0 esisteva **l'euristica del cognome**: due parole maiuscole
+di fila che non sembrano parole italiane sono nome e cognome, **senza
+nessun riscontro negli elenchi**. Era spenta di default dalla 1.7.2 ed è
+stata **ritirata del tutto nella 1.13.0**.
+
+Il conto su documenti che non contengono un solo dato personale: 8 904
+sostituzioni sbagliate su venti moduli dell'Agenzia delle Entrate in
+bianco, 14 376 su otto Gazzette, 2 888 su novantanove moduli fiscali
+statunitensi. Mangiava «Redditi Persone Fisiche», «Quadro RN», «Imposta
+Lorda». Nel 2026 il fenomeno è stato **riprodotto su ventisette moduli
+amministrativi scaricati direttamente dagli enti** — documenti che non
+abbiamo scelto noi — dove passava da 27 sostituzioni sbagliate a 2 529.
+
+Il difetto non era che indovinava: è che **decideva da sola**.
+
+**Il prezzo, detto per intero.** Un nome e cognome che non stanno in
+nessuno dei due elenchi, senza titolo davanti, senza firma e senza
+indirizzo di posta accanto, ora **resta nel documento** — e non diventa
+nemmeno un sospetto, perché il sospetto richiede almeno un riscontro.
+Un nome straniero isolato in mezzo a un testo è il caso tipico. È una
+perdita reale, ed è il prezzo scelto: l'alternativa era sbagliare
+novantaquattro volte tanto su documenti che non contengono nessuno.
+
+Il limite è sotto test in `tests/test_privacy_riconoscitori.py`, così se un
+giorno una regola nuova lo coprisse, questa pagina verrebbe aggiornata
+insieme al test invece che dimenticata.
 
 ## Come è verificato
 
@@ -214,8 +231,10 @@ e, soprattutto, cosa è sfuggito.
 
 ## Limiti dichiarati
 
-- **Nessun elenco di cognomi è completo.** L'euristica copre molto ma non
-  tutto, e un cognome che assomiglia a una parola italiana può restare.
+- **Nessun elenco di cognomi è completo**, e dalla 1.13.0 non c'è più
+  un'euristica che indovini i mancanti: un nome e cognome fuori elenco,
+  senza titolo, firma o indirizzo di posta accanto, **resta nel documento e
+  non produce nemmeno un sospetto**. Vedi «La regola ritirata» più sopra.
 - **Sulle scansioni la protezione è più debole, e adesso c'è il numero.**
   `scripts/bench_scansioni.py` stampa 8 documenti con dati personali inventati
   — le cifre di controllo le calcola lui, con un'implementazione indipendente
@@ -282,8 +301,8 @@ e, soprattutto, cosa è sfuggito.
   costruzione — più 7 500 messaggi di mailing list. I falsi positivi sui nomi
   sono scesi da 6 339 a 1 637: **misurati, non stimati**. Ma 1 637 non è zero,
   e un cognome raro in un contesto ambiguo può ancora restare, o sparire a
-  sproposito. L'euristica più aggressiva è spenta di default proprio per
-  questo.
+  sproposito. L'euristica che indovinava senza riscontri, che era la fonte
+  principale degli errori, è stata **ritirata nella 1.13.0**.
 - **I formati coperti sono italiani e anglosassoni.** Codice fiscale, partita
   IVA, IBAN e BBAN italiani; NHS number, National Insurance number, SSN, ITIN,
   routing ABA, SIN canadese, ABN e TFN australiani, codice postale britannico,

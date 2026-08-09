@@ -171,17 +171,43 @@ def test_cognome_sconosciuto_dedotto_dal_nome_noto():
     assert "Mastrogiacomo" not in out
 
 
-def test_l_euristica_si_puo_spegnere():
-    """Due parole maiuscole ignote: con l'euristica spariscono, senza no."""
+def test_il_nome_che_nessun_elenco_contiene_resta__limite_dichiarato():
+    """Il prezzo del ritiro dell'euristica, scritto come test invece che
+    scoperto da qualcuno.
+
+    Fino alla 1.12.0 «Kwabena Osei» spariva grazie a `name_guess`: due
+    parole maiuscole che non sembrano italiane. Quella regola e' stata
+    **ritirata nella 1.13.0** perche' decideva senza nessun riscontro, e su
+    ventisette moduli amministrativi in bianco costava 2529 sostituzioni
+    sbagliate contro 27.
+
+    **Questo e' cio' che si perde**: un nome e cognome che non stanno in
+    nessuno dei due elenchi, senza titolo davanti, senza firma, senza
+    indirizzo di posta accanto, resta nel documento. E **non diventa
+    nemmeno un sospetto**, perche' il sospetto richiede almeno un riscontro.
+
+    Non e' un difetto da correggere di nascosto: e' il prezzo della
+    decisione, ed e' dichiarato in `docs/PRIVACY.md`. Se un giorno una
+    regola nuova coprisse questo caso, questo test va aggiornato **e con
+    esso la riga nei limiti** -- che e' il motivo per cui il legame sta
+    scritto qui.
+    """
     testo = "Riferimento Kwabena Osei per il progetto"
-    acceso = PrivacyOptions(**{**only("names").__dict__, "name_guess": True})
-    spento = PrivacyOptions(**{**only("names").__dict__, "name_guess": False})
+    out, report = apply_privacy_filter(testo, only("names"))
+    assert out == testo, "se ora viene redatto, aggiorna PRIVACY.md"
+    assert report.total == 0
+    assert not report.suspects, (
+        "nemmeno un sospetto: e' la parte peggiore del limite, e va detta"
+    )
 
-    out_on, _ = apply_privacy_filter(testo, acceso)
-    out_off, report_off = apply_privacy_filter(testo, spento)
 
-    assert "{{NAME}}" in out_on and "Osei" not in out_on
-    assert out_off == testo and report_off.total == 0
+def test_gli_stessi_nomi_negli_elenchi_restano_coperti():
+    """Il ritiro non ha spento il riconoscimento dei nomi, e serve saperlo
+    accanto al test qui sopra: la perdita e' circoscritta a chi non e' in
+    elenco, non estesa a tutti i nomi in maiuscolo."""
+    for testo in ("Firma: MARIO ROSSI", "Da: GIUSEPPE ESPOSITO"):
+        out, _ = apply_privacy_filter(testo, only("names"))
+        assert "{{NAME}}" in out, out
 
 
 def test_un_nome_proprio_ambiguo_da_solo_resta():
@@ -346,14 +372,18 @@ def test_only_rifiuta_un_riconoscitore_inesistente():
     [
         "Firma: MARIO ROSSI",
         "Da: GIUSEPPE ESPOSITO",
-        "referente KWABENA OSEI per il progetto",
+        # «referente KWABENA OSEI per il progetto» stava qui, e dalla 1.13.0
+        # non passa piu': nessuna delle due parole e' negli elenchi, e con
+        # l'euristica ritirata non resta nessun riscontro. Non l'ho tolto e
+        # basta -- vive come limite dichiarato in
+        # `test_il_nome_che_nessun_elenco_contiene_resta__limite_dichiarato`.
     ],
 )
 def test_nomi_tutto_maiuscolo(testo):
     """Il pattern normale pretende almeno una minuscola — e' cosi' che
     esclude acronimi e segnaposto — e questo lo rendeva cieco alle firme
     scritte in maiuscolo, che nelle mail sono frequentissime."""
-    out, _ = apply_privacy_filter(testo, only("names", "name_guess"))
+    out, _ = apply_privacy_filter(testo, only("names"))
     assert "{{NAME}}" in out, out
     assert "ROSSI" not in out and "ESPOSITO" not in out and "OSEI" not in out
 
@@ -368,7 +398,7 @@ def test_nomi_tutto_maiuscolo(testo):
     ],
 )
 def test_sigle_e_intestazioni_maiuscole_restano(testo):
-    out, report = apply_privacy_filter(testo, only("names", "name_guess"))
+    out, report = apply_privacy_filter(testo, only("names"))
     assert out == testo
     assert report.total == 0
 
@@ -377,7 +407,7 @@ def test_i_segnaposto_non_vengono_riletti_come_nomi():
     """{{CODICE_FISCALE}} e {{PARTITA_IVA}} sono maiuscoli: se la regola
     delle maiuscole li rileggesse, il testo si sfarinerebbe a ogni giro."""
     testo = "Dati: {{CODICE_FISCALE}} {{PARTITA_IVA}} {{EMAIL}} {{IBAN}}"
-    out, report = apply_privacy_filter(testo, only("names", "name_guess"))
+    out, report = apply_privacy_filter(testo, only("names"))
     assert out == testo
     assert report.total == 0
 
@@ -443,7 +473,7 @@ def test_il_participio_davanti_alla_firma_non_e_parte_del_nome(testo, resta):
     """Stessa famiglia del verbo davanti all'email: la parola che
     introduce una firma finiva dentro il nome. Trovato dalla prova di
     installazione, non dai test."""
-    out, _ = apply_privacy_filter(testo, only("names", "name_guess"))
+    out, _ = apply_privacy_filter(testo, only("names"))
     assert resta in out, out
     assert "{{NAME}}" in out
     assert "ROSSI" not in out and "ESPOSITO" not in out
@@ -460,7 +490,7 @@ def test_la_particella_resta_fuori_e_il_nome_non_si_spezza():
     da «Riferimento», consumava «Del» e lasciava indietro i due nomi, che
     la regola del nome isolato sostituiva separatamente."""
     out, report = apply_privacy_filter(
-        "Riferimento Del Piero Alessandro", only("names", "name_guess")
+        "Riferimento Del Piero Alessandro", only("names")
     )
     assert out.count("{{NAME}}") == 1, out
     assert "Piero" not in out and "Alessandro" not in out
@@ -478,7 +508,7 @@ def test_una_parola_che_ferma_gli_indirizzi_non_e_un_nome_altrove():
 
 def test_un_titolo_in_maiuscolo_non_e_un_nome():
     testo = "PIANO STRATEGICO NAZIONALE PER LA SICUREZZA INFORMATICA"
-    out, _ = apply_privacy_filter(testo, only("names", "name_guess"))
+    out, _ = apply_privacy_filter(testo, only("names"))
     assert out == testo
 
 

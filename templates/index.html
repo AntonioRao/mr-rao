@@ -192,10 +192,12 @@
                             <input type="checkbox" id="privacy-names" checked>
                             <span class="opt-text"><span class="opt-title">{{ t('opt_names_titolo') }}</span><span class="opt-desc">{{ t('opt_names_desc') }}</span></span>
                         </label>
-                        <label class="opt" data-tip="{{ t('tip_name_guess') }}">
-                            <input type="checkbox" id="privacy-name_guess">
-                            <span class="opt-text"><span class="opt-title">{{ t('opt_name_guess_titolo') }}</span><span class="opt-desc">{{ t('opt_name_guess_desc') }}</span></span>
-                        </label>
+                        {# Qui c'era «Deduci i cognomi sconosciuti», ritirata
+                           nella 1.13.0. Era spenta di default e non andava
+                           accesa mai: su ventisette moduli amministrativi in
+                           bianco costava 2529 sostituzioni sbagliate contro
+                           27. Una casella che nessuno deve toccare non e' una
+                           scelta offerta, e' una trappola con un'etichetta. #}
                         <label class="opt" data-tip="{{ t('tip_addresses') }}">
                             <input type="checkbox" id="privacy-addresses" checked>
                             <span class="opt-text"><span class="opt-title">{{ t('opt_addresses_titolo') }}</span><span class="opt-desc">{{ t('opt_addresses_desc') }}</span></span>

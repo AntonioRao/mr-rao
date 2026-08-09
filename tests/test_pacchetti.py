@@ -252,48 +252,89 @@ def test_la_riga_di_comando_puo_spegnere_un_pacchetto():
 
 
 # ---------------------------------------------------------------------------
-# L'euristica dei cognomi resta spenta
+# L'euristica dei cognomi e' stata RITIRATA (1.13.0)
+#
+# Era spenta di default dalla 1.7.2 (#5) e restava accendibile. Il conto su
+# documenti che non contengono un solo dato personale:
+#
+#    8 904 sostituzioni sbagliate su 20 moduli dell'Agenzia delle Entrate
+#   14 376 su 8 Gazzette Ufficiali storiche
+#    2 888 su 99 moduli fiscali statunitensi
+#
+# Nel 2026-08 il fenomeno e' stato riprodotto su corpora che non abbiamo
+# scritto noi -- 27 moduli amministrativi italiani scaricati dagli enti --
+# dove passava da 27 a 2 529 sostituzioni sbagliate. E' quella riproduzione
+# indipendente ad aver chiuso la questione: non e' stata tolta perche' era
+# rischiosa in teoria, ma perche' era sbagliata in pratica su documenti che
+# non avevamo scelto noi.
+#
+# I test qui sotto sorvegliano il ritiro da tre lati: il motore, la porta
+# d'ingresso web e la pagina.
 # ---------------------------------------------------------------------------
 
 
-def test_name_guess_e_spenta_di_default():
-    """#5. Era accesa, e su documenti veri il conto era questo:
+def test_l_euristica_non_esiste_piu_nel_motore():
+    """Se questo diventa rosso qualcuno l'ha rimessa: prima di aggiornarlo,
+    rifare il banco sui moduli veri e guardare il numero."""
+    from mr_rao.privacy import FIELD_DEFAULTS
 
-      8 904 sostituzioni sbagliate su 20 moduli dell'Agenzia delle Entrate
-     14 376 su 8 Gazzette Ufficiali storiche
-      2 888 su 99 moduli fiscali statunitensi
-
-    Tutti documenti in bianco o normativi, che non contengono un solo dato
-    personale. Mangiava «Redditi Persone Fisiche», «Quadro RN», «Imposta
-    Lorda».
-
-    Se questo test diventa rosso, qualcuno ha riacceso la regola: prima di
-    aggiornarlo, rifare il banco sui documenti veri e guardare il numero.
-    """
-    from mr_rao.privacy import FIELD_DEFAULTS, options_from_dict, options_from_form
-
-    assert PrivacyOptions().name_guess is False
-    assert FIELD_DEFAULTS["name_guess"] is False
-    assert options_from_form({}).name_guess is False
-    assert options_from_dict({}).name_guess is False
+    assert not hasattr(PrivacyOptions(), "name_guess")
+    assert "name_guess" not in FIELD_DEFAULTS
 
 
-def test_name_guess_si_puo_ancora_accendere():
-    """Spenta non vuol dire tolta: su lettere e contratti, dove le
-    denominazioni sono poche, la regola serve ancora."""
-    from mr_rao.privacy import options_from_form
+def test_chi_prova_ad_accenderla_da_fuori_non_ottiene_niente():
+    """La porta d'ingresso vera e' il form del browser, e li' puo' arrivare
+    una configurazione vecchia salvata nel `localStorage` di chi usava la
+    versione precedente. Deve essere **ignorata**, non deve far fallire la
+    conversione: chi torna sul programma dopo un mese non merita un errore
+    per una casella che abbiamo tolto noi."""
+    from mr_rao.privacy import options_from_dict, options_from_form
 
-    assert options_from_form({"privacy_name_guess": "true"}).name_guess is True
+    for costruttore in (options_from_form, options_from_dict):
+        o = costruttore({"privacy_name_guess": "true"})
+        assert not hasattr(o, "name_guess")
+        assert o.names is True, "il resto del riconoscimento nomi resta acceso"
 
 
-def test_la_casella_nella_pagina_non_e_spuntata():
-    """Parita' GUI anche sui valori predefiniti: se il motore parte spento
-    e la casella parte spunta, la pagina dice il falso."""
+def test_la_casella_non_e_piu_nella_pagina():
+    """Parita' GUI al contrario: una casella che il motore non legge piu'
+    sarebbe peggio di nessuna casella, perche' prometterebbe una scelta che
+    non ha piu' nessun effetto."""
     pagina = (
         Path(__file__).resolve().parents[1] / "templates" / "index.html"
     ).read_text(encoding="utf-8")
-    riga = next(r for r in pagina.splitlines() if 'id="privacy-name_guess"' in r)
-    assert "checked" not in riga, riga.strip()
+    assert 'id="privacy-name_guess"' not in pagina
+
+
+def test_i_due_flag_della_riga_di_comando_restano_accettati():
+    """Sono finiti in script e appunti di chi li usava. Farli fallire adesso
+    romperebbe quei comandi per comunicare una cosa che e' gia' il
+    comportamento del programma: `--no-name-guess` ottiene ancora
+    esattamente cio' che chiedeva.
+
+    Il controllo e' sul **parser**, non sull'aiuto: che siano nascosti e che
+    siano accettati sono due affermazioni diverse, e la prima non dimostra
+    la seconda. Con `parse_args` un flag rimosso alzerebbe SystemExit(2).
+    """
+    from mr_rao.cli import build_parser
+
+    parser = build_parser()
+    for flag in ("--name-guess", "--no-name-guess"):
+        args = parser.parse_args(["convert", "documento.pdf", flag])
+        assert args.command == "convert"
+
+    # E non fanno niente: le opzioni prodotte sono identiche con e senza.
+    import dataclasses
+
+    from mr_rao.cli import _build_options
+
+    nudo = _build_options(parser.parse_args(["convert", "documento.pdf"]))
+    con_flag = _build_options(
+        parser.parse_args(["convert", "documento.pdf", "--name-guess"])
+    )
+    assert dataclasses.asdict(nudo) == dataclasses.asdict(con_flag), (
+        "`--name-guess` cambia ancora qualcosa: non e' stato ritirato davvero"
+    )
 
 
 # ---------------------------------------------------------------------------

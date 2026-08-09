@@ -76,8 +76,8 @@ Obiettivi vincolanti del tool:
 
 Presidio + NLP o un LLM locale alzerebbero il recall sui nomi in molti casi,
 al prezzo di peso, di risultati non più ripetibili, di dipendenze in più e di
-un motore che non si verifica leggendolo. Qui i nomi usano **quattro segnali**
-(titolo, email, elenco, euristica disattivabile) e liste in
+un motore che non si verifica leggendolo. Qui i nomi usano **tre segnali**
+(titolo, email, elenco — ognuno con un riscontro) e liste in
 [`mr_rao/it_names.py`](../mr_rao/it_names.py) — incompleti per definizione.
 
 A chi serve una pipeline multi-lingua enterprise conviene guardare altrove
@@ -95,10 +95,15 @@ Segnali, dal più forte al più debole:
 1. Titolo professionale (Dott., Ing., Avv., …)  
 2. Nome accanto a un’email  
 3. Nome proprio noto che «tira» la parola dopo  
-4. Euristica: due parole maiuscole che non sembrano parole italiane  
 
-Solo la (4) è aggressiva, ed è **spenta di default** dalla 1.7.2
-(`name_guess` / `--no-name-guess`): va accesa apposta. Un cognome raro senza contesto può
+
+C'era una quarta regola — due parole maiuscole che non sembrano parole
+italiane — che decideva **senza nessun riscontro**: è stata **ritirata nella
+1.13.0**, perché su ventisette moduli amministrativi in bianco costava 2 529
+sostituzioni sbagliate contro 27. Il prezzo è dichiarato: un nome fuori
+elenco e senza contesto ora resta, e non produce nemmeno un sospetto.
+
+Un cognome raro senza contesto può
 restare. Un cognome che è anche parola comune può restare. Per questo
 esiste il confronto **prima / dopo** nell’UI: non è cosmesi, è il
 controllo previsto.
@@ -153,8 +158,8 @@ Presidi tipici:
 
 - validatori (mod-97, Luhn) contro numeri lunghi casuali  
 - contesto per telefoni, P.IVA, importi, date di nascita  
-- elenco di parole italiane capitalizzate + suffissi morfologici
-  (`-zione`, `-ale`, …) contro l’euristica nomi  
+- la regola che indovinava i cognomi senza riscontri è stata **ritirata**
+  (1.13.0): era la fonte principale delle redazioni spurie sui moduli  
 - IBAN: almeno una lettera già presente nelle prime due posizioni nel
   recupero OCR (regressione: un numero d’ordine diventava un IBAN
   «valido» al mod-97)

@@ -376,36 +376,6 @@ TESTI: dict[str, dict[str, str]] = {
     # Riscritto: la regola confronta con il vocabolario **italiano**, e gli
     # esempi sono etichette di moduli italiani. In inglese va detto, o
     # sembrerebbe una regola che vale su qualunque documento.
-    "tip_name_guess": {
-        "it": "Due parole maiuscole di fila che non sono parole italiane spesso "
-              "sono nome e cognome, anche quando il cognome non sta in nessun "
-              "elenco. È la regola che copre i cognomi rari.<br><br><b>Spenta "
-              "di default, e per un motivo misurato:</b> su venti moduli "
-              "dell'Agenzia delle Entrate in bianco — che non contengono un "
-              "solo dato personale — produceva 8904 sostituzioni sbagliate, "
-              "mangiando «Redditi Persone Fisiche», «Quadro RN», «Imposta "
-              "Lorda».<br><br>Accendila su lettere e contratti, dove le "
-              "denominazioni sono poche. Tienila spenta su moduli, verbali e "
-              "documenti amministrativi.",
-        "en": "Two capitalised words in a row that are not ordinary Italian "
-              "words are often a first name and a surname, even when the "
-              "surname is on no list. It is the rule that covers rare surnames "
-              "— and it belongs to the Italian pack, so it is Italian "
-              "vocabulary it checks against.<br><br><b>Off by default, for a "
-              "measured reason:</b> on twenty blank forms from the Italian tax "
-              "office — which hold not one piece of personal data — it produced "
-              "8904 wrong replacements, eating \"Redditi Persone Fisiche\", "
-              "\"Quadro RN\", \"Imposta Lorda\".<br><br>Switch it on for "
-              "letters and contracts, where proper nouns are few. Leave it off "
-              "for forms, minutes and administrative documents.",
-    },
-    "opt_name_guess_titolo": {
-        "it": "Deduci i cognomi sconosciuti", "en": "Guess unknown surnames",
-    },
-    "opt_name_guess_desc": {
-        "it": "Regola aggressiva: spenta di default",
-        "en": "Aggressive rule: off by default",
-    },
     # Riscritto: le parole italiane «via, piazza, corso» sono meta' del
     # riconoscitore; l'altra meta' e' inglese e pretende il civico davanti.
     # Tradurre solo le prime avrebbe descritto un programma diverso.

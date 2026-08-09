@@ -56,12 +56,12 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
                 **{k: True for k in FIELD_DEFAULTS},
                 "amounts": getattr(args, "scrub_amounts", False),
                 "dates": getattr(args, "scrub_dates", False),
-                # Spenta di default (#5): il flag ora l'accende. `--no-name-guess`
-                # resta accettato e non fa niente, perche' e' finito in
-                # script e appunti di chi lo usava per difendersi da questa
-                # stessa regola. Toglierlo li farebbe fallire per dire loro
-                # una cosa che ora e' il comportamento predefinito.
-                "name_guess": getattr(args, "name_guess", False),
+                # `name_guess` non c'e' piu': ritirata nella 1.13.0, il
+                # perche' sta in `mr_rao/privacy.py`. `--name-guess` e
+                # `--no-name-guess` restano ACCETTATI e non fanno niente:
+                # sono finiti in script e appunti di chi li usava, e farli
+                # fallire adesso romperebbe quei comandi per comunicare una
+                # cosa che e' gia' il comportamento del programma.
             },
         )
         if privacy_on
@@ -531,16 +531,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Redigi le date accanto a un contesto di nascita",
     )
+    # Ponti di compatibilita': l'euristica del cognome e' stata RITIRATA
+    # nella 1.13.0 e questi due non fanno piu' niente. Restano accettati e
+    # nascosti dall'aiuto perche' sono finiti in script altrui -- chi
+    # scriveva `--no-name-guess` per difendersi ottiene ancora esattamente
+    # cio' che voleva, e chi scriveva `--name-guess` non ottiene piu' nulla,
+    # che e' il punto della decisione.
     p_conv.add_argument(
         "--name-guess",
         action="store_true",
-        help="Accendi l'euristica del cognome (due parole maiuscole). Spenta "
-             "di default: su moduli e verbali produce molti falsi positivi",
+        help=argparse.SUPPRESS,
     )
     p_conv.add_argument(
         "--no-name-guess",
         action="store_true",
-        help=argparse.SUPPRESS,  # ora e' il comportamento predefinito
+        help=argparse.SUPPRESS,
     )
     p_conv.add_argument(
         "--no-pack-it",
