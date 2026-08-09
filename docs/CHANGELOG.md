@@ -1,5 +1,298 @@
 # Changelog
 
+## 1.11.0 — «Se scansiono una patente, anonimizza qualcosa?»
+
+La domanda l'ha fatta chi lo usa. La risposta, misurata invece che
+immaginata, era **zero**: su una patente finta con nome, cognome, data di
+nascita, indirizzo e numero, Mr. Rao non toglieva niente.
+
+Questa versione nasce da lì. Sistemando la prima causa se ne sono viste
+altre, e alla fine ha cambiato anche il modo in cui il pacchetto viene
+consegnato.
+
+### Gli indirizzi erano ciechi sul maiuscolo
+
+Il riconoscitore pretendeva una minuscola dentro il nome della via. «Via
+Garibaldi 14» spariva, «VIA GARIBALDI 14» no — e moduli, carte d'identità e
+testo uscito dall'OCR sono quasi sempre in maiuscolo. È una causa grossa, e
+riguarda tutte le scansioni, non solo le patenti.
+
+Il vincolo era deliberato: escludeva acronimi (PEC, SPA), numeri romani e i
+segnaposto già inseriti. Quindi non è stato tolto, è stato **affiancato** da
+un ramo maiuscolo con le stesse protezioni.
+
+**Il costo, misurato.** Sul banco a verità zero il ramo nuovo aggiungeva 99
+sostituzioni sbagliate. Guardando *cosa* fossero — quasi tutte nomi di
+comuni (BORGO SAN LORENZO) e itinerari (STRADA DEL VINO) — la regola è
+venuta da sé: in maiuscolo manca il segnale dell'iniziale, quindi **serve
+anche il numero civico**. Da +99 a +28.
+
+Strada facendo: «Via XX Settembre» non era riconosciuta in nessuna delle due
+grafie, e ce n'è una in quasi ogni città italiana. E l'elenco delle parole
+che seguono «via» senza fare un indirizzo è stato ricostruito **contando**
+cosa segue davvero la parola-chiave su 1 027 documenti veri, invece di
+immaginarlo: lì dentro convivono vie vere (Fermi, Mazzini, Marconi) e usi
+tecnici (via USB, via SSH). Solo i secondi sono entrati — aggiungere un
+toponimo avrebbe reso il riconoscitore cieco proprio sugli indirizzi.
+
+### Documenti d'identità: carta, patente, passaporto
+
+Prima non c'era nessun riconoscitore. Ora ce n'è uno, con un interruttore
+proprio (`documenti`), e formati verificati e non ricordati: CIE
+`AA00000AA`, passaporto `YA`/`YB`/`TA` più sette cifre, patente per
+provincia, duplicati UCO.
+
+**Il metodo di casa qui si ferma a metà, ed è scritto nel codice invece che
+nascosto.** «Il pattern propone, il validatore decide» presuppone che ci sia
+qualcosa da validare: nessuno di questi tre numeri ha una cifra di controllo
+pubblica — la patente ne ha una, l'algoritmo non è pubblicato. E le forme
+sono comunissime: identiche a sigle di protocollo, codici gara, riferimenti
+catastali. Da sole farebbero strage su un verbale.
+
+Al posto del validatore c'è il **contesto obbligatorio**: si sostituisce
+solo se accanto c'è scritto di che documento si tratta. Senza contesto la
+forma diventa un **sospetto** — il documento resta intero e chi rilegge sa
+dove guardare. Sui 127 documenti a verità zero: zero sostituzioni sbagliate.
+
+### I moduli numerano le colonne, non telefonano
+
+Sui documenti italiani veri la prima voce dei falsi positivi era il
+riconoscitore dei telefoni che leggeva le intestazioni di tabella: `00 1 2 3
+4 5 6 7 8`, `33 34 35 36 37`, `05-06-07-08-09`.
+
+Tre regole, ciascuna con una ragione propria: una numerazione di colonne
+**conta** (i gruppi crescono di uno alla volta, e nessun recapito si scrive
+così); nessun indicativo di Paese comincia per zero; né la decade mobile
+`30x` né il distretto `00x` esistono in Italia. Una parola di contesto
+davanti — «tel.» — vince comunque sulla forma.
+
+Misurato sul corpus: sui moduli italiani in bianco i falsi positivi dei
+telefoni passano **da 62 a 19**, sulle Gazzette **da 575 a 212**. Il
+richiamo sui recapiti veri resta 4/4.
+
+### L'email offuscata non si mangia più il paragrafo dopo
+
+Su «… \[punto] it.\n\nRecapiti: cell. 335 123 4567» il riconoscitore
+divorava il punto finale, i due ritorni a capo e la parola dopo: «Recapiti»
+spariva.
+
+Non era un falso positivo su un dato personale: era **testo del documento
+che spariva senza essere segnalato**. Il conteggio diceva «1 email», quindi
+chi legge non aveva motivo di sospettare che mancasse anche una riga.
+Toglie e tace — per un programma che esiste per far vedere cosa è stato
+tolto, è il modo peggiore di sbagliare. (issue #3)
+
+### Le due liste dello studio: nascondi sempre, non toccare mai
+
+Il motore decide con regole generali, ma i nomi che ricorrono in ogni
+pratica li conosce solo chi converte. Fino a ieri l'unica leva era spegnere
+un riconoscitore intero, che è un martello per un chiodo.
+
+Due caselle nel pannello privacy, `--sempre` e `--mai` da riga di comando.
+**Non sono simmetriche**, ed è la cosa che conta: «sempre» aggiunge un
+riconoscitore, il termine diventa `{{TERM}}`; «mai» mette il termine al
+riparo da **tutti** i riconoscitori, compresi quelli che non sapresti di
+dover spegnere, e non lascia nemmeno un sospetto.
+
+La protezione è fatta togliendo il termine dal testo e rimettendolo alla
+fine, non chiedendo a ogni riconoscitore di consultare la lista: la seconda
+via lascia scoperto il riconoscitore che ci si dimentica di modificare.
+
+Le liste restano scritte nel `localStorage` del browser: **è l'unica cosa
+che Mr. Rao salva**, ed è dichiarato nei due README. Una lista di clienti da
+riscrivere ogni volta non la userebbe nessuno, e una funzione che non si usa
+non protegge niente.
+
+### L'anteprima rende il Markdown per davvero
+
+Era una sequenza di sostituzioni che non sapeva fare né liste annidate né
+tabelle — cioè proprio ciò che esce da un PDF. Ora c'è un renderer in
+`static/js/markdown.js`: titoli, liste con annidamento per rientro, tabelle
+GFM con allineamenti, blocchi recintati, citazioni, caselle di spunta.
+
+**Scritto in casa invece di prendere una libreria**, e la ragione non è il
+peso: un renderer generico rende anche le immagini remote, e un `<img src>`
+verso l'esterno sarebbe una chiamata di rete partita dal documento che stai
+anonimizzando — la promessa «zero cloud» caduta proprio mentre guardi il
+risultato della redazione. Qui un'immagine resta una didascalia, e i
+collegamenti passano solo con schemi ammessi. Siccome quella promessa non
+deve dipendere da una sola espressione regolare scritta da noi, la CSP
+dichiara anche `img-src 'self' data: blob:`.
+
+### Quanto regge su una scansione, con i numeri
+
+`scripts/bench_scansioni.py`: otto documenti con dati inventati — cifre di
+controllo calcolate **dentro il banco**, con un'implementazione indipendente
+da quella del motore e confrontata con i vettori pubblicati ISO 13616 e
+Luhn — stampati, degradati in modo controllato, passati per l'OCR e
+l'anonimizzatore veri. Ripetibile (stessa impronta su tre esecuzioni) e con
+due controprove che lo vedono fallire.
+
+**La risposta è che non è il DPI.** Fra 300 e 100 DPI su una scansione
+pulita la copertura non peggiora. Il crollo è sulla **fotocopia sbiadita a
+200 DPI**, un documento che a occhio si legge benissimo, dove il **39% dei
+dati resta in chiaro**.
+
+E quel resto è quasi tutto silenzioso. `PRIVACY.md` diceva «quello che resta
+viene segnalato, non sostituito»: la misura dice di no — i sospetti ne
+intercettano 0 su 5 sulle scansioni pulite e 4 su 29 sulla fotocopia. **La
+riga è stata riscritta con i numeri accanto**, perché una promessa che la
+misura non regge è peggio di nessuna promessa.
+
+Una buona notizia: sui documenti di controllo a verità zero le sostituzioni
+sbagliate sono **zero a ogni livello di degrado**, anche quando l'OCR
+restituisce spazzatura. Il filtro non compensa redigendo tutto.
+
+Il banco resta aperto a metà, e sta scritto: la carta è simulata, non vera.
+
+### Tre difetti di concorrenza, tutti visti rossi prima della correzione
+
+Le due parti concorrenti del programma non avevano un test dedicato.
+
+**Un avanzamento resuscitava un lavoro annullato**: chi premeva Annulla
+vedeva la barra ripartire, per tutto il tempo che mancava alla fine della
+fase — su un PDF con OCR non è un lampo. **Riavviare la sorveglianza durante
+una conversione lasciava due thread per sempre**, perché il segnale di stop
+era condiviso: due cartelle sorvegliate al posto di una. **Un annullamento
+in coda veniva sovrascritto dal worker.**
+
+Niente `sleep` come sincronizzazione: solo Event e attese con condizione. Un
+test concorrente ballerino è peggio di nessun test.
+
+### Dal tasto destro, un fallimento lascia una traccia leggibile dopo
+
+`--attendi` copriva solo il caso in cui c'è qualcuno davanti allo schermo
+*e* una console vera. Ora un fallimento scrive una riga in
+`%LOCALAPPDATA%\Mr Rao`, e il menu contestuale passa per `cmd /c "… ||
+pause"` — così la finestra resta anche se il processo muore prima di
+arrivare a Python.
+
+**Un registro, su un programma che esiste per non far girare i dati
+personali, è esso stesso un dato.** Quindi: c'è data, estensione, dimensione
+approssimativa e motivo; **non** c'è il nome del documento, il percorso, la
+cartella né il contenuto. Una riga sola riscritta ogni volta, non una
+cronologia. Una conversione riuscita non scrive niente. `MR_RAO_TRACCIA=0`
+lo spegne.
+
+### Il pacchetto dice da dove viene
+
+`SHA256SUMS.txt` accanto agli archivi, nel formato di `sha256sum`. **Non è
+una firma e non va spacciata per tale**: chi può sostituire lo zip può
+sostituire anche le impronte. Vale contro uno scaricamento troncato o un
+mirror qualsiasi; contro chi controlla la pagina non vale niente.
+
+La cosa più forte è un'altra: il pacchetto ora è **firmato da Sigstore**
+dallo stesso workflow che lo costruisce. Non è Authenticode e non toglie
+l'avviso di SmartScreen — quello richiede un certificato a pagamento, ed è
+una scelta di costo dichiarata. Risponde a un'altra domanda: *questo file è
+uscito da quel repository, da quel commit, da quella build.*
+
+```bash
+gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao
+```
+
+Meglio di una firma GPG per un motivo preciso: la debolezza di GPG non è la
+riservatezza della chiave pubblica, è che chi verifica deve procurarsela e
+sapere che è davvero la tua. Qui l'identità è quella di GitHub Actions, non
+si fabbrica, e la firma finisce in Rekor, che è append-only. Nessuna chiave
+privata da custodire, quindi nessuna che possa essere rubata.
+
+**Le licenze, che erano il vero ostacolo.** Il workflow disattivava il
+controllo, perché su un runner pulito pip risolve versioni diverse da quelle
+della macchina del manutentore. Andava bene finché quel lavoro serviva a
+dire sì/no; dal momento in cui il pacchetto viene **pubblicato** non va più
+bene — si distribuirebbe un `THIRD_PARTY.md` che non descrive ciò che c'è
+dentro, e lì dentro c'è pystray, che è LGPL. Ora le licenze si rigenerano
+nel runner e il controllo torna acceso invece di essere saltato.
+
+### Microsoft Store
+
+L'avviso «editore sconosciuto» si toglie gratis in un modo solo: pubblicare
+un **MSIX**, che lo firma Microsoft dopo la certificazione.
+
+L'altra voce di Partner Center, «EXE or MSI app», sembrava la scorciatoia e
+non lo era: per quella via l'installer dev'essere già firmato Authenticode
+da noi, cioè serve esattamente il certificato che è stato messo da parte
+perché costa.
+
+Nome **Mr. Rao** prenotato, `packaging/AppxManifest.xml` con l'identità
+assegnata dallo Store, tredici immagini versionate, e il pacchetto che si
+costruisce nella stessa build dello zip — costruirli in due momenti diversi
+vorrebbe dire due prodotti che si chiamano uguale.
+
+Le dieci associazioni di file sono **dichiarate** invece che scritte nel
+registro: in MSIX il registro è virtualizzato, ed è anche il motivo per cui
+disinstallare non lascerà voci orfane, cosa che con lo script è successa.
+**Nessuna capability di rete**, ed è una scelta: la scheda dello Store
+mostra le autorizzazioni a chi installa, e chiederne una che non serve
+contraddirebbe la sola cosa che questo programma promette, proprio nel punto
+in cui la gente decide se fidarsi.
+
+La prima sottomissione si fa a mano — l'automazione aggiorna, non
+inserisce — e la catena automatica esiste ma è **spenta**: si accende
+scrivendo `si` in un campo. Il perché sta in [`STORE.md`](STORE.md).
+
+Un errore che vale la pena raccontare: MakeAppx enumerava 2 750 file e poi
+rispondeva `0x8007007b — nome di file non valido`, **senza dire quale**. Era
+python-docx, che spedisce il proprio modello anche scompattato e lì dentro
+ha un `[Content_Types].xml`, nome riservato da MSIX. Ora `nomi_illegali()`
+scorre il layout e **nomina i file**, con il motivo, in mezzo secondo:
+venti minuti di CI per sapere che «qualcosa non va» non devono più poter
+succedere.
+
+### Il gate ha imparato tre cose che non sapeva vedere
+
+**Una funzione senza documentazione non passa più.** Era già successo due
+volte: dieci riconoscitori anglosassoni usciti nella 1.8.0 senza mai entrare
+nella tabella di `PRIVACY.md`, e i documenti d'identità spediti mentre il
+backlog li dava ancora da fare. Tutte e due le volte il gate diceva verde,
+perché guardava versioni, conteggi e link — cose che con una funzione nuova
+non c'entrano niente. Ora ogni segnaposto che il motore può emettere dev'essere
+in `PRIVACY.md`, e ogni opzione della riga di comando in `CLI.md`, con il
+parser **interrogato** e non letto con un'espressione regolare.
+
+Ciò che i due controlli hanno trovato subito: i dieci segnaposto
+anglosassoni, e `docs/CLI.md`, che non esisteva — venti opzioni su ventidue
+non erano scritte da nessuna parte.
+
+**Una versione senza voce di changelog è un errore.** Era già successo. Si
+aggancia alle intestazioni e non a una ricerca del numero nel testo, perché
+qui le voci si citano a vicenda. Zero intestazioni riconosciute = errore,
+non «pulito»: se un giorno il formato cambia, senza quel ramo il controllo
+direbbe verde per sempre.
+
+**`compileall` vede la sintassi, non il caricamento.** `check_import.py`
+importa i moduli **uno per uno**, svuotando `sys.modules` fra l'uno e
+l'altro: senza, il primo import tira dentro gli altri e una coppia circolare
+passa inosservata (misurato). Gira in CI, nel gate locale e in un hook
+pre-commit **opzionale** che costa mezzo secondo — un hook lento non viene
+tolto, viene aggirato con `--no-verify`, e da quel momento non gira più
+nemmeno la metà veloce.
+
+### CodeQL, una segnalazione per volta
+
+**`js/double-escaping` — difetto vero, corretto.** L'anteprima riconosceva
+le citazioni sul testo già scappato e poi lo riportava indietro a colpi di
+`replace`: un documento che contiene scritto per davvero `&quot;` ne usciva
+con un apice doppio. Testo cambiato, non un problema estetico.
+
+**`py/polynomial-redos` — ripulite, senza vantarsi.** Sei espressioni
+usavano `\s` dove intendevano lo spazio orizzontale. Detto onestamente: non
+sono riuscito a produrre un ingresso che rallentasse davvero quelle vecchie.
+È un cambio di correttezza, non una falla chiusa. E la prima versione della
+correzione era **peggiore** dell'originale — da istantaneo a 885 ms — cosa
+che si è saputa solo perché è stata misurata nel verso giusto, provando a
+peggiorare e guardando dove si muoveva il numero.
+
+### Documenti
+
+I due README dicevano «cinque passaggi» mentre il gate ne fa sei: il
+controllo sull'import è entrato e la descrizione è rimasta indietro.
+
+**859 test.**
+
+---
+
 ## 1.10.0 — Non tutto finisce dentro un prompt
 
 Fino a ieri l'uscita era `.md` e `.txt`, e questo legava Mr. Rao a un caso

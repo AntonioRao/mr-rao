@@ -245,11 +245,28 @@ jobs:
       # esiste un percorso in cui una release cambi da sola. Il tag deve
       # gia' esistere: creare qui anche la release vorrebbe dire che un
       # errore di battitura crea una versione che non e' mai stata decisa.
+      #
+      # Si allegano **tutti e tre** i file, e ognuno ha il suo perche':
+      #
+      #  * `MrRao-Portable.zip`, nome fisso -- e' cio' che tiene in piedi
+      #    `/releases/latest/download/...`, cioe' i link di scaricamento nei
+      #    due README e nella landing. Senza, danno 404 in silenzio;
+      #  * `MrRao-Portable-<versione>.zip` -- quello che resta riconoscibile
+      #    nella cartella Download di chi scarica. Era stato dimenticato qui
+      #    quando l'archivio versionato e' entrato (P3.4): `make_release_zip`
+      #    lo produceva e diceva «allegare tutti e tre», e questo passo ne
+      #    caricava due;
+      #  * `SHA256SUMS.txt`, che nomina entrambi.
+      #
+      # L'MSIX **non** si allega: non e' firmato -- lo firma Microsoft dopo
+      # la certificazione -- e un pacchetto non firmato scaricato da qui non
+      # si installa senza sideload. Va allo Store, non alla release.
       - name: Allega alla release
         if: inputs.pubblica != ''
         run: >-
           gh release upload "${{ inputs.pubblica }}"
           dist/MrRao-Portable.zip
+          dist/MrRao-Portable-*.zip
           dist/SHA256SUMS.txt
           --clobber
         shell: bash

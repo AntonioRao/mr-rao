@@ -169,6 +169,29 @@ def test_la_pubblicazione_non_avviene_da_sola():
     assert passi[0].get("if") == "inputs.pubblica != ''"
 
 
+def test_alla_release_finiscono_tutti_e_tre_gli_allegati():
+    """`make_release_zip.py` ne produce tre e stampa «allegare TUTTI E TRE».
+    Questo passo ne caricava due: l'archivio versionato era rimasto fuori da
+    quando e' entrato (P3.4).
+
+    I due nomi non sono ridondanti. Quello **fisso** e' l'unica cosa che fa
+    funzionare `/releases/latest/download/...`, cioe' i link di
+    scaricamento nei due README e nella landing: se manca, quei link danno
+    404 e non lo dice nessuno. Quello **versionato** e' cio' che resta
+    riconoscibile nella cartella Download di chi scarica.
+
+    L'MSIX non deve esserci: non e' firmato, e uno scaricato da qui non si
+    installa. Va allo Store, che e' l'unico posto in cui quel pacchetto ha
+    un senso.
+    """
+    (passo,) = [p for p in _portable()["steps"] if "gh release" in str(p.get("run", ""))]
+    comando = str(passo["run"])
+    assert "dist/MrRao-Portable.zip" in comando, "manca l'archivio a nome fisso"
+    assert "dist/MrRao-Portable-*.zip" in comando, "manca l'archivio versionato"
+    assert "SHA256SUMS.txt" in comando, "mancano le impronte"
+    assert ".msix" not in comando, "l'MSIX non firmato non va allegato alla release"
+
+
 def test_le_licenze_del_pacchetto_pubblicato_non_sono_saltate():
     """Il controllo delle licenze era disattivato qui, e andava bene finche'
     il pacchetto serviva solo a dire si'/no. Da quando viene firmato e
