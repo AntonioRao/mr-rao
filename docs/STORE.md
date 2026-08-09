@@ -34,11 +34,30 @@ descrizione, schermate, classificazione per età, mercati — si compila in
 Partner Center, e non c'è modo di aggirarlo.
 
 > **Scadenza.** La prenotazione del nome decade se l'app non viene inviata
-> entro tre mesi dalla prenotazione: **2026-11-09**.
+> entro tre mesi dalla prenotazione: **2026-11-09**. Rispettata: la prima
+> sottomissione è partita il **2026-08-09**.
+
+## Stato
+
+**Submission 1 inviata il 2026-08-09**, con la 1.11.0. Certification status:
+Submission ✓, Pre-processing ✓, poi Certification e Publishing. Microsoft
+dichiara «qualche ora, in certi casi fino a tre giorni lavorativi».
 
 ---
 
 # Parte 1 — La prima pubblicazione, passo per passo
+
+**Questa parte è stata riscritta dopo averla fatta davvero.** La versione
+precedente era ricostruita dalla documentazione e sbagliava in più punti —
+sono segnati con «⚠ diverso da come sembrava».
+
+## L'ordine conta, e non è quello che sembra
+
+Il **pacchetto va caricato per primo**, prima della scheda. Le lingue della
+scheda **non esistono finché non c'è un pacchetto**: le legge dal manifesto
+(`<Resource Language="it-IT"/>`, `en-US`). Finché manca, la pagina «Store
+listings» resta a girare a vuoto senza spiegare perché — e non è un guasto,
+è quell'ordine.
 
 ## 0. Il pacchetto
 
@@ -76,17 +95,35 @@ Nome del file da caricare: **`MrRao-1.11.0.msix`**, circa 170 MB.
 toglie, cosa lascia e **cosa la misura dice che non regge** — compresa la
 riga sulle scansioni sbiadite. Vale la pena che la legga chi certifica.
 
+**⚠ diverso da come sembrava.** La domanda sulla privacy non è una casella
+da spuntare ma una tendina, e la risposta data è **«Yes, my product uses
+personal information»**. Qui sopra c'era scritto di rispondere no, ed era
+sbagliato: Mr. Rao **legge documenti pieni di dati personali**, è
+esattamente il suo mestiere. Che non li trasmetta e non li raccolga è
+un'altra affermazione, e la fa la privacy policy. Rispondere «no» sarebbe
+stato comodo e non vero — e su questo prodotto è l'affermazione peggiore da
+sbagliare.
+
 ### Product declarations
 
 Le caselle da lasciare **non spuntate**, e il perché:
 
-- *«This app accesses, collects or transmits personal information»* — no. Il
-  programma legge i documenti che gli dai e li elabora sul posto; niente
-  esce dal computer e niente viene raccolto da noi.
-- *«This app depends on non-Microsoft drivers or NT services»* — no.
-- *«This app has been tested for accessibility»* — no, e non spuntarla:
-  dichiararlo senza aver fatto una verifica di accessibilità sarebbe
-  un'affermazione non sostenuta.
+- *«This app has been tested to meet accessibility guidelines»* — no.
+  Nessuno verrebbe a controllare, ed è proprio per questo: non abbiamo fatto
+  nessuna verifica di accessibilità, e spuntarla sarebbe un'affermazione non
+  sostenuta su una scheda pubblica.
+- *«Windows can include this product's data in automatic backups to
+  OneDrive»* — **arriva spuntata di default, e va tolta.** Contraddice la
+  sola cosa che il programma promette, ed è il difetto che questo
+  repository ha già pagato una volta: le cartelle che finivano nel cloud.
+- *«Customers can use Windows 10/11 features to record and broadcast clips
+  of this product»* — anche questa arriva spuntata. Serve ai giochi, e su
+  uno strumento che mostra documenti altrui è un default che non vogliamo.
+- *«This app incorporates generative AI features»* — no: il motore è
+  deterministico, e dirlo altrimenti sarebbe pubblicità falsa al contrario.
+
+Resta spuntata *«Customers can install this product to alternate drives»*:
+è vera e non toglie niente a nessuno.
 
 ## 3. Age ratings
 
@@ -205,17 +242,60 @@ Microsoft dopo la certificazione.
 `anonimizzazione` · `markdown` · `GDPR` · `PDF in markdown` ·
 `dati personali` · `OCR` · `privacy`
 
-**Screenshots:** i tre file in `packaging/Store/`, nell'ordine
+**Screenshots:** i tre file `*-it.png` in `packaging/Store/`, nell'ordine
 `01-conversione`, `02-risultato`, `03-controlli`.
+
+**⚠ diverso da come sembrava — le schermate sono per lingua.** La scheda
+inglese vuole le proprie (`*-en.png`, con l'interfaccia inglese): riciclare
+quelle italiane sarebbe spedire il manuale sbagliato. E lo Store accetta PNG
+solo **fra 1366x768 e 3840x2160**: le schermate del README sono 1500x2420,
+troppo alte, e sarebbero state respinte all'invio. Le genera
+`scripts/make_screenshot.py --store`, che controlla anche le misure.
+
+I **loghi** invece **non servono**: Partner Center li dichiara «Optional» e
+di default usa quelli del pacchetto, dove le tredici immagini ci sono già.
 
 **Copyright:** © 2026 Antonio Andrea Rao — GNU AGPL-3.0
 
 **Developed by:** Antonio Andrea Rao
 
-## 6. Notes for certification
+## 6. La giustificazione per `runFullTrust`
 
-Da scrivere nel campo delle note, perché **senza, il collaudo può concludere
-che l'app non fa niente**:
+**⚠ non era previsto qui, e invece è obbligatorio.** Appena caricato il
+pacchetto, Partner Center segnala *«Package acceptance validation warning:
+the following restricted capabilities require approval: runFullTrust»* e
+apre un campo **obbligatorio** in Submission Options.
+
+Non è un problema del nostro pacchetto: `runFullTrust` è la capability che
+dichiara **ogni** programma Win32 impacchettato in MSIX — è il meccanismo
+stesso del Desktop Bridge. Non esiste un modo di impacchettare un
+eseguibile Python senza. È un *warning*, non un errore: il pacchetto viene
+accettato e risulta **Validated**.
+
+Cosa deve dire la giustificazione, e perché queste cose:
+
+1. **che è un'app desktop Win32 impacchettata**, non una UWP che potrebbe
+   girare a fiducia parziale;
+2. **cosa fa davvero il processo**: legge i file che l'utente apre o
+   trascina, gira il motore di conversione e l'OCR in locale, apre un server
+   su `127.0.0.1` e lancia il browser predefinito come interfaccia;
+3. **cosa non fa**: nessun accesso di rete in uscita, nessuna telemetria,
+   nessun account, nessun driver o servizio, nessuna modifica alle
+   impostazioni di sistema;
+4. **che il manifesto non dichiara nessuna capability di rete**, e che c'è
+   un test automatico che lo verifica — è un'affermazione controllabile, non
+   una promessa;
+5. il collegamento al codice sorgente pubblico.
+
+## 7. Notes for certification
+
+**⚠ non stanno in Submission Options**, come lasciava intendere il nome: si
+scrivono in **Supplemental info → Additional Testing Information**, e si
+salvano con «Save description» in cima alla pagina, non con un pulsante in
+fondo.
+
+Vanno scritte perché **senza, il collaudo può concludere che l'app non fa
+niente**:
 
 > L'applicazione avvia un server locale su 127.0.0.1 e apre il browser
 > predefinito sulla propria interfaccia. È un'applicazione desktop che usa
@@ -231,6 +311,16 @@ che l'app non fa niente**:
 > riconoscimento ottico viene caricato in memoria.
 >
 > L'app non richiede account, non raccoglie dati e non ha acquisti interni.
+
+## 8. Invio
+
+**Submit for certification** si accende da solo quando i requisiti sono
+soddisfatti. Fidarsi di quel pulsante, non dei badge laterali: a invio
+pronto «Submission options» risultava ancora **Incomplete** pur avendo tutti
+i campi compilati e salvati — un badge rimasto indietro, non un ostacolo.
+
+Dopo l'invio si può ancora annullare («Cancel certification») finché non è
+pubblicata.
 
 ---
 
