@@ -110,6 +110,20 @@ def test_citazione_e_riga_orizzontale_e_titoli():
     assert "<blockquote>" in html and "<hr>" in html
 
 
+def test_una_citazione_non_riporta_indietro_cio_che_ha_scappato():
+    """Segnalato da CodeQL (js/double-escaping) ed era un difetto vero.
+
+    Il blocco veniva riconosciuto sul testo già scappato e poi riportato
+    indietro a colpi di `replace`. Un documento che contiene scritto per
+    davvero `&quot;` ne usciva con un apice doppio: **testo cambiato**, non
+    un problema estetico. Ora i blocchi si riconoscono sul testo com'è, e a
+    scappare ci pensa una funzione sola, una volta sola.
+    """
+    (html,) = rendi("> il campo vale &quot;X&quot; nel tracciato\n")
+    assert "&amp;quot;" in html, html
+    assert '"X"' not in html
+
+
 def test_il_ritorno_a_capo_singolo_e_uno_spazio():
     """Un PDF va a capo dove finisce la riga sulla pagina, non dove finisce
     la frase: rispettare quel ritorno a capo spezzerebbe ogni paragrafo."""

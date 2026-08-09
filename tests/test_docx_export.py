@@ -7,6 +7,7 @@ e nessuno se ne accorgerebbe.
 """
 from __future__ import annotations
 
+import inspect
 import io
 
 import pytest
@@ -129,3 +130,22 @@ def test_il_nome_del_file_non_puo_uscire_dalla_cartella(client):
     assert r.status_code == 200
     disposizione = r.headers.get("Content-Disposition", "")
     assert ".." not in disposizione and "/" not in disposizione.split("filename=")[-1]
+
+
+def test_le_espressioni_di_riga_ricevono_davvero_una_riga_alla_volta():
+    r"""La premessa su cui poggia l'uso di `[ \t]` al posto di `\s`.
+
+    Le espressioni di blocco non attraversano piu' il ritorno a capo. È
+    corretto perché il testo viene diviso per righe prima — ma se un domani
+    qualcuno passasse un blocco intero a quelle espressioni, smetterebbero di
+    riconoscerlo **in silenzio**. Questo test tiene ferma la premessa invece
+    di fidarsi che resti vera.
+    """
+    from mr_rao import docx_export as dx
+
+    sorgente = inspect.getsource(dx.markdown_to_docx)
+    assert r'split("\n")' in sorgente, "il testo non viene più diviso per righe"
+
+    # E la conseguenza, dichiarata: con un a capo dentro, non è un titolo.
+    assert dx._RE_INTESTAZIONE.match("# titolo")
+    assert not dx._RE_INTESTAZIONE.match("#\nnon un titolo")

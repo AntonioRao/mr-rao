@@ -54,7 +54,7 @@ In particolare sono benvenuti:
   il caso va aggiunto lì. Una regola non negoziabile: **non deve mai emettere
   un `<img>` remoto**, perché sarebbe una chiamata di rete partita dal
   documento che si sta anonimizzando.
-- **Test.** Ce ne sono 757 test e non bastano mai. (Il numero è scritto prima
+- **Test.** Ce ne sono 759 test e non bastano mai. (Il numero è scritto prima
   della parola «test» di proposito: è così che `scripts/check_docs.py` lo
   trova. Scritto al contrario era rimasto fermo a 161 per venti release.)
 

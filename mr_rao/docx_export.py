@@ -35,13 +35,39 @@ from mr_rao.i18n import LINGUA_PREDEFINITA, t
 # stampare e' rumore. Stesso trattamento del download .txt.
 _RE_FRONTMATTER = re.compile(r"\A---\n.*?\n---\n+", re.S)
 
-_RE_INTESTAZIONE = re.compile(r"^(#{1,6})\s+(.*)$")
-_RE_ELENCO = re.compile(r"^\s*[-*+]\s+(.*)$")
-_RE_NUMERATO = re.compile(r"^\s*\d+[.)]\s+(.*)$")
-_RE_CITAZIONE = re.compile(r"^>\s?(.*)$")
-_RE_RIGHELLO = re.compile(r"^\s*([-*_])\s*(?:\1\s*){2,}$")
-_RE_RIGA_TABELLA = re.compile(r"^\s*\|.*\|\s*$")
-_RE_SEPARATORE_TABELLA = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
+# Spazio **orizzontale**, non `\s`. Sono espressioni che guardano una riga
+# alla volta, e `\s` comprende anche il ritorno a capo: accanto a `.*$`, che
+# il ritorno a capo non lo attraversa, quella sovrapposizione apre un
+# retrocedere quadratico su righe fatte di molti spazi — segnalato da CodeQL
+# (py/polynomial-redos) e vero, perche' il testo arriva da un documento
+# altrui e una scansione storta di spazi ne produce a volonta'.
+#
+# `[ \t]` dice quello che queste righe intendevano dire fin dall'inizio.
+#
+# L'unico caso in cui la risposta cambia e' una stringa che contiene un
+# ritorno a capo: `\s` lo attraversava, `[ \t]` no. Non puo' accadere —
+# `markdown_to_docx` lavora su `testo.split("\n")` — e c'e' un test che
+# tiene ferma quella premessa, perche' e' su di essa che poggia il cambio.
+_ORIZZ = r"[ \t]"
+
+# E niente `$` in fondo dove il gruppo finale e' gia' `(.*)`.
+#
+# E' li' che stava il costo, e la prima correzione l'aveva peggiorato: con
+# `\s+`, che il ritorno a capo lo attraversa, il motore arrivava in fondo al
+# primo colpo; con `[ \t]+` si ferma prima del ritorno a capo, `$` fallisce,
+# e a quel punto retrocede su ognuno dei ventimila spazi. Misurato: da
+# istantaneo a 885 ms.
+#
+# `(.*)` da solo cattura esattamente le stesse cose — `.` non attraversa il
+# ritorno a capo e queste espressioni ricevono una riga alla volta — ma non
+# ha piu' un modo di fallire, quindi non ha piu' niente da riprovare.
+_RE_INTESTAZIONE = re.compile(rf"^(#{{1,6}}){_ORIZZ}+(.*)")
+_RE_ELENCO = re.compile(rf"^{_ORIZZ}*[-*+]{_ORIZZ}+(.*)")
+_RE_NUMERATO = re.compile(rf"^{_ORIZZ}*\d+[.)]{_ORIZZ}+(.*)")
+_RE_CITAZIONE = re.compile(rf"^>{_ORIZZ}?(.*)")
+_RE_RIGHELLO = re.compile(rf"^{_ORIZZ}*([-*_]){_ORIZZ}*(?:\1{_ORIZZ}*){{2,}}$")
+_RE_RIGA_TABELLA = re.compile(rf"^{_ORIZZ}*\|.*\|{_ORIZZ}*$")
+_RE_SEPARATORE_TABELLA = re.compile(rf"^{_ORIZZ}*\|[ \t:|-]+\|{_ORIZZ}*$")
 
 # Grassetto e corsivo. L'ordine conta: `**` prima di `*`, altrimenti il
 # secondo si mangia il primo lasciando asterischi orfani nel documento.

@@ -24,7 +24,15 @@
   var TITOLO = /^ {0,3}(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$/;
   var RIGA_ORIZZONTALE = /^ {0,3}([-*_])[ \t]*(?:\1[ \t]*){2,}$/;
   var RECINTO = /^([ \t]*)(```|~~~)[ \t]*([\w+-]*)[ \t]*$/;
-  var CITAZIONE = /^ {0,3}&gt;[ \t]?(.*)$/;
+  // Si riconosce sul testo GREZZO, non su quello gia' scappato.
+  //
+  // Prima la riga veniva scappata per cercare `&gt;`, e poi il contenuto
+  // riportato indietro a colpi di replace per poterlo rendere di nuovo. Quel
+  // giro di andata e ritorno e' sbagliato e basta: un documento che contiene
+  // scritto per davvero `&quot;` ne uscirebbe con un apice doppio, cioe' con
+  // il testo cambiato. Il riconoscimento dei blocchi guarda il testo com'e';
+  // a scappare ci pensa `inRiga`, una volta sola, alla fine.
+  var CITAZIONE = /^ {0,3}>[ \t]?(.*)$/;
   var SEPARATORE_TABELLA = /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
 
   // Schemi che possono finire dentro un href. Tutto il resto — `javascript:`,
@@ -229,7 +237,7 @@
       RIGA_ORIZZONTALE.test(riga) ||
       RECINTO.test(riga) ||
       VOCE.test(riga) ||
-      CITAZIONE.test(scappa(riga))
+      CITAZIONE.test(riga)
     );
   }
 
@@ -294,13 +302,13 @@
         continue;
       }
 
-      if (CITAZIONE.test(scappa(riga))) {
+      if (CITAZIONE.test(riga)) {
         var dentroCit = [];
         while (i < righe.length && righe[i].trim()) {
-          var c = CITAZIONE.exec(scappa(righe[i]));
+          var c = CITAZIONE.exec(righe[i]);
           // Una riga senza «>» dentro una citazione ne fa parte comunque:
           // e' la continuazione, ed e' come la scrive quasi tutto il mondo.
-          dentroCit.push(c ? c[1].replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&").replace(/&quot;/g, '"') : righe[i]);
+          dentroCit.push(c ? c[1] : righe[i]);
           i++;
         }
         fuori += "<blockquote>" + blocchi(dentroCit) + "</blockquote>";
