@@ -6,13 +6,21 @@ if exist "venv\Scripts\python.exe" (
     set PY=python
 )
 echo === Mr. Rao quality gate ===
-echo [1/5] compileall...
+echo [1/6] compileall...
 %PY% -m compileall -q app.py config.py mr_rao
 if errorlevel 1 exit /b 1
-echo [2/5] health...
+REM compileall vede la sintassi, non gli import: un modulo che esplode al
+REM caricamento -- import circolare, un nome che non c'e' -- lo supera a
+REM pieni voti e rompe il programma. Il controllo girava gia' in CI e
+REM nell'hook opzionale, ma non qui: mancava proprio a chi lancia il gate
+REM prima di una pull request, cioe' a chi lo usa piu' spesso.
+echo [2/6] import di ogni modulo...
+%PY% scripts\check_import.py
+if errorlevel 1 exit /b 1
+echo [3/6] health...
 %PY% -m mr_rao.cli health
 if errorlevel 1 exit /b 1
-echo [3/5] licenze di terze parti allineate...
+echo [4/6] licenze di terze parti allineate...
 REM Un elenco scritto a mano invecchia in silenzio: la prima stesura
 REM sbagliava la licenza di Scrubadub e ometteva python-stdnum (LGPL).
 REM
@@ -29,10 +37,10 @@ if defined MR_RAO_GATE_NO_LICENCE_CHECK (
     %PY% scripts\gen_third_party.py --check
     if errorlevel 1 exit /b 1
 )
-echo [4/5] pytest...
+echo [5/6] pytest...
 %PY% -m pytest tests -q --tb=short
 if errorlevel 1 exit /b 1
-echo [5/5] documenti pubblicati allineati...
+echo [6/6] documenti pubblicati allineati...
 REM Stessa malattia delle licenze, altro organo: un documento invecchia
 REM senza rompere niente. Qui il conteggio dei test lo sa solo chi ha
 REM appena eseguito l'intera suite, quindi il controllo sta nel gate e

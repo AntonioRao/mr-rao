@@ -1,0 +1,87 @@
+#!/bin/sh
+# Gate pre-commit di Mr. Rao — opzionale (P2.4).
+#
+#   installa:  python scripts/install_hooks.py --install
+#   toglie:    python scripts/install_hooks.py --uninstall
+#
+# COSA ESEGUE, E PERCHE' NON TUTTO IL GATE.
+# Il gate completo su questa macchina costa una ventina di secondi (misurati:
+# 18, di cui 17 di pytest) contro il mezzo secondo di questi due controlli.
+# Venti secondi non sono tanti in assoluto: sono tanti *nel punto sbagliato*,
+# cioe' su un gesto che si ripete venti volte al giorno. Un hook lento non viene
+# tolto, viene aggirato — si impara `--no-verify` e da quel momento non gira
+# piu' nemmeno la meta' veloce. Quindi qui restano i due controlli che
+# costano insieme mezzo secondo e che rispondono all'unica domanda che ha
+# senso fare a ogni commit: **questo albero si carica?**
+#
+#   - compileall   la sintassi
+#   - check_import gli import veri (un import circolare passa il compileall)
+#
+# Fuori restano di proposito:
+#   - pytest, che risponde a «funziona», non a «si carica», ed e' il pezzo
+#     che vale davvero la pena aspettare una volta sola prima della PR;
+#   - le licenze e i documenti pubblicati, che dipendono dalle versioni
+#     *installate* e dal conteggio di un'esecuzione completa dei test: a
+#     meta' lavoro darebbero rosso per il motivo sbagliato.
+#
+# Chi vuole tutto: MR_RAO_HOOK_FULL=1 git commit ...
+#
+# Questo hook NON sostituisce scripts\quality_gate.bat prima di una PR.
+set -u
+
+RADICE=$(git rev-parse --show-toplevel) || exit 1
+cd "$RADICE" || exit 1
+
+# Il venv del progetto per primo: e' l'ambiente in cui gira tutto il resto.
+if [ -x "venv/Scripts/python.exe" ]; then
+    PY="venv/Scripts/python.exe"
+elif [ -x "venv/bin/python" ]; then
+    PY="venv/bin/python"
+elif command -v python >/dev/null 2>&1; then
+    PY="python"
+elif command -v python3 >/dev/null 2>&1; then
+    PY="python3"
+else
+    # Non si passa in silenzio: un gate che non riesce a partire non e' un
+    # via libera. Chi non vuole il controllo lo disinstalla, che e' una riga.
+    echo "pre-commit: nessun interprete Python trovato." >&2
+    echo "            crea il venv, oppure: python scripts/install_hooks.py --uninstall" >&2
+    exit 1
+fi
+
+# Un commit di sola documentazione non ha niente da compilare. Le cancellazioni
+# restano incluse di proposito (niente --diff-filter): togliere un modulo rompe
+# chi lo importava, ed e' esattamente un guasto da import.
+PY_IN_STAGE=$(git diff --cached --name-only -- '*.py')
+
+if [ -z "$PY_IN_STAGE" ] && [ "${MR_RAO_HOOK_FULL:-0}" = "0" ]; then
+    echo "pre-commit: nessun file .py nel commit, niente da controllare."
+    exit 0
+fi
+
+# Detto apertamente invece di far finta: l'hook controlla l'albero di lavoro,
+# non l'indice. Con modifiche .py fuori stage, cio' che viene controllato non
+# e' cio' che viene committato. Ricostruire l'indice in una copia separata
+# sarebbe piu' esatto e molto piu' facile da sbagliare in modo distruttivo.
+if ! git diff --quiet -- '*.py' 2>/dev/null; then
+    echo "pre-commit: ci sono modifiche .py fuori stage — il controllo guarda"
+    echo "            l'albero di lavoro, non solo cio' che stai committando."
+fi
+
+fallito() {
+    echo "" >&2
+    echo "pre-commit: $1 ha dato errore. Commit fermato." >&2
+    echo "  --no-verify lo salta, ma la CI esegue lo stesso controllo:" >&2
+    echo "  lo rimanda, non lo evita." >&2
+    exit 1
+}
+
+"$PY" -m compileall -q app.py config.py mr_rao || fallito "compileall"
+"$PY" scripts/check_import.py || fallito "check_import.py"
+
+if [ "${MR_RAO_HOOK_FULL:-0}" != "0" ]; then
+    "$PY" -m pytest tests -q || fallito "pytest"
+fi
+
+echo "pre-commit: ok."
+exit 0

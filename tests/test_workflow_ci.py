@@ -86,6 +86,30 @@ def test_nessuna_azione_su_node_20(workflow):
     assert not vecchie, f"{workflow.name} usa azioni su Node 20: {vecchie}"
 
 
+def test_la_ci_importa_i_moduli_e_non_si_ferma_alla_sintassi():
+    """P2.7. `compileall` dice che il file e' scritto in Python, non che si
+    carica: un import circolare o un nome sparito lo superano e rompono
+    l'applicazione all'avvio. E' gia' successo di committarne uno rotto.
+
+    Il passo si controlla qui e non solo nel gate locale perche' il gate
+    locale gira dove il difetto e' gia' successo: se qualcuno toglie la riga
+    dal workflow, l'unico posto che se ne accorge e' questo."""
+    ci = RADICE / ".github" / "workflows" / "ci.yml"
+    config = carica(ci)
+    passi = config["jobs"]["test"]["steps"]
+    comandi = [str(p.get("run", "")) for p in passi]
+    testo = " ".join(comandi)
+
+    assert "check_import.py" in testo, "la CI non importa niente, compila e basta"
+    assert (RADICE / "scripts" / "check_import.py").is_file()
+
+    # L'ordine conta: con entrambi rotti si vuole leggere prima l'errore di
+    # sintassi, che e' quello che spiega l'altro.
+    indice = [i for i, c in enumerate(comandi) if "check_import.py" in c][0]
+    prima = " ".join(comandi[:indice])
+    assert "compileall" in prima, "l'import check deve venire dopo compileall"
+
+
 def test_il_pacchetto_si_costruisce_in_ci():
     """P2.9. Il gate locale gira sulla stessa macchina che ha il problema:
     non puo' accorgersi di una libreria presente solo nel venv di sviluppo.

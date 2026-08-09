@@ -36,6 +36,16 @@ jobs:
       - name: Byte-compile
         run: python -m compileall -q app.py config.py mr_rao
 
+      # compileall guarda la sintassi: dice che il file e' scritto in Python,
+      # non che si carica. Un import circolare, un nome sparito dal modulo da
+      # cui lo si prende, una riga a livello di modulo che solleva: passano
+      # tutti il passo qui sopra e rompono l'applicazione all'avvio. E' gia'
+      # successo di committarne uno rotto, ed e' il motivo per cui questo
+      # passo sta *dopo* compileall e non al suo posto: quando entrambi
+      # falliscono, l'errore di sintassi si legge per primo. (P2.7)
+      - name: Import check
+        run: python scripts/check_import.py
+
       - name: Dependency health
         run: python -m mr_rao.cli health
 

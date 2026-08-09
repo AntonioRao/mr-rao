@@ -66,6 +66,49 @@ scripts\quality_gate.bat
 
 Deve passare: compilazione, dipendenze, licenze allineate, test.
 
+### Il gate pre-commit, se lo vuoi
+
+C'è un hook `pre-commit` **opzionale**: nessuno te lo installa alle spalle,
+lo attivi tu e lo togli quando vuoi.
+
+```bash
+venv\Scripts\python scripts\install_hooks.py --install
+venv\Scripts\python scripts\install_hooks.py --status
+venv\Scripts\python scripts\install_hooks.py --uninstall
+```
+
+Non copia niente dentro `.git/hooks`: punta `core.hooksPath` a `.githooks/`,
+così l'hook che gira è sempre quello del repository e non una copia vecchia
+rimasta sul tuo computer. Disinstallare è togliere quella riga di
+configurazione.
+
+**Cosa esegue, e perché non tutto il gate.** Solo `compileall` e
+`scripts/check_import.py`: insieme mezzo secondo. Il gate completo ne costa
+una ventina, quasi tutti di pytest — e venti secondi a ogni commit non sono
+tanti in assoluto, sono tanti nel punto sbagliato. Un hook lento non viene
+tolto, viene aggirato: si impara `--no-verify` e da quel momento non gira più
+nemmeno la metà veloce. Quindi l'hook risponde a una sola domanda, quella che
+ha senso fare a ogni commit: *questo albero si carica?* Se vuoi tutto:
+
+```bash
+MR_RAO_HOOK_FULL=1 git commit ...
+```
+
+Due cose dette apertamente invece di lasciartele scoprire:
+
+- l'hook controlla **l'albero di lavoro**, non l'indice. Se hai modifiche
+  `.py` fuori stage, quello che viene controllato non è esattamente quello
+  che stai committando — e te lo dice a schermo. Ricostruire l'indice in una
+  copia separata sarebbe più esatto e molto più facile da sbagliare in modo
+  distruttivo;
+- **non sostituisce `scripts\quality_gate.bat`** prima di una pull request.
+
+Se sviluppi su Linux o macOS: `.githooks/` è forzato a LF da `.gitattributes`.
+Non è pedanteria di stile — uno shebang `#!/bin/sh` con un `\r` in coda su
+Linux non parte affatto, e l'errore che ricevi è `not found`, che indica il
+file e non la causa. Su Windows la `sh` di Git il `\r` lo tollera, quindi chi
+lavora solo lì il difetto non lo vedrebbe mai e lo spedirebbe agli altri.
+
 Tre regole che il progetto si è dato dopo averle pagate care:
 
 0. **Non escono funzioni senza documentazione.** Non è buona volontà, è una

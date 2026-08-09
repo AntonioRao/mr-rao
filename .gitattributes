@@ -1,0 +1,11 @@
+# Gli hook di `.githooks/` devono restare con terminazioni LF, e la ragione
+# e' misurata, non supposta: su una Linux vera uno script con shebang
+# `#!/bin/sh\r` non parte e il kernel risponde `not found` (exit 127) — un
+# errore che nomina il file e non la vera causa. La `sh` di Git for Windows
+# invece il CR lo tollera (provato con git 2.54): chi sviluppa su Windows non
+# vedrebbe mai il problema e lo spedirebbe a chi sviluppa altrove.
+#
+# Su Windows `core.autocrlf=true` e' l'impostazione che consiglia il
+# programma di installazione di Git, quindi senza questa riga basta un clone
+# per ritrovarsi il file convertito.
+.githooks/** text eol=lf
