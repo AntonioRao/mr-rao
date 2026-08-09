@@ -31,6 +31,14 @@ name: Portable
 # gia' scritti qui sotto, commentati.
 on:
   workflow_dispatch:
+    inputs:
+      pubblica:
+        description: >-
+          Allega il pacchetto firmato alla release del tag indicato.
+          Lasciato vuoto non pubblica niente: si costruisce, si firma e
+          l'artefatto resta scaricabile da questa esecuzione.
+        required: false
+        default: ''
 
   # Da riattivare dopo la prima esecuzione riuscita:
   #
@@ -49,13 +57,27 @@ on:
   # schedule:
   #   - cron: '0 5 * * 1'   # lunedi' 5:00 UTC, per le derive a monte
 
+# `id-token` serve a Sigstore: il runner chiede a GitHub un token OIDC di
+# breve durata e lo scambia con Fulcio per un certificato usa-e-getta. E'
+# quello che rende la firma **senza chiavi** -- non c'e' nessun segreto da
+# custodire, e quindi nessun segreto che possa essere rubato.
+#
+# `attestations` scrive l'attestazione; `contents: write` serve solo per
+# allegare i file a una release, e solo quando l'input `pubblica` e'
+# valorizzato. Nessuna esecuzione pubblica niente da sola.
 permissions:
   contents: read
+  id-token: write
+  attestations: write
 
 jobs:
   build:
     runs-on: windows-latest
     timeout-minutes: 45
+    permissions:
+      contents: write        # solo per allegare i file a una release esistente
+      id-token: write        # Sigstore: token OIDC di breve durata
+      attestations: write
 
     steps:
       - uses: actions/checkout@v7
@@ -73,33 +95,68 @@ jobs:
       # esattamente la condizione che questo lavoro deve escludere -- un
       # ambiente preparato a mano in cui il pacchetto trova cose che non
       # ha dichiarato.
-      - name: Build e verifica del pacchetto
+      # Le licenze si rigenerano **qui dentro**, prima del build.
+      #
+      # THIRD_PARTY.md elenca le versioni risolte sulla macchina del
+      # manutentore; qui pip ne installa altre, e finche' questo lavoro
+      # serviva solo a dire si'/no la differenza era accettabile. Dal
+      # momento in cui il pacchetto costruito qui viene **pubblicato**, non
+      # lo e' piu': verrebbe distribuito un elenco di licenze che non
+      # descrive cio' che c'e' dentro, e fra quelle c'e' pystray (LGPL), che
+      # in redistribuzione ha obblighi veri.
+      #
+      # Rigenerarlo qui non e' un ripiego: e' l'unico modo perche' il file
+      # dentro lo zip parli del pacchetto che lo contiene.
+      # Le licenze del pacchetto le rigenera lo script, nel venv che crea
+      # lui: `MR_RAO_RIGENERA_LICENZE` accende quel passo.
+      #
+      # Prima il controllo delle licenze veniva **disattivato** qui
+      # (`MR_RAO_GATE_NO_LICENCE_CHECK`), perche' su un runner pulito pip
+      # risolve versioni diverse da quelle della macchina del manutentore.
+      # Andava bene finche' questo lavoro serviva solo a dire si'/no. Dal
+      # momento in cui il pacchetto viene **firmato e pubblicato** non va
+      # piu' bene: si distribuirebbe un THIRD_PARTY.md che non descrive cio'
+      # che c'e' dentro, e fra quelle licenze c'e' pystray (LGPL).
+      #
+      # Rigenerandolo, il controllo torna acceso e verifica una cosa vera
+      # invece di essere saltato.
+      #
+      # Nessun `pip install` in questo file, ed e' voluto: le dipendenze le
+      # installa lo script nel proprio venv, altrimenti si ricrea l'ambiente
+      # preparato a mano che questo lavoro serve a escludere.
+      - name: Build, licenze e verifica del pacchetto
         run: scripts\build_portable.bat
         shell: cmd
         env:
-          # THIRD_PARTY.md elenca le versioni risolte sulla macchina del
-          # manutentore; qui pip ne installa altre, e il confronto fallirebbe
-          # perche' l'ambiente e' diverso, non perche' l'elenco sia sbagliato.
-          # Il primo giro di questo workflow si e' fermato esattamente li'.
-          # ci.yml salta il controllo per la stessa ragione, gia' documentata.
-          #
-          # Conseguenza da tenere presente: il pacchetto costruito **qui**
-          # contiene versioni diverse da quelle descritte in THIRD_PARTY.md.
-          # Va bene finche' questo lavoro serve a *verificare* che il build
-          # regga in una macchina pulita. Il giorno che se ne volesse
-          # pubblicare l'artefatto come release, le licenze andrebbero
-          # rigenerate qui dentro.
-          MR_RAO_GATE_NO_LICENCE_CHECK: "1"
+          MR_RAO_RIGENERA_LICENZE: "1"
 
-      # Solo sulle esecuzioni a mano: sono quelle che si lanciano prima di
-      # una release, ed e' li' che serve avere in mano il pacchetto. Le
-      # altre devono solo dire si' o no, e 150 MB per volta non si
-      # giustificano.
+      - name: Firma del pacchetto (Sigstore)
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: 'dist/MrRao-Portable*.zip'
+
       - name: Pacchetto costruito in camera pulita
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v7
         with:
           name: MrRao-Portable
-          path: dist/MrRao-Portable-*.zip
+          path: |
+            dist/MrRao-Portable-*.zip
+            dist/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error
+
+      # Pubblica **solo** se qualcuno ha scritto un tag nell'input: non
+      # esiste un percorso in cui una release cambi da sola. Il tag deve
+      # gia' esistere: creare qui anche la release vorrebbe dire che un
+      # errore di battitura crea una versione che non e' mai stata decisa.
+      - name: Allega alla release
+        if: inputs.pubblica != ''
+        run: >-
+          gh release upload "${{ inputs.pubblica }}"
+          dist/MrRao-Portable.zip
+          dist/SHA256SUMS.txt
+          --clobber
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}

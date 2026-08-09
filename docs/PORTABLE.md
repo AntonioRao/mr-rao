@@ -60,3 +60,51 @@ Esegui `Disinstalla Mr Rao.bat` (o lo script nella cartella di install).
 - Dimensione pacchetto: grande (ONNX/OCR), tipicamente centinaia di MB — è il prezzo dell’offline completo
 - Antivirus a volte ispezionano exe PyInstaller: firma/white-list aziendale se serve
 - La build va rifatta quando aggiorni dipendenze o codice
+
+## Verificare il pacchetto
+
+Due controlli diversi, che rispondono a due domande diverse. Conviene sapere
+quale risponde a cosa, perché è facile credere che una firma dimostri più di
+quanto dimostri.
+
+### «È arrivato intero?» — SHA-256
+
+Ogni release allega `SHA256SUMS.txt`.
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
+
+Su Windows: `certutil -hashfile MrRao-Portable.zip SHA256` e confronta a occhio.
+
+Serve contro uno scaricamento troncato o un mirror qualunque. **Non** serve
+contro chi controlla la pagina delle release: chi può sostituire lo zip può
+sostituire anche il file delle impronte.
+
+### «Viene davvero da qui?» — Sigstore
+
+Il pacchetto è firmato dal workflow che lo costruisce, con le attestazioni di
+provenienza di GitHub, che sono [Sigstore](https://www.sigstore.dev/) sotto il
+cofano.
+
+```bash
+gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao
+```
+
+La risposta dice **da quale repository, da quale commit e da quale esecuzione**
+è uscito quel file. È più forte di una firma GPG per una ragione precisa: con
+GPG chi verifica deve procurarsi la chiave pubblica *e sapere che è la tua* —
+e se qualcuno sostituisce zip, impronte e chiave, la verifica torna verde lo
+stesso. Qui l'identità è quella di GitHub Actions, non si fabbrica, e la firma
+è registrata nel registro pubblico Rekor, che è append-only: una firma
+pubblicata non si può ritirare fingendo che non sia mai esistita.
+
+Non c'è nessuna chiave privata da custodire: il runner ne ottiene una
+usa-e-getta al momento della firma e la butta subito dopo.
+
+### Quello che nessuno dei due fa
+
+**Non tolgono l'avviso di SmartScreen.** Quello richiede una firma
+Authenticode, cioè un certificato di code signing a pagamento. Windows
+continuerà a dire che l'editore è sconosciuto: è una scelta di costo,
+dichiarata, non una dimenticanza.

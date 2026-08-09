@@ -133,3 +133,50 @@ def test_il_pacchetto_si_costruisce_in_ci():
     assert "pip install" not in comandi, (
         "le dipendenze le deve installare lo script, nel venv che crea lui"
     )
+
+
+# --- Firma Sigstore del pacchetto -----------------------------------------
+
+
+def _portable() -> dict:
+    return carica(RADICE / ".github" / "workflows" / "portable.yml")["jobs"]["build"]
+
+
+def test_il_pacchetto_viene_firmato():
+    """Senza il passo di firma non c'e' niente da verificare, e la riga nei
+    README che spiega come verificare diventerebbe una promessa a vuoto."""
+    usi = [p.get("uses", "") for p in _portable()["steps"]]
+    assert any("attest-build-provenance" in u for u in usi), usi
+
+
+def test_i_permessi_per_sigstore_ci_sono():
+    """`id-token` e' cio' che rende la firma senza chiavi: il runner scambia
+    un token OIDC di breve durata con un certificato usa-e-getta. Senza,
+    il passo di firma fallisce -- ed e' il genere di cosa che si scopre a
+    release in corso."""
+    permessi = _portable()["permissions"]
+    assert permessi.get("id-token") == "write"
+    assert permessi.get("attestations") == "write"
+
+
+def test_la_pubblicazione_non_avviene_da_sola():
+    """`contents: write` sta li' per allegare i file a una release. Deve
+    esistere un solo percorso che lo usa, e deve passare da una scelta
+    esplicita di chi lancia: una release che cambia da sola non e' un
+    automatismo, e' una sorpresa."""
+    passi = [p for p in _portable()["steps"] if "gh release" in str(p.get("run", ""))]
+    assert len(passi) == 1, passi
+    assert passi[0].get("if") == "inputs.pubblica != ''"
+
+
+def test_le_licenze_del_pacchetto_pubblicato_non_sono_saltate():
+    """Il controllo delle licenze era disattivato qui, e andava bene finche'
+    il pacchetto serviva solo a dire si'/no. Da quando viene firmato e
+    pubblicato, distribuire un THIRD_PARTY.md che non descrive cio' che c'e'
+    dentro e' un problema di licenze -- pystray e' LGPL."""
+    testo = (RADICE / ".github" / "workflows" / "portable.yml").read_text(encoding="utf-8")
+    passi = [p.get("name", "") for p in _portable()["steps"]]
+    assert any("icenze" in n for n in passi), passi
+    assert "MR_RAO_GATE_NO_LICENCE_CHECK: " not in testo, (
+        "il controllo delle licenze e' di nuovo disattivato nel workflow"
+    )

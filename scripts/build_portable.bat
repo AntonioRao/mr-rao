@@ -38,6 +38,29 @@ REM i file esistano.
 python -c "import sys;from pathlib import Path;m=[f for f in ('static/img/logo.png','static/img/favicon.ico','static/img/mr-rao.ico','static/img/favicon-64.png') if not Path(f).exists()];sys.exit(('mancano: '+', '.join(m)) if m else 0)"
 if errorlevel 1 exit /b 1
 
+REM Licenze rigenerate dentro QUESTO venv, se richiesto.
+REM
+REM Serve quando il pacchetto costruito qui verra' distribuito: THIRD_PARTY.md
+REM elenca le versioni risolte sulla macchina di chi l'ha generato, e su un
+REM runner pulito pip ne installa altre. Finche' il build serve solo a dire
+REM si'/no la differenza e' accettabile; da quando il pacchetto viene firmato
+REM e pubblicato non lo e' piu', perche' si distribuirebbe un elenco di
+REM licenze che non descrive cio' che c'e' dentro -- e fra quelle c'e'
+REM pystray (LGPL), che in redistribuzione ha obblighi veri.
+REM
+REM Sta qui e non nel workflow di proposito: qui il venv e' gia' quello che
+REM costruira' il pacchetto, quindi «stesso ambiente» e' vero per
+REM costruzione. Nel workflow avrebbe richiesto un `pip install` suo, cioe'
+REM proprio l'ambiente preparato a mano che quel lavoro deve escludere.
+REM
+REM Spento di default: in locale THIRD_PARTY.md e' un file versionato, e
+REM riscriverlo a ogni build lascerebbe modifiche non richieste.
+if defined MR_RAO_RIGENERA_LICENZE (
+    echo Licenze rigenerate da questo venv...
+    python scripts\gen_third_party.py
+    if errorlevel 1 exit /b 1
+)
+
 echo.
 echo [2/7] Quality gate...
 call scripts\quality_gate.bat

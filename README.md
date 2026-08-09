@@ -10,7 +10,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.10.0-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-834%20passing-10b981)](tests/)
+[![Tests](https://img.shields.io/badge/tests-838%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -20,6 +20,8 @@
 
 *Extract the zip, double-click `Installa Mr Rao.bat`. That's it.*
 <sub>The download starts straight away. [All releases and release notes](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
+
+<sub>**Want to be sure it is the right file?** The package is signed with [Sigstore](https://www.sigstore.dev/): `gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao` tells you whether it really came out of this repository, from which commit and which build. No key to obtain. Details and limits in [PORTABLE.md](docs/PORTABLE.md#verificare-il-pacchetto).</sub>
 
 ![Mr. Rao — from file to redacted Markdown in ten seconds](docs/img/demo.gif)
 
@@ -339,7 +341,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Five steps: compilation, dependency health, licence alignment, published-docs alignment, **834 tests**.
+Five steps: compilation, dependency health, licence alignment, published-docs alignment, **838 tests**.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 

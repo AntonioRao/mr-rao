@@ -10,7 +10,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Versione](https://img.shields.io/badge/versione-1.10.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-834%20passati-10b981)](tests/)
+[![Test](https://img.shields.io/badge/test-838%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -20,6 +20,8 @@
 
 *Estrai lo zip, doppio clic su `Installa Mr Rao.bat`. Fatto.*
 <sub>Lo scaricamento parte subito. [Tutte le versioni e le note di rilascio](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
+
+<sub>**Vuoi essere sicuro che sia il file giusto?** Il pacchetto è firmato con [Sigstore](https://www.sigstore.dev/): `gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao` dice se è uscito davvero da questo repository, da quale commit e da quale build. Nessuna chiave da procurarsi. Dettagli e limiti in [PORTABLE.md](docs/PORTABLE.md#verificare-il-pacchetto).</sub>
 
 ![Mr. Rao — dal file al Markdown redatto, in dieci secondi](docs/img/demo.gif)
 
@@ -353,7 +355,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **834 test**.
+Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **838 test**.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 
