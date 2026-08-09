@@ -914,6 +914,10 @@
         <strong>Single user, local</strong>
         <p>No authentication. Exposing the port to a network without a proxy in front is a deliberate mistake.</p>
       </div>
+      <div class="limit">
+        <strong>Windows will say “unknown publisher”</strong>
+        <p>The package is not Windows code-signed yet, so the warning appears — and you should see it. An application for free code signing has been submitted to the <a class="glow" href="https://signpath.org/" target="_blank" rel="noopener noreferrer">SignPath Foundation</a>. Meanwhile every release ships SHA-256 sums and Sigstore attestations, which tell you which build produced the file — a stronger guarantee that Windows happens not to read. What will and will not change is written in the <a class="glow" href="https://github.com/AntonioRao/mr-rao/blob/main/docs/CODE-SIGNING-POLICY.md" target="_blank" rel="noopener noreferrer">code signing policy</a>.</p>
+      </div>
     </div>
   </section>
 
