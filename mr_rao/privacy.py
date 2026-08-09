@@ -478,9 +478,10 @@ _RE_DOC_ID_CTX = re.compile(
 # corso della riunione"): l'indirizzo si riconosce perche' subito dopo c'e'
 # almeno una parola con l'iniziale maiuscola.
 _ADDRESS_KW = (
-    r"via|viale|v\.le|vicolo|vico|piazza|p\.zza|p\.za|piazzale|largo|corso|"
+    r"via|viale|v\.le|vicolo|vico|v\.lo|piazza|p\.zza|p\.za|piazzale|p\.le|"
+    r"largo|l\.go|corso|"
     r"c\.so|strada|stradale|contrada|c\.da|localita|località|loc|frazione|"
-    r"fraz|borgo|lungomare|lungotevere|lungarno|salita|discesa|traversa|"
+    r"fraz|borgo|b\.go|lungomare|lungotevere|lungarno|salita|discesa|traversa|"
     r"circonvallazione|rotonda|galleria|passeggiata|riviera|calle|molo|"
     r"banchina|villaggio|residenza|rione|viottolo|sentiero"
 )
@@ -559,11 +560,23 @@ _RE_ADDRESS = re.compile(
     # seguito da una parola vera, altrimenti «via II» da solo basterebbe.
     rf"(?P<body>(?:[IVXLC]{{1,5}}\s+(?=[A-Za-zÀ-ÿ]))?"
     rf"(?:{_CONN}\s+)*"
+    # «Via A. Volta 5», «Viale G. Cesare 12», «Via G. B. Vico 3»: sulla
+    # carta intestata e sui moduli il nome della strada porta l'iniziale
+    # puntata invece del nome per esteso. Senza questo pezzo il corpo non
+    # poteva nemmeno *cominciare* -- `_TOK` pretende una lettera minuscola
+    # oppure tre maiuscole, e «A.» non ha ne' l'una ne' le altre -- e
+    # l'indirizzo intero restava nel documento. Misurato su 200 indirizzi
+    # di questa forma: zero riconosciuti prima, tutti dopo.
+    rf"(?:[A-ZÀ-ÖØ-Þ]\.[ \t]*){{0,2}}"
     rf"(?:\w+['’])?{_TOK}"
     rf"(?:\s+(?:{_CONN}\s+|e\s+)?(?:\w+['’])?{_TOK}){{0,3}})"
     rf"(?P<roman>\s+[IVXLC]{{1,5}}(?![\w]))?"
+    # Il suffisso del civico («12/A», «7-bis») non deve poter mordere la
+    # parola dopo: su «via C. Colombo 44 - Roma» si prendeva «- Rom» come
+    # suffisso e lasciava indietro una «a» orfana. Deve finire dove finisce
+    # la parola, non tre lettere dentro.
     rf"(?P<civ>\s*,?\s*(?:n\.?|nr\.?|snc|km)?\s*\d{{1,4}}"
-    rf"(?:\s*[/\-]\s*[A-Za-z0-9]{{1,3}})?)?"
+    rf"(?:\s*[/\-]\s*[A-Za-z0-9]{{1,3}}(?![A-Za-zÀ-ÿ]))?)?"
     rf"(?P<cap>\s*[,\-–]?\s*\d{{5}}\s+{_TOK}(?:\s+{_TOK})?)?"
 )
 
@@ -1183,6 +1196,59 @@ def _is_common_word(token: str) -> bool:
     return t in COMMON_CAPITALIZED or t in _ADDRESS_STOPWORDS
 
 
+# Due parole stanno nell'elenco delle parole comuni per un motivo solo: sono
+# meta' del nome di una regione. Ma «Giulia» ed «Emilia» sono anche due dei
+# nomi di battesimo piu' diffusi in Italia, e il prezzo era che
+# «la dott.ssa Giulia Conti» restava intera nel documento -- comune e
+# cognome comune, nessuno dei due contava come prova.
+#
+# Toglierle dall'elenco avrebbe rotto «Friuli Venezia Giulia» ed «Emilia
+# Romagna», che nei documenti amministrativi ci sono quasi sempre. Quindi
+# non si toglie niente: si guarda la parola accanto. E' la stessa regola di
+# sempre -- si allenta solo dove c'e' qualcosa che possa dire di no -- e qui
+# a dire di no e' il vicino, non un conto.
+_LOCUZIONI_GEOGRAFICHE = {
+    "giulia": {"prima": frozenset({"venezia"}), "dopo": frozenset()},
+    "emilia": {"prima": frozenset(), "dopo": frozenset({"romagna"})},
+}
+
+
+def _cognome_appoggiato(tokens: list[str]) -> bool:
+    """L'ultima parola e' comune, ma e' un cognome noto e davanti ha un nome.
+
+    Quarantadue cognomi degli elenchi sono anche parole comuni: Conti,
+    Villa, Carta, Porta, Valle, Forte, Gentile, Grande, e i nomi di citta'
+    che sono cognomi frequentissimi -- Napoli, Ferrara, Messina, Catania,
+    Salerno, Ragusa, Udine, Brescia. Dopo un titolo professionale la
+    potatura di coda li buttava via uno per uno, e «il dott. Marco Conti»
+    usciva come «il dott. {{NAME}} Conti»: il nome tolto e il cognome
+    lasciato, che e' il modo peggiore di sbagliare -- il documento sembra
+    trattato e il dato che identifica la persona e' ancora li'.
+
+    Non basta che l'ultima parola sia un cognome: deve avere davanti una
+    parola che negli elenchi c'e' davvero. E' la prova che si tratta di una
+    coppia nome-cognome e non della parola comune finita per caso in fondo
+    a una frase.
+    """
+    if len(tokens) < 2:
+        return False
+    ultimo = tokens[-1].lower().strip("'’-.,;:")
+    prima = tokens[-2].lower().strip("'’-.,;:")
+    return (ultimo in SURNAMES
+            and (prima in FIRST_NAMES or prima in SURNAMES))
+
+
+def _is_common_in_context(tokens: list[str], i: int) -> bool:
+    """Come ``_is_common_word``, ma sa cosa c'e' intorno."""
+    t = tokens[i].lower().strip("'’-.,;:")
+    loc = _LOCUZIONI_GEOGRAFICHE.get(t)
+    if loc is not None:
+        prec = tokens[i - 1].lower().strip("'’-.,;:") if i > 0 else ""
+        succ = tokens[i + 1].lower().strip("'’-.,;:") if i + 1 < len(tokens) else ""
+        return prec in loc["prima"] or succ in loc["dopo"]
+    return _is_common_word(tokens[i])
+
+
 # Terminazioni tipiche di sostantivi e aggettivi italiani. Nessun elenco di
 # parole puo' essere completo, ma la morfologia non ha bisogno di elenchi:
 # "Industriale" e "Tecnico" finiscono come finiscono le parole, non come
@@ -1407,7 +1473,10 @@ def _scrub_documenti_id(text: str, report: RedactionReport) -> str:
 def _scrub_addresses(text: str, report: RedactionReport) -> str:
     def _sub(m: re.Match) -> str:
         corpo = m.group("body")
-        first = corpo.split()[0].lower().strip(".,'’")
+        # Le iniziali puntate non sono la parola che decide: in «Via A.
+        # Volta» la parola da confrontare con l'elenco e' «Volta».
+        parole = [p for p in corpo.split() if not re.fullmatch(r"[A-Za-zÀ-ÿ]\.", p)]
+        first = (parole[0] if parole else corpo.split()[0]).lower().strip(".,'’")
         if first in _ADDRESS_STOPWORDS:
             return m.group(0)
         # Tutto maiuscolo: serve anche il numero civico.
@@ -1444,7 +1513,9 @@ def _scrub_names(
     def _title_sub(m: re.Match) -> str:
         name = m.group("name")
         tokens = name.split()
-        while tokens and _is_common_word(tokens[-1]):
+        while tokens and _is_common_in_context(tokens, len(tokens) - 1):
+            if _cognome_appoggiato(tokens):
+                break
             tokens.pop()
         if not tokens:
             return m.group(0)
@@ -1459,7 +1530,7 @@ def _scrub_names(
         name = m.group("name")
         tokens = name.split()
         dropped = []
-        while tokens and _is_common_word(tokens[0]):
+        while tokens and _is_common_in_context(tokens, 0):
             dropped.append(tokens.pop(0))
         if not tokens:
             return m.group(0)
@@ -1488,7 +1559,8 @@ def _scrub_names(
     def _firma_sub(m: re.Match) -> str:
         name = m.group("name")
         tokens = [t.lower().strip("'’-.,;:") for t in name.split()]
-        if not tokens or all(_is_common_word(t) or _is_entity_word(t) for t in tokens):
+        if not tokens or all(_is_common_in_context(tokens, i) or _is_entity_word(t)
+                             for i, t in enumerate(tokens)):
             return m.group(0)
         report.add("names")
         return m.group(0).replace(name, "{{NAME}}", 1)
@@ -1513,7 +1585,7 @@ def _scrub_names(
         # i tipi di via, qui le parole di ente.
         if any(_is_entity_word(t) for t in tokens):
             return m.group(0)
-        common = [_is_common_word(t) for t in tokens]
+        common = [_is_common_in_context(tokens, i) for i in range(len(tokens))]
 
         pieces: list[tuple[str, int]] = []  # (testo, indice ultimo token)
         i = 0

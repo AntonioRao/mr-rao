@@ -1,5 +1,86 @@
 # Changelog
 
+## 1.16.0 — Il cognome che sopravviveva al nome
+
+Terza girata della stessa manopola: **valori diversi**, questa volta sul
+resto del pacchetto italiano — i nomi in forme diverse dalla coppia
+semplice, gli indirizzi come si scrivono davvero, i codici fiscali che non
+sono quelli dell'esempio, i numeri verdi, gli URL, i segreti. Ventisei
+forme, duecento valori distinti ciascuna.
+
+Ne sono usciti **tre difetti**, e nessuno riguardava un caso raro.
+
+### «Giulia» non era un nome
+
+Stava nell'elenco delle parole comuni per un motivo solo: fa parte di
+**Friuli Venezia Giulia**. Stessa storia per «Emilia», che sta in «Emilia
+Romagna». Sono due dei nomi di battesimo più diffusi in Italia, e la
+conseguenza era che *«la dott.ssa Giulia Conti»* usciva dal documento
+intera: nessuna delle due parole contava come prova.
+
+Toglierle dall'elenco avrebbe fatto sparire mezza Italia amministrativa dai
+documenti. Quindi non si è tolto niente: **decide la parola accanto**. Se
+prima c'è «Venezia» o dopo c'è «Romagna» è una regione; altrimenti è una
+persona. È la regola di sempre — si allenta solo dove c'è qualcosa che
+possa dire di no — con il vicino al posto del conto.
+
+### Il cognome sopravviveva al nome
+
+Quarantadue cognomi degli elenchi sono anche parole comuni: Conti, Villa,
+Carta, Porta, Valle, Forte, Gentile, Grande, e i nomi di città che in
+Italia sono cognomi frequentissimi — Napoli, Ferrara, Messina, Catania,
+Salerno, Ragusa, Udine, Brescia.
+
+Dopo un titolo professionale la potatura di coda li buttava via uno per
+uno, e *«il dott. Marco Conti»* usciva come *«il dott. NOME Conti»*.
+**Il nome tolto e il cognome lasciato**: il modo peggiore di sbagliare,
+perché il documento sembra trattato e il dato che identifica la persona è
+ancora lì.
+
+Ora l'ultima parola resta se è un cognome noto **e** ha davanti una parola
+che negli elenchi c'è davvero. Non basta la forma: serve la coppia.
+
+### Gli indirizzi con l'iniziale puntata non esistevano
+
+*«Via A. Volta 5»*, *«piazza G. Verdi 1»*, *«via C. Colombo 44»*: sulla
+carta intestata e sui moduli il nome della strada porta l'iniziale puntata
+invece del nome per esteso. Il corpo dell'indirizzo non poteva nemmeno
+**cominciare** — pretendeva una lettera minuscola oppure tre maiuscole, e
+`A.` non ha né l'una né le altre.
+
+Misurato sul corpus a verità zero, dove il motore prima non sostituiva
+**nulla**: la correzione tira fuori **41 indirizzi veri** dai dodici numeri
+di Gazzetta Ufficiale, fra cui la sede del Ministero dell'ambiente e quella
+dell'Istituto Poligrafico stampata su ogni fascicolo. **Zero** falsi
+positivi: `via PEC, 30` e `via FTP, 12` restano intatti, perché l'elenco
+delle parole-trappola continua a decidere sulla prima parola vera, non
+sull'iniziale.
+
+Nella stessa riga: aggiunte le abbreviazioni postali che mancavano
+(`P.le`, `L.go`, `V.lo`, `B.go` — c'erano già `V.le`, `P.zza`, `C.so`,
+`C.da`), e il suffisso del civico non morde più la parola dopo: su *«via
+C. Colombo 44 - Roma»* si prendeva «- Rom» e lasciava indietro una «a».
+
+### Quello che invece andava bene
+
+Ventitré forme su ventisei erano già al 100%: cognomi con la particella
+(De, Di, Lo, Della), con l'apostrofo (D'Angelo, Dell'Orto), accentati,
+nomi composti, codici fiscali **femminili** (giorno di nascita +40) e di chi
+è **nato all'estero** (codice comune `Z…`), partita IVA in entrambe le
+grafie, civico con la lettera, indirizzi senza CAP, numeri verdi 800 e
+servizi 199, prefissi esteri, URL, JWT, chiavi AWS, importi e date di
+nascita.
+
+E un difetto era il banco, non il motore: *«Via S. dei Mille»* non è un
+indirizzo — l'iniziale sta al posto del nome di battesimo, e «dei Mille» non
+ne ha uno. Ventidue casi su duecento che sembravano una perdita. È lo stesso
+errore dei SIN canadesi che cominciavano per zero nella 1.15.0, ed è scritto
+nel docstring del generatore perché non si ripeta.
+
+**Costo sui 54 documenti a verità zero: nessuna sostituzione nuova che non
+sia un indirizzo vero.** 979 test, 24 nuovi, 16 dei quali rossi sul commit
+precedente.
+
 ## 1.15.0 — Cambiare la frase non basta: bisogna cambiare il valore
 
 La 1.14.0 aveva misurato il motore su **una cornice diversa**: lo stesso

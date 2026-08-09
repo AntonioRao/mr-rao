@@ -56,7 +56,7 @@ avanti in questa pagina, non un'ipotesi.
 | IBAN | `{{IBAN}}` | **Mod-97** (ISO 13616), anche scritto a gruppi di quattro come lo stampano le banche |
 | Coordinate non-IBAN | `{{BBAN}}` | CIN+ABI+CAB+conto, con contesto bancario vicino |
 | Carte di pagamento | `{{CARD}}` | **Luhn** (ISO/IEC 7812) |
-| Indirizzi | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada e altri, con civico, CAP e comune |
+| Indirizzi | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada e altri, anche abbreviati (`V.le`, `P.zza`, `P.le`, `L.go`, `C.so`); nome per esteso o con l'iniziale puntata (`Via A. Volta`); con civico, CAP e comune |
 | Nomi di persona | `{{NAME}}` | Vedi sotto |
 | Chiavi e password | `{{SECRET}}` | Token, chiavi API, JWT, blocchi di chiave privata, `password: ...` |
 | Documenti d'identità | `{{DOC_ID}}` | Carta d'identità elettronica, patente, passaporto. **Serve il tipo di documento scritto vicino**, vedi sotto |
@@ -130,6 +130,28 @@ contesto, dal segnale più forte al più debole:
 
 Tutte e tre chiedono **un riscontro**. Ce n'era una quarta che non lo
 chiedeva, ed è stata tolta.
+
+### Quando la parola comune è anche un cognome
+
+Quarantadue cognomi degli elenchi sono anche parole comuni italiane —
+Conti, Villa, Carta, Porta, Valle, Forte, Gentile, Grande — o nomi di città
+che in Italia sono cognomi frequentissimi: Napoli, Ferrara, Messina,
+Catania, Salerno, Udine, Brescia. Fino alla 1.15.0 la parola comune vinceva
+sempre, e *«il dott. Marco Conti»* usciva come *«il dott. NOME Conti»*: il
+nome tolto e il cognome lasciato, cioè il documento che sembra trattato e
+non lo è.
+
+Dalla 1.16.0 l'ultima parola resta se è un cognome noto **e** ha davanti
+una parola che negli elenchi c'è davvero. Serve la coppia: la sola forma
+non basta, altrimenti ogni «Valle» a fine frase diventerebbe una persona.
+
+Due parole meritano una nota a parte. **Giulia** ed **Emilia** stavano fra
+le parole comuni per un motivo solo: fanno parte di *Friuli Venezia Giulia*
+e *Emilia Romagna*. Sono anche due dei nomi di battesimo più diffusi in
+Italia. Toglierle dall'elenco avrebbe fatto sparire mezza Italia
+amministrativa dai documenti, quindi non si è tolto niente: **decide la
+parola accanto**. Se prima c'è «Venezia» o dopo c'è «Romagna» è una regione,
+altrimenti è una persona.
 
 ### La regola ritirata, e cosa costa averla tolta
 
@@ -242,6 +264,28 @@ Due non reggevano, e sono stati corretti nella 1.15.0:
 Resta a zero, per scelta documentata, la **partita IVA nuda**: undici cifre
 senza prefisso `IT` né contesto fiscale vicino sono indistinguibili da un
 numero qualsiasi.
+
+La stessa domanda girata sui **venti riconoscitori anglosassoni** e sui
+documenti d'identità — NHS, National Insurance, SSN, ITIN, routing ABA, SIN,
+ABN, TFN, tutti e sei i formati di codice postale britannico, MRZ, BBAN,
+carta d'identità, patente, passaporto — non ha trovato niente:
+`scripts/bench_varieta_en.py`, tutti al 100%.
+
+Sul **resto del pacchetto italiano** (`scripts/bench_varieta_it.py`,
+ventisei forme, duecento valori ciascuna) sono usciti invece tre difetti,
+corretti nella 1.16.0: i due sui nomi descritti sopra, e gli **indirizzi con
+l'iniziale puntata** — *«Via A. Volta 5»*, *«piazza G. Verdi 1»* — che il
+riconoscitore non poteva nemmeno cominciare a leggere. Quest'ultimo,
+misurato sul corpus a verità zero dove il motore non sostituiva **nulla**,
+tira fuori **41 indirizzi veri** da dodici numeri di Gazzetta Ufficiale, con
+zero falsi positivi: `via PEC, 30` e `via FTP, 12` restano intatti.
+
+Reggevano già: cognomi con la particella (De, Di, Lo, Della), con
+l'apostrofo (D'Angelo, Dell'Orto), accentati, nomi composti; codici fiscali
+**femminili** (giorno di nascita +40) e di chi è **nato all'estero** (codice
+comune `Z…`); civico con la lettera, indirizzi senza CAP; numeri verdi 800,
+servizi 199, prefissi esteri; URL, JWT, chiavi AWS, importi, date di
+nascita.
 
 ### La parità fra i formati
 
