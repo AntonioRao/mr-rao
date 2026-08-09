@@ -27,7 +27,19 @@ class Job:
         return self.cancel_flag
 
     def set_progress(self, current: int, total: int, message: str = "") -> None:
+        """Aggiorna l'avanzamento -- ma un annullato non torna in corsa.
+
+        Il convertitore si accorge dell'annullamento solo al confine fra due
+        fasi, e nel frattempo continua a riferire avanzamenti: ognuno rimetteva
+        lo stato a «running» e sovrascriveva il messaggio dell'annullamento.
+        Chi aveva appena premuto Annulla vedeva la barra ripartire, per tutto
+        il tempo che mancava alla fine della fase in corso -- su un PDF con OCR
+        non e' un lampo. Il lavoro annullato ha gia' un esito: qui non si tocca
+        piu' niente.
+        """
         with self.lock:
+            if self.cancel_flag:
+                return
             self.progress = current
             self.total = max(total, 1)
             self.message = message

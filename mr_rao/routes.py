@@ -298,6 +298,16 @@ def _run_job_single(job_id: str, data: bytes, filename: str, options: ConvertOpt
 
 def _run_job_single_inner(job, data: bytes, filename: str, options: ConvertOptions) -> None:
     with job.lock:
+        # Annullato mentre era **in coda**. Dietro `MAX_WORKERS` i lavori
+        # aspettano il loro turno, e un annullamento arrivato in quella
+        # finestra veniva sovrascritto proprio qui: `cancel()` aveva gia'
+        # scritto «cancelled», il worker prendeva il lavoro in mano e lo
+        # riportava a «running». Il lavoro vero non partiva comunque -- il
+        # convertitore esce al primo controllo -- ma chi guardava la pagina
+        # vedeva la barra ripartire su qualcosa che aveva appena annullato,
+        # ed e' l'unica cosa che conta per chi ha premuto quel tasto.
+        if job.cancel_flag:
+            return
         job.status = "running"
         job.message = t("job_avvio", options.lingua)
 
@@ -355,6 +365,9 @@ def _run_job_batch_inner(
     compare: bool = False,
 ) -> None:
     with job.lock:
+        # Stessa finestra del lavoro singolo: annullato mentre era in coda.
+        if job.cancel_flag:
+            return
         job.status = "running"
         job.total = len(items)
         job.message = t("job_batch", options.lingua)

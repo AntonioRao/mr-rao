@@ -158,13 +158,25 @@ def start_watch(
         _state.message = t("watch_msg_in_attesa", _state.options.lingua)
         _state._seen.clear()
         _state._in_arrivo.clear()
-        _state._stop.clear()
+        # Segnale di stop *nuovo*, non lo stesso riazzerato: `stop_watch()`
+        # aspetta il thread precedente al massimo 3 secondi, e una conversione
+        # piu' lunga di cosi' (un PDF con OCR ci mette molto di piu') lo lascia
+        # vivo. Con un segnale condiviso, quel `clear()` gli diceva di
+        # ricominciare: il vecchio giro tornava a lavorare sullo stato del
+        # nuovo, e restavano due cartelle sorvegliate al posto di una --
+        # per sempre, fino al prossimo stop. Ora il segnale gia' alzato resta
+        # alzato per chi lo stava guardando, e quel thread muore appena finisce
+        # il file che aveva per le mani.
+        _state._stop = threading.Event()
+        stop = _state._stop
         _state.running = True
         # `thread`, non `t`: `t` e' la funzione delle traduzioni, e una
         # variabile locale con lo stesso nome la renderebbe irraggiungibile
         # *in tutta la funzione* -- anche nelle righe qui sopra, che vengono
         # prima dell'assegnamento.
-        thread = threading.Thread(target=_loop, daemon=True, name="mr-rao-watch")
+        thread = threading.Thread(
+            target=_loop, args=(stop,), daemon=True, name="mr-rao-watch"
+        )
         _state._thread = thread
         thread.start()
     return get_watch_state()
@@ -183,8 +195,10 @@ def stop_watch() -> dict[str, Any]:
     return get_watch_state()
 
 
-def _loop() -> None:
-    while not _state._stop.is_set():
+def _loop(stop: threading.Event) -> None:
+    """Il giro di sorveglianza. `stop` e' il segnale *di questo giro*: se ne
+    parte un altro, questo resta alzato e chi lo sta guardando esce."""
+    while not stop.is_set():
         try:
             with _state._lock:
                 inbox = Path(_state.inbox)
@@ -198,7 +212,7 @@ def _loop() -> None:
             else:
                 candidati: set[str] = set()
                 for path in sorted(inbox.iterdir()):
-                    if _state._stop.is_set():
+                    if stop.is_set():
                         break
                     if not path.is_file():
                         continue
@@ -272,9 +286,14 @@ def _loop() -> None:
                 _state.message = t("watch_msg_errore", _state.options.lingua)
         # sleep in chunks for responsive stop
         for _ in range(int(_state.interval * 10)):
-            if _state._stop.is_set():
+            if stop.is_set():
                 break
             time.sleep(0.1)
     with _state._lock:
+        # Solo se la sorveglianza in piedi e' ancora la nostra: un giro
+        # vecchio, uscito in ritardo perche' stava finendo un file, non deve
+        # spegnere sulla carta quello appena acceso.
+        if _state._stop is not stop:
+            return
         _state.running = False
         _state.message = t("watch_msg_non_attivo", _state.options.lingua)
