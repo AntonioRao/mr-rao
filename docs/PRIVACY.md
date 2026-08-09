@@ -41,6 +41,32 @@ spiegare guardando la regola che l'ha prodotta.
 | Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
 | Termini tuoi | `{{TERM}}` | L'elenco «nascondi sempre» scritto da chi converte |
 
+### Il pacchetto anglosassone
+
+Arrivato con la 1.8.0 e rimasto fuori da questa tabella fino alla 1.11 — un
+buco che oggi non può ripetersi, perché `scripts/check_docs.py` confronta i
+segnaposto che il motore sa emettere con quelli scritti qui e **fallisce** se
+ne trova uno solo di troppo.
+
+| Tipo | Segnaposto | Come viene deciso |
+|------|-----------|-------------------|
+| NHS number (UK) | `{{NHS_NUMBER}}` | **Mod-11**. È un conto vero: una cifra sbagliata non passa |
+| Routing bancario ABA (US) | `{{ROUTING_NUMBER}}` | Checksum pesato **3-7-1** *più* gli intervalli di prefisso in uso |
+| ABN (AU) | `{{ABN}}` | **Mod-89**, con la sottrazione di 1 alla prima cifra |
+| TFN (AU) | `{{TFN}}` | **Mod-11** pesato |
+| SIN (CA) | `{{SIN}}` | **Luhn** |
+| Zona a lettura ottica dei passaporti | `{{MRZ}}` | Cifra di controllo **ICAO 9303** — documento, nascita, scadenza e composita |
+| National Insurance number (UK) | `{{NINO}}` | **Nessun checksum**: struttura, più i prefissi che l'HMRC non assegna |
+| SSN (US) | `{{SSN}}` | **Nessun checksum**: struttura, più le esclusioni pubblicate dalla SSA |
+| ITIN (US) | `{{ITIN}}` | **Nessun checksum**: struttura e intervalli IRS |
+| Codice postale britannico | `{{POSTCODE}}` | **Nessun checksum**, come ogni codice postale: solo la struttura |
+
+La divisione fra le due metà è la cosa da leggere. Dove c'è un conto, il
+riconoscitore **dimostra**; dove non c'è, può solo escludere ciò che è
+palesemente impossibile — e su quei quattro il rischio di prendere un codice
+qualsiasi resta più alto. È la stessa ragione per cui i documenti d'identità
+italiani pretendono il contesto.
+
 ### Perché i documenti d'identità pretendono il contesto
 
 È l'unico riconoscitore che non può appoggiarsi a un conto, e conviene dirlo

@@ -242,6 +242,8 @@ python -m mr_rao.cli convert folder\*.pdf --merge -o all.md
 python -m mr_rao.cli watch .\inbox .\outbox --move-done
 ```
 
+**→ [Every command and every option](docs/CLI.md)**
+
 ### Docker
 
 ```bash
@@ -347,6 +349,7 @@ The tests do not just cover the happy path. They cover the defects that cost the
 
 - [Architecture](docs/ARCHITECTURE.md) · [Privacy](docs/PRIVACY.md) · [Privacy FAQ (reviewers)](docs/PRIVACY_FAQ.md) · [Changelog](docs/CHANGELOG.md)
 - [Backlog](docs/BACKLOG.md) — what's missing, in priority order
+- [Command line](docs/CLI.md) — every command and every option
 - [Portable build](docs/PORTABLE.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 
 ## Configuration

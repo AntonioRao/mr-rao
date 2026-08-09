@@ -109,6 +109,68 @@ def conteggi_incoerenti(reale: int) -> list[str]:
     return problemi
 
 
+def segnaposto_non_documentati() -> list[str]:
+    """Ogni segnaposto che il motore puo' emettere dev'essere in PRIVACY.md.
+
+    Nasce da un difetto reale e ripetuto: i documenti d'identita' sono usciti
+    e non erano scritti da nessuna parte, e prima di loro dieci riconoscitori
+    del pacchetto inglese — SSN, NINO, NHS number — erano nel programma dalla
+    1.8.0 senza una riga nella tabella.
+
+    Il gate diceva verde perche' guardava versioni, conteggi e link: non
+    poteva accorgersi di una funzione senza documentazione. Un controllo che
+    su una cosa non puo' fallire, su quella cosa non e' una verifica.
+
+    Il segnaposto e' il punto giusto dove guardare perche' e' cio' che
+    l'utente **vede nel documento**: un riconoscitore nuovo ne porta uno
+    nuovo, e da li' non si scappa.
+    """
+    sorgenti = "".join(
+        (ROOT / "mr_rao" / f).read_text(encoding="utf-8")
+        for f in ("privacy.py", "en_formats.py")
+        if (ROOT / "mr_rao" / f).is_file()
+    )
+    emessi = sorted(set(re.findall(r'"(\{\{[A-Z_]+\}\})"', sorgenti)))
+    privacy = (ROOT / "docs" / "PRIVACY.md").read_text(encoding="utf-8")
+    return [
+        f"docs/PRIVACY.md: il motore puo' emettere {s}, ma non e' documentato"
+        for s in emessi
+        if s not in privacy
+    ]
+
+
+def opzioni_cli_non_documentate() -> list[str]:
+    """Ogni opzione della riga di comando dev'essere in docs/CLI.md.
+
+    Il parser viene **interrogato**, non letto con un'espressione regolare:
+    un controllo che approssima cio' che deve verificare si perde proprio il
+    caso scritto in un modo che non aveva previsto, e tace.
+    """
+    sys.path.insert(0, str(ROOT))
+    from mr_rao.cli import build_parser
+
+    def opzioni(parser) -> set[str]:
+        fuori: set[str] = set()
+        for azione in parser._actions:
+            fuori.update(o for o in azione.option_strings if o.startswith("--"))
+            scelte = getattr(azione, "choices", None)
+            if hasattr(scelte, "items"):  # i sottocomandi
+                for sotto in scelte.values():
+                    fuori |= opzioni(sotto)
+        return fuori
+
+    doc = ROOT / "docs" / "CLI.md"
+    if not doc.is_file():
+        return ["docs/CLI.md non esiste: le opzioni non sono documentate"]
+    testo = doc.read_text(encoding="utf-8")
+    # `--help` la scrive argparse da sola su ogni sottocomando.
+    return [
+        f"docs/CLI.md: l'opzione {o} esiste ma non e' documentata"
+        for o in sorted(opzioni(build_parser()) - {"--help"})
+        if o not in testo
+    ]
+
+
 def test_raccolti() -> int:
     """Quanti test esistono davvero, chiesto a pytest invece che contati a mano."""
     py = ROOT / "venv" / "Scripts" / "python.exe"
@@ -133,6 +195,8 @@ def main() -> int:
         + link_rotti()
         + versioni_incoerenti()
         + conteggi_incoerenti(reale)
+        + segnaposto_non_documentati()
+        + opzioni_cli_non_documentate()
     )
     if problemi:
         print(f"DOCUMENTI DISALLINEATI ({len(problemi)}):", file=sys.stderr)

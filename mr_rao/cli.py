@@ -269,7 +269,15 @@ def cmd_health(_args: argparse.Namespace) -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """Il parser, costruito a parte da chi lo esegue.
+
+    Serve perche' `scripts/check_docs.py` possa **interrogarlo** invece di
+    leggere questo file con un'espressione regolare: il controllo che le
+    opzioni siano tutte documentate deve guardare le opzioni vere, non una
+    loro approssimazione. Una regex qui sopra si perderebbe la prima opzione
+    scritta in un modo che non aveva previsto, e tacerebbe.
+    """
     parser = argparse.ArgumentParser(
         prog="mr-rao",
         description=f"{APP_NAME} - convertitore documenti -> Markdown offline",
@@ -364,7 +372,11 @@ def main(argv: list[str] | None = None) -> int:
     p_health = sub.add_parser("health", help="Verifica dipendenze")
     p_health.set_defaults(func=cmd_health)
 
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
     return args.func(args)
 
 

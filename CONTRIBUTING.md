@@ -66,7 +66,29 @@ scripts\quality_gate.bat
 
 Deve passare: compilazione, dipendenze, licenze allineate, test.
 
-Due regole che il progetto si è dato dopo averle pagate care:
+Tre regole che il progetto si è dato dopo averle pagate care:
+
+0. **Non escono funzioni senza documentazione.** Non è buona volontà, è una
+   condizione del gate. È successo due volte: il pacchetto anglosassone è
+   uscito nella 1.8.0 con dieci riconoscitori mai entrati nella tabella di
+   `PRIVACY.md`, e i documenti d'identità sono stati spediti mentre il
+   backlog li dava ancora da fare. In entrambi i casi il gate diceva verde,
+   perché guardava versioni, conteggi e link — cose che con una funzione
+   nuova non c'entrano niente.
+
+   Ora `scripts/check_docs.py` verifica due cose che con una funzione nuova
+   c'entrano eccome:
+
+   - ogni **segnaposto** che il motore può emettere è nella tabella di
+     `docs/PRIVACY.md`. Un riconoscitore nuovo ne porta uno nuovo, e da lì
+     non si scappa;
+   - ogni **opzione della riga di comando** è in `docs/CLI.md`. Il parser
+     viene interrogato, non letto con un'espressione regolare: un controllo
+     che approssima ciò che verifica si perde proprio il caso scritto in un
+     modo che non aveva previsto.
+
+   Entrambi i controlli sono stati visti fallire prima di essere creduti.
+
 
 1. **Un test di regressione va verificato fallire sul codice di prima.**
    Un test che passa anche col bug non dimostra nulla. Se correggi qualcosa,

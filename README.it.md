@@ -245,6 +245,8 @@ python -m mr_rao.cli convert cartella\*.pdf --merge -o tutto.md
 python -m mr_rao.cli watch .\da-convertire .\convertiti --move-done
 ```
 
+**→ [Tutte le opzioni, comando per comando](docs/CLI.md)**
+
 ### Docker
 
 ```bash
@@ -361,6 +363,7 @@ I test non coprono solo il caso felice. Coprono i difetti che sono costati caro:
 
 - [Architettura](docs/ARCHITECTURE.md) — com'è fatto dentro
 - [Privacy](docs/PRIVACY.md) — cosa viene riconosciuto e come
+- [Riga di comando](docs/CLI.md) — ogni comando e ogni opzione
 - [FAQ privacy per reviewer](docs/PRIVACY_FAQ.md) — undici domande tipiche di chi ispeziona il motore
 - [Changelog](docs/CHANGELOG.md) — cosa è cambiato e perché
 - [Backlog](docs/BACKLOG.md) — cosa manca, in ordine di priorità
