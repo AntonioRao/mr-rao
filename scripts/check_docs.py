@@ -13,7 +13,7 @@ che esistono. Un controllo che parte dall'elenco delle cose che ho in mano
 trova solo quello che ho gia' guardato. Questo parte da `git ls-files`,
 che non sa cosa ho toccato oggi.
 
-Sette invarianti, tutte verificabili senza leggere il testo:
+Otto invarianti, tutte verificabili senza leggere il testo:
 
 1. nessun identificativo duplicato nel backlog — «P2.7» ha significato due
    cose per qualche ora, in due stati diversi;
@@ -22,11 +22,20 @@ Sette invarianti, tutte verificabili senza leggere il testo:
 4. i conteggi di test dichiarati coincidono con quelli veri;
 5. ogni segnaposto che il motore puo' emettere e' in PRIVACY.md;
 6. ogni opzione della riga di comando e' in CLI.md;
-7. la versione dichiarata in config.py ha la sua voce nel changelog.
+7. la versione dichiarata in config.py ha la sua voce nel changelog;
+8. le landing HTML pubblicate non dichiarano versioni o conteggi vecchi.
 
 Il changelog e' escluso da (3) e (4) apposta: e' una cronologia, e ogni
 voce cita giustamente i numeri del suo momento. Proprio quell'esclusione
 lasciava scoperto (7), cioe' il caso in cui la voce non c'e' affatto.
+
+L'ottava e' arrivata per lo stesso motivo delle prime: il controllo
+guardava i `.md`, e le landing in `docs/landing/` sono `.html`. Nessuno se
+n'e' accorto finche' `docs/landing/index.html` non ha dichiarato la
+**1.7.2** con `APP_VERSION` alla 1.11.0 — venti release di scarto su una
+pagina pubblicata, sopravvissute a un gate verde tutte le volte. Il
+formato del file non c'entra niente con l'invecchiare: cambiava solo
+l'estensione che il controllo sapeva aprire.
 
 Questa intestazione ha gia' mentito una volta: diceva «quattro» mentre i
 controlli erano sette, perche' chi ne ha aggiunti tre non e' passato di
@@ -52,11 +61,37 @@ from config import APP_VERSION  # noqa: E402
 # La cronologia cita i numeri di quando e' stata scritta: e' il suo mestiere.
 CRONOLOGIE = {"docs/CHANGELOG.md"}
 
+# Pagine che non si modificano a mano: sono rigenerate da un sorgente.
+# Dire «correggi questo file» su un artefatto vuol dire far fare una modifica
+# che il primo rebuild cancella, quindi il messaggio deve indicare il sorgente.
+RIGENERATE = {
+    "docs/landing/publish/index.html": (
+        "docs/landing/01-protocollo-zero.html",
+        "python docs/landing/publish/_rebuild.py",
+    )
+}
+
 _RE_ID = re.compile(r"^\| ([PSA]\d*\.\d+[a-z]?) \|", re.MULTILINE)
 _RE_VERSIONE = re.compile(r"(?:versione|version)[-\s:]+(\d+\.\d+\.\d+)", re.I)
 _RE_CONTEGGIO = re.compile(r"(\d{3})(?:%20)?[\s-]*(?:test|tests|passing|passati)", re.I)
 _RE_LINK = re.compile(r"\]\(([^)#:]+\.(?:md|py|txt|ico|png|yml|bat|ps1))[^)]*\)")
 _RE_VOCE_CHANGELOG = re.compile(r"^#{1,3}[ \t]*\[?v?(\d+\.\d+\.\d+)\]?", re.MULTILINE)
+
+# Le landing non scrivono «versione 1.11.0»: scrivono «(v1.11.0)» in un
+# paragrafo, «· v1.7.2» in un distintivo, «Edizione 1.7.2» in copertina.
+# _RE_VERSIONE non ne prende nessuna, e un controllo che non riconosce come
+# la pagina scrive il numero e' un controllo che dice sempre verde.
+#
+# La `v` (o la parola) e' obbligatoria apposta: un `\d+\.\d+\.\d+` da solo
+# in una pagina web pesca 127.0.0.1, che in queste landing compare cinque
+# volte ed e' la cosa piu' vera che ci sia scritta.
+_RE_VERSIONE_LANDING = re.compile(
+    r"(?:(?:versione|version|edizione|edition)[-\s:]+v?|\bv)(\d+\.\d+\.\d+)", re.I
+)
+
+# `<style>` e `<script>` sono codice, non affermazioni: dentro ci sono numeri
+# a palate (z-index, durate, coordinate) e nessuna promessa al lettore.
+_RE_CODICE_HTML = re.compile(r"(?is)<(script|style)\b[^>]*>.*?</\1\s*>")
 
 
 def documenti() -> list[Path]:
@@ -67,8 +102,45 @@ def documenti() -> list[Path]:
     return [ROOT / p for p in uscita]
 
 
+def landing() -> list[Path]:
+    """Le landing HTML **tracciate**, non quelle che stanno nella cartella.
+
+    In `docs/landing/` convivono le pagine pubblicate e gli scarti di lavoro:
+    `02-carta-bianca.html`, `03-motore-vivo.html` e le anteprime sono
+    gitignorate, dichiarano la 1.7.2 e nessuno le aggiornera' mai, perche'
+    non fanno parte del progetto. Un glob sul disco le pescherebbe e il gate
+    diventerebbe rosso per file che non esistono per chi clona il repository:
+    il modo piu' rapido per far disattivare un controllo e' fargli dire cose
+    che non riguardano nessuno.
+    """
+    uscita = subprocess.run(
+        ["git", "ls-files", "docs/landing/*.html"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    return [ROOT / p for p in uscita]
+
+
 def _relativo(f: Path) -> str:
     return f.relative_to(ROOT).as_posix()
+
+
+def _fonti_md() -> list[tuple[str, str]]:
+    """I documenti su cui hanno senso i controlli (3) e (4), gia' letti."""
+    return [
+        (_relativo(f), f.read_text(encoding="utf-8"))
+        for f in documenti()
+        if _relativo(f) not in CRONOLOGIE
+    ]
+
+
+def _fonti_landing() -> list[tuple[str, str]]:
+    return [
+        (_relativo(f), _RE_CODICE_HTML.sub(" ", f.read_text(encoding="utf-8")))
+        for f in landing()
+    ]
 
 
 def id_duplicati() -> list[str]:
@@ -94,29 +166,37 @@ def link_rotti() -> list[str]:
     return problemi
 
 
-def versioni_incoerenti() -> list[str]:
+def versioni_incoerenti(
+    fonti: list[tuple[str, str]] | None = None,
+    regex: re.Pattern[str] = _RE_VERSIONE,
+) -> list[str]:
+    """Le versioni citate come corrente devono essere APP_VERSION.
+
+    `fonti` e `regex` esistono perche' la stessa domanda si pone anche fuori
+    dai `.md` — le landing HTML — e il confronto e' identico: cambia solo
+    dove si legge e come la pagina scrive il numero. Duplicare il corpo
+    avrebbe prodotto due controlli che col tempo rispondono in modo diverso
+    alla stessa domanda, che e' esattamente il difetto che questo file esiste
+    per impedire.
+    """
     problemi = []
-    for f in documenti():
-        if _relativo(f) in CRONOLOGIE:
-            continue
-        for m in _RE_VERSIONE.finditer(f.read_text(encoding="utf-8")):
+    for nome, testo in (_fonti_md() if fonti is None else fonti):
+        for m in regex.finditer(testo):
             if m.group(1) != APP_VERSION:
                 problemi.append(
-                    f"{_relativo(f)}: dice versione {m.group(1)}, ma e' la {APP_VERSION}"
+                    f"{nome}: dice versione {m.group(1)}, ma e' la {APP_VERSION}"
                 )
     return problemi
 
 
-def conteggi_incoerenti(reale: int) -> list[str]:
+def conteggi_incoerenti(
+    reale: int, fonti: list[tuple[str, str]] | None = None
+) -> list[str]:
     problemi = []
-    for f in documenti():
-        if _relativo(f) in CRONOLOGIE:
-            continue
-        for m in _RE_CONTEGGIO.finditer(f.read_text(encoding="utf-8")):
+    for nome, testo in (_fonti_md() if fonti is None else fonti):
+        for m in _RE_CONTEGGIO.finditer(testo):
             if m.group(1) != str(reale):
-                problemi.append(
-                    f"{_relativo(f)}: dice {m.group(1)} test, ma sono {reale}"
-                )
+                problemi.append(f"{nome}: dice {m.group(1)} test, ma sono {reale}")
     return problemi
 
 
@@ -232,6 +312,61 @@ def versione_senza_changelog(
     ]
 
 
+def landing_invecchiate(reale: int) -> list[str]:
+    """Le pagine pubblicate non devono dichiarare numeri di ieri.
+
+    Sono la prima cosa che un estraneo legge del progetto e l'ultima che
+    qualcuno ricorda di aggiornare: non si rompono, non compaiono in un
+    diff quando si bumpa la versione, e nessun test le apriva. Il risultato
+    misurato: `index.html` ferma alla 1.7.2 con il programma alla 1.11.0.
+
+    Riusa i controlli (3) e (4) invece di rifarli, cosi' un `.md` e una
+    landing che dicono la stessa bugia ricevono la stessa risposta.
+    """
+    fonti = _fonti_landing()
+    if not fonti:
+        # Zero file vuol dire zero problemi, per sempre e in silenzio: e' il
+        # modo in cui questo controllo morirebbe senza che nessuno lo noti.
+        return [
+            "docs/landing/: git non traccia nessuna pagina .html. Se le landing "
+            "sono state spostate o rinominate, aggiorna landing() in "
+            "scripts/check_docs.py, altrimenti questo controllo non puo' piu' "
+            "fallire"
+        ]
+
+    problemi: list[str] = []
+    dichiarate = 0
+    for fonte in fonti:
+        nome, testo = fonte
+        dichiarate += len(_RE_VERSIONE_LANDING.findall(testo))
+        trovati = versioni_incoerenti([fonte], _RE_VERSIONE_LANDING)
+        trovati += conteggi_incoerenti(reale, [fonte])
+        sorgente = RIGENERATE.get(nome)
+        if sorgente:
+            coda = (
+                f". Non modificare questo file a mano: e' rigenerato. Correggi "
+                f"{sorgente[0]} e rilancia '{sorgente[1]}'"
+            )
+        else:
+            coda = (
+                ". Aggiorna il numero nella pagina: e' pubblicata, e la legge "
+                "chi il repository non ce l'ha"
+            )
+        problemi += [p + coda for p in trovati]
+
+    if not dichiarate:
+        # Se nessuna pagina dichiara piu' una versione, il confronto gira a
+        # vuoto: non e' una buona notizia, e' un controllo spento.
+        problemi.append(
+            "docs/landing/: nessuna pagina tracciata dichiara una versione. O il "
+            "numero e' sparito dalle landing (rimettilo: e' cio' che rende "
+            "verificabile il resto), o non e' piu' scritto in una forma che "
+            "_RE_VERSIONE_LANDING riconosce - in quel caso aggiorna la regex in "
+            "scripts/check_docs.py, perche' cosi' il controllo non puo' fallire"
+        )
+    return problemi
+
+
 def test_raccolti() -> int:
     """Quanti test esistono davvero, chiesto a pytest invece che contati a mano."""
     py = ROOT / "venv" / "Scripts" / "python.exe"
@@ -259,6 +394,7 @@ def main() -> int:
         + segnaposto_non_documentati()
         + opzioni_cli_non_documentate()
         + versione_senza_changelog()
+        + landing_invecchiate(reale)
     )
     if problemi:
         print(f"DOCUMENTI DISALLINEATI ({len(problemi)}):", file=sys.stderr)
@@ -270,7 +406,10 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
-    print(f"  documenti allineati: {len(documenti())} file, {reale} test, v{APP_VERSION}")
+    print(
+        f"  documenti allineati: {len(documenti())} file + {len(landing())} landing, "
+        f"{reale} test, v{APP_VERSION}"
+    )
     return 0
 
 
