@@ -130,10 +130,38 @@ jobs:
         env:
           MR_RAO_RIGENERA_LICENZE: "1"
 
+      # Il pacchetto per il Microsoft Store, dalla stessa build.
+      #
+      # Due confezioni dello stesso programma: lo zip per chi scarica da
+      # GitHub, l'MSIX per chi installa dallo Store. Vengono dallo stesso
+      # `dist/MrRao-Portable`, quindi non possono divergere -- costruirle in
+      # due momenti diversi vorrebbe dire due prodotti che si chiamano uguale.
+      #
+      # L'MSIX **non viene firmato qui**, ed e' il punto: lo firma Microsoft
+      # dopo la certificazione, ed e' l'intero motivo per cui questa strada
+      # non costa un certificato di code signing.
+      #
+      # Le immagini si controllano, non si rigenerano: sono artefatti
+      # versionati, come le icone del portable. Rigenerarle qui vorrebbe dire
+      # un marchio leggermente diverso a seconda della macchina.
+      - name: Immagini del pacchetto Store
+        run: venv\Scripts\python scripts\generate_msix_assets.py --check
+        shell: cmd
+
+      - name: Pacchetto MSIX
+        run: venv\Scripts\python scripts\make_msix.py
+        shell: cmd
+
       - name: Firma del pacchetto (Sigstore)
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: 'dist/MrRao-Portable*.zip'
+          # Anche l'MSIX: lo Store lo firmera' a suo nome, ma la provenienza
+          # -- da quale commit e da quale build esce -- la puo' dire solo
+          # questo passo, ed e' l'unico modo per collegare cio' che sta sullo
+          # Store a cio' che sta nel repository.
+          subject-path: |
+            dist/MrRao-Portable*.zip
+            dist/MrRao-*.msix
 
       - name: Pacchetto costruito in camera pulita
         if: github.event_name == 'workflow_dispatch'
@@ -142,6 +170,7 @@ jobs:
           name: MrRao-Portable
           path: |
             dist/MrRao-Portable-*.zip
+            dist/MrRao-*.msix
             dist/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error
