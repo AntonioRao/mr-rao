@@ -223,10 +223,10 @@ e, soprattutto, cosa è sfuggito.
   | scansione | redatti | segnalati | **persi in silenzio** | non letti dall'OCR |
   |---|---|---|---|---|
   | testo, senza OCR | 100% | 0% | 0% | 0% |
-  | scanner in ordine, 300 / 200 / 150 / 100 DPI | 89–97% | 0% | 3–9% | 0–3% |
-  | fotocopia sbiadita, 300 DPI | 92% | 2% | 5% | 2% |
-  | fotocopia sbiadita, 200 DPI | 45% | 6% | **39%** | 9% |
-  | fotocopia sbiadita, 150 DPI | 5% | 2% | **27%** | 67% |
+  | scanner in ordine, 300 / 200 / 150 / 100 DPI | 94–100% | 0% | 0–6% | 0–3% |
+  | fotocopia sbiadita, 300 DPI | 94% | 2% | 3% | 2% |
+  | fotocopia sbiadita, 200 DPI | 47% | 6% | **38%** | 9% |
+  | fotocopia sbiadita, 150 DPI | 6% | 2% | **25%** | 67% |
 
   **Non è la risoluzione.** Fra 300 e 100 DPI, su una scansione pulita, la
   copertura non peggiora: le differenze sono rumore. Quello che conta è la
@@ -235,13 +235,32 @@ e, soprattutto, cosa è sfuggito.
 
   **E la perdita è quasi sempre silenziosa.** Questa riga diceva che «quello
   che resta viene segnalato»: la misura dice di no. Dei dati rimasti leggibili
-  nel Markdown i sospetti ne intercettano una minoranza — 0 su 5 sulle
-  scansioni pulite, 4 su 29 sulla fotocopia a 200 DPI. Il motivo è
-  meccanico: dove il degrado è forte l'OCR **incolla il dato all'etichetta
-  che lo precede** (`IBANIT60X05…`, `Tel.02 1234567`, un numero di carta
-  attaccato ai puntini di guida di un modulo), e lì non parte né il
-  riconoscitore né la segnalazione. La scheda **«Confronto privacy»** resta
-  l'unico controllo che vede tutto.
+  nel Markdown i sospetti ne intercettano una minoranza — 0 su 4 sulle
+  scansioni pulite, 4 su 28 sulla fotocopia a 200 DPI. La scheda **«Confronto
+  privacy»** resta l'unico controllo che vede tutto.
+
+  **Una causa di quelle perdite è stata tolta.** Dove il degrado è forte
+  l'OCR **incolla il dato all'etichetta che lo precede** — `IBANIT60X05…`,
+  `Tel.02 1234567`, un numero di carta attaccato ai puntini di guida di un
+  modulo — e i riconoscitori, che pretendevano uno stacco davanti al
+  candidato, non arrivavano nemmeno a proporlo. Il dato passava il proprio
+  controllo aritmetico ed è rimasto in chiaro lo stesso: erano le stesse
+  cifre di prima, solo attaccate alla parola davanti.
+
+  Ora una parola incollata davanti è ammessa, e per il telefono — che non ha
+  un'aritmetica capace di smentire la forma — è ammessa **solo** la parola di
+  contatto prima del punto. Il resto non è cambiato: una **cifra** davanti
+  continua a fermare tutto, perché vorrebbe dire ritagliare un pezzo da un
+  numero più lungo. A decidere resta il mod-97, il Luhn, il carattere di
+  controllo: il pattern propone, il validatore decide.
+
+  **Il conto:** i dati persi in silenzio passano da 60 a 46 su 640 (−23%),
+  le scansioni da scanner in ordine non ne perdono più nessuno. Il costo
+  misurato prima di crederci: su 203 documenti scansionati veri i pattern
+  allentati non propongono **nemmeno un candidato**, su 434 000 caratteri di
+  testo reale ne propongono 4 e nessuno supera il validatore, e su un
+  documento amministrativo costruito apposta per farli scattare ne propongono
+  12 — sostituzioni sbagliate: zero.
 
   **I falsi positivi non peggiorano:** sui documenti di controllo a verità
   zero le sostituzioni sbagliate restano **zero a ogni livello di degrado**,

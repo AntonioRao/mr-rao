@@ -61,10 +61,54 @@ _RE_IBAN_SPAZIATO = re.compile(
     r"\b([A-Z]{2}\d{2}(?:[ \-][A-Z0-9]{2,6}){2,9})(?![\w])"
 )
 
+# L'IBAN attaccato alla propria etichetta: "IBANIT60X05428…". Non e' un caso
+# di scuola, e' come esce dall'OCR su una scansione degradata -- lo spazio
+# fra l'etichetta e il valore si perde, e i due pattern qui sopra, che
+# cominciano entrambi con \b, non arrivano nemmeno a proporlo. Il dato
+# passerebbe il mod-97: sono le stesse cifre di prima.
+#
+# Cosa e' ammesso davanti, e perche' solo quello: **lettere**. Una parola
+# incollata e' un'etichetta rimasta attaccata; una cifra davanti vorrebbe
+# dire entrare in mezzo a un numero piu' lungo, e cio' che se ne ritaglia
+# non e' un campo. Il resto non cambia di una virgola: a dire se quel pezzo
+# e' un IBAN resta il mod-97, come per ogni altro candidato.
+#
+# I due pattern coprono la parola intera, dall'inizio alla fine: e' cio' che
+# permette di provare i punti di taglio uno per uno senza che la prima prova
+# sbagliata si mangi anche le altre.
+_RE_IBAN_INCOLLATO = re.compile(
+    r"(?<![\w-])[A-Za-z]{2,}[A-Z]{2}\d{2}[A-Z0-9]{11,30}(?![\w-])"
+)
+_RE_IBAN_SPAZIATO_INCOLLATO = re.compile(
+    r"(?<![\w-])(?P<etichetta>[A-Za-z]{2,})"
+    r"(?P<valore>[A-Z]{2}\d{2}(?:[ \-][A-Z0-9]{2,6}){2,9})(?![\w])"
+)
+
+# La forma che il candidato deve avere, da sola: serve a provare dove finisce
+# l'etichetta e dove comincia l'IBAN.
+_RE_SOLO_IBAN = re.compile(r"[A-Z]{2}\d{2}[A-Z0-9]{11,30}")
+
 # Carta di pagamento: 13-19 cifre che iniziano con un IIN plausibile e
 # passano il controllo di Luhn. Senza Luhn qualunque numero lungo finirebbe
 # redatto; con Luhn e' il numero stesso a dire se e' una carta.
-_RE_CARD = re.compile(r"(?<![\w.])([3-6]\d{3}(?:[ \-]?\d{2,6}){2,4})(?![\w])")
+#
+# Il lookbehind dice due cose diverse in una riga sola:
+#
+#   (?<![0-9])     mai in mezzo a un numero piu' lungo. Questo e' il vincolo
+#                  serio, ed e' rimasto.
+#   (?<![0-9]\.)   il punto e' ammesso, **tranne** quando e' un separatore
+#                  decimale -- cioe' quando ha una cifra davanti. Cosi'
+#                  «123.4539148803436467» resta la coda di un numero, mentre
+#                  i puntini di guida di un modulo («.....3760000000000061»)
+#                  e l'etichetta incollata («carta6011111111111174») non
+#                  fanno piu' perdere il dato.
+#
+# Prima era `(?<![\w.])`, che rifiutava insieme le tre cose: la cifra, la
+# lettera e il punto. Il banco delle scansioni ha mostrato che due su tre
+# erano proprio le forme in cui una carta arriva da un modulo scansionato.
+_RE_CARD = re.compile(
+    r"(?<![0-9])(?<![0-9]\.)([3-6]\d{3}(?:[ \-]?\d{2,6}){2,4})(?![\w])"
+)
 
 # Coordinate bancarie italiane senza IBAN: CIN + ABI (5) + CAB (5) + conto
 # (12). Senza questo riconoscitore il numero non spariva del tutto: veniva
@@ -111,6 +155,30 @@ _RE_PHONE_CTX = re.compile(
     r"\b(tel|telefono|telefonico|telefonica|cell|cel|cellulare|mobile|mob|"
     r"fax|phone|recapito|centralino|whatsapp)\b"
     r"\.?\s*(?:n\.?|nr\.?|numero)?\s*[:\-]?\s*$",
+    re.IGNORECASE,
+)
+
+# «Tel.02 1234567»: l'OCR mangia lo spazio dopo l'abbreviazione e il punto
+# resta attaccato alle cifre. Il lookbehind del pattern generale rifiuta un
+# numero preceduto da un punto -- **ed e' giusto che continui a farlo**: un
+# punto davanti a delle cifre e' quasi sempre un decimale, una data o un
+# numero di articolo, e il telefono non ha un'aritmetica che possa smentire
+# la forma. Un IBAN sbagliato lo scarta il mod-97; un recapito sbagliato non
+# lo scarta nessuno.
+#
+# Quindi qui il lookbehind non e' stato allentato: questa riga **chiede di
+# piu'**, cioe' che prima del punto ci sia la parola di contatto. Non e' una
+# tolleranza, e' un contesto -- lo stesso che il motore usa gia' per
+# accettare un numero corto.
+_RE_PHONE_ETICHETTA = re.compile(
+    # `(?<!\w)` e non `\b`: senza, «Hotel.02 …» finirebbe per contenere
+    # l'etichetta «tel».
+    r"(?<!\w)"
+    r"(?P<etichetta>(?:tel|telefono|telefonico|telefonica|cell|cel|cellulare|"
+    r"mobile|mob|fax|phone|recapito|centralino|whatsapp)\.+[ \t]*)"
+    r"(?P<prefix>(?:\+|00)(?P<cc>\d{1,3})[\s.\-]?)?"
+    r"(?P<body>\d(?:[ \t\-]?\d){5,14})"
+    r"(?![\w])",
     re.IGNORECASE,
 )
 
@@ -912,13 +980,19 @@ def luhn_ok(candidate: str) -> bool:
     return total % 10 == 0
 
 
-def _phone_is_plausible(m: re.Match) -> bool:
+def _phone_is_plausible(m: re.Match, contesto: bool | None = None) -> bool:
     """Decide se una sequenza di cifre e' un numero di telefono.
 
     Accetta con prefisso internazionale, con prefisso di cellulare italiano
     (3xx) o con una parola di contesto davanti; per i fissi pretende anche
     un separatore, cosi' un numero di protocollo di dieci cifre resta al
     suo posto.
+
+    ``contesto`` serve a chi ha gia' la parola di contatto **dentro** la
+    corrispondenza — «Tel.02 1234567», dove l'etichetta e il numero escono
+    attaccati dall'OCR. Li' guardare all'indietro da ``m.start()`` leggerebbe
+    cio' che precede «Tel.», cioe' il posto sbagliato. Non e' una scorciatoia
+    per saltare il controllo: e' lo stesso controllo, fatto dove il dato sta.
     """
     body = m.group("body")
     if _RE_DATELIKE.match(body.strip()):
@@ -927,7 +1001,11 @@ def _phone_is_plausible(m: re.Match) -> bool:
     digits = re.sub(r"\D", "", body)
     n = len(digits)
     has_sep = any(sep in body for sep in (" ", "-", "."))
-    ctx = bool(_RE_PHONE_CTX.search(_context_before(m.string, m.start())))
+    ctx = (
+        contesto
+        if contesto is not None
+        else bool(_RE_PHONE_CTX.search(_context_before(m.string, m.start())))
+    )
 
     # Una numerazione di colonne si riconosce dalla forma, ma una parola di
     # contesto vale piu' della forma: se davanti c'e' scritto «tel.», e'
@@ -1471,8 +1549,38 @@ def _scrub_iban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str
         report.add("iban")
         return "{{IBAN}}"
 
+    def _sub_incollato(m: re.Match) -> str:
+        """La parola intera: qui si cerca dove finisce l'etichetta.
+
+        Si provano tutti i punti di taglio, dal piu' lungo al piu' corto, e
+        vince il primo che passa il mod-97. Provarne uno solo non basterebbe:
+        «CoordinateIT86O0200…» ha piu' di un taglio che *ha la forma* di un
+        IBAN, e uno solo e' quello vero. Se non ne passa nessuno la parola
+        torna indietro identica -- che e' il comportamento di prima.
+        """
+        parola = m.group(0)
+        for i in range(2, len(parola) - 14):
+            if not parola[i - 1].isalpha():
+                break
+            coda = parola[i:]
+            if _RE_SOLO_IBAN.fullmatch(coda) and iban_checksum_ok(coda):
+                report.add("iban")
+                return parola[:i] + "{{IBAN}}"
+        return parola
+
+    def _sub_spaziato_incollato(m: re.Match) -> str:
+        valore = m.group("valore")
+        if not iban_checksum_ok(valore):
+            return m.group(0)
+        report.add("iban")
+        return m.group("etichetta") + "{{IBAN}}"
+
     out = _RE_IBAN.sub(_sub, text)
-    return _RE_IBAN_SPAZIATO.sub(_sub, out)
+    out = _RE_IBAN_SPAZIATO.sub(_sub, out)
+    # Dopo i due esatti, e solo su cio' che e' rimasto: se il valore stava
+    # staccato l'ha gia' preso il pattern di prima.
+    out = _RE_IBAN_INCOLLATO.sub(_sub_incollato, out)
+    return _RE_IBAN_SPAZIATO_INCOLLATO.sub(_sub_spaziato_incollato, out)
 
 
 def _scrub_cards(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
@@ -1556,7 +1664,17 @@ def _scrub_phones(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
         report.add("phones")
         return "{{PHONE}}"
 
-    return _RE_PHONE.sub(_sub, text)
+    def _sub_etichetta(m: re.Match) -> str:
+        # Il contesto qui non si cerca all'indietro: **e' dentro la
+        # corrispondenza**. Cercarlo indietro da m.start() guarderebbe cio'
+        # che sta prima di «Tel.», cioe' il posto sbagliato.
+        if not _phone_is_plausible(m, contesto=True):
+            return m.group(0)
+        report.add("phones")
+        return m.group("etichetta") + "{{PHONE}}"
+
+    out = _RE_PHONE.sub(_sub, text)
+    return _RE_PHONE_ETICHETTA.sub(_sub_etichetta, out)
 
 
 def _scrub_amounts(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
