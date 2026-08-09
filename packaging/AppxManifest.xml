@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  Manifesto MSIX per il Microsoft Store.
+
+  Perche' esiste: sullo Store il pacchetto lo firma Microsoft dopo la
+  certificazione, quindi l'avviso «editore sconosciuto» non compare. E' la
+  sola strada gratuita che lo tolga davvero: l'altra opzione di Partner
+  Center, «EXE or MSI app», pretende che l'installer sia gia' firmato
+  Authenticode da noi, con un certificato a pagamento, e lo Store non lo
+  firma al posto nostro.
+
+  I tre valori di identita' qui sotto NON si inventano: li assegna lo Store
+  al momento della prenotazione del nome, e si leggono in Partner Center
+  alla voce «Product identity». Sbagliarne uno vuol dire un pacchetto che la
+  certificazione rifiuta senza spiegare granche'.
+
+  ATTENZIONE, differenze rispetto al pacchetto portable:
+
+  * il menu contestuale NON si scrive nel registro. In MSIX il registro e'
+    virtualizzato: le associazioni si **dichiarano qui sotto**, e Windows le
+    applica e le rimuove insieme al pacchetto. E' anche il motivo per cui
+    disinstallare non lascia voci orfane, cosa che con lo script e' successa.
+  * il collegamento sul Desktop non esiste: MSIX crea solo la voce nel menu
+    Start, per scelta di Microsoft. `Installa Mr Rao.bat` qui non serve.
+  * la versione deve avere il quarto numero a **zero**: lo Store riserva a se'
+    l'ultimo campo e rifiuta i pacchetti che lo usano.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <!-- Assegnati dallo Store: Partner Center > Mr. Rao > Product identity. -->
+  <Identity
+    Name="AntonioAndreaRao.Mr.Rao"
+    Publisher="CN=F8F25019-FE94-449C-9D17-67D97BE7C904"
+    Version="1.10.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Mr. Rao</DisplayName>
+    <PublisherDisplayName>Antonio Andrea Rao</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>Trasforma PDF, Office, scansioni ed email in Markdown pulito, con i dati personali gia' rimossi. Tutto sul tuo computer.</Description>
+  </Properties>
+
+  <Dependencies>
+    <!-- 17763 = Windows 10 1809, la prima versione che supporta le app
+         desktop a pieno diritto impacchettate in MSIX. -->
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="it-IT" />
+    <Resource Language="en-US" />
+  </Resources>
+
+  <Applications>
+    <Application Id="MrRao"
+                 Executable="app\MrRao.exe"
+                 EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Mr. Rao"
+        Description="Documenti in Markdown, anonimizzati, senza uscire dal tuo computer"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- Il «Apri con Mr. Rao» del tasto destro. Stesse dieci estensioni
+             dell'integrazione del portable (`scripts/mr_rao_shell.ps1`): se
+             una delle due liste cambia, l'altra va cambiata insieme, e
+             c'e' un test che lo verifica. -->
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="mrrao">
+            <uap:DisplayName>Documento da anonimizzare</uap:DisplayName>
+            <uap:Logo>Assets\Square44x44Logo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.pdf</uap:FileType>
+              <uap:FileType>.eml</uap:FileType>
+              <uap:FileType>.docx</uap:FileType>
+              <uap:FileType>.doc</uap:FileType>
+              <uap:FileType>.png</uap:FileType>
+              <uap:FileType>.jpg</uap:FileType>
+              <uap:FileType>.jpeg</uap:FileType>
+              <uap:FileType>.xlsx</uap:FileType>
+              <uap:FileType>.pptx</uap:FileType>
+              <uap:FileType>.txt</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Un'app desktop impacchettata gira comunque a pieni diritti: e' la
+         capability che lo dichiara. E' «restricted» ma concessa alle app
+         desktop sullo Store, e va motivata in fase di invio.
+
+         Nessuna capability di rete: Mr. Rao apre un server **su
+         localhost** e non fa chiamate verso l'esterno. Dichiarare
+         `internetClient` sarebbe falso, e la scheda dello Store mostra le
+         autorizzazioni a chi installa: chiederne una che non serve
+         contraddirebbe la sola cosa che questo programma promette. -->
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
