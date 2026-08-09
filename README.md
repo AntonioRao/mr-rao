@@ -388,12 +388,12 @@ The tests do not just cover the happy path. They cover the defects that cost the
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md) · [Privacy](docs/PRIVACY.en.md) · [Privacy FAQ (reviewers)](docs/PRIVACY_FAQ.en.md) · [Changelog](docs/CHANGELOG.md)
+- [Architecture](docs/ARCHITECTURE.en.md) · [Privacy](docs/PRIVACY.en.md) · [Privacy FAQ (reviewers)](docs/PRIVACY_FAQ.en.md) · [Changelog](docs/CHANGELOG.md)
 - [Backlog](docs/BACKLOG.md) — what's missing, in priority order
 - [Command line](docs/CLI.md) — every command and every option
 - [Microsoft Store](docs/STORE.md) — the MSIX package and how it is published
 - [Code signing policy](docs/CODE-SIGNING-POLICY.md) — who can cause a binary to be signed, and what has to be true first
-- [Portable build](docs/PORTABLE.md) · [Security](SECURITY.en.md) · [Contributing](CONTRIBUTING.md)
+- [Portable build](docs/PORTABLE.md) · [Security](SECURITY.en.md) · [Contributing](CONTRIBUTING.en.md)
 
 ## Configuration
 

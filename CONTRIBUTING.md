@@ -1,5 +1,7 @@
 # Contribuire a Mr. Rao
 
+*This document in English: [CONTRIBUTING.en.md](CONTRIBUTING.en.md).*
+
 Grazie per l'interesse. Prima una cosa da sapere, così non perdi tempo.
 
 ## La licenza

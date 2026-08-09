@@ -1,5 +1,7 @@
 # Architettura Mr. Rao
 
+*This document in English: [ARCHITECTURE.en.md](ARCHITECTURE.en.md).*
+
 ## Panoramica
 
 ```
@@ -10,7 +12,8 @@ Browser ──HTTP──► Flask (routes) ──► jobs (thread pool) ──�
                                                          └── privacy (sequenza a pacchetti: core + it + en)
 CLI / SendTo ──► mr_rao.cli convert ──► stesso converter
 Watch (UI/CLI) ──► watch_service loop ──► converter
-Tray ──► open browser / quit
+Tray ──► apri browser / esci / ripristina appunti
+Scorciatoia ──► appunti ──► stesso motore privacy ──► appunti
 ```
 
 ## Frontend (UI 2.0)
@@ -50,7 +53,8 @@ Tray ──► open browser / quit
 | `mr_rao/user_folders.py` | Cartelle di lavoro, rilevamento cartelle sincronizzate |
 | `mr_rao/profiles.py` | Preset conversione |
 | `mr_rao/watch_service.py` | Hotfolder in-process |
-| `mr_rao/tray.py` | System tray opzionale |
+| `mr_rao/tray.py` | System tray opzionale; ospita la notifica e il ripristino della scorciatoia |
+| `mr_rao/appunti.py` | Scorciatoia da tastiera che redige gli appunti. Tre strati: la parte che **decide** riceve lettura e scrittura dall'esterno ed e' quella sotto test; il resto parla con Windows. Usa `RegisterHotKey`, **mai** un gancio di tastiera — vedi [SCORCIATOIA-APPUNTI.md](SCORCIATOIA-APPUNTI.md) |
 | `mr_rao/cli.py` | CLI convert / watch / health |
 | `mr_rao/portcheck.py` | Porta libera + messaggi multi-istanza |
 
@@ -86,9 +90,10 @@ file e muoiono nella conversione. Per questo `_e_prosa()` vive in
 contare vettori su un'immagine darebbe zero e zero verrebbe letto come
 «prosa»: la risposta giusta per il motivo sbagliato.
 
-**I nomi sono a livelli di prova.** Titolo, firma, indirizzo di posta
-accanto → sostituzione. Riscontro debole → **sospetto**, non sostituzione:
-il documento resta leggibile e chi controlla sa dove guardare.
+**I nomi sono a livelli di prova.** Titolo professionale, ruolo davanti ai
+due punti (`Il Ministro: GIORGETTI`), firma, indirizzo di posta accanto →
+sostituzione. Riscontro debole → **sospetto**, non sostituzione: il
+documento resta leggibile e chi controlla sa dove guardare.
 
 ## Flusso conversione
 
