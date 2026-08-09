@@ -633,6 +633,7 @@ body {
 }
 
 select,
+textarea,
 .input-text {
   appearance: none;
   -webkit-appearance: none;
@@ -657,12 +658,30 @@ select {
 .input-text { padding-right: 0.95rem; }
 .input-text::placeholder { color: var(--text-3); }
 
+/* I due campi dei termini erano gli unici comandi rimasti senza veste:
+   riquadri bianchi su fondo scuro, in monospazio di sistema. E con la
+   maniglia libera in orizzontale: trascinata, il campo usciva dal pannello,
+   che lo taglia -- quindi la parte in eccesso non era piu' raggiungibile. */
+textarea {
+  padding-right: 0.95rem;
+  max-width: 100%;
+  min-height: 4.5rem;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+textarea::placeholder { color: var(--text-3); }
+
 select:hover,
+textarea:hover,
 .input-text:hover {
   border-color: rgba(94, 234, 212, 0.25);
 }
 
 select:focus,
+textarea:focus,
 .input-text:focus {
   outline: none;
   border-color: var(--primary);
@@ -843,10 +862,20 @@ select:focus,
   .panel-sub { display: none; }
 }
 
+/* Sopra gli 800px il riquadro della cartella automatica occupa meta' pagina
+   (la .secondary-grid si sdoppia): dividere in due anche i due percorsi
+   lascia al campo ~60px a 805px e ~105px da 1024 in su, cioe' un percorso
+   che non si legge mai. Meta' di meta' non e' una colonna. */
+@media (min-width: 801px) {
+  #watch .settings-row { grid-template-columns: 1fr; }
+}
+
 /* Option cards */
 .opt-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  /* `min(240px, 100%)`: sotto i 240px di spazio la colonna smette di chiedere
+     240px invece di sfondare il contenitore. */
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 0.55rem;
 }
 
@@ -1322,6 +1351,7 @@ select:focus,
   align-items: flex-start;
   gap: 0.12rem;
   width: 100%;
+  max-width: 100%;
   text-align: left;
   padding: 0.6rem 0.75rem;
   margin-bottom: 0.4rem;
@@ -1341,8 +1371,18 @@ select:focus,
   background: rgba(52, 211, 153, 0.08);
 }
 
-.hi-name { font-size: 0.84rem; font-weight: 600; }
-.hi-meta { font-size: 0.7rem; color: var(--text-3); }
+/* Un nome di file lungo e senza spazi -- il caso normale, non quello
+   patologico: «Contratto_Quadro_Fornitura_Servizi_Rev12_ALLEGATO_B.md» --
+   non ha punti dove andare a capo. Senza questo, a 375px allargava la
+   scheda della sessione fino a 615px e con lei l'intera pagina. */
+.hi-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.hi-meta { font-size: 0.7rem; color: var(--text-3); max-width: 100%; overflow-wrap: anywhere; }
 
 .watch-actions {
   display: flex;
@@ -1354,12 +1394,15 @@ select:focus,
 /* Path + Browse row (cartella automatica) */
 .path-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   align-items: stretch;
 }
 
+/* Il campo tiene la riga finche' gli restano 10rem: sotto, «Sfoglia» scende
+   invece di ridurre il percorso a una finestrella. */
 .path-row .input-text {
-  flex: 1;
+  flex: 1 1 10rem;
   min-width: 0;
   cursor: default;
 }
@@ -1428,7 +1471,9 @@ footer a:hover { color: var(--cyan); }
 #tip {
   position: fixed;
   z-index: 10000;
-  max-width: 300px;
+  /* Su uno schermo stretto 300px sono quasi tutta la larghezza: il
+     suggerimento resta dentro i margini invece di toccare i due bordi. */
+  max-width: min(300px, calc(100vw - 2rem));
   padding: 0.6rem 0.85rem;
   border-radius: var(--radius-sm);
   background: rgba(9, 20, 15, 0.96);
@@ -1458,6 +1503,17 @@ input[data-tip] { cursor: pointer; }
   flex-wrap: wrap;
   gap: 0.45rem;
   margin-bottom: 0.15rem;
+}
+
+/* Il pulsante di un allegato porta il nome del file, che nessuno sceglie
+   corto. `.btn` taglia quello che eccede (gli serve overflow:hidden per il
+   riflesso), quindi il nome spariva a meta' senza nemmeno i puntini: a 375px
+   il testo chiedeva 480px in un pulsante da 284px. */
+#attachments-bar .btn {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 
 /* ── Info FAB + modal (trasparenza / licenza) ──────────────── */
@@ -1758,3 +1814,112 @@ input[data-tip] { cursor: pointer; }
 }
 .hero__lang a:hover { opacity: .8; }
 .hero__lang a[aria-current] { opacity: 1; background: rgba(255,255,255,.1); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Schermi stretti, schermi bassi, dita
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Rete di sicurezza contro lo scorrimento orizzontale.
+   Un elemento di griglia o di flex ha minimo `auto`, cioe' la larghezza del
+   contenuto piu' lungo che non sa andare a capo: basta un nome di file senza
+   spazi in un solo riquadro per allargare la colonna, la sezione e la
+   pagina. `overflow-x: hidden` sul body lo nasconde, non lo risolve: la
+   parte in eccesso resta li', semplicemente irraggiungibile. */
+.secondary-grid > *,
+.control-bar > *,
+.settings-row > *,
+.opt-grid > *,
+.result-header > *,
+.path-row > *,
+.field,
+.toggle-info,
+.result-title { min-width: 0; }
+
+/* Le stesse scritte, dove il contenuto arriva da un documento o da un nome
+   di file e nessuno garantisce che ci siano spazi. */
+.opt-title,
+.opt-desc,
+.toggle-title,
+.toggle-desc,
+.field-hint,
+.panel-sub { overflow-wrap: anywhere; }
+
+/* Il marchio va a capo prima di sfondare: a 320px «Mr RAO» piu' la pastiglia
+   della versione occupa 270px dei 288 disponibili, e una versione piu' lunga
+   li finirebbe. */
+.hero__logo { flex-wrap: wrap; justify-content: center; }
+
+@media (max-width: 560px) {
+  /* Su un telefono i margini generosi sono larghezza sottratta al testo. */
+  .page { padding: 1.5rem 1rem 3.5rem; }
+  .hero { padding: 1.25rem 0 0.25rem; }
+  .hero__logo { gap: 0.7rem; margin-bottom: 0.9rem; }
+
+  /* La zona di caricamento occupava 400px dei 812 dello schermo: mezza
+     pagina per un riquadro che dice sempre la stessa cosa. */
+  .drop-zone { padding: 2.1rem 1.1rem; }
+  .drop-icon { width: 64px; height: 64px; margin-bottom: 0.9rem; }
+  .drop-icon img { width: 64px; height: 64px; }
+  .drop-title { font-size: 1.12rem; }
+  .drop-formats { margin-top: 1rem; }
+
+  .control-bar { padding: 1rem; }
+  .panel > summary { padding: 0.9rem 1rem; }
+  .panel-body { padding: 0.15rem 1rem 1.2rem; gap: 1.25rem; }
+  .side-card { padding: 1rem; }
+  .result-card { padding: 1.15rem 1rem 1.2rem; }
+
+  /* I cinque pulsanti del risultato andavano gia' a capo, ma lasciando una
+     riga monca: cosi' riempiono la larghezza che hanno. */
+  .result-header { align-items: flex-start; }
+  .btn-group { width: 100%; }
+  .btn-group .btn { flex: 1 1 auto; justify-content: center; }
+
+  /* Le tre schede erano larghe quanto le loro parole e andavano a capo
+     dentro un riquadro stretto quanto loro. */
+  .tabs { width: 100%; }
+  .tab { flex: 1 1 auto; text-align: center; }
+
+  .markdown-output,
+  .preview-output { padding: 1rem; font-size: 0.82rem; }
+
+  .info-fab { bottom: 1rem; left: 1rem; width: 44px; height: 44px; }
+
+  /* L'avviso occupava tutta la larghezza fino a toccare il bordo sinistro e
+     copriva il pulsante «i», che ha z-index piu' basso: misurato a 375px,
+     avviso da 691.7 a 784 e pulsante da 740 a 788. Ora sta sopra. */
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: calc(1rem + 44px + 0.65rem);
+    max-width: none;
+  }
+}
+
+/* Schermo basso -- telefono girato, o finestra schiacciata: il riquadro del
+   risultato da solo era 546.8px su 375 di altezza, cioe' non si vedevano mai
+   insieme la prima riga e i pulsanti. */
+@media (max-height: 640px) {
+  .markdown-output,
+  .preview-output { max-height: 62vh; }
+  .drop-zone { padding: 1.6rem 1.1rem; }
+}
+
+/* Con il dito non si prende un bersaglio da 23px: le sigle della lingua
+   misuravano 27.3x22.8, le schede 29px di altezza, i pulsanti 34.3.
+   Solo su puntatore grossolano: col mouse la misura attuale va bene. */
+@media (pointer: coarse) {
+  .btn { padding: 0.7rem 1.1rem; min-height: 44px; }
+  .tab { padding: 0.62rem 1rem; min-height: 40px; }
+  .modal__close { width: 44px; height: 44px; }
+  .opt { padding: 0.85rem 0.9rem; }
+  .opt input { width: 20px; height: 20px; margin-top: 0.1rem; }
+
+  .hero__lang { gap: 0.35rem; }
+  .hero__lang a { padding: 0.55rem 0.85rem; }
+
+  .footer-links { gap: 0.15rem 0.9rem; }
+  .footer-links a { padding: 0.45rem 0; display: inline-block; }
+  .site-footer__lgpl a,
+  .site-footer__license a { padding: 0.2rem 0; display: inline-block; }
+}
