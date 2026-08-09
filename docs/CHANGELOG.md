@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.18.1 — L'indirizzo usciva dalla riga
+
+Due difetti nel riconoscitore di indirizzi, trovati **costruendo un esempio
+prima/dopo da mostrare in pubblico**. Il che dice qualcosa su quanto valga
+far girare il motore su un testo che non è un caso di prova: nessuno dei
+1024 test li vedeva, e il corpus pubblico nemmeno — perché entrambi
+sbagliavano l'**estensione** del riscontro, non il numero.
+
+### Si mangiava la prima parola del blocco dopo
+
+```
+Address: Via A. Volta 5, 20121 Milano
+Account: IT60 X054 2811 1010 0000 0123 456
+```
+
+usciva come `Address: {{ADDRESS}}: {{IBAN}}`. La parola **«Account» sparita
+dal documento**. Con una riga vuota in mezzo non cambiava niente: *«Via
+Verdi 12, 40100 Bologna ⏎⏎ Allegato A»* si portava via anche la «A».
+
+Due danni, e il secondo pesa più del primo. Una parola tolta non è una
+fuga — non esce niente che doveva restare — ma è un **documento corrotto**,
+e chi guarda il confronto prima/dopo non ha modo di accorgersene: vede un
+segnaposto, non vede cosa c'era intorno. E il **segnale della firma viene
+distrutto**: *«Cordiali saluti»* è esattamente ciò che dichiara che quello
+che segue è una persona, ed è l'unico contesto in cui un cognome da solo
+vale come prova. Mangiando «Cordiali» si spegne un riconoscitore mentre se
+ne allarga un altro.
+
+La causa era `\s` invece di `[ \t]`: **lo spazio dentro un indirizzo è
+orizzontale**. Stesso difetto già pagato nella 1.14.0 con l'email offuscata,
+e stessa ragione per cui i nomi usano `_SP`. Un solo a capo resta concesso,
+e solo prima del CAP, perché sulla carta intestata l'indirizzo si scrive su
+due righe — c'è un test che lo protegge, altrimenti il modo più semplice di
+chiudere il difetto sarebbe vietare ogni a capo e perdere metà degli
+indirizzi veri.
+
+### Il civico mordeva il CAP
+
+*«Piazza G. Verdi, 1 - 00198 Roma»* usciva come `{{ADDRESS}}98 Roma`: il
+suffisso del civico (`12/A`, `7-bis`) prendeva `- 001` e lasciava indietro
+tre cifre orfane. Il guardiano introdotto nella 1.16.0 fermava il suffisso
+sulle **lettere** e non sulle cifre.
+
+Questo era già passato sotto gli occhi: sta stampato a schermo nella misura
+della 1.16.0, dentro le Gazzette Ufficiali, e non l'ho guardato. Una riga di
+output non è una verifica finché qualcuno non la legge.
+
+**Costo: zero.** Sul corpus pubblico i conteggi sono identici — 42 indirizzi
+e 107 nomi sulla prosa vera, zero sui 42 moduli in bianco. Le correzioni
+cambiano *quanto* prende ogni riscontro, non *quanti*.
+
+1038 test, 14 nuovi, 9 dei quali rossi sul commit precedente.
+
 ## 1.18.0 — Copi, premi, incolli
 
 Fin qui Mr. Rao ha dipeso da una cosa che non controlla: che qualcuno si

@@ -551,15 +551,30 @@ _CONN = (
     r"san|santa|sant'|santo|santi|ss\.)"
 )
 
+# Dentro un indirizzo lo spazio e' **orizzontale**.
+#
+# Con `\s` il riconoscitore attraversava gli a capo e si portava via la prima
+# parola del blocco dopo: «Via Roma 5, 20121 Milano \n Cordiali saluti»
+# usciva come «{{ADDRESS}} saluti». Due danni, non uno: una parola sparita
+# dal documento -- che non e' una fuga ma e' comunque un documento corrotto,
+# e chi legge non ha modo di accorgersene -- e il segnale della firma
+# distrutto, perche' «Cordiali saluti» e' proprio cio' che dichiara che
+# quello che segue e' una persona.
+#
+# E' lo stesso difetto gia' pagato nella 1.14.0 con l'email offuscata, e la
+# stessa ragione per cui i nomi usano `_SP`. Trovato per caso costruendo un
+# esempio prima/dopo da mostrare in pubblico.
+_H = r"[ \t]"
+
 _RE_ADDRESS = re.compile(
-    rf"(?<!\w)(?i:{_ADDRESS_KW})\.?\s+"
+    rf"(?<!\w)(?i:{_ADDRESS_KW})\.?{_H}+"
     # Il numero romano puo' stare anche in TESTA al nome: «Via XX Settembre»,
     # «Viale IV Novembre». Ce n'e' una in quasi ogni citta' italiana, e non
     # veniva riconosciuta in nessuna delle due grafie -- il primo pezzo del
     # nome doveva contenere una minuscola, e «XX» non ne ha. Deve essere
     # seguito da una parola vera, altrimenti «via II» da solo basterebbe.
-    rf"(?P<body>(?:[IVXLC]{{1,5}}\s+(?=[A-Za-zÀ-ÿ]))?"
-    rf"(?:{_CONN}\s+)*"
+    rf"(?P<body>(?:[IVXLC]{{1,5}}{_H}+(?=[A-Za-zÀ-ÿ]))?"
+    rf"(?:{_CONN}{_H}+)*"
     # «Via A. Volta 5», «Viale G. Cesare 12», «Via G. B. Vico 3»: sulla
     # carta intestata e sui moduli il nome della strada porta l'iniziale
     # puntata invece del nome per esteso. Senza questo pezzo il corpo non
@@ -569,15 +584,29 @@ _RE_ADDRESS = re.compile(
     # di questa forma: zero riconosciuti prima, tutti dopo.
     rf"(?:[A-ZÀ-ÖØ-Þ]\.[ \t]*){{0,2}}"
     rf"(?:\w+['’])?{_TOK}"
-    rf"(?:\s+(?:{_CONN}\s+|e\s+)?(?:\w+['’])?{_TOK}){{0,3}})"
-    rf"(?P<roman>\s+[IVXLC]{{1,5}}(?![\w]))?"
+    rf"(?:{_H}+(?:{_CONN}{_H}+|e{_H}+)?(?:\w+['’])?{_TOK}){{0,3}})"
+    rf"(?P<roman>{_H}+[IVXLC]{{1,5}}(?![\w]))?"
     # Il suffisso del civico («12/A», «7-bis») non deve poter mordere la
     # parola dopo: su «via C. Colombo 44 - Roma» si prendeva «- Rom» come
     # suffisso e lasciava indietro una «a» orfana. Deve finire dove finisce
     # la parola, non tre lettere dentro.
-    rf"(?P<civ>\s*,?\s*(?:n\.?|nr\.?|snc|km)?\s*\d{{1,4}}"
-    rf"(?:\s*[/\-]\s*[A-Za-z0-9]{{1,3}}(?![A-Za-zÀ-ÿ]))?)?"
-    rf"(?P<cap>\s*[,\-–]?\s*\d{{5}}\s+{_TOK}(?:\s+{_TOK})?)?"
+    rf"(?P<civ>{_H}*,?{_H}*(?:n\.?|nr\.?|snc|km)?{_H}*\d{{1,4}}"
+    # Il suffisso del civico («12/A», «7-bis») deve finire dove finisce la
+    # parola **e** dove finisce il numero. Fermando solo sulle lettere,
+    # «Piazza G. Verdi, 1 - 00198 Roma» prendeva «- 001» come suffisso e
+    # lasciava indietro «98 Roma»: il CAP mozzato, e tre cifre orfane in un
+    # documento che sembrava trattato. Era gia' passato sotto gli occhi nelle
+    # Gazzette Ufficiali senza che lo guardassi.
+    rf"(?:{_H}*[/\-]{_H}*[A-Za-z0-9]{{1,3}}(?!\w))?)?"
+    # Il CAP e' l'unico pezzo cui si concede **un** a capo, perche' sulla
+    # carta intestata l'indirizzo si scrive proprio cosi':
+    #     Via A. Volta 5
+    #     20121 Milano
+    # Uno solo pero': due a capo sono un blocco nuovo, e concederli era il
+    # modo in cui «Via Verdi 12, 40100 Bologna \n\n Allegato A» si portava
+    # via la «A» dell'allegato.
+    rf"(?P<cap>{_H}*[,\-–]?{_H}*(?:\r?\n{_H}*)?\d{{5}}{_H}+{_TOK}"
+    rf"(?:{_H}+{_TOK})?)?"
 )
 
 
