@@ -49,8 +49,12 @@ In particolare sono benvenuti:
 - **Falsi positivi e falsi negativi dell'anonimizzazione.** Se un dato personale
   ti è sfuggito, o un codice prodotto è stato scambiato per un IBAN, apri una
   issue con un esempio **inventato** (mai dati reali).
-- **Anteprima Markdown più fedele** (liste annidate, tabelle) — P1.4.
-- **Test.** Ce ne sono 738 test e non bastano mai. (Il numero è scritto prima
+- **Anteprima Markdown.** Il renderer è in `static/js/markdown.js`, scritto in
+  casa e provato da `node` dentro pytest. Se trovi un documento che rende male,
+  il caso va aggiunto lì. Una regola non negoziabile: **non deve mai emettere
+  un `<img>` remoto**, perché sarebbe una chiamata di rete partita dal
+  documento che si sta anonimizzando.
+- **Test.** Ce ne sono 757 test e non bastano mai. (Il numero è scritto prima
   della parola «test» di proposito: è così che `scripts/check_docs.py` lo
   trova. Scritto al contrario era rimasto fermo a 161 per venti release.)
 

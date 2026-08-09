@@ -270,16 +270,17 @@
   }
 
   function renderPreview(md) {
-    let html = escapeHtml(stripFrontmatter(md));
-    html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
-    html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
-    html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
-    html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-    html = html.replace(/^&gt; (.+)$/gm, "<blockquote>$1</blockquote>");
-    html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, (m) => "<ul>" + m + "</ul>");
-    html = html.replace(/\n\n/g, "<br><br>");
+    // Il rendering sta in `static/js/markdown.js`: qui c'era una sequenza di
+    // sostituzioni che non sapeva fare ne' liste annidate ne' tabelle — cioe'
+    // proprio cio' che esce da un PDF — e ogni voce di elenco finiva piatta.
+    //
+    // Se il modulo non c'e' (una copia parziale, un file non servito) si
+    // mostra il testo, non un'approssimazione: un'anteprima che sbaglia in
+    // silenzio e' peggio di un'anteprima che non c'e'.
+    const testo = stripFrontmatter(md);
+    const html = globalThis.MrRaoMarkdown
+      ? globalThis.MrRaoMarkdown.render(testo)
+      : "<pre>" + escapeHtml(testo) + "</pre>";
     els.previewOut.innerHTML = html || "<em>" + escapeHtml(t("js_vuoto")) + "</em>";
   }
 

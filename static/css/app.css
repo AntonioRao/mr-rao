@@ -1188,6 +1188,103 @@ select:focus,
   border-radius: 3px;
 }
 
+/* Anteprima fedele (P1.4): tabelle, liste annidate, blocchi di codice.
+   Prima l'anteprima non sapeva rappresentarli, quindi non c'era niente da
+   vestire. */
+
+.preview-output h4,
+.preview-output h5,
+.preview-output h6 {
+  margin: 0.7rem 0 0.4rem;
+  color: var(--text-2);
+}
+
+.preview-output p { margin: 0.5rem 0; }
+
+.preview-output ol {
+  padding-left: 1.5rem;
+  margin: 0.45rem 0;
+}
+
+/* Un elenco dentro un altro non deve staccarsi dalla voce che lo contiene. */
+.preview-output li > ul,
+.preview-output li > ol {
+  margin: 0.2rem 0 0.2rem;
+}
+
+.preview-output li { margin: 0.15rem 0; }
+
+.preview-output li.md-spunta { list-style: none; margin-left: -1rem; }
+
+.preview-output hr {
+  border: 0;
+  border-top: 1px solid var(--border, rgba(148, 163, 184, 0.25));
+  margin: 1rem 0;
+}
+
+/* La tabella di un PDF e' larga: scorre da sola invece di allargare la
+   pagina, che e' cio' che rompe il resto dell'impaginazione. */
+.preview-output table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin: 0.7rem 0;
+  font-size: 0.9em;
+}
+
+.preview-output th,
+.preview-output td {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  padding: 0.32rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.preview-output thead th {
+  background: rgba(52, 211, 153, 0.1);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.preview-output tbody tr:nth-child(even) {
+  background: rgba(148, 163, 184, 0.05);
+}
+
+.preview-output pre {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(94, 234, 212, 0.14);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  overflow-x: auto;
+  margin: 0.6rem 0;
+}
+
+/* Dentro un blocco, il codice non ha bisogno della sua cornice. */
+.preview-output pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+/* Un'immagine non viene mai richiesta alla rete: resta la sua didascalia,
+   dichiarata come tale invece di sparire senza dirlo. */
+.preview-output .md-img {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  border-radius: 6px;
+  color: var(--text-2);
+  font-size: 0.85em;
+}
+
+.preview-output .md-img::before { content: "🖼 "; }
+
+.preview-output a { color: var(--primary); }
+
+.preview-output del { color: var(--text-2); }
+
 /* ── Secondary grid ────────────────────────────────────────── */
 .secondary-grid {
   display: grid;

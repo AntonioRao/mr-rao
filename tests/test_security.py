@@ -168,7 +168,10 @@ def test_post_senza_sec_fetch_site_ricade_su_origin(client):
 @pytest.mark.parametrize(
     ("intestazione", "atteso"),
     [
-        ("Content-Security-Policy", "frame-ancestors 'none'"),
+        (
+            "Content-Security-Policy",
+            "frame-ancestors 'none'; img-src 'self' data: blob:",
+        ),
         ("X-Content-Type-Options", "nosniff"),
         ("Referrer-Policy", "no-referrer"),
     ],
@@ -176,6 +179,20 @@ def test_post_senza_sec_fetch_site_ricade_su_origin(client):
 def test_intestazioni_di_sicurezza(client, intestazione, atteso):
     r = client.get("/api/health")
     assert r.headers.get(intestazione) == atteso
+
+
+def test_la_pagina_non_puo_chiedere_immagini_fuori(client):
+    """La promessa «non esce niente» non deve dipendere da un solo controllo.
+
+    L'anteprima rende un documento altrui: il renderer non emette mai un
+    `<img>` remoto, ma quella e' un'espressione regolare scritta da noi. La
+    politica del browser e' la seconda serratura, e vale anche il giorno in
+    cui qualcuno tocca il renderer senza accorgersene.
+    """
+    csp = client.get("/").headers.get("Content-Security-Policy", "")
+    assert "img-src" in csp
+    direttiva = [p.strip() for p in csp.split(";") if p.strip().startswith("img-src")][0]
+    assert "http:" not in direttiva and "https:" not in direttiva and "*" not in direttiva
 
 
 def test_intestazioni_anche_sugli_errori(client):

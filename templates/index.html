@@ -514,6 +514,7 @@
 
 <script>window.MR_RAO_MAX_MB = {{ max_upload_mb }};</script>
 <script>window.MR_RAO_I18N = {{ testi_js|tojson }};</script>
+<script src="{{ url_for('static', filename='js/markdown.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 <script>
 document.getElementById('privacy-row').addEventListener('click', function (e) {

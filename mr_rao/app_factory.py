@@ -94,7 +94,17 @@ def _register_guards(app: Flask) -> None:
         contenuto dell'utente con un tipo indovinabile: è tutto JSON e static.
         Vale come rete per gli endpoint che verranno.
         """
-        response.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+        # img-src e' arrivata con l'anteprima fedele (P1.4). Il renderer non
+        # emette mai un <img> verso l'esterno, e ci sono i test che lo
+        # provano — ma la promessa «non esce niente» e' il cuore del
+        # programma, e farla dipendere da una sola espressione regolare
+        # scritta da noi e' troppo poco. Le uniche immagini che servono
+        # stanno in /static; `data:` resta per l'anteprima di un'immagine
+        # incollata, che e' roba dell'utente e non fa traffico.
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "frame-ancestors 'none'; img-src 'self' data: blob:",
+        )
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
         return response
