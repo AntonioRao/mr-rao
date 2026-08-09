@@ -409,6 +409,7 @@ I test non coprono solo il caso felice. Coprono i difetti che sono costati caro:
 - [Changelog](docs/CHANGELOG.md) — cosa è cambiato e perché
 - [Backlog](docs/BACKLOG.md) — cosa manca, in ordine di priorità
 - [Portable](docs/PORTABLE.md) — come si costruisce il pacchetto Windows
+- [Policy di firma del codice](docs/CODE-SIGNING-POLICY.md) — chi può far firmare un binario, e cosa dev'essere vero prima
 - [Sicurezza](SECURITY.md) — come segnalare un problema
 
 ---

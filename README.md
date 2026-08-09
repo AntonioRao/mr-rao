@@ -391,6 +391,7 @@ The tests do not just cover the happy path. They cover the defects that cost the
 - [Backlog](docs/BACKLOG.md) — what's missing, in priority order
 - [Command line](docs/CLI.md) — every command and every option
 - [Microsoft Store](docs/STORE.md) — the MSIX package and how it is published
+- [Code signing policy](docs/CODE-SIGNING-POLICY.md) — who can cause a binary to be signed, and what has to be true first
 - [Portable build](docs/PORTABLE.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 
 ## Configuration
