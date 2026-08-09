@@ -70,3 +70,6 @@ docs/landing/03-*.html
 docs/landing/preview-*
 docs/landing/publish/.wrangler/
 docs/landing/publish/test-results/
+# wrangler scrive la sua cache dove viene lanciato, non dove sta la pagina:
+# se il deploy parte dalla radice del repository la cartella nasce qui.
+.wrangler/

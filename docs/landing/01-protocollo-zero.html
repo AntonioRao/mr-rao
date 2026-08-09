@@ -549,6 +549,13 @@
   }
   .threat-box.bad h3 { color: var(--danger); }
   .threat-box.good h3 { color: var(--phosphor); }
+  /* La riga di chiusura dei due riquadri usa .red/.green, ma le uniche
+     regole per quelle classi erano annidate sotto .term-body: qui dentro
+     non si applicavano, e la frase piu' importante del confronto usciva
+     del colore del testo normale. Sta online cosi' da quando la sezione
+     esiste. */
+  .threat-box .red { color: var(--danger); }
+  .threat-box .green { color: var(--phosphor); }
   .threat-arrow {
     display: flex;
     align-items: center;
@@ -744,7 +751,7 @@
           <img class="wm-logo" src="../../static/img/logo.svg" alt="" width="512" height="512" />
           <span>Mr<span class="dot">.</span>Rao</span>
         </span>
-        <span class="ver">offline by design</span>
+        <span class="ver">offline by design · v1.11.0</span>
       </p>
       <h1>
         <span class="line-reveal"><span>Il contratto</span></span>

@@ -535,6 +535,55 @@
   .card p { color: var(--fog); font-size: 0.95rem; line-height: 1.6; }
   .card p + p { margin-top: 0.6rem; }
 
+  /* Threat strip */
+  .threat {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+    margin-top: 1rem;
+  }
+  @media (max-width: 800px) { .threat { grid-template-columns: 1fr; } }
+  .threat-box {
+    border: 1px solid var(--line);
+    padding: 1.5rem;
+    background: var(--panel);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+  }
+  .threat-box.bad { border-color: rgba(255,77,77,0.35); }
+  .threat-box.good { border-color: rgba(61,255,154,0.35); }
+  .threat-box h3 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .threat-box.bad h3 { color: var(--danger); }
+  .threat-box.good h3 { color: var(--phosphor); }
+  /* Le regole per .red/.green stavano solo sotto .term-body, quindi qui
+     dentro non si applicavano: copiata la sezione dalla pagina italiana,
+     il difetto sarebbe arrivato pari pari anche qui. Corretto su
+     entrambe. */
+  .threat-box .red { color: var(--danger); }
+  .threat-box .green { color: var(--phosphor); }
+  .threat-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    color: var(--amber);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+  @media (max-width: 800px) {
+    .threat-arrow { writing-mode: horizontal-tb; transform: none; padding: 0.5rem; }
+  }
+
   /* Spec table */
   .spec {
     width: 100%;
@@ -565,27 +614,6 @@
   .limit strong { display: block; color: var(--amber); font-size: 0.9rem; margin-bottom: 0.4rem; font-family: var(--mono); letter-spacing: 0.04em; }
   .limit p { color: var(--fog); font-size: 0.95rem; line-height: 1.55; }
   .limit p + p { margin-top: 0.5rem; }
-
-  /* The names block gets the amber treatment across the full width: it is
-     the one thing on this page a reader cannot check by looking at the
-     examples, so it does not get to be a footnote. */
-  .callout {
-    border: 1px solid rgba(240,180,41,0.35);
-    border-left: 3px solid var(--amber);
-    background: rgba(240,180,41,0.05);
-    padding: 1.5rem 1.6rem;
-    max-width: 52rem;
-  }
-  .callout p { color: var(--fog); line-height: 1.7; font-size: 1rem; }
-  .callout p + p { margin-top: 0.9rem; }
-  .callout strong { color: var(--white); font-weight: 600; }
-  .callout .verdict {
-    color: var(--amber);
-    font-family: var(--mono);
-    font-size: 0.9rem;
-    letter-spacing: 0.04em;
-    line-height: 1.6;
-  }
 
   /* CTA final */
   .finale {
@@ -703,9 +731,9 @@
     <span class="stamp">NO CLOUD</span>
     <div class="links">
       <a href="#engine">Engine</a>
-      <a href="#names">Names</a>
       <a href="#proof">Proof</a>
       <a href="#limits">Limits</a>
+      <a href="#contact">Contact</a>
       <a class="lang" href="01-protocollo-zero.html" hreflang="it" lang="it" title="Leggi questa pagina in italiano">IT · Italiano</a>
       <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Download</a>
     </div>
@@ -786,38 +814,33 @@
     </div>
   </section>
 
-  <section class="block" id="names">
-    <p class="sec-label">// 02 · the thing you can't check by reading the examples</p>
-    <h2>English names: narrower than Italian, on purpose.</h2>
-    <div class="callout">
-      <p>
-        <strong>There is no English name list in Mr. Rao, and that is a decision.</strong>
-        In Italian the heuristic “two capitalised words that are not Italian words” holds up,
-        because <em>-zione</em>, <em>-mento</em> and <em>-ale</em> end words and not surnames.
-        English has no such split: <em>-son</em>, <em>-ton</em> and <em>-er</em> end both.
-        And the common words that are also names — Mark, Bill, Grace, May, June, Rose, Brown,
-        Green, Baker, Price, Young — turn any list into a false-positive machine.
-      </p>
-      <p>
-        The cost of pretending otherwise was measured, not guessed. The Italian engine pointed at
-        an English administrative document produced <strong>22 replacements on a text containing
-        no personal data at all</strong>, and 22 more on a blank US tax form. The aggressive
-        surname heuristic produced <strong>2,888 wrong replacements on the 99 blank US tax
-        forms</strong> — which is why it ships switched off.
-      </p>
-      <p>
-        So in English a name is replaced <strong>only where the text itself says it is a
-        person</strong>: a title in front (Mr, Mrs, Ms, Dr, Prof, Sir), an opening
-        (<em>Dear …</em>, <em>Attn</em>, <em>c/o</em>), a sign-off line followed by a name, or a
-        name sitting next to an email address. Pure context rules, and they are almost never wrong.
-      </p>
-      <p class="verdict">
-        The price, stated plainly: a name in the middle of a sentence, with no title and no
-        signature, <strong>survives</strong>. Reaching it would take a model, and the promise of
-        this product is that no model makes the decision. On names the English coverage is
-        smaller than the Italian — this page will not claim a parity that does not exist. What the
-        engine cannot prove it flags, so you see the gap in the report instead of discovering it later.
-      </p>
+  <section class="block" id="threat">
+    <p class="sec-label">// 02 · threat</p>
+    <h2>The enemy is not the AI. It is the route.</h2>
+    <p class="intro">
+      To get a model to reason about a contract, almost every tool asks you to upload the file
+      first. In that moment names, NHS numbers and account details are out of the building —
+      on someone else's disk, under someone else's retention policy. Mr. Rao breaks the chain:
+      it converts and redacts <em>here</em>.
+    </p>
+    <div class="threat">
+      <div class="threat-box bad">
+        <h3>⚠ The usual route</h3>
+        contract.pdf<br />
+        → upload to a SaaS converter<br />
+        → raw text<br />
+        → paste into ChatGPT<br />
+        <span class="red">personal data: in the clear, out twice</span>
+      </div>
+      <div class="threat-arrow">PROTOCOL</div>
+      <div class="threat-box good">
+        <h3>● The Mr. Rao route</h3>
+        contract.pdf<br />
+        → 127.0.0.1 only<br />
+        → redaction + suspects<br />
+        → Markdown · human review<br />
+        <span class="green">the file: it never left the machine</span>
+      </div>
     </div>
   </section>
 
@@ -833,12 +856,12 @@
       <article class="card">
         <div class="num">01 / BLANK FORMS</div>
         <h3>99 US tax forms</h3>
-        <p>Part of a zero-truth set of over a hundred public administrative documents, alongside Italian tax forms, official-gazette issues back to 1890 and statistical volumes. The correct number of redactions is zero, so every replacement counts as an error. This bench exists because of a defect found exactly that way: on a blank US tax form the engine once produced 22 replacements.</p>
+        <p>Blank US federal tax forms, collected as a zero-truth set: printed forms, no taxpayer, no figures. The correct number of redactions is zero, so every replacement counts as an error and there is nothing left to interpret. This bench exists because of a defect found exactly that way: on a blank US tax form the engine once produced 22 replacements.</p>
       </article>
       <article class="card">
         <div class="num">02 / REAL PROSE</div>
         <h3>1,500 English messages</h3>
-        <p>Mailing-list messages in English, next to 6,000 in Italian: how it behaves on text people actually wrote, rather than on sentences built to make it succeed.</p>
+        <p>Mailing-list messages in English: how it behaves on text people actually wrote — signatures, quoted replies, addresses in running prose — rather than on sentences built to make it succeed.</p>
       </article>
       <article class="card">
         <div class="num">03 / THE RULER</div>
@@ -853,11 +876,10 @@
     <h2>Everything that stays in the room.</h2>
     <table class="spec" id="spec">
       <tr><td>Input</td><td>PDF, DOCX, XLSX, PPTX, HTML, CSV, images, EML — MarkItDown plus offline OCR</td></tr>
-      <tr><td>Anglo formats</td><td>NHS number, National Insurance number, SSN, ITIN, ABA routing number, Canadian SIN, Australian ABN and TFN, UK postcode, passport MRZ lines — each with its own checksum where one exists</td></tr>
+      <tr><td>Anglo formats</td><td>NHS number, National Insurance number, SSN, ITIN, ABA routing number, Canadian SIN, Australian ABN and TFN, UK postcode, passport MRZ lines — each with its own checksum where one exists · they travel together as one pack, which can be switched off in a single move (<code>--no-pack-en</code>)</td></tr>
       <tr><td>Also redacted</td><td>Emails, phone numbers, names, addresses, payment cards (Luhn), IBAN (mod-97), URLs, API keys and secrets</td></tr>
-      <tr><td>Italian formats</td><td><em>Codice fiscale</em>, VAT number, Italian IBAN and BBAN — a separate pack, and either pack can be switched off (<code>--no-pack-en</code>, <code>--no-pack-it</code>)</td></tr>
       <tr><td>Output</td><td>Markdown .md, plain .txt and Word .docx, all already redacted · the .docx is rebuilt from the redacted text — it is not the original with black boxes drawn on top, and there is no text hiding under them</td></tr>
-      <tr><td>Interface</td><td>English or Italian, chosen from your browser · the produced document follows the same language</td></tr>
+      <tr><td>Interface</td><td>In English, picked up from your browser · the produced document follows the same language</td></tr>
       <tr><td>Local security</td><td>Host allow-list, CSRF Origin check, read-only GET, bound to 127.0.0.1</td></tr>
       <tr><td>Licence</td><td>AGPL-3.0 · the code can be read · nothing phones home</td></tr>
     </table>
@@ -870,7 +892,7 @@
     <div class="limits">
       <div class="limit">
         <strong>Names in English: the narrow set</strong>
-        <p>Titles, openings, sign-offs and email adjacency only. A name in running text survives — the full reasoning is <a class="glow" href="#names">above</a>, and it is the first thing to know before trusting this on English prose.</p>
+        <p>Titles, openings, sign-offs and email adjacency only. A name in running text survives — it is the first thing to know before trusting this on English prose, and the full reasoning is written out in <code>PRIVACY.md</code>.</p>
       </div>
       <div class="limit">
         <strong>This is not strong GDPR anonymisation</strong>
@@ -886,7 +908,7 @@
       </div>
       <div class="limit">
         <strong>Formats outside these countries</strong>
-        <p>Italian and Anglo formats have dedicated detectors. A German phone number or a Spanish NIF does not: on those documents the filter sees less than it appears to.</p>
+        <p>The UK, US, Canadian and Australian formats listed above have dedicated detectors. A German phone number or a Spanish NIF does not: on those documents the filter sees less than it appears to.</p>
       </div>
       <div class="limit">
         <strong>Single user, local</strong>
@@ -905,6 +927,32 @@
     <div class="actions">
       <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">↓ MrRao-Portable.zip</a>
       <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">github.com/AntonioRao/mr-rao</a>
+    </div>
+  </section>
+
+  <section class="block" id="contact">
+    <p class="sec-label">// 06 · direct line</p>
+    <h2>Reports, ideas, pieces that do not add up.</h2>
+    <p class="intro">
+      Written and maintained by Antonio Andrea Rao. Send an email or reach me on LinkedIn:
+      no contact forms, no tracking — like the rest of the project.
+    </p>
+    <div class="grid-3">
+      <article class="card">
+        <div class="num">MAIL</div>
+        <h3>Email</h3>
+        <p><a class="glow" href="mailto:antonio.andrea.rao@gmail.com">antonio.andrea.rao@gmail.com</a></p>
+      </article>
+      <article class="card">
+        <div class="num">LINKEDIN</div>
+        <h3>Network</h3>
+        <p><a class="glow" href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">linkedin.com/in/antoniorao</a></p>
+      </article>
+      <article class="card">
+        <div class="num">CODE</div>
+        <h3>Source</h3>
+        <p><a class="glow" href="https://github.com/AntonioRao/mr-rao" target="_blank" rel="noopener noreferrer">github.com/AntonioRao/mr-rao</a></p>
+      </article>
     </div>
   </section>
 
