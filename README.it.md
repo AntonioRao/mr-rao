@@ -66,6 +66,9 @@ Ogni riconoscitore è una coppia: un'espressione regolare che propone candidati,
 | P.IVA | prefisso `IT` o contesto fiscale nei caratteri precedenti |
 | Indirizzo | dopo «via», «piazza», «corso» deve seguire una parola con l'iniziale maiuscola |
 | Data di nascita | solo accanto a «nato il», «data di nascita» |
+| Carta d'identità, patente, passaporto | **serve il tipo di documento scritto vicino**: questi numeri non hanno una cifra di controllo |
+
+Su quest'ultima riga vale la pena fermarsi, perché è il caso in cui il metodo mostra il suo limite e cosa ci si fa. Un numero di patente non ha nulla da dimostrare: `MI5512340V` e un codice di protocollo hanno la stessa forma, e nessun conto può dire quale sia quale. Sostituire a vista vorrebbe dire cancellare mezza pratica amministrativa; tacere vorrebbe dire lasciar passare un documento d'identità. Quindi si guarda il contesto — e la finestra è larga, perché su una tessera **il tipo di documento è il titolo**, sei righe sopra il numero. Senza contesto il numero resta, e finisce fra i sospetti.
 
 È il motivo per cui questo resta intatto:
 

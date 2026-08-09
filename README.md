@@ -66,6 +66,9 @@ Every detector is a pair: a regular expression that proposes candidates, and a v
 | VAT number | `IT` prefix, or fiscal context in the preceding characters |
 | Street address | the keyword (`via`, `piazza`, `corso`) must be followed by a capitalised word |
 | Date of birth | only next to "nato il", "data di nascita" |
+| ID card, driving licence, passport | **the document type must be written nearby**: these numbers carry no check digit |
+
+That last row is worth pausing on, because it is where the method meets its limit and shows what it does about it. A driving licence number has nothing to prove: `MI5512340V` and a reference code have the same shape, and no arithmetic can tell them apart. Replacing on sight would wipe out half an administrative file; staying silent would let an identity document through. So the engine looks at the surrounding text — over a wide window, because on a card **the document type is the heading**, six lines above the number. With no context the number stays, and is flagged as a suspect.
 
 Which is why this survives untouched:
 

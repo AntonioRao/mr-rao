@@ -36,8 +36,37 @@ spiegare guardando la regola che l'ha prodotta.
 | Indirizzi | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada e altri, con civico, CAP e comune |
 | Nomi di persona | `{{NAME}}` | Vedi sotto |
 | Chiavi e password | `{{SECRET}}` | Token, chiavi API, JWT, blocchi di chiave privata, `password: ...` |
+| Documenti d'identità | `{{DOC_ID}}` | Carta d'identità elettronica, patente, passaporto. **Serve il tipo di documento scritto vicino**, vedi sotto |
 | Date di nascita | `{{DATE}}` | **Spento di default.** Solo con contesto di nascita accanto |
 | Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
+| Termini tuoi | `{{TERM}}` | L'elenco «nascondi sempre» scritto da chi converte |
+
+### Perché i documenti d'identità pretendono il contesto
+
+È l'unico riconoscitore che non può appoggiarsi a un conto, e conviene dirlo
+apertamente. Un numero di patente **non ha una cifra di controllo**: nessuna
+aritmetica può distinguere `MI5512340V` da un codice di protocollo con la
+stessa forma. Le tre alternative erano tutte cattive tranne una:
+
+- sostituire a vista cancellerebbe mezza pratica amministrativa — un verbale
+  è fatto di protocolli, delibere e codici gara che hanno quella forma;
+- tacere lascerebbe passare uno dei dati più sensibili che attraversano uno
+  studio;
+- **chiedere che il testo dichiari di che documento si tratta**, e quando non
+  lo dichiara segnalare invece di agire.
+
+La finestra di contesto è larga di proposito. Su una tessera o una scansione
+il tipo di documento non sta accanto al numero: **è il titolo**, diverse righe
+sopra. Con una finestra stretta il riconoscitore non vedeva la sola cosa che
+lo autorizza a intervenire, e restava fermo proprio sui documenti per cui è
+stato scritto.
+
+Ha un interruttore suo, `documenti`, e non sta dentro `fiscal`: un numero di
+documento non è un dato tributario, e chi spegne i codici fiscali non intende
+scoprire il passaporto.
+
+Sui 127 documenti a verità zero il costo misurato è **zero**: nessuna
+sostituzione sbagliata, nessun sospetto in più.
 
 ## I nomi di persona: quattro segnali
 
