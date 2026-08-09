@@ -68,7 +68,15 @@ RIGENERATE = {
     "docs/landing/publish/index.html": (
         "docs/landing/01-protocollo-zero.html",
         "python docs/landing/publish/_rebuild.py",
-    )
+    ),
+    # Senza questa voce, un problema sulla pagina inglese pubblicata sarebbe
+    # segnalato con «aggiorna il numero nella pagina»: cioe' un invito a
+    # modificare a mano un file rigenerato, che la ricostruzione successiva
+    # butterebbe via. Il messaggio deve mandare alla sorgente.
+    "docs/landing/publish/en/index.html": (
+        "docs/landing/01-protocollo-zero.en.html",
+        "python docs/landing/publish/_rebuild.py",
+    ),
 }
 
 _RE_ID = re.compile(r"^\| ([PSA]\d*\.\d+[a-z]?) \|", re.MULTILINE)

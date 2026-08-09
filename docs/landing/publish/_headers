@@ -1,6 +1,8 @@
 # Security headers — Mr. Rao landing (Cloudflare Pages)
-# CSP hashes must match the inline <style> and <script> in index.html exactly.
-# Recompute with: python -c "import re,hashlib,base64;from pathlib import Path;t=Path('index.html').read_text(encoding='utf-8');..."
+# CSP hashes must match the inline <style> and <script> of BOTH published
+# pages exactly: index.html (Italian) and en/index.html (English). A single
+# CSP covers /* , so each directive carries one hash per page.
+# Recompute with: python docs/landing/publish/_rebuild.py
 
 /*
   X-Content-Type-Options: nosniff
@@ -10,7 +12,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-OpCOmX4n5HoySPGEs5bvT8DVv82GJBjdwhTv2flhtYQ='; style-src 'self' 'sha256-CB65qMR/SbBeWsvEj7YPlWbWKwvVzE3J6zZEnFyai84='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-OpCOmX4n5HoySPGEs5bvT8DVv82GJBjdwhTv2flhtYQ=' 'sha256-6aZvgQjbfSZ4rk6yVU+NWFNC9f63iTrGQd5+IRf+FMQ='; style-src 'self' 'sha256-wwOZaUSzsCuLx3Isdt59cF4OYJfACWqoJlfgy0XMazU=' 'sha256-j78F8ggpcTMdoM1Egm6uCN/xJy9EV6LtKd/aQO0KxGM='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable

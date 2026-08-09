@@ -14,6 +14,12 @@
      il sintomo per cui sembrava non fosse cambiata. -->
 <link rel="alternate icon" href="assets/favicon.ico?v=780f2c412d" sizes="16x16 32x32 48x48" />
 <link rel="canonical" href="https://rao.valor-cyber.com/" />
+<!-- hreflang reciproci con la pagina inglese. `x-default` punta alla pagina
+     inglese e non a questa apposta: l'italiano e' il caso speciale, l'inglese
+     e' la lingua di ripiego per tutto il resto del mondo. -->
+<link rel="alternate" hreflang="it" href="https://rao.valor-cyber.com/" />
+<link rel="alternate" hreflang="en" href="https://rao.valor-cyber.com/en/" />
+<link rel="alternate" hreflang="x-default" href="https://rao.valor-cyber.com/en/" />
 <style>
   /* Fonts self-hosted — no Google / no third-party CDN at runtime */
   @font-face {
@@ -172,7 +178,7 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(240,180,41,0); }
     50% { box-shadow: 0 0 20px 0 rgba(240,180,41,0.25); }
   }
-  .nav .links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav .links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; row-gap: 0.5rem; }
   .nav .cta {
     color: var(--bg);
     background: var(--phosphor);
@@ -182,6 +188,22 @@
     transition: filter 0.2s, transform 0.2s;
   }
   .nav .cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  /* Lo stesso pulsante, vuoto: chi arriva sulla lingua sbagliata deve vedere
+     la via d'uscita accanto al download, non in un pie' di pagina che non
+     scorrera' mai. */
+  .nav .lang {
+    border: 1px solid var(--phosphor-dim);
+    color: var(--phosphor);
+    background: rgba(10,16,12,0.6);
+    padding: 0.45rem 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+  }
+  .nav .lang:hover { background: rgba(61,255,154,0.14); transform: translateY(-1px); }
 
   /* Hero */
   .hero {
@@ -709,6 +731,7 @@
       <a href="#perche">Perché</a>
       <a href="#limiti">Limiti</a>
       <a href="#contatto">Contatto</a>
+      <a class="lang" href="/en/" hreflang="en" lang="en" title="Read this page in English">EN · English</a>
       <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Scarica</a>
     </div>
   </nav>
@@ -741,7 +764,7 @@
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">Ispeziona il codice</a>
       </div>
       <div class="meta-row">
-        <div><strong>127</strong> documenti dove l’atteso è zero</div>
+        <div><strong>100+</strong> documenti dove l’atteso è zero</div>
         <div><strong>AGPL-3.0</strong> software libero</div>
         <div><strong>127.0.0.1</strong> ascolto di default</div>
         <div><strong>IT · UK · US · CA · AU</strong> formati nazionali</div>
@@ -826,7 +849,7 @@
     <div class="grid-3">
       <article class="card">
         <div class="num">01 / IN BIANCO</div>
-        <h3>127 documenti, atteso zero</h3>
+        <h3>Oltre cento documenti, atteso zero</h3>
         <p>Moduli fiscali italiani e statunitensi, numeri della Gazzetta Ufficiale fino al 1890, volumi statistici. Nessun dato personale per costruzione: il numero corretto di redazioni è zero, quindi ogni sostituzione si conta come errore.</p>
       </article>
       <article class="card">
@@ -897,7 +920,7 @@
       </div>
       <div class="limit">
         <strong>Sulle fotocopie sbiadite la copertura cala al 45%</strong>
-        <p>Non è la risoluzione: fra 300 e 100 DPI, su una scansione pulita, la copertura non peggiora. È la qualità del segno. Su una fotocopia sbiadita a 200 DPI — un documento che a occhio si legge benissimo — viene redatto il 45% dei dati, e di quelli rimasti leggibili i sospetti ne segnalano 4 su 29: il resto passa in silenzio. Misurato, non stimato; la scheda «Confronto privacy» è l’unico controllo che lo vede.</p>
+        <p>Non è la risoluzione: fra 300 e 100 DPI, su una scansione pulita, la copertura non peggiora. È la qualità del segno. Su una fotocopia sbiadita a 200 DPI — un documento che a occhio si legge benissimo — viene redatto il 47% dei dati, e di quelli rimasti leggibili i sospetti ne segnalano 4 su 28: il resto passa in silenzio. Misurato, non stimato; la scheda «Confronto privacy» è l’unico controllo che lo vede.</p>
       </div>
       <div class="limit">
         <strong>Due reti neurali, ma a monte</strong>
@@ -957,6 +980,7 @@
     <div class="contact">
       <a href="mailto:antonio.andrea.rao@gmail.com">antonio.andrea.rao@gmail.com</a>
       <a href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">LinkedIn · antoniorao</a>
+      <a href="/en/" hreflang="en" lang="en">This page in English</a>
     </div>
   </footer>
 

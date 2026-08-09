@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mr. Rao — Protocollo Zero</title>
-<meta name="description" content="Il contratto non esce dalla stanza. Mr. Rao: conversione e redazione dati personali, 100% locale." />
-<link rel="icon" href="../../static/img/favicon.svg" type="image/svg+xml" />
-<!-- Il .ico serve a due cose che l'SVG non copre: i browser che non
-     accettano favicon vettoriali, e la richiesta automatica a /favicon.ico
-     che ogni browser fa comunque. Su Cloudflare Pages quel percorso, se il
-     file non c'e', restituisce index.html -- il browser non riesce a
-     leggerlo come icona e tiene quella vecchia in cache, che e' esattamente
-     il sintomo per cui sembrava non fosse cambiata. -->
-<link rel="alternate icon" href="../../static/img/favicon.ico" sizes="16x16 32x32 48x48" />
-<link rel="canonical" href="https://rao.valor-cyber.com/" />
-<!-- hreflang reciproci con la pagina inglese. `x-default` punta alla pagina
-     inglese e non a questa apposta: l'italiano e' il caso speciale, l'inglese
-     e' la lingua di ripiego per tutto il resto del mondo. -->
+<title>Mr. Rao — Zero Protocol</title>
+<meta name="description" content="The contract never leaves the room. Mr. Rao: document conversion and personal-data redaction, 100% local. NHS number, National Insurance, SSN, ITIN, ABA routing, SIN, ABN, TFN, passport MRZ." />
+<link rel="icon" href="/assets/favicon.svg?v=354c7fcf8b" type="image/svg+xml" />
+<!-- The .ico covers the two things the SVG does not: browsers that refuse
+     vector favicons, and the automatic request every browser makes to
+     /favicon.ico anyway. On Cloudflare Pages a missing path returns
+     index.html — the browser cannot read that as an icon, says nothing, and
+     keeps showing the cached one. -->
+<link rel="alternate icon" href="/assets/favicon.ico?v=780f2c412d" sizes="16x16 32x32 48x48" />
+<link rel="canonical" href="https://rao.valor-cyber.com/en/" />
+<!-- Reciprocal hreflang. x-default points at this page and not at the
+     Italian one on purpose: Italian is the special case, English is the
+     fallback for everyone else. -->
 <link rel="alternate" hreflang="it" href="https://rao.valor-cyber.com/" />
 <link rel="alternate" hreflang="en" href="https://rao.valor-cyber.com/en/" />
 <link rel="alternate" hreflang="x-default" href="https://rao.valor-cyber.com/en/" />
@@ -27,7 +26,7 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+    src: url("/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   @font-face {
@@ -35,7 +34,7 @@
     font-style: normal;
     font-weight: 500;
     font-display: swap;
-    src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
+    src: url("/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   @font-face {
@@ -43,7 +42,7 @@
     font-style: normal;
     font-weight: 600;
     font-display: swap;
-    src: url("fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");
+    src: url("/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   @font-face {
@@ -51,7 +50,7 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url("fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
+    src: url("/fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   @font-face {
@@ -59,7 +58,7 @@
     font-style: normal;
     font-weight: 500;
     font-display: swap;
-    src: url("fonts/instrument-sans-latin-500-normal.woff2") format("woff2");
+    src: url("/fonts/instrument-sans-latin-500-normal.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   @font-face {
@@ -67,7 +66,7 @@
     font-style: normal;
     font-weight: 600;
     font-display: swap;
-    src: url("fonts/instrument-sans-latin-600-normal.woff2") format("woff2");
+    src: url("/fonts/instrument-sans-latin-600-normal.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   @font-face {
@@ -75,7 +74,7 @@
     font-style: normal;
     font-weight: 700;
     font-display: swap;
-    src: url("fonts/instrument-sans-latin-700-normal.woff2") format("woff2");
+    src: url("/fonts/instrument-sans-latin-700-normal.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
 
@@ -188,9 +187,8 @@
     transition: filter 0.2s, transform 0.2s;
   }
   .nav .cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  /* Lo stesso pulsante, vuoto: chi arriva sulla lingua sbagliata deve vedere
-     la via d'uscita accanto al download, non in un pie' di pagina che non
-     scorrera' mai. */
+  /* Same button, hollow: whoever lands on the wrong language has to see the
+     way out next to the download, not in a footer nobody scrolls to. */
   .nav .lang {
     border: 1px solid var(--phosphor-dim);
     color: var(--phosphor);
@@ -235,7 +233,6 @@
     background: var(--phosphor);
     box-shadow: 0 0 8px var(--phosphor);
   }
-  /* Wordmark: brand first, then the story headline */
   .hero .wordmark {
     font-family: var(--mono);
     font-size: clamp(2.8rem, 8vw, 5.2rem);
@@ -252,10 +249,10 @@
     transform: translateY(18px);
     animation: fadeUp 0.85s 0.08s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  /* Il marchio a sinistra della scritta, alla stessa altezza.
-     La misura e' in `em`, non in pixel: il titolo usa un `clamp()` che lo
-     rimpicciolisce sugli schermi stretti, e un logo in pixel resterebbe
-     grande mentre il testo si accorcia. In `em` scala insieme. */
+  /* The logo sits left of the wordmark, on the same baseline. The size is in
+     `em` and not in pixels: the title uses a `clamp()` that shrinks it on
+     narrow screens, and a logo in pixels would stay big while the text got
+     small. In `em` it scales along. */
   .hero .wordmark .wm-row {
     display: flex;
     align-items: center;
@@ -265,8 +262,8 @@
     width: 1.06em;
     height: 1.06em;
     flex-shrink: 0;
-    /* `drop-shadow` e non `box-shadow`: il marchio e' un disco, e la
-       seconda seguirebbe il rettangolo dell'immagine. */
+    /* `drop-shadow`, not `box-shadow`: the mark is a disc, and the second
+       would follow the rectangle of the image. */
     filter: drop-shadow(0 0 26px rgba(61,255,154,0.35));
   }
   .hero .wordmark .dot {
@@ -323,12 +320,20 @@
   .term-bar .right {
     margin-left: auto;
   }
-  .card a.glow {
+  a.glow {
     color: var(--phosphor);
     text-decoration: none;
   }
-  .card a.glow:hover {
+  a.glow:hover {
     text-decoration: underline;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    color: var(--phosphor);
+    background: rgba(61,255,154,0.08);
+    padding: 0 4px;
+    border-radius: 2px;
   }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -496,6 +501,14 @@
     font-size: 1.05rem;
     margin-bottom: 2.5rem;
   }
+  .block p.after {
+    color: var(--fog);
+    max-width: 44rem;
+    line-height: 1.7;
+    font-size: 1.05rem;
+    margin-top: 2rem;
+  }
+  .block p.after strong { color: var(--white); font-weight: 600; }
 
   .grid-3 {
     display: grid;
@@ -520,49 +533,7 @@
   }
   .card h3 { font-size: 1.15rem; margin-bottom: 0.65rem; font-weight: 600; }
   .card p { color: var(--fog); font-size: 0.95rem; line-height: 1.6; }
-
-  /* Threat strip */
-  .threat {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 1.5rem;
-    align-items: stretch;
-    margin-top: 1rem;
-  }
-  @media (max-width: 800px) { .threat { grid-template-columns: 1fr; } }
-  .threat-box {
-    border: 1px solid var(--line);
-    padding: 1.5rem;
-    background: var(--panel);
-    font-family: var(--mono);
-    font-size: 12.5px;
-    line-height: 1.75;
-  }
-  .threat-box.bad { border-color: rgba(255,77,77,0.35); }
-  .threat-box.good { border-color: rgba(61,255,154,0.35); }
-  .threat-box h3 {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-  }
-  .threat-box.bad h3 { color: var(--danger); }
-  .threat-box.good h3 { color: var(--phosphor); }
-  .threat-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--mono);
-    color: var(--amber);
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-  }
-  @media (max-width: 800px) {
-    .threat-arrow { writing-mode: horizontal-tb; transform: none; padding: 0.5rem; }
-  }
+  .card p + p { margin-top: 0.6rem; }
 
   /* Spec table */
   .spec {
@@ -593,23 +564,28 @@
   }
   .limit strong { display: block; color: var(--amber); font-size: 0.9rem; margin-bottom: 0.4rem; font-family: var(--mono); letter-spacing: 0.04em; }
   .limit p { color: var(--fog); font-size: 0.95rem; line-height: 1.55; }
+  .limit p + p { margin-top: 0.5rem; }
 
-  /* Stessa griglia dei limiti, in verde: forze e limiti si leggono come due
-     facce della stessa pagina, e la simmetria e' il punto -- chi dichiara i
-     limiti accanto ai pregi si fa credere di piu' su entrambi. */
-  .forze {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+  /* The names block gets the amber treatment across the full width: it is
+     the one thing on this page a reader cannot check by looking at the
+     examples, so it does not get to be a footnote. */
+  .callout {
+    border: 1px solid rgba(240,180,41,0.35);
+    border-left: 3px solid var(--amber);
+    background: rgba(240,180,41,0.05);
+    padding: 1.5rem 1.6rem;
+    max-width: 52rem;
   }
-  @media (max-width: 700px) { .forze { grid-template-columns: 1fr; } }
-  .forza {
-    border-left: 2px solid var(--phosphor);
-    padding: 1rem 1.25rem;
-    background: rgba(61,255,154,0.04);
+  .callout p { color: var(--fog); line-height: 1.7; font-size: 1rem; }
+  .callout p + p { margin-top: 0.9rem; }
+  .callout strong { color: var(--white); font-weight: 600; }
+  .callout .verdict {
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
   }
-  .forza strong { display: block; color: var(--phosphor); font-size: 0.9rem; margin-bottom: 0.4rem; font-family: var(--mono); letter-spacing: 0.04em; }
-  .forza p { color: var(--fog); font-size: 0.95rem; line-height: 1.55; }
 
   /* CTA final */
   .finale {
@@ -721,257 +697,214 @@
 
   <nav class="nav">
     <a class="brand" href="#top">
-      <img src="../../static/img/logo.svg" alt="" width="28" height="28" />
+      <img src="/assets/logo.svg?v=bdb291803a" alt="" width="28" height="28" />
       MR.RAO // OFFLINE
     </a>
     <span class="stamp">NO CLOUD</span>
     <div class="links">
-      <a href="#motore">Motore</a>
-      <a href="#banco">Prove</a>
-      <a href="#perche">Perché</a>
-      <a href="#limiti">Limiti</a>
-      <a href="#contatto">Contatto</a>
-      <a class="lang" href="01-protocollo-zero.en.html" hreflang="en" lang="en" title="Read this page in English">EN · English</a>
-      <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Scarica</a>
+      <a href="#engine">Engine</a>
+      <a href="#names">Names</a>
+      <a href="#proof">Proof</a>
+      <a href="#limits">Limits</a>
+      <a class="lang" href="/" hreflang="it" lang="it" title="Leggi questa pagina in italiano">IT · Italiano</a>
+      <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Download</a>
     </div>
   </nav>
 
   <header class="hero" id="top">
     <div class="hero-copy">
-      <p class="eyebrow">Protocollo zero · solo loopback</p>
+      <p class="eyebrow">Zero protocol · loopback only</p>
       <p class="wordmark" aria-label="Mr. Rao">
         <span class="wm-row">
-          <img class="wm-logo" src="../../static/img/logo.svg" alt="" width="512" height="512" />
+          <img class="wm-logo" src="/assets/logo.svg?v=bdb291803a" alt="" width="512" height="512" />
           <span>Mr<span class="dot">.</span>Rao</span>
         </span>
-        <span class="ver">offline by design</span>
+        <span class="ver">offline by design · v1.11.0</span>
       </p>
       <h1>
-        <span class="line-reveal"><span>Il contratto</span></span>
-        <span class="line-reveal"><span>non esce</span></span>
-        <span class="line-reveal"><span>dalla <em>stanza</em>.</span></span>
+        <span class="line-reveal"><span>The contract</span></span>
+        <span class="line-reveal"><span>never leaves</span></span>
+        <span class="line-reveal"><span>the <em>room</em>.</span></span>
       </h1>
       <p class="lede">
-        PDF, Word, scansioni, email → Markdown pulito, testo semplice o documento Word.
-        Codici fiscali, IBAN, nomi e chiavi API: fuori, <strong class="hl">prima</strong> che tu li incolli in un’AI —
-        o prima che tu pubblichi l’atto.
-        Zero chiamate di rete. Validatori aritmetici, non promesse.
+        PDFs, Word files, scans and email threads → clean Markdown, plain text or a Word document.
+        NHS numbers, National Insurance numbers, SSNs, routing numbers, API keys: out,
+        <strong class="hl">before</strong> you paste any of it into an AI — or before you file the document.
+        No network calls. Arithmetic, not promises.
       </p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">
           ↓ Portable Windows
         </a>
-        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">Ispeziona il codice</a>
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">Read the code</a>
       </div>
       <div class="meta-row">
-        <div><strong>100+</strong> documenti dove l’atteso è zero</div>
-        <div><strong>AGPL-3.0</strong> software libero</div>
-        <div><strong>127.0.0.1</strong> ascolto di default</div>
-        <div><strong>IT · UK · US · CA · AU</strong> formati nazionali</div>
+        <div><strong>99</strong> blank US tax forms, expected zero</div>
+        <div><strong>1,500</strong> English messages on the bench</div>
+        <div><strong>AGPL-3.0</strong> free software</div>
+        <div><strong>127.0.0.1</strong> the only address it listens on</div>
       </div>
     </div>
 
-    <div class="terminal" id="term" aria-label="Simulazione redazione">
+    <div class="terminal" id="term" aria-label="Redaction simulation">
       <div class="scanline"></div>
       <div class="term-bar">
         <span class="dot on"></span><span class="dot"></span><span class="dot"></span>
         <span class="right">session://local · redact</span>
       </div>
       <div class="term-body" id="term-body">
-        <div class="muted">// ingest documento_cliente.eml</div>
+        <div class="muted">// ingest client_thread.eml</div>
       </div>
     </div>
   </header>
 
-  <section class="block" id="problema">
-    <p class="sec-label">// 01 · minaccia</p>
-    <h2>Il nemico non è l’AI. È il percorso.</h2>
+  <section class="block" id="engine">
+    <p class="sec-label">// 01 · engine</p>
+    <h2>The number has to prove what it claims to be.</h2>
     <p class="intro">
-      Per far ragionare un modello su un contratto, quasi tutti gli strumenti
-      ti chiedono di caricare il file. In quel momento nomi, IBAN e codici fiscali
-      finiscono “in giro”. Mr. Rao spezza la catena: converte e redige <em>qui</em>.
-    </p>
-    <div class="threat">
-      <div class="threat-box bad">
-        <h3>⚠ Percorso classico</h3>
-        contratto.pdf<br />
-        → upload convertitore SaaS<br />
-        → testo grezzo<br />
-        → incolla in ChatGPT<br />
-        <span class="red">dati personali: in chiaro, due volte fuori</span>
-      </div>
-      <div class="threat-arrow">PROTOCOLLO</div>
-      <div class="threat-box good">
-        <h3>● Percorso Mr. Rao</h3>
-        contratto.pdf<br />
-        → solo 127.0.0.1<br />
-        → redazione + sospetti<br />
-        → Markdown · review umana<br />
-        <span class="green">file: non ha mai lasciato il PC</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="motore">
-    <p class="sec-label">// 02 · motore</p>
-    <h2>Il numero deve dimostrare di essere un IBAN.</h2>
-    <p class="intro">
-      Pattern + validatore: il modello legge, non decide. Nessun punteggio, nessuna soglia,
-      nessuna sorpresa tra due esecuzioni — lo stesso testo dà sempre lo stesso esito, e ogni sostituzione ha una regola.
+      Every detector is a pattern plus a validator: the pattern proposes, the validator decides.
+      Nothing is scored, nothing is thresholded, and the same text always gives the same result —
+      every replacement can be explained by pointing at the rule that produced it.
     </p>
     <div class="grid-3">
       <article class="card">
-        <div class="num">01 / CHECKSUM</div>
-        <h3>Aritmetica, non impressioni</h3>
-        <p>IBAN mod-97, carte Luhn, controllo CF e P.IVA. Un protocollo lungo non viene “scambiato” per un recapito.</p>
+        <div class="num">01 / ARITHMETIC</div>
+        <h3>Where there is a check digit, it has to add up</h3>
+        <p>NHS number: mod-11. ABA routing number: the weighted 3-7-1 sum, plus the prefix ranges actually in use. Canadian SIN: Luhn. Australian ABN: mod-89. TFN: weighted mod-11. Passport MRZ: the ICAO 9303 check digits — document, birth, expiry and composite.</p>
       </article>
       <article class="card">
-        <div class="num">02 / SOSPETTI</div>
-        <h3>Zero ≠ pulito</h3>
-        <p>«3 redazioni · 2 da controllare». Ciò che assomiglia a un dato e non è validabile viene segnalato, non nascosto.</p>
+        <div class="num">02 / NO CHECK DIGIT</div>
+        <h3>And where there isn't, we say so</h3>
+        <p>NINO, SSN, ITIN and UK postcodes carry no checksum at all. There the detector can only check the structure and rule out the ranges the issuer never assigned — it reduces false positives, it does not eliminate them.</p>
+        <p>So nothing is redacted on bare digits: either the punctuation identifies the format, or a context word sits next to the number. Measured: on 20,000 random nine-digit sequences the SSN structural check accepts nearly 90% of them.</p>
       </article>
       <article class="card">
-        <div class="num">03 / OCR ≤2</div>
-        <h3>Recupero vincolato</h3>
-        <p>Su CF e IBAN storpiati prova fino a due confusioni tipiche di lettura, e sostituisce solo se il candidato regge tre vincoli insieme: checksum, sigla del Paese, lunghezza prevista da quel Paese (registro ISO 13616). Il mod-97 da solo scarta 96 candidati su 97: quando in gioco ci sono migliaia di codici lunghi, il resto passa.</p>
+        <div class="num">03 / SUSPECTS</div>
+        <h3>Zero is not the same as clean</h3>
+        <p>“3 redactions · 2 to check”. Anything that looks like personal data but cannot be proven is flagged, not hidden — masked to a stub (<code>RS••••••••••••2S</code>), enough to find it in the document, not to read it.</p>
       </article>
     </div>
   </section>
 
-  <section class="block" id="banco">
-    <p class="sec-label">// 03 · come lo mettiamo alla prova</p>
-    <h2>Documenti dove la risposta giusta è zero.</h2>
+  <section class="block" id="names">
+    <p class="sec-label">// 02 · the thing you can't check by reading the examples</p>
+    <h2>English names: narrower than Italian, on purpose.</h2>
+    <div class="callout">
+      <p>
+        <strong>There is no English name list in Mr. Rao, and that is a decision.</strong>
+        In Italian the heuristic “two capitalised words that are not Italian words” holds up,
+        because <em>-zione</em>, <em>-mento</em> and <em>-ale</em> end words and not surnames.
+        English has no such split: <em>-son</em>, <em>-ton</em> and <em>-er</em> end both.
+        And the common words that are also names — Mark, Bill, Grace, May, June, Rose, Brown,
+        Green, Baker, Price, Young — turn any list into a false-positive machine.
+      </p>
+      <p>
+        The cost of pretending otherwise was measured, not guessed. The Italian engine pointed at
+        an English administrative document produced <strong>22 replacements on a text containing
+        no personal data at all</strong>, and 22 more on a blank US tax form. The aggressive
+        surname heuristic produced <strong>2,888 wrong replacements on the 99 blank US tax
+        forms</strong> — which is why it ships switched off.
+      </p>
+      <p>
+        So in English a name is replaced <strong>only where the text itself says it is a
+        person</strong>: a title in front (Mr, Mrs, Ms, Dr, Prof, Sir), an opening
+        (<em>Dear …</em>, <em>Attn</em>, <em>c/o</em>), a sign-off line followed by a name, or a
+        name sitting next to an email address. Pure context rules, and they are almost never wrong.
+      </p>
+      <p class="verdict">
+        The price, stated plainly: a name in the middle of a sentence, with no title and no
+        signature, <strong>survives</strong>. Reaching it would take a model, and the promise of
+        this product is that no model makes the decision. On names the English coverage is
+        smaller than the Italian — this page will not claim a parity that does not exist. What the
+        engine cannot prove it flags, so you see the gap in the report instead of discovering it later.
+      </p>
+    </div>
+  </section>
+
+  <section class="block" id="proof">
+    <p class="sec-label">// 03 · how it is put to the test</p>
+    <h2>Documents where the right answer is zero.</h2>
     <p class="intro">
-      Su un documento vero non sai se una sostituzione era dovuta: la giudichi a occhio, e l’occhio si stanca.
-      Per questo il motore viene misurato prima di tutto su carte che dati personali non ne contengono affatto:
-      lì ogni sostituzione è un errore, e non c’è niente da interpretare. Ogni modifica deve ripassare da qui.
+      On a real document you cannot tell whether a replacement was warranted: you judge it by eye,
+      and the eye gets tired. So the engine is measured first on paper that contains no personal
+      data at all — there every replacement is an error, and there is nothing left to interpret.
     </p>
     <div class="grid-3">
       <article class="card">
-        <div class="num">01 / IN BIANCO</div>
-        <h3>Oltre cento documenti, atteso zero</h3>
-        <p>Moduli fiscali italiani e statunitensi, numeri della Gazzetta Ufficiale fino al 1890, volumi statistici. Nessun dato personale per costruzione: il numero corretto di redazioni è zero, quindi ogni sostituzione si conta come errore.</p>
+        <div class="num">01 / BLANK FORMS</div>
+        <h3>99 US tax forms</h3>
+        <p>Part of a zero-truth set of over a hundred public administrative documents, alongside Italian tax forms, official-gazette issues back to 1890 and statistical volumes. The correct number of redactions is zero, so every replacement counts as an error. This bench exists because of a defect found exactly that way: on a blank US tax form the engine once produced 22 replacements.</p>
       </article>
       <article class="card">
-        <div class="num">02 / PROSA VERA</div>
-        <h3>7.500 messaggi reali</h3>
-        <p>6.000 messaggi di mailing list italiane e 1.500 inglesi: come si comporta sul testo che le persone scrivono davvero, non su frasi costruite per farlo riuscire.</p>
+        <div class="num">02 / REAL PROSE</div>
+        <h3>1,500 English messages</h3>
+        <p>Mailing-list messages in English, next to 6,000 in Italian: how it behaves on text people actually wrote, rather than on sentences built to make it succeed.</p>
       </article>
       <article class="card">
-        <div class="num">03 / IL METRO NON SI FIDA</div>
-        <h3>Verificato contro gli standard</h3>
-        <p>Le cifre di controllo con cui costruiamo i documenti di prova sono scritte a parte e verificate contro gli standard pubblicati: ISO 13616 per l’IBAN, il numero di prova classico per Luhn. Non le prendiamo dal prodotto — una misura che chiedesse al prodotto stesso cosa è giusto non potrebbe mai dire che sbaglia.</p>
+        <div class="num">03 / THE RULER</div>
+        <h3>Checked against the standards, not against itself</h3>
+        <p>Each English validator ships with its own test vectors, and every vector states where the value came from — a published example from the issuing body, or a value built by applying the algorithm. The check digits in the test material are computed by a second implementation, independent of the engine, and verified against the published vectors for ISO 13616 and Luhn. A measurement that asks the product what is correct can never report that the product is wrong.</p>
       </article>
     </div>
   </section>
 
-  <section class="block" id="capacita">
-    <p class="sec-label">// 04 · capacità</p>
-    <h2>Tutto ciò che resta in stanza.</h2>
+  <section class="block" id="what">
+    <p class="sec-label">// 04 · what it does</p>
+    <h2>Everything that stays in the room.</h2>
     <table class="spec" id="spec">
-      <tr><td>Formati</td><td>PDF, DOCX, XLSX, PPTX, HTML, CSV, immagini, EML — MarkItDown + OCR offline</td></tr>
-      <tr><td>Redazione</td><td>Email, telefoni, nomi, indirizzi, CF, P.IVA, IBAN, BBAN, carte, URL, segreti API</td></tr>
-      <tr><td>Oltre l’Italia</td><td>NHS number e National Insurance britannici, SSN e ITIN, ABA routing, SIN canadese, ABN e TFN australiani, CAP britannico, righe MRZ del passaporto</td></tr>
-      <tr><td>Esportazione</td><td>Markdown .md, testo semplice .txt e documento Word .docx, tutti già redatti — per gli atti che devono restare documenti · il .docx è rigenerato dal testo redatto, non è l’originale con sopra dei rettangoli neri</td></tr>
-      <tr><td>Lingua</td><td>Interfaccia in italiano e in inglese, scelta dal browser · il documento prodotto segue la stessa lingua</td></tr>
-      <tr><td>Shell Windows</td><td>Tasto destro → Apri con Mr. Rao · sospetti stampati in console quando servono</td></tr>
-      <tr><td>Cartella automatica</td><td>Da convertire → Convertiti, Markdown in uscita, default fuori da OneDrive/Dropbox</td></tr>
-      <tr><td>Sicurezza locale</td><td>Host allow-list, anti-CSRF Origin, GET read-only, bind 127.0.0.1</td></tr>
-      <tr><td>Licenza</td><td>AGPL-3.0 · codice ispezionabile · nessun telefono a casa</td></tr>
+      <tr><td>Input</td><td>PDF, DOCX, XLSX, PPTX, HTML, CSV, images, EML — MarkItDown plus offline OCR</td></tr>
+      <tr><td>Anglo formats</td><td>NHS number, National Insurance number, SSN, ITIN, ABA routing number, Canadian SIN, Australian ABN and TFN, UK postcode, passport MRZ lines — each with its own checksum where one exists</td></tr>
+      <tr><td>Also redacted</td><td>Emails, phone numbers, names, addresses, payment cards (Luhn), IBAN (mod-97), URLs, API keys and secrets</td></tr>
+      <tr><td>Italian formats</td><td><em>Codice fiscale</em>, VAT number, Italian IBAN and BBAN — a separate pack, and either pack can be switched off (<code>--no-pack-en</code>, <code>--no-pack-it</code>)</td></tr>
+      <tr><td>Output</td><td>Markdown .md, plain .txt and Word .docx, all already redacted · the .docx is rebuilt from the redacted text — it is not the original with black boxes drawn on top, and there is no text hiding under them</td></tr>
+      <tr><td>Interface</td><td>English or Italian, chosen from your browser · the produced document follows the same language</td></tr>
+      <tr><td>Local security</td><td>Host allow-list, CSRF Origin check, read-only GET, bound to 127.0.0.1</td></tr>
+      <tr><td>Licence</td><td>AGPL-3.0 · the code can be read · nothing phones home</td></tr>
     </table>
   </section>
 
-  <section class="block" id="perche">
-    <p class="sec-label">// 05 · perché Mr. Rao</p>
-    <h2>Quattro cose che gli altri non fanno.</h2>
-    <div class="forze">
-      <div class="forza">
-        <strong>Un ponte tra documenti grezzi e prompt per AI</strong>
-        <p><em>Il problema.</em> Quando un consulente, un avvocato o un analista vuole usare ChatGPT, Claude o Perplexity per analizzare un contratto, una fattura o un thread di email, non può incollare dati personali: GDPR, NDA, segreto d'ufficio.</p>
-        <p><em>La soluzione.</em> Mr. Rao prende qualsiasi file — PDF scansionato, Word, Excel, EML — lo converte in puro Markdown, estrae e rimuove i dati sensibili, e restituisce un testo pronto da incollare nell'AI senza rischi. In un unico passaggio.</p>
-      </div>
-      <div class="forza">
-        <strong>Parsing nativo dei thread email (.eml)</strong>
-        <p>La maggior parte dei tool vede una mail come un semplice file di testo. Mr. Rao ricostruisce la catena delle risposte, separa i messaggi precedenti e applica la redazione automatica su email, telefoni e nomi. Una killer feature per il settore legale ed HR.</p>
-      </div>
-      <div class="forza">
-        <strong>Specializzazione sui formati italiani ed europei</strong>
-        <p>I tool americani falliscono sui formati italiani. Mr. Rao include validatori matematici specifici per codice fiscale, IBAN italiano (mod-97), partita IVA e carte di credito (algoritmo di Luhn), riducendo drasticamente i falsi positivi. E sì: funziona anche con i documenti in inglese.</p>
-      </div>
-      <div class="forza">
-        <strong>Protezione attiva anti-cloud</strong>
-        <p>Mr. Rao rileva se la cartella «Documenti» è sincronizzata con OneDrive, Dropbox o Google Drive e dirotta automaticamente lo spazio di lavoro su una cartella 100% locale non sincronizzata, garantendo che il file non esca mai dalla stanza.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="limiti">
-    <p class="sec-label">// 06 · onestà operativa</p>
-    <h2>Cosa non promettiamo — di proposito.</h2>
-    <p class="intro">Un CISO si fida di chi dichiara i limiti. Noi li scriviamo in README, PRIVACY e nel prodotto.</p>
+  <section class="block" id="limits">
+    <p class="sec-label">// 05 · operational honesty</p>
+    <h2>What we do not promise — deliberately.</h2>
+    <p class="intro">A security officer trusts whoever declares the limits. Ours are in the README, in PRIVACY.md and in the product itself.</p>
     <div class="limits">
       <div class="limit">
-        <strong>NON è anonimizzazione GDPR forte</strong>
-        <p>È redazione assistita. Il contesto del documento resta. Serve review umana.</p>
+        <strong>Names in English: the narrow set</strong>
+        <p>Titles, openings, sign-offs and email adjacency only. A name in running text survives — the full reasoning is <a class="glow" href="#names">above</a>, and it is the first thing to know before trusting this on English prose.</p>
       </div>
       <div class="limit">
-        <strong>Nomi: non infallibili</strong>
-        <p>Liste di nomi, contesto della frase, euristica che si può spegnere. È la parte più difficile: un cognome raro può restare, e serve sempre una rilettura.</p>
+        <strong>This is not strong GDPR anonymisation</strong>
+        <p>It is assisted redaction. The context of the document remains, and re-identification from context is still possible. Human review is required.</p>
       </div>
       <div class="limit">
-        <strong>Sulle fotocopie sbiadite la copertura cala al 45%</strong>
-        <p>Non è la risoluzione: fra 300 e 100 DPI, su una scansione pulita, la copertura non peggiora. È la qualità del segno. Su una fotocopia sbiadita a 200 DPI — un documento che a occhio si legge benissimo — viene redatto il 47% dei dati, e di quelli rimasti leggibili i sospetti ne segnalano 4 su 28: il resto passa in silenzio. Misurato, non stimato; la scheda «Confronto privacy» è l’unico controllo che lo vede.</p>
+        <strong>On faded photocopies coverage collapses</strong>
+        <p>It is not the resolution: between 300 and 100 DPI, on a clean scan, coverage does not get worse. It is the quality of the mark. On a faded photocopy at 200 DPI — a document a person reads without effort — 47% of the data is redacted, 38% is lost <em>silently</em>, and of what stays readable the suspects flag 4 items out of 28. Measured, not estimated.</p>
       </div>
       <div class="limit">
-        <strong>Due reti neurali, ma a monte</strong>
-        <p>Nel pacchetto ci sono ~30 MB di modelli .onnx (RapidOCR, che legge le scansioni) e uno da 3 MB che riconosce il tipo di file. Girano offline e non decidono niente. Ma il rovescio vale: quello che l’OCR legge male il motore non può decidere bene — tre errori di lettura bastano a far sfuggire un codice.</p>
+        <strong>Two neural networks, but upstream</strong>
+        <p>The package carries ~30 MB of .onnx models (RapidOCR, which reads scans) and a 3 MB one that guesses file types. They run offline and decide nothing. The flip side holds too: what the OCR misreads, the engine cannot judge well.</p>
       </div>
       <div class="limit">
-        <strong>Il .docx non è l’originale</strong>
-        <p>È un documento nuovo, ricostruito dal testo già redatto: il dato non c’è, ma l’impaginazione dell’originale nemmeno. Il PDF identico con sopra i rettangoli neri Mr. Rao non lo fa — sotto quei rettangoli il testo resta.</p>
+        <strong>Formats outside these countries</strong>
+        <p>Italian and Anglo formats have dedicated detectors. A German phone number or a Spanish NIF does not: on those documents the filter sees less than it appears to.</p>
       </div>
       <div class="limit">
-        <strong>Monoutente locale</strong>
-        <p>Nessuna auth. Esporre la porta in rete senza proxy è un errore consapevole.</p>
+        <strong>Single user, local</strong>
+        <p>No authentication. Exposing the port to a network without a proxy in front is a deliberate mistake.</p>
       </div>
     </div>
   </section>
 
   <section class="finale">
-    <h2>Scarica. Estrai. Resta offline.</h2>
+    <h2>Download. Extract. Stay offline.</h2>
     <p>
-      Portable Windows, niente Python. Oppure clona il repo e fai girare i test.
-      Se il motore sbaglia su un documento tuo (senza dati reali in issue), dillo: è l’unico modo per migliorarlo.
+      Portable Windows build, no Python needed. Or clone the repository and run the tests yourself.
+      If the engine gets something wrong on a document of yours (no real data in issues, please), say so:
+      it is the only way it improves.
     </p>
     <div class="actions">
       <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">↓ MrRao-Portable.zip</a>
       <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">github.com/AntonioRao/mr-rao</a>
-    </div>
-  </section>
-
-  <section class="block" id="contatto">
-    <p class="sec-label">// 07 · canale diretto</p>
-    <h2>Segnalazioni, idee, pezzi che non tornano.</h2>
-    <p class="intro">
-      Scritto e mantenuto da Antonio Andrea Rao. Scrivimi una mail o su LinkedIn:
-      niente moduli di contatto, niente tracciamento — come il resto del progetto.
-    </p>
-    <div class="grid-3">
-      <article class="card">
-        <div class="num">MAIL</div>
-        <h3>Posta</h3>
-        <p><a class="glow" href="mailto:antonio.andrea.rao@gmail.com">antonio.andrea.rao@gmail.com</a></p>
-      </article>
-      <article class="card">
-        <div class="num">LINKEDIN</div>
-        <h3>Rete</h3>
-        <p><a class="glow" href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">linkedin.com/in/antoniorao</a></p>
-      </article>
-      <article class="card">
-        <div class="num">CODICE</div>
-        <h3>Sorgente</h3>
-        <p><a class="glow" href="https://github.com/AntonioRao/mr-rao" target="_blank" rel="noopener noreferrer">github.com/AntonioRao/mr-rao</a></p>
-      </article>
     </div>
   </section>
 
@@ -980,7 +913,7 @@
     <div class="contact">
       <a href="mailto:antonio.andrea.rao@gmail.com">antonio.andrea.rao@gmail.com</a>
       <a href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">LinkedIn · antoniorao</a>
-      <a href="01-protocollo-zero.en.html" hreflang="en" lang="en">This page in English</a>
+      <a href="/" hreflang="it" lang="it">Questa pagina in italiano</a>
     </div>
   </footer>
 
@@ -1022,18 +955,21 @@
   window.addEventListener("keydown", dismissBoot, { once: true });
   window.addEventListener("click", dismissBoot, { once: true });
 
+  // Invented data in a real shape: the NHS number passes mod-11, the routing
+  // number passes the 3-7-1 sum. A demo built on numbers that would not pass
+  // the validators would be advertising the opposite of the point.
   const docLines = [
-    { raw: "Da: mario.rossi@studio.it", redact: false },
-    { raw: "Oggetto: Contratto fornitura Q3", redact: false },
+    { raw: "From: j.whitfield@chambers.co.uk", redact: false },
+    { raw: "Subject: Settlement — schedule 3", redact: false },
     { raw: "---", redact: false },
-    { raw: "Gentile Dott. Bianchi,", kind: "name", value: "Dott. Bianchi" },
-    { raw: "IBAN: IT60 X054 2811 1010 0000 0123 456", kind: "iban", value: "IT60 X054 2811 1010 0000 0123 456" },
-    { raw: "CF: RSSMRA85T10A562S", kind: "cf", value: "RSSMRA85T10A562S" },
-    { raw: "cell. 335 123 4567", kind: "phone", value: "335 123 4567" },
+    { raw: "Dear Dr Whitfield,", kind: "name", value: "Whitfield" },
+    { raw: "NHS No. 943 476 5919", kind: "nhs", value: "943 476 5919" },
+    { raw: "SSN 452-04-7561", kind: "ssn", value: "452-04-7561" },
+    { raw: "ABA routing 021000021", kind: "routing", value: "021000021" },
     { raw: "api_key = sk-proj-demoXXXXXXXX", kind: "secret", value: "sk-proj-demoXXXXXXXX" },
-    { raw: "Protocollo interno: 0123456789", redact: false },
+    { raw: "Our file ref. 0123456789", redact: false },
     { raw: "", redact: false },
-    { raw: "// report: 5 redazioni · 0 sospetti · locale", final: true },
+    { raw: "// report: 5 redactions · 0 suspects · local", final: true },
   ];
 
   function startTerminal() {
@@ -1051,7 +987,7 @@
       if (row.kind) {
         line.innerHTML = row.raw.replace(
           row.value,
-          '<span class="strike" data-ph="{{' + row.kind.toUpperCase() + '}}">' + row.value + "</span>"
+          '<span class="strike">' + row.value + "</span>"
         );
         body.appendChild(line);
         setTimeout(() => {
@@ -1059,12 +995,18 @@
           if (!s) return;
           const ph = document.createElement("span");
           ph.className = "ph";
-          const map = { name: "NAME", iban: "IBAN", cf: "CODICE_FISCALE", phone: "PHONE", secret: "SECRET" };
+          const map = {
+            name: "NAME",
+            nhs: "NHS_NUMBER",
+            ssn: "SSN",
+            routing: "ROUTING_NUMBER",
+            secret: "SECRET",
+          };
           ph.textContent = "{{" + (map[row.kind] || "REDACTED") + "}}";
           s.replaceWith(ph);
         }, 450);
       } else {
-        line.innerHTML = row.raw.startsWith("Da:") || row.raw.startsWith("Oggetto")
+        line.innerHTML = row.raw.startsWith("From:") || row.raw.startsWith("Subject")
           ? '<span class="muted">' + row.raw + "</span>"
           : row.raw;
         body.appendChild(line);
