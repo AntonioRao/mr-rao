@@ -123,3 +123,52 @@ def test_le_immagini_dichiarate_nel_manifesto_esistono_tutte():
     for percorso in sorted(citate):
         atteso = RADICE / "packaging" / percorso.replace("\\", "/")
         assert atteso.is_file(), f"il manifesto cita {percorso}, che non esiste"
+
+
+def test_il_residuo_di_python_docx_resta_fuori(finto_portable, tmp_path):
+    """`[Content_Types].xml` e' un nome riservato da MSIX.
+
+    python-docx spedisce il proprio modello anche **scompattato**, e dentro
+    c'e' quel nome. La libreria non lo apre mai — `docx/api.py` carica
+    `templates/default.docx`, cioe' lo zip — quindi escluderlo dal pacchetto
+    Store non toglie niente a nessuno. Con dentro, MakeAppx enumera duemila
+    file e poi risponde `0x8007007b` senza dire quale: venti minuti di CI
+    per sapere che qualcosa non va.
+    """
+    mod = _modulo()
+    modello = finto_portable / "app" / "_internal" / "docx" / "templates"
+    (modello / "default-docx-template").mkdir(parents=True)
+    (modello / "default-docx-template" / "[Content_Types].xml").write_text(
+        "<Types/>", encoding="utf-8"
+    )
+    (modello / "default.docx").write_bytes(b"PK\x03\x04")
+
+    layout = mod.monta(finto_portable, tmp_path / "layout")
+
+    assert not list(layout.rglob("[[]Content_Types[]].xml")), "residuo nel pacchetto"
+    assert (
+        layout / "app" / "_internal" / "docx" / "templates" / "default.docx"
+    ).is_file(), "il modello vero deve restare: senza, l'export .docx non parte"
+
+
+def test_il_rilevatore_nomina_il_file_invece_di_dare_un_codice(finto_portable, tmp_path):
+    """La ragione per cui esiste: MakeAppx dice *che* c'e' un nome illegale,
+    non *quale*. Un controllo che si limitasse a fallire non varrebbe la
+    fatica."""
+    mod = _modulo()
+    layout = mod.monta(finto_portable, tmp_path / "layout")
+    assert mod.nomi_illegali(layout) == []
+
+    (layout / "app" / "[Content_Types].xml").write_text("x", encoding="utf-8")
+    problemi = mod.nomi_illegali(layout)
+    assert len(problemi) == 1
+    assert "Content_Types" in problemi[0]
+    assert "riservato" in problemi[0]
+
+
+def test_il_manifesto_alla_radice_non_e_un_errore(finto_portable, tmp_path):
+    """Il rilevatore non deve segnalare la cosa che ci deve stare."""
+    mod = _modulo()
+    layout = mod.monta(finto_portable, tmp_path / "layout")
+    assert (layout / "AppxManifest.xml").is_file()
+    assert mod.nomi_illegali(layout) == []

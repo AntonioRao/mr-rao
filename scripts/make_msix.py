@@ -39,6 +39,60 @@ MANIFESTO = ROOT / "packaging" / "AppxManifest.xml"
 ASSETS = ROOT / "packaging" / "Assets"
 
 
+# Cartelle che non entrano nel pacchetto Store.
+#
+# `default-docx-template` e' la forma **scompattata** del modello di
+# python-docx, spedita dentro la libreria ma mai aperta: `docx/api.py` carica
+# `templates/default.docx`, cioe' lo zip. Verificato, non dedotto -- nel
+# codice della libreria la cartella non compare da nessuna parte.
+#
+# Va tolta perche' contiene `[Content_Types].xml`, che in un pacchetto MSIX
+# e' un **nome riservato**: quel file lo genera MakeAppx alla radice. Con
+# dentro quella cartella, MakeAppx enumera tutti i 2750 file e poi risponde
+# `0x8007007b - nome di file non valido`, senza dire quale. La diagnosi costa
+# un giro di CI intero, ed e' il motivo per cui qui sotto c'e' anche un
+# rilevatore che lo dice prima.
+#
+# Riguarda **solo** l'MSIX: nello zip portable la cartella resta, e la
+# libreria continua a funzionare identica nelle due confezioni.
+ESCLUSI = ("default-docx-template",)
+
+# Nomi che MSIX riserva a se'. Alla radice del pacchetto il manifesto ci
+# deve stare; ovunque altro sono un errore.
+RISERVATI_OVUNQUE = {"[content_types].xml", "appxblockmap.xml", "appxsignature.p7x"}
+RISERVATI_ALLA_RADICE = {"appxmanifest.xml"}
+VIETATI = '<>:"|?*'
+
+
+def nomi_illegali(layout: Path) -> list[str]:
+    """I file che MakeAppx rifiutera', trovati prima di chiamarlo.
+
+    MakeAppx segnala il problema con un codice di errore e senza nominare il
+    file: leggerlo e' un giro di CI da venti minuti per una diagnosi che si
+    puo' fare in mezzo secondo.
+    """
+    problemi: list[str] = []
+    for p in layout.rglob("*"):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(layout)
+        nome = p.name
+        minuscolo = nome.lower()
+        alla_radice = len(rel.parts) == 1
+
+        if minuscolo in RISERVATI_OVUNQUE:
+            problemi.append(f"{rel}: '{nome}' e' un nome riservato da MSIX")
+        elif minuscolo in RISERVATI_ALLA_RADICE and not alla_radice:
+            problemi.append(f"{rel}: '{nome}' e' ammesso solo alla radice")
+        elif minuscolo.startswith("appxmetadata"):
+            problemi.append(f"{rel}: il prefisso 'AppxMetadata' e' riservato")
+        elif nome != nome.strip() or nome.endswith("."):
+            problemi.append(f"{rel}: il nome finisce con uno spazio o un punto")
+        elif any(c in nome for c in VIETATI):
+            problemi.append(f"{rel}: contiene un carattere vietato")
+    return problemi
+
+
 def monta(pacchetto: Path = PACCHETTO, layout: Path = LAYOUT) -> Path:
     """Costruisce la cartella che MakeAppx impacchettera'."""
     eseguibile = pacchetto / "app" / "MrRao.exe"
@@ -59,7 +113,9 @@ def monta(pacchetto: Path = PACCHETTO, layout: Path = LAYOUT) -> Path:
         shutil.rmtree(layout)
     layout.mkdir(parents=True)
 
-    shutil.copytree(pacchetto / "app", layout / "app")
+    shutil.copytree(
+        pacchetto / "app", layout / "app", ignore=shutil.ignore_patterns(*ESCLUSI)
+    )
     shutil.copytree(ASSETS, layout / "Assets")
     shutil.copy2(MANIFESTO, layout / "AppxManifest.xml")
 
@@ -108,6 +164,18 @@ def main() -> int:
 
     quanti = sum(1 for _ in layout.rglob("*") if _.is_file())
     print(f"  layout pronto: {layout}  ({quanti} file)")
+
+    problemi = nomi_illegali(layout)
+    if problemi:
+        print("ERRORE: nomi che MakeAppx rifiutera':", file=sys.stderr)
+        for p in problemi:
+            print(f"  {p}", file=sys.stderr)
+        print(
+            "  Se il file serve davvero, va rinominato a monte; se e' un "
+            "residuo, aggiungilo a ESCLUSI in questo script.",
+            file=sys.stderr,
+        )
+        return 1
 
     if "--solo-layout" in sys.argv:
         return 0
