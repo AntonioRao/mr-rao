@@ -226,6 +226,39 @@ _RE_EMAIL = re.compile(
     r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"
 )
 
+# L'indirizzo spezzato dall'estrattore, non da chi scriveva:
+#
+#     scrivere a g.moretti@
+#     studiomoretti.it
+#
+# Succede ogni volta che un PDF o un .docx manda a capo dentro l'indirizzo.
+# Misurato: **perso in silenzio in 20 casi su 20** -- non sostituito e
+# nemmeno segnalato, cioe' il modo peggiore di sbagliare.
+#
+# ATTENZIONE, qui c'e' un difetto gia' pagato una volta (vedi il commento
+# sotto, su `_RE_EMAIL_OFFUSCATA`): un riconoscitore di email che
+# attraversa le righe con `\s*` si mangia i paragrafi. Per questo il
+# permesso e' il piu' stretto possibile:
+#
+#   * **un solo** ritorno a capo, non `\s*`;
+#   * **solo dopo la chiocciola**, dove l'estrattore taglia davvero;
+#   * il dominio dopo l'a capo resta strettissimo -- nessuno spazio al suo
+#     interno, quindi non puo' arrivare alla parola successiva.
+#
+# Non si allenta nient'altro: la forma resta `locale@dominio.tld`, la stessa
+# che il riconoscitore normale gia' accetta. Cambia solo che fra la
+# chiocciola e il dominio puo' esserci l'a capo messo dall'estrattore.
+# La parte locale non puo' finire con un punto: lo dice la RFC 5322, e non
+# e' un cavillo -- e' cio' che distingue `g.moretti@` da `avv.@`, che nella
+# prova a volume era il falso positivo piu' frequente. Il riconoscitore
+# normale non ha bisogno di questa stretta perche' non attraversa le righe;
+# qui serve, perche' qui il contesto e' piu' povero.
+_RE_EMAIL_SPEZZATA = re.compile(
+    r"\b[A-Za-z0-9._%+\-]*[A-Za-z0-9_%+\-]"
+    r"@[^\S\r\n]*\r?\n[^\S\r\n]*"
+    r"[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"
+)
+
 # L'indirizzo scritto per non farsi trovare dai raccoglitori automatici:
 # "mario [at] esempio [dot] it". Chi lo scrive cosi' lo fa apposta perche'
 # non sembri un'email — e infatti al riconoscitore non sembrava.
@@ -1542,6 +1575,10 @@ def _scrub_names(
 
 def _scrub_emails(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
     out = _replace_all(text, _RE_EMAIL, "{{EMAIL}}", report, "emails")
+    # Dopo quello normale, non prima: cosi' un indirizzo scritto per bene su
+    # una riga sola viene preso dal riconoscitore stretto, e questo vede solo
+    # cio' che l'altro ha lasciato -- cioe' i casi davvero spezzati.
+    out = _replace_all(out, _RE_EMAIL_SPEZZATA, "{{EMAIL}}", report, "emails")
     return _replace_all(out, _RE_EMAIL_OFFUSCATA, "{{EMAIL}}", report, "emails")
 
 

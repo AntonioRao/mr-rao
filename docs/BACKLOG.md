@@ -1,6 +1,6 @@
 # Backlog & piano di priorità — Mr. Rao
 
-Lo stato delle voci vale alla **1.13.0**. La fonte di verità resta git e il
+Lo stato delle voci vale alla **1.14.0**. La fonte di verità resta git e il
 [changelog](CHANGELOG.md): se una riga qui dice DONE e il codice dice altro,
 ha ragione il codice.
 

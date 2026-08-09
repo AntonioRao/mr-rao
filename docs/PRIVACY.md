@@ -173,6 +173,52 @@ Il secondo conta quanto il primo. Un filtro che redige tutto è inutile
 esattamente come uno che non redige niente, e il verbale è quello che
 impedisce di guadagnare copertura peggiorando lo strumento.
 
+### Sul testo, senza OCR di mezzo — misurato il 2026-08-09
+
+Quasi tutti i numeri di questa pagina riguardano le scansioni, dove il
+limite principale è l'OCR. Su email, contratti, delibere e documenti Office
+il motore è **interamente responsabile**, e non c'è nessuno da incolpare.
+Quel percorso non era mai stato misurato: `scripts/bench_testo.py`.
+
+**Falsi positivi: zero.** Su 3,6 milioni di caratteri di moduli
+amministrativi veri e in bianco — 27 italiani scaricati da Agenzia delle
+Entrate, INPS, Dogane, Giustizia e Camere di Commercio, 15 moduli IRS —
+**nessuna sostituzione sbagliata**, 42 documenti su 42 perfetti. Documenti
+che non abbiamo scelto noi: è la differenza che conta.
+
+**Richiamo sulle forme regolari: 100%.** Dati dal valore noto inseriti in
+paragrafi veri di Gazzetta Ufficiale, verificati puliti prima
+dell'inserimento: 520 casi su 520, zero perdite silenziose. Otto tipi di
+dato in tre cornici ciascuno, e i nomi in tutti e cinque i livelli di prova.
+
+**Richiamo sulle forme difficili: 73% redatto, 20% segnalato, 6,7% perso in
+silenzio.** È il numero onesto, perché è così che i dati arrivano davvero da
+un `.docx` o da un PDF:
+
+| Forma | Esito |
+|-------|-------|
+| IBAN e carta a gruppi di quattro o con trattini, codice fiscale in minuscolo, telefono coi punti o senza parola davanti, email offuscata `[at]`, indirizzo senza civico, **email spezzata da un a capo** | redatta |
+| IBAN spezzato da un a capo · `Il Direttore Generale: MORETTI` · un cognome che è anche parola comune (`Marco Chiesa`) | **segnalata**, non tolta |
+| Nome e cognome fuori da entrambi gli elenchi, senza titolo né firma né posta accanto | **persa in silenzio** |
+
+L'unica perdita silenziosa rimasta è il limite dichiarato più sopra, quello
+che il ritiro dell'euristica ha reso esplicito. Le altre due categorie non
+sono equivalenti e la tabella le tiene separate apposta: **segnalato** lascia
+a chi legge la possibilità di intervenire, **perso in silenzio** no.
+
+**Cosa questa misura ha trovato.** L'indirizzo di posta mandato a capo
+dall'estrattore — `g.moretti@` a fine riga e il dominio su quella dopo —
+spariva in silenzio in 20 casi su 20. Corretto nella 1.14.0, con il permesso
+più stretto possibile: un solo a capo, solo dopo la chiocciola.
+
+### La parità fra i formati
+
+Lo stesso documento in dieci formati — `.txt`, `.html`, `.csv`, `.json`,
+`.xml`, `.docx`, `.xlsx`, `.pptx`, `.eml` e un `.png` che passa dall'OCR —
+deve proteggere allo stesso modo, perché fra un formato e l'altro cambia
+l'estrattore. **Otto dati su otto in tutti e dieci**, nessuno lasciato
+leggibile. Banco: `scripts/bench_formati.py`.
+
 ## I sospetti
 
 I riconoscitori cercano forme **valide**. L'OCR produce forme **quasi**

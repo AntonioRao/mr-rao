@@ -1,5 +1,89 @@
 # Changelog
 
+## 1.14.0 — Il percorso senza OCR non era mai stato misurato
+
+Quasi tutti i numeri che pubblichiamo riguardano le scansioni, dove il
+limite principale non è il motore ma l'OCR. Su email, contratti, delibere e
+documenti Office il motore è **interamente responsabile** di ciò che trova e
+di ciò che perde — e quel percorso non l'aveva mai misurato nessuno.
+
+### Cosa dice la misura
+
+**Falsi positivi: zero.** Su 3,6 milioni di caratteri di moduli
+amministrativi veri e in bianco — 27 italiani scaricati dagli enti che li
+pubblicano, 15 moduli IRS — **nessuna sostituzione sbagliata**, 42 documenti
+su 42 perfetti.
+
+**Forme regolari: 100%.** Dati dal valore noto inseriti in paragrafi veri di
+Gazzetta Ufficiale: 520 casi su 520, zero perdite silenziose.
+
+**Forme difficili: 73% redatto, 20% segnalato, 6,7% perso in silenzio.** È
+il numero che conta, perché è così che i dati arrivano da un `.docx` o da un
+PDF: a gruppi di quattro, in minuscolo, spezzati da un a capo.
+
+### Il difetto che ha trovato
+
+Un indirizzo di posta mandato a capo dall'estrattore — `g.moretti@` a fine
+riga, il dominio su quella dopo — era **perso in silenzio in 20 casi su
+20**. Non sostituito e nemmeno segnalato: il documento sembrava pulito e non
+lo era.
+
+Non è un caso di laboratorio: succede ogni volta che un PDF giustifica il
+testo dentro un indirizzo.
+
+**Il rimedio è il più stretto possibile, e c'è una ragione.** In questo
+stesso file era già stato pagato un difetto opposto: un riconoscitore di
+email che attraversava le righe con `\s*` **si mangiava i paragrafi** — il
+conteggio diceva «1 email» e il documento perdeva testo senza dirlo. Quindi:
+un solo a capo, solo dopo la chiocciola, e il dominio dopo resta senza spazi
+al proprio interno, così non può allungarsi fino alla parola successiva.
+
+In più una stretta di principio: la parte locale non può finire con un
+punto (RFC 5322). È ciò che distingue `g.moretti@` da `avv.@`, che era il
+falso positivo più frequente.
+
+**Il costo, misurato dove poteva fallire.** Sui corpora veri il pattern
+nuovo produce zero candidati — ma quello zero era garantito: in 6,7 milioni
+di caratteri ci sono **dieci** chiocciole e **nessuna** a fine riga. La
+misura vera è su prosa italiana con una chiocciola forzata in fondo a *ogni*
+riga, il caso peggiore possibile: accetta lo **0,026%** delle coppie.
+
+Le perdite silenziose sulle forme difficili scendono dal 13,3% al 6,7%, e
+ciò che resta è il limite già dichiarato: un nome fuori da entrambi gli
+elenchi, senza titolo né firma né posta accanto.
+
+### Due banchi nuovi, e due buchi che coprono
+
+`scripts/bench_testo.py` e `scripts/bench_formati.py`, entrambi con la
+propria controprova, entrambi sotto test nel gate.
+
+Il secondo copre una cosa che nessuno verificava: **un `.xlsx` protegge
+quanto un `.docx`?** `verify_build.py` controllava che la conversione
+*riuscisse* — riuscire non vuol dire proteggere. Misurato: lo stesso
+documento in dieci formati, **otto dati su otto in tutti e dieci**.
+
+### Tre difetti trovati nei banchi, non nel prodotto
+
+Vale scriverli perché sono il motivo per cui i numeri qui sopra reggono.
+
+**Il corpus non era testo grezzo**: erano file già convertiti da Mr. Rao,
+intestazione compresa. Il conto diceva 27 sostituzioni sbagliate — una per
+documento, un numero troppo regolare per essere vero. Erano tutte
+`generator: "Mr. Rao"`, dove `Mr.` è un titolo professionale e `Rao` la
+parola maiuscola dopo: **il motore stava redigendo la propria firma**, e
+aveva ragione.
+
+**Le opzioni finivano nel nome del file**: `convert_file` le prende come
+terzo argomento, il banco le passava come secondo. Ha misurato la
+configurazione predefinita per tutta la prima esecuzione, in silenzio.
+
+**Un caso che non poteva fallire**: per l'IBAN a gruppi di quattro il banco
+cercava la forma senza spazi dentro un testo che li aveva, quindi risultava
+«redatto» anche a motore spento.
+
+Gli ultimi due li ha presi la controprova, che ora è dentro entrambi i
+banchi e dentro i test.
+
 ## 1.13.0 — La regola che indovinava è stata ritirata
 
 Il motore aveva quattro modi di riconoscere un nome. Tre chiedevano un
