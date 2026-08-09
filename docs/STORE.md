@@ -35,6 +35,44 @@ Partner Center, e non c'è modo di aggirarlo.
 > **Scadenza.** La prenotazione del nome decade se l'app non viene inviata
 > entro tre mesi dalla prenotazione.
 
+## Come si pubblica, oggi: a mano
+
+**È il percorso in uso.** L'automazione esiste ma è spenta, e il perché sta
+nella sezione dopo.
+
+1. **Actions → Portable → Run workflow**, lasciando vuoti tutti i campi. Il
+   pacchetto si costruisce in camera pulita, si firma con Sigstore e resta
+   allegato all'esecuzione.
+2. Dall'esecuzione, scarica l'artefatto `MrRao-Portable`: dentro c'è
+   `MrRao-<versione>.msix`.
+3. In Partner Center, sull'app **Mr. Rao**, crea la sottomissione e carica
+   quel file.
+
+Alla prima sottomissione vanno compilate anche descrizione, schermate,
+classificazione per età e mercati. Quella parte non si automatizza in nessun
+caso, nemmeno più avanti.
+
+## Perché l'automazione è spenta
+
+Non è incompiuta: è **scritta, provata e in attesa**. Si accende scrivendo
+`si` nel campo `pubblica_store`, e finché i quattro segreti non ci sono, il
+workflow si ferma subito dicendo quali mancano.
+
+È spenta per una ragione di proporzioni, decisa il 2026-08-09. Farla
+funzionare richiede un **tenant Microsoft Entra** associato all'account: il
+Partner Center è nato con un account Microsoft personale, e sotto «Azure AD
+Directories» non c'è nessuna directory. Crearne uno significa una nuova
+utenza amministrativa, una password, e un *client secret* che scade e va
+ruotato.
+
+Dall'altra parte della bilancia: la prima pubblicazione resta manuale
+comunque, e gli aggiornamenti sono tre clic ogni release. Per un progetto
+che rilascia ogni tanto, il tenant è parecchia infrastruttura per poco
+guadagno.
+
+Quando le release diventeranno frequenti, la sezione qui sotto dice cosa
+serve.
+
 ## I quattro segreti, e da dove si prendono
 
 Vanno in **Settings → Secrets and variables → Actions** del repository, con
@@ -59,7 +97,7 @@ Prima però servono due passaggi in Partner Center:
 > Il *client secret* lo crei e lo incolli tu. È una credenziale: non passa da
 > nessun'altra parte, e non va scritta in un file del repository.
 
-## Come si pubblica un aggiornamento
+## Come si pubblichera' un aggiornamento, quando l'automazione sara' accesa
 
 Dalla scheda **Actions** → workflow **Portable** → *Run workflow*, e nel campo
 `pubblica_store` scrivere `si`.
