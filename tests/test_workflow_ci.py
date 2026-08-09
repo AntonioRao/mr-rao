@@ -180,3 +180,48 @@ def test_le_licenze_del_pacchetto_pubblicato_non_sono_saltate():
     assert "MR_RAO_GATE_NO_LICENCE_CHECK: " not in testo, (
         "il controllo delle licenze e' di nuovo disattivato nel workflow"
     )
+
+
+# --- Pubblicazione sul Microsoft Store -------------------------------------
+
+
+def test_lo_store_non_pubblica_da_solo():
+    """Ogni passo che parla con lo Store dev'essere dietro una scelta
+    esplicita di chi lancia. Una release che parte per conto suo non e' un
+    automatismo, e' una sorpresa -- e sullo Store non si annulla con un
+    `git revert`."""
+    passi = [
+        p for p in _portable()["steps"]
+        if "msstore" in str(p.get("run", "")) or "store-apppublisher" in p.get("uses", "")
+    ]
+    assert passi, "non trovo i passi di pubblicazione sullo Store"
+    for p in passi:
+        assert p.get("if") == "inputs.pubblica_store != ''", (
+            f"il passo «{p.get('name') or p.get('uses')}» pubblica senza interruttore"
+        )
+
+
+def test_i_segreti_si_controllano_prima_di_pubblicare():
+    """Un segreto mancante, senza questo, diventa un errore di
+    autenticazione a meta' della pubblicazione: il punto peggiore in cui
+    scoprirlo."""
+    passi = _portable()["steps"]
+    nomi = [p.get("name", "") for p in passi]
+    indice_controllo = next(i for i, n in enumerate(nomi) if "segreti" in n.lower())
+    indice_invio = next(i for i, n in enumerate(nomi) if "allo Store" in n)
+    assert indice_controllo < indice_invio, "il controllo arriva dopo l'invio"
+
+
+def test_i_segreti_hanno_i_nomi_che_il_documento_dichiara():
+    """Il workflow e docs/STORE.md devono nominare gli stessi segreti: un
+    nome diverso fra i due si scopre solo pubblicando."""
+    import re
+
+    testo = (RADICE / ".github" / "workflows" / "portable.yml").read_text(encoding="utf-8")
+    doc = (RADICE / "docs" / "STORE.md").read_text(encoding="utf-8")
+    usati = set(re.findall(r"secrets\.([A-Z_]+)", testo))
+    assert usati, "il workflow non usa nessun segreto"
+    for nome in usati:
+        if nome == "GITHUB_TOKEN":
+            continue
+        assert nome in doc, f"il segreto {nome} non e' documentato in docs/STORE.md"

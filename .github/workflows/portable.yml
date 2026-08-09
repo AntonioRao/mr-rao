@@ -39,6 +39,13 @@ on:
           l'artefatto resta scaricabile da questa esecuzione.
         required: false
         default: ''
+      pubblica_store:
+        description: >-
+          Manda l'MSIX al Microsoft Store. Richiede che l'app sia GIA' stata
+          pubblicata a mano una prima volta: l'automazione aggiorna, non
+          inserisce. Scrivere «si» per procedere.
+        required: false
+        default: ''
 
   # Da riattivare dopo la prima esecuzione riuscita:
   #
@@ -174,6 +181,65 @@ jobs:
             dist/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error
+
+      # --- Microsoft Store -------------------------------------------
+      #
+      # Due vincoli di Microsoft che decidono cosa si puo' automatizzare, e
+      # tutti e due vanno saputi prima:
+      #
+      #  1. l'aggiornamento via GitHub Actions vale **solo per i prodotti
+      #     gratuiti**. Mr. Rao lo e', quindi passa;
+      #  2. l'app dev'essere **gia' pubblicata e viva** sullo Store. La
+      #     prima sottomissione -- scheda, schermate, classificazione per
+      #     eta' -- si fa a mano da Partner Center, e non c'e' modo di
+      #     aggirarlo. Questo workflow aggiorna, non inserisce.
+      #
+      # Lo Store product ID non e' un segreto: sta nell'indirizzo pubblico
+      # della scheda (apps.microsoft.com/detail/9N7SJ4W88KQC). I quattro
+      # segreti veri stanno nei GitHub Secrets, e li crea l'autore: vedi
+      # docs/STORE.md.
+      #
+      # Il controllo qui sotto esiste perche' senza, un segreto mancante
+      # diventa un errore di autenticazione a meta' della pubblicazione, che
+      # e' il punto peggiore in cui scoprirlo.
+      - name: I segreti dello Store ci sono?
+        if: inputs.pubblica_store != ''
+        shell: bash
+        run: |
+          mancanti=""
+          [ -n "${{ secrets.AZURE_AD_TENANT_ID }}" ] || mancanti="$mancanti AZURE_AD_TENANT_ID"
+          [ -n "${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}" ] || mancanti="$mancanti AZURE_AD_APPLICATION_CLIENT_ID"
+          [ -n "${{ secrets.AZURE_AD_APPLICATION_SECRET }}" ] || mancanti="$mancanti AZURE_AD_APPLICATION_SECRET"
+          [ -n "${{ secrets.SELLER_ID }}" ] || mancanti="$mancanti SELLER_ID"
+          if [ -n "$mancanti" ]; then
+            echo "Mancano questi segreti:$mancanti" >&2
+            echo "Come si ottengono: docs/STORE.md" >&2
+            exit 1
+          fi
+          echo "i quattro segreti ci sono"
+
+      - name: Microsoft Store CLI
+        if: inputs.pubblica_store != ''
+        uses: microsoft/microsoft-store-apppublisher@v1.1
+
+      - name: Credenziali dello Store
+        if: inputs.pubblica_store != ''
+        shell: pwsh
+        run: |
+          msstore reconfigure `
+            --tenantId ${{ secrets.AZURE_AD_TENANT_ID }} `
+            --sellerId ${{ secrets.SELLER_ID }} `
+            --clientId ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }} `
+            --clientSecret ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+
+      - name: Manda il pacchetto allo Store
+        if: inputs.pubblica_store != ''
+        shell: pwsh
+        run: |
+          $msix = Get-ChildItem dist/MrRao-*.msix | Select-Object -First 1
+          if (-not $msix) { throw "nessun .msix in dist/" }
+          Write-Host "invio $($msix.Name)"
+          msstore publish $msix.FullName -id 9N7SJ4W88KQC
 
       # Pubblica **solo** se qualcuno ha scritto un tag nell'input: non
       # esiste un percorso in cui una release cambi da sola. Il tag deve
