@@ -32,7 +32,7 @@ APP_TAGLINE = (
     "Converti documenti, immagini e thread email in Markdown puro. "
     "Con i dati personali già rimossi. Offline, sul tuo computer."
 )
-APP_VERSION = "1.17.0"
+APP_VERSION = "1.18.0"
 
 # Paths
 BASE_DIR = _base_dir()
@@ -59,6 +59,17 @@ DEBUG = os.environ.get("MR_RAO_DEBUG", "0").strip() in ("1", "true", "True", "ye
 SECRET_KEY = os.environ.get("MR_RAO_SECRET") or secrets.token_hex(32)
 USE_TRAY = os.environ.get("MR_RAO_TRAY", "1").strip() not in ("0", "false", "no")
 OPEN_BROWSER = os.environ.get("MR_RAO_OPEN_BROWSER", "1").strip() not in ("0", "false", "no")
+
+# La scorciatoia che redige gli appunti sul posto: `0` la spegne, qualunque
+# altra cosa e' la combinazione. **Una** variabile per due cose, perche' sono
+# la stessa domanda -- «quale combinazione, o nessuna» -- e tenerle separate
+# permetterebbe lo stato incoerente «accesa, combinazione vuota», che si
+# manifesterebbe come una scorciatoia che non risponde senza dire perche'.
+# Guida, e disinnesco della somiglianza con un keylogger:
+# docs/SCORCIATOIA-APPUNTI.md
+_SCORCIATOIA = os.environ.get("MR_RAO_SCORCIATOIA", "ctrl+alt+r").strip()
+SCORCIATOIA_ATTIVA = _SCORCIATOIA.lower() not in ("0", "false", "no", "")
+SCORCIATOIA = _SCORCIATOIA if SCORCIATOIA_ATTIVA else ""
 
 # Security — a local server is reachable by any page the user has open in the
 # browser, so the Host header is pinned (anti DNS-rebinding) and cross-site

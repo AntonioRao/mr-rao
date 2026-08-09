@@ -1,5 +1,83 @@
 # Changelog
 
+## 1.18.0 — Copi, premi, incolli
+
+Fin qui Mr. Rao ha dipeso da una cosa che non controlla: che qualcuno si
+ricordi di passargli il documento **prima**. Il motore è buono — 1024 test
+lo dicono — ma un contratto incollato in una chat senza passare di qui non
+lo tocca nessuno.
+
+**Ctrl+Alt+R.** Copi il testo, premi, incolli: quello che arriva è già
+redatto. Gli appunti *sono* il posto — niente da aprire, caricare o
+scaricare. È lo stesso motore della conversione dei file, non una seconda
+implementazione: se ce ne fosse una, prima o poi divergerebbe, e in un
+motore di redazione una divergenza è una fuga che non si vede.
+
+Guida completa: [SCORCIATOIA-APPUNTI.md](SCORCIATOIA-APPUNTI.md).
+
+### Perché non è un keylogger, e come si verifica
+
+Un programma acceso che reagisce a una combinazione di tasti ha, da fuori,
+la stessa sagoma di uno che registra quello che scrivi. Per uno strumento di
+privacy la somiglianza non basta smentirla a parole, quindi la differenza è
+architetturale e verificabile leggendo il codice.
+
+Windows offre due meccanismi. `SetWindowsHookEx(WH_KEYBOARD_LL)` consegna al
+programma **ogni tasto** premuto sulla macchina — è il meccanismo con cui si
+scrive un keylogger, ed è comodo perché permette combinazioni arbitrarie.
+**Non lo usiamo.** `RegisterHotKey` dichiara al sistema **una** combinazione:
+la sorveglia Windows, e recapita un messaggio solo quando *quella* viene
+premuta. Gli altri tasti non arrivano — non è che vengano ignorati, non
+vengono consegnati.
+
+Costa qualcosa (meno combinazioni possibili, e se un altro programma ha già
+preso la scelta la registrazione fallisce — dicendolo), ed è il prezzo
+giusto. C'è un test che fallisce se un domani qualcuno passasse al gancio
+per avere più libertà: è una promessa pubblicata, non una preferenza.
+
+Allo stesso modo **gli appunti non vengono sorvegliati**: nessun controllo
+periodico. Si aprono quando la combinazione scatta, si leggono una volta, si
+riscrivono una volta e si richiudono.
+
+### Le tre cose che l'avrebbero resa peggio del non usarla
+
+- **Riscrivere appunti che non sono cambiati.** Toglierebbe comunque gli
+  appunti all'applicazione che li possiede — il formato ricco, l'immagine
+  affiancata — senza nessun guadagno. Se il testo non cambia, non si tocca.
+- **Perdere l'originale.** Sovrascrivere distrugge ciò che c'era: il primo
+  caso in cui la redazione toglie qualcosa che serviva farebbe perdere il
+  testo. C'è «Ripristina gli appunti originali» nel menu dell'icona, **in
+  memoria e mai su disco** — un file di ripristino sarebbe un file con
+  dentro i dati personali in chiaro.
+- **Dire «fatto» quando è rimasto un sospetto.** La notifica compare
+  sempre, anche a zero, e distingue i due numeri: *«9 dati redatti · 2 da
+  controllare — non tolti»*. I sospetti **non** sono stati rimossi, e chi
+  incolla senza leggere incolla un dato ancora lì.
+
+### Ventuno test verdi e la funzione che non funzionava
+
+Vale la pena raccontarlo perché è il tipo di errore che questo progetto
+cerca di rendere impossibile, e stavolta è passato lo stesso.
+
+I test coprono lo strato che **decide**, dove lettura e scrittura degli
+appunti arrivano dall'esterno. È il disegno giusto — è ciò che rende la
+funzione provabile senza premere tasti a mano — ma vuol dire che non dicono
+niente sullo strato che parla con Windows, dove non c'è niente da decidere e
+tutto da sbagliare.
+
+E si è sbagliato: senza dichiarare `restype`, `ctypes` assumeva che
+`GetClipboardData` tornasse un intero a 32 bit invece di un handle a 64.
+L'handle arrivava **troncato**, `GlobalLock` falliva, la lettura tornava
+vuota. Ventuno test verdi, e copia-premi-incolla non faceva niente.
+
+L'ha trovato una prova dal vivo sugli appunti veri. Ora quella prova è un
+test — che gira anche in CI, dove la macchina è Windows — e reintrodurre il
+difetto non fa fallire un'asserzione: fa morire l'interprete.
+
+Nella stessa passata: `GlobalFree` sul percorso di errore, che mancava.
+Senza, un `SetClipboardData` fallito lasciava in memoria un blocco con
+dentro il testo in chiaro.
+
 ## 1.17.0 — Una regola da due righe dove un modello da 64 MiB non arrivava
 
 Due cose, e la seconda serve a non perdere la prima.

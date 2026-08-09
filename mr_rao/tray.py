@@ -63,13 +63,49 @@ def run_tray(url: str, on_quit) -> None:
         icon.stop()
         on_quit()
 
-    image = _load_icon_image()
-    menu = pystray.Menu(
+    # La scorciatoia sugli appunti. La notifica non e' un contorno: una
+    # trasformazione silenziosa non fa distinguere «ha funzionato» da «non e'
+    # partito», e i sospetti sono roba che il motore ha segnalato e **non
+    # tolto** -- chi incolla senza leggere incolla un dato ancora li'.
+    from mr_rao import appunti as _appunti
+
+    memoria = _appunti.Memoria()
+
+    def _avvisa(testo: str) -> None:
+        try:
+            icon.notify(testo, config.APP_NAME)
+        except Exception:
+            # Le notifiche non sono garantite su ogni Windows: se mancano, il
+            # messaggio va almeno sulla console invece di sparire.
+            print(f"[{config.APP_NAME}] {testo}")
+
+    def scorciatoia_scattata() -> None:
+        esito = _appunti.passa_dagli_appunti(
+            _appunti.leggi_appunti, _appunti.scrivi_appunti, memoria=memoria
+        )
+        _avvisa(esito.messaggio())
+
+    def ripristina_originale(icon=None, item=None):
+        esito = _appunti.ripristina(_appunti.scrivi_appunti, memoria)
+        _avvisa(esito.errore or "Negli appunti c'e' di nuovo il testo originale.")
+
+    voci = [
         Item(f"Apri {config.APP_NAME}", open_ui, default=True),
         Item("Hotfolder (UI)", open_watch_hint),
-        Item("Esci", quit_app),
-    )
-    icon = pystray.Icon("mr-rao", image, config.APP_NAME, menu)
+    ]
+    if config.SCORCIATOIA_ATTIVA:
+        voci.append(Item("Ripristina gli appunti originali", ripristina_originale))
+    voci.append(Item("Esci", quit_app))
+
+    image = _load_icon_image()
+    icon = pystray.Icon("mr-rao", image, config.APP_NAME, pystray.Menu(*voci))
+
+    if config.SCORCIATOIA_ATTIVA:
+        _appunti.avvia_scorciatoia(
+            config.SCORCIATOIA, scorciatoia_scattata,
+            quando_fallisce=lambda m: print(f"[{config.APP_NAME}] scorciatoia: {m}"),
+        )
+
     icon.run()
 
 
