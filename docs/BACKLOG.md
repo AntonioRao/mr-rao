@@ -60,7 +60,7 @@ proprio documento.
 | P1.3 | Empty states e microcopy coerenti | Professionalità | **DONE** |
 | P1.4 | Preview Markdown più fedele (liste, tabelle) | Anteprima debole | TODO |
 | P1.5 | Mobile / narrow viewport polish | Uso da tablet | TODO |
-| P1.8 | **Elenco di termini sempre / mai da sostituire, configurabile dall'interfaccia** | Il motore decide con regole generali; ogni studio ha però nomi propri ricorrenti (clienti, controparti) e parole che non vanno mai toccate (denominazioni interne). Oggi l'unica leva è spegnere un riconoscitore intero. Vale come [parità GUI](../README.it.md): configurabile lì, non solo da riga di comando | TODO |
+| P1.8 | **Elenco di termini sempre / mai da sostituire, configurabile dall'interfaccia** | Il motore decide con regole generali; ogni studio ha però nomi propri ricorrenti (clienti, controparti) e parole che non vanno mai toccate (denominazioni interne). Oggi l'unica leva è spegnere un riconoscitore intero. Vale come [parità GUI](../README.it.md): configurabile lì, non solo da riga di comando | **DONE** — due caselle nel pannello privacy, `--sempre`/`--mai` da riga di comando. «Mai» non è l'opposto di «sempre»: protegge da **tutti** i riconoscitori, vince su «sempre», e non lascia nemmeno un sospetto. Le liste restano scritte fra una conversione e l'altra nel `localStorage` del browser — l'unica cosa che Mr. Rao salva |
 
 ---
 

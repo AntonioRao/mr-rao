@@ -33,6 +33,7 @@ from mr_rao.privacy import (
     PrivacyOptions,
     no_redaction,
     options_from_form,
+    termini_da,
 )
 from mr_rao.profiles import (
     PROFILES,
@@ -90,10 +91,17 @@ def _merge_privacy(form, profile: dict) -> PrivacyOptions:
     # partire: la base tornano a essere i valori predefiniti del motore.
     base = privacy_flags(profile) if profile.get("privacy_filter") else dict(FIELD_DEFAULTS)
     return PrivacyOptions(
+        # Le due liste dello studio non stanno nei profili: sono di chi
+        # converte, non del preset. Vanno pero' lette **qui**, perche'
+        # l'interfaccia manda sempre un profilo e questo e' il ramo che
+        # percorre — dimenticarle qui le renderebbe decorative come lo era
+        # l'intero pannello prima del test di parita'.
+        sempre=termini_da(form.get("privacy_sempre")),
+        mai=termini_da(form.get("privacy_mai")),
         **{
             k: (_truthy(form.get("privacy_" + k), v) if "privacy_" + k in form else v)
             for k, v in base.items()
-        }
+        },
     )
 
 

@@ -231,6 +231,22 @@
                         </label>
                     </div>
                     <span class="field-hint" id="privacy-off-hint">{{ t('hint_privacy_spenta') }}</span>
+
+                    <div class="eyebrow">{{ t('gruppo_termini') }}</div>
+                    <div id="termini-panel">
+                        <label class="field" data-tip="{{ t('tip_termini_sempre') }}">
+                            {{ t('termini_sempre_etichetta') }}
+                            <textarea id="privacy-sempre" rows="3" spellcheck="false"
+                                      placeholder="{{ t('termini_segnaposto') }}"
+                                      aria-label="{{ t('termini_sempre_etichetta') }}"></textarea>
+                        </label>
+                        <label class="field" data-tip="{{ t('tip_termini_mai') }}">
+                            {{ t('termini_mai_etichetta') }}
+                            <textarea id="privacy-mai" rows="3" spellcheck="false"
+                                      placeholder="{{ t('termini_segnaposto') }}"
+                                      aria-label="{{ t('termini_mai_etichetta') }}"></textarea>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="group">

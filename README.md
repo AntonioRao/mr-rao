@@ -10,7 +10,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.10.0-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-714%20passing-10b981)](tests/)
+[![Tests](https://img.shields.io/badge/tests-738%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -136,6 +136,17 @@ So the result tells them apart:
 ```
 
 Suspects are masked — `RS••••••••••••2S` — enough to find them in the document, not to read them. And an administrative record full of protocol, resolution and tender numbers produces **zero** of them: if every number raised a flag, the flag would stop being worth reading.
+
+### Your own words outrank the general rules
+
+The rules hold for everyone, but the names that come up in **every** one of your files are known only to you. Two boxes in the privacy panel:
+
+- **Always hide** — clients, counterparties, project names. One term per line; they become `{{TERM}}`.
+- **Never touch** — internal designations, product names, your own company name.
+
+The second is not the opposite of the first: it is **stronger**. A term written there is shielded from *every* recogniser — including the ones you would not know to switch off — it outranks "always hide", and it is not even flagged as a suspect, because you have already decided.
+
+Both lists survive between conversions, on your own disk. They are the only thing Mr. Rao stores: documents and results live only while the page is open.
 
 ### No model
 
@@ -323,7 +334,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Five steps: compilation, dependency health, licence alignment, published-docs alignment, **714 tests**.
+Five steps: compilation, dependency health, licence alignment, published-docs alignment, **738 tests**.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 

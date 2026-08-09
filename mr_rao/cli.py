@@ -15,7 +15,14 @@ from pathlib import Path
 
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION
 from mr_rao.converter import ConvertOptions, convert_file, merge_markdowns
-from mr_rao.privacy import CORE, EN, FIELD_DEFAULTS, IT, PrivacyOptions
+from mr_rao.privacy import (
+    CORE,
+    EN,
+    FIELD_DEFAULTS,
+    IT,
+    PrivacyOptions,
+    termini_da,
+)
 from mr_rao.watch_service import output_path_for, write_atomic
 
 
@@ -36,6 +43,12 @@ def _build_options(args: argparse.Namespace) -> ConvertOptions:
         # il suo valore predefinito e' True. I campi si leggono dal motore.
         privacy=PrivacyOptions(
             pacchetti=pacchetti,
+            # Le due liste dello studio. Si passano ripetendo l'opzione o da
+            # un file con `@elenco.txt`: chi ne ha trenta non li scrive sulla
+            # riga di comando, e una lista di clienti nella cronologia della
+            # shell e' proprio cio' che questo programma esiste per evitare.
+            sempre=termini_da(getattr(args, "sempre", None) or ()),
+            mai=termini_da(getattr(args, "mai", None) or ()),
             **{
                 **{k: True for k in FIELD_DEFAULTS},
                 "amounts": getattr(args, "scrub_amounts", False),
@@ -301,6 +314,20 @@ def main(argv: list[str] | None = None) -> int:
         "--no-pack-en",
         action="store_true",
         help="Spegni i riconoscitori anglosassoni (SSN, NINO, NHS, passaporti)",
+    )
+    p_conv.add_argument(
+        "--sempre",
+        action="append",
+        metavar="TERMINE",
+        help="Nascondi sempre questo termine (ripetibile). I nomi che "
+        "ricorrono in ogni pratica e che le regole generali non indovinano",
+    )
+    p_conv.add_argument(
+        "--mai",
+        action="append",
+        metavar="TERMINE",
+        help="Non far toccare questo termine da nessun riconoscitore "
+        "(ripetibile). Vince su --sempre",
     )
     p_conv.add_argument("--no-tables", action="store_true")
     p_conv.add_argument("--no-frontmatter", action="store_true")

@@ -566,6 +566,17 @@ class PrivacyOptions:
     # avevamo scritti noi, e un corpus scritto a mano contiene solo le
     # trappole a cui chi lo scrive ha pensato.
     name_guess: bool = False
+    # Le due liste dello studio (P1.8). Il motore decide con regole generali,
+    # ma ogni studio ha nomi propri che ricorrono in ogni pratica — clienti,
+    # controparti — e denominazioni interne che non vanno toccate mai. Prima
+    # l'unica leva era spegnere un riconoscitore intero, che e' un martello
+    # per un chiodo.
+    #
+    # `mai` non e' l'opposto di `sempre`: e' piu' forte. `sempre` aggiunge un
+    # riconoscitore; `mai` mette il termine al riparo da **tutti**, compresi
+    # quelli che non sapresti nemmeno di dover spegnere.
+    sempre: tuple[str, ...] = ()
+    mai: tuple[str, ...] = ()
     # Quali famiglie di riconoscitori eseguire. Il valore predefinito e' il
     # comportamento di sempre: nucleo universale piu' formati italiani.
     # Un documento inglese vorra' ``(CORE,)`` oggi e ``(CORE, EN)`` domani;
@@ -2055,6 +2066,109 @@ SEQUENZA: tuple[Passo, ...] = (
 )
 
 
+# Le due liste dello studio: quanti termini e quanto lunghi. Non e' avarizia,
+# e' che ogni termine diventa un'alternativa in un'unica espressione regolare
+# applicata a tutto il documento, e un elenco senza freni la fa esplodere.
+MAX_TERMINI = 500
+MAX_LUNGHEZZA_TERMINE = 120
+
+# Segnaposto per i termini protetti. I due caratteri di delimitazione stanno
+# nell'area a uso privato di Unicode: non sono `\w`, non compaiono in un
+# documento vero, e nessun riconoscitore puo' accorgersene. Dentro solo
+# lettere minuscole, cosi' nemmeno l'euristica dei nomi ci inciampa.
+_APERTA, _CHIUSA = chr(0xE000), chr(0xE001)
+
+
+def termini_da(valore) -> tuple[str, ...]:
+    """Legge la lista di termini scritta dall'utente.
+
+    Un termine per riga: e' come lo si scrive in una casella di testo, e una
+    virgola dentro un termine ("Rossi, Bianchi & Co.") non deve spezzarlo in
+    due. Vuoti e duplicati cadono; l'ordine di scrittura si conserva perche'
+    e' l'ordine in cui l'utente li rilegge.
+    """
+    if valore is None:
+        return ()
+    if isinstance(valore, (list, tuple)):
+        righe = [str(v) for v in valore]
+    else:
+        righe = str(valore).splitlines()
+
+    fuori: list[str] = []
+    visti: set[str] = set()
+    for riga in righe:
+        t = " ".join(riga.split())[:MAX_LUNGHEZZA_TERMINE].strip()
+        # Un termine di un carattere solo sostituirebbe mezzo documento.
+        if len(t) < 2 or t.lower() in visti:
+            continue
+        visti.add(t.lower())
+        fuori.append(t)
+        if len(fuori) >= MAX_TERMINI:
+            break
+    return tuple(fuori)
+
+
+def _regex_termini(termini: tuple[str, ...]) -> re.Pattern | None:
+    """Un'espressione sola per tutta la lista, i piu' lunghi per primi.
+
+    L'ordine conta: con "Rossi" prima di "Rossi & Partners" la ricerca si
+    fermerebbe al cognome e mezzo termine resterebbe scoperto.
+
+    Gli spazi interni diventano spazi **orizzontali**: un termine di due
+    parole va riconosciuto anche se il documento lo separa con due spazi o
+    con una tabulazione, ma non deve attraversare un ritorno a capo — e'
+    esattamente l'errore che aveva l'email offuscata (issue #3), dove `\\s*`
+    si mangiava la riga successiva.
+    """
+    if not termini:
+        return None
+    pezzi = []
+    for t in sorted(termini, key=len, reverse=True):
+        corpo = r"[^\S\r\n]+".join(re.escape(p) for p in t.split())
+        prima = r"(?<!\w)" if t[:1].isalnum() or t[:1] == "_" else ""
+        dopo = r"(?!\w)" if t[-1:].isalnum() or t[-1:] == "_" else ""
+        pezzi.append(f"{prima}(?:{corpo}){dopo}")
+    return re.compile("|".join(pezzi), re.IGNORECASE)
+
+
+def _proteggi(text: str, termini: tuple[str, ...]) -> tuple[str, dict[str, str]]:
+    """Mette al riparo i termini della lista «mai», prima di ogni altra cosa.
+
+    Sostituirli con un segnaposto inerte e rimetterli alla fine e' l'unico
+    modo perche' la protezione valga davvero per tutti i riconoscitori. La
+    via alternativa — chiedere a ognuno di controllare la lista — lascia
+    scoperto il riconoscitore che ci si dimentica di modificare, ed e' il
+    genere di difetto che non si vede finche' non esce un dato.
+    """
+    rex = _regex_termini(termini)
+    if rex is None:
+        return text, {}
+
+    tavola: dict[str, str] = {}
+
+    def _sub(m: re.Match) -> str:
+        chiave = f"{_APERTA}{_numero_a_lettere(len(tavola))}{_CHIUSA}"
+        tavola[chiave] = m.group(0)
+        return chiave
+
+    return rex.sub(_sub, text), tavola
+
+
+def _numero_a_lettere(n: int) -> str:
+    fuori = ""
+    n += 1
+    while n:
+        n, resto = divmod(n - 1, 26)
+        fuori = chr(97 + resto) + fuori
+    return fuori
+
+
+def _ripristina(text: str, tavola: dict[str, str]) -> str:
+    for chiave, originale in tavola.items():
+        text = text.replace(chiave, originale)
+    return text
+
+
 def apply_privacy_filter(
     text: str,
     options: PrivacyOptions | None = None,
@@ -2073,6 +2187,16 @@ def apply_privacy_filter(
     report = RedactionReport()
     out = text
 
+    # Prima di tutto il resto: i termini della lista «mai» escono di scena e
+    # rientrano alla fine. Un termine che sta in tutte e due le liste resta
+    # protetto — chi scrive «questo non toccarlo mai» sta dicendo una cosa
+    # piu' specifica di chi scrive «togli sempre quello».
+    out, protetti = _proteggi(out, opts.mai)
+
+    rex_sempre = _regex_termini(opts.sempre)
+    if rex_sempre is not None:
+        out = _replace_all(out, rex_sempre, "{{TERM}}", report, "termini")
+
     attivi = set(opts.pacchetti)
     # Ordinamento stabile: a parita' di priorita' vale l'ordine di
     # dichiarazione in SEQUENZA, che e' l'ordine dei pacchetti core -> it.
@@ -2083,8 +2207,11 @@ def apply_privacy_filter(
             continue
         out = passo.esegui(out, report, opts)
 
+    # I sospetti si cercano mentre i termini protetti sono ancora nascosti:
+    # segnalare a ogni conversione un dato che l'utente ha chiesto
+    # espressamente di lasciare in chiaro e' rumore, non un avviso.
     find_suspects(out, report, opts)
-    return out, report
+    return _ripristina(out, protetti), report
 
 
 # I campi booleani esposti da form, JSON e profili, con il loro valore
@@ -2189,6 +2316,8 @@ def options_from_form(form) -> PrivacyOptions:
     return PrivacyOptions(
         pacchetti=_pacchetti_da(flag),
         prosa=prosa_da(form.get("privacy_stile") if hasattr(form, "get") else None),
+        sempre=termini_da(form.get("privacy_sempre") if hasattr(form, "get") else None),
+        mai=termini_da(form.get("privacy_mai") if hasattr(form, "get") else None),
         **{k: flag("privacy_" + k, d) for k, d in FIELD_DEFAULTS.items()},
     )
 
@@ -2200,5 +2329,7 @@ def options_from_dict(data: dict | None) -> PrivacyOptions:
     return PrivacyOptions(
         pacchetti=_pacchetti_da(lambda k, d: bool(data.get(k, d))),
         prosa=prosa_da(data.get("privacy_stile")),
+        sempre=termini_da(data.get("privacy_sempre")),
+        mai=termini_da(data.get("privacy_mai")),
         **{k: bool(data.get("privacy_" + k, d)) for k, d in FIELD_DEFAULTS.items()},
     )

@@ -506,6 +506,42 @@ TESTI: dict[str, dict[str, str]] = {
               "suspects, so the document stays intact and you know where to "
               "look.",
     },
+    # Le due liste dello studio (P1.8). Il testo dice la cosa che conta: non
+    # sono l'una l'opposto dell'altra, «mai» e' piu' forte di «sempre».
+    "gruppo_termini": {
+        "it": "Le tue parole", "en": "Your own terms",
+    },
+    "termini_sempre_etichetta": {
+        "it": "Nascondi sempre", "en": "Always hide",
+    },
+    "termini_mai_etichetta": {
+        "it": "Non toccare mai", "en": "Never touch",
+    },
+    "termini_segnaposto": {
+        "it": "Un termine per riga", "en": "One term per line",
+    },
+    "tip_termini_sempre": {
+        "it": "Nomi che ricorrono in ogni tua pratica e che le regole generali "
+              "non possono indovinare: clienti, controparti, nomi di progetto. "
+              "<b>Un termine per riga</b>, maiuscole e minuscole indifferenti. "
+              "Vengono sostituiti con <code>{{TERM}}</code> prima di ogni altro "
+              "riconoscitore.",
+        "en": "Names that come up in every one of your files and that general "
+              "rules cannot guess: clients, counterparties, project names. "
+              "<b>One term per line</b>, case-insensitive. They are replaced "
+              "with <code>{{TERM}}</code> before any other recogniser runs.",
+    },
+    "tip_termini_mai": {
+        "it": "Parole che non devono essere toccate da nessun riconoscitore: "
+              "denominazioni interne, nomi di prodotto, la tua stessa ragione "
+              "sociale. <b>È più forte di «nascondi sempre»</b>: un termine "
+              "scritto in tutte e due le liste resta in chiaro. Non compare "
+              "nemmeno fra i sospetti — l'hai già deciso tu.",
+        "en": "Words no recogniser may touch: internal designations, product "
+              "names, your own company name. <b>It outranks \"always hide\"</b>: "
+              "a term written in both lists stays in clear text. It is not "
+              "flagged as a suspect either — you have already decided.",
+    },
     "opt_dates_titolo": {"it": "Date di nascita", "en": "Dates of birth"},
     "opt_dates_desc": {
         "it": "Solo con contesto di nascita", "en": "Only in a birth context",

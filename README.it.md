@@ -10,7 +10,7 @@
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Versione](https://img.shields.io/badge/versione-1.10.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-714%20passati-10b981)](tests/)
+[![Test](https://img.shields.io/badge/test-738%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -136,6 +136,17 @@ Per questo il risultato distingue le due cose:
 ```
 
 I sospetti sono mascherati — `RS••••••••••••2S` — quanto basta a ritrovarli nel documento, non a leggerli. E un verbale pieno di protocolli, delibere e codici gara ne produce **zero**: se ogni numero diventasse un avviso, l'avviso non varrebbe più niente.
+
+### Le tue parole valgono più delle regole generali
+
+Le regole valgono per tutti, ma i nomi che ricorrono in **ogni** tua pratica li conosci solo tu. Due caselle nel pannello privacy:
+
+- **Nascondi sempre** — clienti, controparti, nomi di progetto. Un termine per riga, diventano `{{TERM}}`.
+- **Non toccare mai** — denominazioni interne, nomi di prodotto, la tua stessa ragione sociale.
+
+La seconda non è l'opposto della prima: è **più forte**. Un termine scritto lì è al riparo da *tutti* i riconoscitori — anche da quelli che non sapresti di dover spegnere — vince su «nascondi sempre», e non finisce nemmeno fra i sospetti, perché l'hai già deciso tu.
+
+Le due liste restano scritte fra una conversione e l'altra, sul tuo disco. Sono l'unica cosa che Mr. Rao salva: documenti e risultati vivono solo finché la pagina è aperta.
 
 ### Nessun modello
 
@@ -337,7 +348,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **714 test**.
+Cinque passaggi: compilazione, verifica delle dipendenze, allineamento delle licenze, allineamento dei documenti pubblicati, **738 test**.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 

@@ -121,6 +121,9 @@
     packIt: $("privacy-pack_it"),
     packEn: $("privacy-pack_en"),
     stile: $("privacy-stile"),
+    terminiSempre: $("privacy-sempre"),
+    terminiMai: $("privacy-mai"),
+    terminiPanel: $("termini-panel"),
     includeTables: $("include-tables"),
     includeFrontmatter: $("include-frontmatter"),
     cleanOutput: $("clean-output"),
@@ -170,11 +173,53 @@
     // niente da scegliere, e due caselle accese sopra un filtro spento
     // sarebbero solo un modo per credersi protetti.
     if (els.packPanel) els.packPanel.style.display = on ? "grid" : "none";
+    if (els.terminiPanel) els.terminiPanel.style.display = on ? "block" : "none";
     const offHint = $("privacy-off-hint");
     if (offHint) offHint.style.display = on ? "none" : "block";
   }
   els.privacyMaster.addEventListener("change", syncPrivacyPanel);
   syncPrivacyPanel();
+
+  // Le due liste dello studio restano scritte fra una conversione e l'altra.
+  //
+  // È l'unica cosa che Mr. Rao salva: la cronologia, i documenti e i
+  // risultati vivono solo finché la pagina è aperta. Una lista di clienti da
+  // riscrivere ogni volta però non la userebbe nessuno, e una funzione che
+  // non si usa non protegge niente.
+  //
+  // Sta nel `localStorage` del browser, cioè sul disco di chi converte:
+  // niente rete, niente server. Si cancella svuotando le due caselle, o dai
+  // dati di navigazione del browser.
+  const CHIAVE_TERMINI = "mr_rao_termini";
+  function caricaTermini() {
+    let salvato;
+    try {
+      salvato = JSON.parse(localStorage.getItem(CHIAVE_TERMINI) || "{}");
+    } catch (e) {
+      return; // storage illeggibile o disattivato: si riparte da vuoto
+    }
+    if (els.terminiSempre && typeof salvato.sempre === "string")
+      els.terminiSempre.value = salvato.sempre;
+    if (els.terminiMai && typeof salvato.mai === "string")
+      els.terminiMai.value = salvato.mai;
+  }
+  function salvaTermini() {
+    try {
+      localStorage.setItem(
+        CHIAVE_TERMINI,
+        JSON.stringify({
+          sempre: els.terminiSempre ? els.terminiSempre.value : "",
+          mai: els.terminiMai ? els.terminiMai.value : "",
+        })
+      );
+    } catch (e) {
+      /* modalità privata o quota piena: si perde la memoria, non il lavoro */
+    }
+  }
+  [els.terminiSempre, els.terminiMai].forEach((el) => {
+    if (el) el.addEventListener("change", salvaTermini);
+  });
+  caricaTermini();
 
   if (els.profileSelect) {
     els.profileSelect.addEventListener("change", () => {
@@ -419,6 +464,11 @@
     if (els.packEn) fd.append("privacy_pack_en", els.packEn.checked);
     // Tri-stato: vuoto = automatico, e «non lo so» non e’ «e’ un modulo».
     if (els.stile) fd.append("privacy_stile", els.stile.value);
+    // Le due liste dello studio. Viaggiano sempre, anche vuote: il server
+    // legge quello che arriva, e un campo che compare solo «quando serve»
+    // e’ un campo che un giorno non compare quando serviva.
+    if (els.terminiSempre) fd.append("privacy_sempre", els.terminiSempre.value);
+    if (els.terminiMai) fd.append("privacy_mai", els.terminiMai.value);
     fd.append("include_tables", els.includeTables.checked);
     fd.append("include_frontmatter", els.includeFrontmatter.checked);
     fd.append("clean_output", els.cleanOutput.checked);

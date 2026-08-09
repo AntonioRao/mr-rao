@@ -295,7 +295,11 @@ def test_un_verbale_amministrativo_esce_intatto():
 # Campi di PrivacyOptions che non sono interruttori e quindi non si
 # «spengono». Elencarli qui invece di allentare il test: cosi' il giorno in
 # cui se ne aggiunge uno bisogna passare da questa riga e dire perche'.
-NON_INTERRUTTORI = {"pacchetti", "prosa"}
+# `sempre` e `mai` sono liste di termini, non interruttori: la loro forma
+# spenta e' la lista vuota, non False. Cio' che va tenuto fermo non e' il
+# valore ma l'effetto — a filtro generale spento non devono togliere niente —
+# ed e' quello che prova `test_a_filtro_spento_le_liste_non_tolgono_niente`.
+NON_INTERRUTTORI = {"pacchetti", "prosa", "sempre", "mai"}
 
 
 def test_no_redaction_spegne_ogni_riconoscitore():
@@ -514,7 +518,7 @@ def test_le_coordinate_bancarie_non_sono_telefoni(testo):
 
 
 def test_email_offuscata_non_attraversa_il_ritorno_a_capo():
-    """L'email offuscata non deve mangiare la riga successiva.
+    r"""L'email offuscata non deve mangiare la riga successiva.
 
     Con `\s*` nel pattern, il punto finale di «... [punto] it.» portava a
     consumare i due ritorni a capo e la parola dopo: l'uscita diventava
