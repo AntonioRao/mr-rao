@@ -42,6 +42,34 @@ documenti**. Quelli italiani sono cresciuti una versione alla volta.
 La colonna «nudo» resta bassa quasi ovunque, e non e' un difetto: nove
 cifre o un codice postale senza niente attorno sono indistinguibili da un
 numero di pratica. Il contesto e' il progetto, non la toppa.
+
+Perche' questo banco stampa i valori, e perche' CodeQL lo segnala
+-----------------------------------------------------------------
+
+La colonna «esempi persi» stampa i valori che il motore non ha riconosciuto,
+e `py/clear-text-logging-sensitive-data` la segnala: il flusso parte da
+funzioni che si chiamano `carta()`, `telefono()`, `indirizzo()`, `email()`,
+`nome()`, e quei valori finiscono in chiaro sullo standard output. La
+classificazione e' **corretta**; e' la conclusione sul rischio che non si
+applica.
+
+Quei valori non esistono prima di quella stampa. Li fabbrica questo file,
+riga per riga, con un generatore a seme fisso, calcolandosi le cifre di
+controllo. Il banco non apre nessun documento: genera e prova. Non c'e'
+nessun percorso per cui il dato di una persona vera arrivi li'.
+
+**Non sono mascherati di proposito**, ed e' una scelta pagata. Quella
+colonna e' lo strumento con cui si capisce *perche'* un valore si perde:
+nella 1.16.0 «V.lo Garibaldi 44» ha fatto trovare le abbreviazioni postali
+che mancavano, e «Via S. dei Mille 112» ha fatto scoprire che il difetto era
+il generatore del banco e non il motore. Con l'esempio mascherato si
+vedrebbe solo un conteggio, e si cercherebbe nel posto sbagliato.
+
+La regola resta accesa sul resto del repository, e deve restarci: il giorno
+in cui un banco stampasse il contenuto di documenti **veri**, quell'avviso
+dovrebbe suonare. E' esattamente il motivo per cui
+`scripts/bench_corpus_pubblico.py`, che invece lavora su documenti veri,
+stampa **solo conteggi** e mai una riga di testo.
 """
 from __future__ import annotations
 
