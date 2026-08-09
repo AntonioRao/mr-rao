@@ -613,3 +613,57 @@ def test_le_vie_vere_restano_riconosciute():
     for testo in ("in via Marconi 5", "Via Garibaldi 14", "Piazza Duomo, Milano"):
         _, report = apply_privacy_filter(testo, PrivacyOptions())
         assert report.counts.get("addresses") == 1, f"non riconosciuto: {testo!r}"
+
+
+# ---------------------------------------------------------------------------
+# Documenti d'identita'
+# ---------------------------------------------------------------------------
+
+def test_documenti_id_con_contesto():
+    """Con l'etichetta accanto, il numero sparisce."""
+    for testo, atteso in (
+        ("Patente n. U1L69I902B", "U1L69I902B"),
+        ("Carta d'identità AB12345CD rilasciata dal Comune", "AB12345CD"),
+        ("Passaporto YA1234567 scadenza 2030", "YA1234567"),
+        ("patente MI1234567A", "MI1234567A"),
+        ("C.I. n. CA00000AA", "CA00000AA"),
+    ):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert report.counts.get("documenti") == 1, f"non tolto: {testo!r}"
+        assert atteso not in out
+
+
+def test_documenti_id_senza_contesto_diventano_sospetti():
+    """Senza contesto non si sostituisce: si segnala.
+
+    Nessuno di questi numeri ha una cifra di controllo pubblica, e la loro
+    forma e' identica a quella di mille codici di protocollo. Sostituire a
+    vista vorrebbe dire cancellare mezza pratica amministrativa; tacere
+    vorrebbe dire lasciar passare un documento. La terza via e' il sospetto.
+    """
+    for testo in (
+        "Protocollo AB12345CD del 3 marzo",
+        "Gara RM9876543B lotto 2",
+        "il codice YA1234567 in elenco",
+    ):
+        out, report = apply_privacy_filter(testo, PrivacyOptions())
+        assert not report.counts.get("documenti"), f"tolto per sbaglio: {testo!r}"
+        assert out == testo, "il testo dev'essere intatto"
+        assert any(s["kind"] == "documento" for s in report.suspects), (
+            f"nessun sospetto segnalato per {testo!r}"
+        )
+
+
+def test_documenti_id_si_possono_spegnere():
+    """L'interruttore dedicato comanda davvero, e non e' dentro `fiscal`."""
+    testo = "Patente n. U1L69I902B"
+    _, acceso = apply_privacy_filter(testo, PrivacyOptions())
+    assert acceso.counts.get("documenti") == 1
+
+    out, spento = apply_privacy_filter(testo, PrivacyOptions(documenti=False))
+    assert not spento.counts.get("documenti")
+    assert "U1L69I902B" in out
+
+    # spegnere i codici fiscali non deve scoprire il passaporto
+    _, solo_fiscal_off = apply_privacy_filter(testo, PrivacyOptions(fiscal=False))
+    assert solo_fiscal_off.counts.get("documenti") == 1

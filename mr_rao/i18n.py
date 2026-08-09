@@ -484,6 +484,28 @@ TESTI: dict[str, dict[str, str]] = {
               "\"DOB\", or the Italian \"nato il\" and \"data di nascita\". It "
               "comes with the Italian formats pack.",
     },
+    "opt_documenti_titolo": {
+        "it": "Documenti d'identità", "en": "Identity documents",
+    },
+    "opt_documenti_desc": {
+        "it": "Carta d'identità, patente, passaporto",
+        "en": "ID card, driving licence, passport",
+    },
+    "tip_documenti": {
+        "it": "Numeri di carta d'identità, patente e passaporto. "
+              "<b>Serve il contesto</b>: questi numeri non hanno una cifra di "
+              "controllo, e la loro forma è identica a quella di tanti codici "
+              "di protocollo. Si sostituiscono solo se accanto c'è scritto di "
+              "che documento si tratta; altrimenti finiscono fra i sospetti, "
+              "così il documento resta intero e tu sai dove guardare.",
+        "en": "Identity card, driving licence and passport numbers. "
+              "<b>Context is required</b>: these numbers carry no check digit "
+              "and their shape is identical to countless reference codes. "
+              "They are replaced only when the surrounding text says which "
+              "document they belong to; otherwise they are flagged as "
+              "suspects, so the document stays intact and you know where to "
+              "look.",
+    },
     "opt_dates_titolo": {"it": "Date di nascita", "en": "Dates of birth"},
     "opt_dates_desc": {
         "it": "Solo con contesto di nascita", "en": "Only in a birth context",

@@ -75,6 +75,7 @@
     "fiscal",
     "secrets",
     "dates",
+    "documenti",
     "amounts",
   ];
 

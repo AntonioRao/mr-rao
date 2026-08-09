@@ -246,6 +246,57 @@ _RE_BIRTH_CTX = re.compile(
 
 
 # ---------------------------------------------------------------------------
+# Documenti d'identita'
+# ---------------------------------------------------------------------------
+#
+# Qui il metodo di casa — «il pattern propone, il validatore decide» — non si
+# puo' applicare fino in fondo, e va detto invece di far finta.
+#
+# Nessuno di questi tre numeri ha una cifra di controllo pubblica. La patente
+# ne ha una, ma l'algoritmo non e' pubblicato. Restano quindi solo forme, e
+# sono forme **comunissime**: `AA00000AA` e `[A-Z]{2}\d{7}[A-Z]` combaciano
+# con sigle di protocollo, codici gara, riferimenti catastali. Da soli
+# farebbero strage su un verbale amministrativo.
+#
+# Al posto del validatore c'e' il **contesto obbligatorio**: si sostituisce
+# solo se accanto c'e' scritto di che documento si tratta. Senza contesto la
+# forma diventa un **sospetto** — il documento resta leggibile e chi controlla
+# sa dove guardare. E' lo stesso trattamento che il motore riserva ai nomi
+# quando la prova e' debole.
+#
+# Formati (verificati, non ricordati):
+#   carta d'identita' elettronica   AA00000AA        2 lettere, 5 cifre, 2 lettere
+#   passaporto (dal 2010)           YA/YB + 7 cifre  (TA per i temporanei)
+#   patente, modello per provincia  AA0000000A
+#   patente, duplicati UCO          U1/U2 + 8 alfanumerici
+
+_RE_DOC_ID = re.compile(
+    r"(?<![A-Z0-9])("
+    r"[A-Z]{2}\d{5}[A-Z]{2}"          # carta d'identita' elettronica
+    r"|(?:Y[AB]|TA)\d{7}"             # passaporto
+    r"|[A-Z]{2}\d{7}[A-Z]"            # patente, modello per provincia
+    r"|U[12][A-Z0-9]{8}"              # patente, duplicati UCO
+    r")(?![A-Z0-9])"
+)
+
+# Cosa deve esserci intorno perche' quella forma sia un documento.
+# La finestra guarda **prima e dopo**: sui moduli l'etichetta sta a sinistra
+# («Patente n. U1L69I902B»), sulle scansioni delle tessere spesso sopra o
+# accanto, e sul retro il numero precede la dicitura.
+_RE_DOC_ID_CTX = re.compile(
+    r"(?i)\b("
+    r"cart[ae]\s+d[i']?\s*identit[\u00e0a]|c\.?\s*i\.?\s*n"
+    r"|documento\s+d[i']?\s*identit[\u00e0a]"
+    r"|identity\s+card|id\s+card"
+    r"|patente|driving\s+licence|driver'?s?\s+licen[cs]e|licenza\s+di\s+guida"
+    r"|passaporto|passport|libretto"
+    r"|permesso\s+di\s+soggiorno|residence\s+permit"
+    r"|tessera\s+sanitaria|carta\s+nazionale\s+dei\s+servizi"
+    r")\b"
+)
+
+
+# ---------------------------------------------------------------------------
 # Indirizzi
 # ---------------------------------------------------------------------------
 
@@ -468,6 +519,10 @@ class PrivacyOptions:
     addresses: bool = True
     secrets: bool = True
     dates: bool = False  # solo date accanto a un contesto di nascita
+    # Carta d'identita', patente, passaporto. Interruttore suo e non
+    # dentro `fiscal`: un numero di documento non e' un dato fiscale, e
+    # chi spegne i codici tributari non intende scoprire il passaporto.
+    documenti: bool = True
     # Euristica del cognome: due parole maiuscole che non sono parole
     # italiane sono quasi sempre nome e cognome. Copre i cognomi che nessun
     # elenco contiene, ma e' anche la regola che puo' sbagliare: si spegne
@@ -1076,6 +1131,39 @@ def _scrub_birth_dates(text: str, report: RedactionReport) -> str:
         return "{{DATE}}"
 
     return _RE_DATE.sub(_sub, text)
+
+
+def _scrub_documenti_id(text: str, report: RedactionReport) -> str:
+    """Numeri di carta d'identita', patente e passaporto.
+
+    Il contesto e' **obbligatorio**, non un rafforzativo. Senza cifra di
+    controllo queste forme sono indistinguibili da un numero di protocollo, e
+    sostituire a vista vorrebbe dire cancellare mezza pratica amministrativa.
+
+    Cosa non trova, dichiarato: il numero scritto in una tabella dove
+    l'intestazione di colonna sta dieci righe sopra. In quel caso diventa un
+    sospetto, che e' l'esito giusto — il documento resta intero e chi rilegge
+    sa dove guardare.
+    """
+    def _sub(m: re.Match) -> str:
+        # Finestra larga, e non e' generosita': su una carta d'identita' o
+        # una patente il tipo di documento e' il TITOLO, sei o sette righe
+        # sopra il numero. Con 60 caratteri il caso piu' comune -- la
+        # scansione della tessera -- non veniva mai riconosciuto.
+        intorno = m.string[max(0, m.start() - 300) : m.end() + 120]
+        if not _RE_DOC_ID_CTX.search(intorno):
+            report.suspect(
+                "documento",
+                m.group(0),
+                "ha la forma di un numero di documento d'identita', ma "
+                "intorno non c'e' scritto di che documento si tratta: "
+                "potrebbe essere un protocollo o un codice pratica",
+            )
+            return m.group(0)
+        report.add("documenti")
+        return "{{DOC_ID}}"
+
+    return _RE_DOC_ID.sub(_sub, text)
 
 
 def _scrub_addresses(text: str, report: RedactionReport) -> str:
@@ -1904,6 +1992,8 @@ SEQUENZA: tuple[Passo, ...] = (
     # in inglese); restano italiane solo le due scorciatoie senza contesto,
     # cellulare 3xx e fisso 0xx, dentro _phone_is_plausible. Vanno separate
     # quando arrivera' il pacchetto inglese con le regole NANP.
+    Passo("documenti_id", IT, "documenti", 52,
+          lambda t, r, o: _scrub_documenti_id(t, r)),
     Passo("phones", CORE, "phones", 60, _scrub_phones),
     # Euro e parole italiane: "importo", "imponibile", "canone".
     Passo("amounts", IT, "amounts", 65, _scrub_amounts),
@@ -2001,6 +2091,7 @@ FIELD_DEFAULTS: dict[str, bool] = {
     "addresses": True,
     "secrets": True,
     "dates": False,
+    "documenti": True,
     "name_guess": False,
 }
 
