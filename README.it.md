@@ -153,9 +153,13 @@ La seconda non è l'opposto della prima: è **più forte**. Un termine scritto l
 
 Le due liste restano scritte fra una conversione e l'altra, sul tuo disco. Sono l'unica cosa che Mr. Rao salva: documenti e risultati vivono solo finché la pagina è aperta.
 
-### Nessun modello
+### Il modello legge, non decide
 
-Il riconoscimento è codice, non una rete neurale. Lo stesso documento dà **sempre** lo stesso risultato, e ogni sostituzione si spiega indicando la regola che l'ha prodotta. Niente da scaricare, niente da addestrare, niente che cambi comportamento fra due esecuzioni.
+Nel pacchetto portable ci sono due reti neurali, e tanto vale dirlo: RapidOCR porta con sé circa 30 MB di modelli `.onnx` per leggere le scansioni, e MarkItDown ne carica uno più piccolo, 3 MB, per riconoscere il tipo di file. Girano in locale, offline, sul tuo processore — ma sono modelli.
+
+Quello che non fanno è **decidere**. L'OCR trasforma pixel in caratteri e si ferma lì; cosa sia un dato personale lo stabiliscono a valle un'espressione regolare e un validatore aritmetico — mod-97 per l'IBAN, Luhn per le carte, il carattere di controllo del codice fiscale. È lo stesso principio che regge tutto il motore, *il pattern propone, il validatore decide*, e l'OCR sta a monte perfino del pattern: non c'è punteggio, non c'è soglia, non c'è niente da addestrare. Lo stesso testo dà **sempre** lo stesso risultato, e ogni sostituzione si spiega indicando la regola che l'ha prodotta.
+
+Vale anche il rovescio, ed è la ragione per cui il banco delle scansioni trova quello che trova: **quando l'OCR legge male, il motore non può decidere bene.** Su una fotocopia sbiadita un IBAN storpiato non arriva mai al mod-97, e un dato che il lettore non ha letto nessuna regola può recuperarlo. È un limite misurato, non nascosto — sta scritto nella pagina qui sotto.
 
 **→ [Come funziona nel dettaglio, con i limiti dichiarati](docs/PRIVACY.md)**
 

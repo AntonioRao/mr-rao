@@ -153,9 +153,13 @@ The second is not the opposite of the first: it is **stronger**. A term written 
 
 Both lists survive between conversions, on your own disk. They are the only thing Mr. Rao stores: documents and results live only while the page is open.
 
-### No model
+### The model reads, it does not decide
 
-The recognition is code, not a neural network. The same document always yields the same result, and every replacement can be explained by pointing at the rule that produced it. Nothing to download, nothing to train, nothing that behaves differently between two runs.
+There are two neural networks in the portable package, and they are worth naming: RapidOCR ships about 30 MB of `.onnx` models to read scans, and MarkItDown loads a smaller one, 3 MB, to recognise file types. They run locally, offline, on your own CPU — but they are models.
+
+What they do not do is **decide**. OCR turns pixels into characters and stops there; what counts as personal data is settled downstream by a regular expression and an arithmetic validator — mod-97 for IBANs, Luhn for payment cards, the check character of the Italian tax code. It is the same principle the whole engine rests on, *the pattern proposes, the validator decides*, and OCR sits upstream of even the pattern: no score, no threshold, nothing to train. The same text always yields the same result, and every replacement can be explained by pointing at the rule that produced it.
+
+The reverse holds too, and it is why the scan bench finds what it finds: **when OCR reads badly, the engine cannot decide well.** On a faded photocopy a mangled IBAN never reaches mod-97, and no rule can recover a value the reader never read. That limit is measured, not hidden — it is written on the page below.
 
 **→ [How it works in detail, limits included](docs/PRIVACY.md)**
 

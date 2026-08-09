@@ -34,7 +34,7 @@ limiti — non di certificazione o DPIA automatica.
 
 ## 2. Come decide cosa togliere? C’è un modello?
 
-**Nessun modello, nessuna rete.**
+**La decisione non passa da nessun modello.**
 
 Ogni riconoscitore è una **coppia**: espressione regolare che propone un
 candidato + **validatore** che accetta o rifiuta.
@@ -54,6 +54,13 @@ Lo stesso input produce sempre lo stesso output. Ogni sostituzione si può
 spiegare indicando la regola. File principale:
 [`mr_rao/privacy.py`](../mr_rao/privacy.py).
 
+Reti neurali nel pacchetto ce ne sono due, e stanno tutte **a monte** di
+questa tabella: RapidOCR (~30 MB di modelli `.onnx`) legge le scansioni,
+magika (~3 MB, caricato da MarkItDown) indovina il tipo di file. Girano
+offline sul processore e non decidono niente: consegnano del testo, e da lì
+in poi comandano le regole. Dettaglio in
+[PRIVACY.md](PRIVACY.md#come-funziona-il-riconoscimento).
+
 ---
 
 ## 3. Perché non usate Presidio / NER / un LLM per i nomi?
@@ -64,7 +71,7 @@ Obiettivi vincolanti del tool:
 
 1. **100% locale**, zero chiamate di rete nel codice applicativo  
 2. **Deterministico** e ispezionabile da un CISO o da un collega  
-3. **Niente modello da scaricare o addestrare** oltre all’OCR già incluso  
+3. **Nessun modello nella decisione** — quelli già inclusi (OCR, tipo di file) leggono e basta, e non c’è niente da scaricare o addestrare  
 4. Specializzazione **documenti italiani** (CF, P.IVA, IBAN, abitudini di scrittura)
 
 Presidio + NLP o un LLM locale alzerebbero il recall sui nomi in molti casi,

@@ -793,8 +793,8 @@
     <p class="sec-label">// 02 · motore</p>
     <h2>Il numero deve dimostrare di essere un IBAN.</h2>
     <p class="intro">
-      Pattern + validatore. Niente modello, niente sorprese tra due esecuzioni.
-      Lo stesso documento dà sempre lo stesso esito — e ogni sostituzione ha una regola.
+      Pattern + validatore: il modello legge, non decide. Nessun punteggio, nessuna soglia,
+      nessuna sorpresa tra due esecuzioni — lo stesso testo dà sempre lo stesso esito, e ogni sostituzione ha una regola.
     </p>
     <div class="grid-3">
       <article class="card">
@@ -900,8 +900,8 @@
         <p>Il recupero OCR li ha prodotti sui 127 documenti in bianco, che di IBAN non ne contengono nessuno. Il mod-97 da solo non bastava. Con sigla del Paese e lunghezza per Paese sono tornati a 0: misurato, non stimato.</p>
       </div>
       <div class="limit">
-        <strong>OCR debole = privacy più debole</strong>
-        <p>Il recupero e i sospetti aiutano; tre errori di lettura bastano a far sfuggire un codice.</p>
+        <strong>Due reti neurali, ma a monte</strong>
+        <p>Nel pacchetto ci sono ~30 MB di modelli .onnx (RapidOCR, che legge le scansioni) e uno da 3 MB che riconosce il tipo di file. Girano offline e non decidono niente. Ma il rovescio vale: quello che l’OCR legge male il motore non può decidere bene — tre errori di lettura bastano a far sfuggire un codice.</p>
       </div>
       <div class="limit">
         <strong>Il .docx non è l’originale</strong>

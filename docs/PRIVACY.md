@@ -16,9 +16,31 @@ copertura — un IBAN si accetta solo se il mod-97 torna, una carta solo se
 passa il controllo di Luhn, un numero di dieci cifre è un telefono solo se
 ha un prefisso, un separatore o una parola di contesto davanti.
 
-Nessun modello, nessuna rete neurale: il motore è deterministico. Lo stesso
-documento dà sempre lo stesso risultato, e ogni sostituzione si può
-spiegare guardando la regola che l'ha prodotta.
+**La decisione non passa da nessun modello.** Il motore è deterministico:
+lo stesso testo dà sempre lo stesso risultato, non c'è un punteggio da
+tarare né una soglia, e ogni sostituzione si può spiegare guardando la
+regola che l'ha prodotta.
+
+Reti neurali nel pacchetto però ce ne sono, e vanno dette invece che
+sottintese. Due, entrambe **a monte** del motore:
+
+| Modello | Peso | A cosa serve | Quando gira |
+|---------|------|--------------|-------------|
+| RapidOCR (PP-OCRv6, `.onnx`) | ~30 MB | Trasformare i pixel di una scansione in caratteri | Su immagini e PDF senza testo |
+| magika, caricato da MarkItDown | ~3 MB | Indovinare il tipo di un file dal suo contenuto | Su ogni conversione |
+
+Girano in locale, offline, sul processore: nessuno dei due esce dalla
+macchina, e nessuno dei due dice se qualcosa è un dato personale. L'OCR
+consegna del testo e si ferma lì; da quel punto in poi decidono espressioni
+regolari e aritmetica — è il principio di casa, *il pattern propone, il
+validatore decide*, e l'OCR sta a monte perfino del pattern.
+
+Questo taglia in due la responsabilità, ed è utile saperlo in entrambi i
+versi. Sul testo, il comportamento del motore è interamente ispezionabile.
+Sulle scansioni, **quello che l'OCR legge male il motore non può decidere
+bene**: un IBAN storpiato non arriva nemmeno al mod-97, e nessuna regola
+recupera un dato che il lettore non ha letto. È il limite misurato più
+avanti in questa pagina, non un'ipotesi.
 
 ## Cosa viene sostituito
 
