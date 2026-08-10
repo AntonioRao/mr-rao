@@ -50,6 +50,24 @@ e' una seconda cosa che puo' restare indietro, e il giorno che il dominio
 cambia questo controllo continuerebbe a interrogare — verde — un sito che
 non e' piu' il nostro.
 
+**Un limite misurato, subito dopo il primo deploy vero (2026-08-10).**
+Lanciato una quindicina di secondi dopo `wrangler pages deploy`, ha detto
+allineata la pagina italiana e **indietro l'inglese**. Non era vero: il file
+appena pubblicato dichiarava gia' il numero nuovo, e trenta secondi dopo la
+stessa esecuzione diceva allineate tutte e due. Non e' cache HTTP — le
+risposte arrivano con `cf-cache-status: DYNAMIC` e `must-revalidate` — e'
+la propagazione del deploy fra i nodi di Cloudflare, che per qualche decina
+di secondi puo' servire ancora la versione di prima.
+
+Quindi: **una singola esecuzione subito dopo la pubblicazione non e' un
+verdetto**. Il giro schedulato delle 06:00 e' lontano da qualunque deploy e
+non incontra questa finestra; chi lo lancia a mano dopo aver pubblicato, se
+legge «indietro», lo rilanci prima di crederci. Non e' stato aggiunto un
+`Cache-Control: no-cache` alla richiesta perche' non c'entra: non e' un
+intermediario che conserva la risposta, e un'intestazione che non risolve
+il problema che dice di risolvere e' peggio di niente — la prossima persona
+la leggerebbe come una garanzia.
+
 Uso:  python scripts/check_sito_pubblicato.py
       python scripts/check_sito_pubblicato.py --tollera-rete-assente
       python scripts/check_sito_pubblicato.py --url https://esempio/  (una sola)
