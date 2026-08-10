@@ -1,0 +1,240 @@
+{
+ "nota": "Elenco delle fonti del corpus pubblico a verita' zero. I file NON sono nostri da ridistribuire: qui stanno solo gli indirizzi da cui riscaricarli.",
+ "fonti": [
+  {
+   "gruppo": "gu",
+   "nome": "gu--2024-01-02-n1.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2024/01/02/1/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2024-03-15-n63.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2024/03/15/63/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2024-06-10-n134.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2024/06/10/134/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2024-09-03-n206.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2024/09/03/206/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2025-01-07-n4.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2025/01/07/4/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2025-04-15-n88.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2025/04/15/88/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2025-07-01-n150.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2025/07/01/150/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2025-10-14-n239.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2025/10/14/239/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2026-01-08-n5.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2026/01/08/5/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2026-05-19-n114.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2026/05/19/114/sg/pdf"
+  },
+  {
+   "gruppo": "gu",
+   "nome": "gu--2026-07-07-n155.pdf",
+   "url": "https://www.gazzettaufficiale.it/eli/gu/2026/07/07/155/sg/pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f1040.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f1040.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f1065.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f1065.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f1099div.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f1099div.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f1099int.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f1099int.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f1099msc.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f1099msc.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f1116.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f1116.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f1120.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f1120.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f2441.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f2441.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f2848.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f2848.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f3800.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f3800.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f433a.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f433a.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f4506t.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f4506t.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f4868.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f4868.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f5695.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f5695.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f656.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f656.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f8332.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f8332.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f843.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f843.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f8822.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f8822.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f8829.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f8829.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f8863.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f8863.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f8880.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f8880.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f941.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f941.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--f9465.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/f9465.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--fw4.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/fw4.pdf"
+  },
+  {
+   "gruppo": "irs",
+   "nome": "irs--fw9.pdf",
+   "url": "https://www.irs.gov/pub/irs-pdf/fw9.pdf"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--avvertenze-f24-semplificato-nuovo-avvertenze-f24-sem.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/251039/Avvertenze+F24+Semplificato+nuovo_avvertenze+f24+semplificato.pdf/ed86f682-9fb1-1fc2-d778-e191d1c58bfb?t=1372415587655"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--avvertenze-per-la-compilazione-del-modello-avvertenz.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/250689/Avvertenze+per+la+compilazione+del+modello_Avvertenze+modello+F24.pdf/fa5458b1-c37b-23db-a395-a730fe393fc5?t=1372434682515"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--avvertenze-per-la-compilazione-f24-identificativi-nu.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/251856/Avvertenze+per+la+compilazione+F24+identificativi+nuovo_Avvertenze+F24+elementi+identif.pdf/8456bfe1-e694-4bf1-f437-f4fc2812c2ca?t=1328033714958"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--informativa-f24-03-12-2019-pdf-43.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/251856/Informativa+F24_03_12_2019.pdf/984aa6cf-dc69-8fe3-4040-7cb2c0fe52e4?t=1575389331750"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--informativa-f24-03-12-2019-pdf.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/251856/Informativa+F24_03_12_2019.pdf/984aa6cf-dc69-8fe3-4040-7cb2c0fe52e4"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--modello-di-versamento-unificato-f24-ordinario-i-mode.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/250689/Modello+di+versamento+unificato+-+F24+Ordinario_i+Modello+F24+%282%29.pdf/b773b043-a490-82de-550a-eda75246efa0?t=1372409604419"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--modello-f24-identificativi-nuovo-modello-f24-element.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/251856/Modello+F24+identificativi+nuovo_Modello+F24+elementi+identif.pdf/0f618835-9fe0-7c8e-47a3-3bec74b8571d?t=1318491835426"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--modello-f24-semplificato-nuovo-f24-semplificato-mod-.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/251039/Modello+F24+Semplificato+nuovo_F24+semplificato_mod.pdf/d9a07dd2-cb18-36b6-ecee-b648087604a6?t=1372415501789"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--modf24-1copia-pdf.pdf",
+   "url": "https://telematici.agenziaentrate.gov.it/pdf/ModF24_1copia.pdf"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--provvedimento-del-1122015-f24-ep-modello-f24enti-pub.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/344093/Provvedimento+del+1122015+F24+EP_modello+F24Enti+pubblici+2016.pdf/a0f6d784-07e3-ea22-3d65-6e772f5035ad"
+  },
+  {
+   "gruppo": "itmod",
+   "nome": "itmod--provvedimento-del-1122015-f24-ep-provvedimento-n-154.pdf",
+   "url": "https://www.agenziaentrate.gov.it/portale/documents/20143/344093/Provvedimento+del+1122015+F24+EP_PROVVEDIMENTO+N.+154279+DEL+01+DICEMBRE+2015.pdf/1a5ddb30-1ac7-ddbd-c500-84067a888532"
+  }
+ ]
+}
