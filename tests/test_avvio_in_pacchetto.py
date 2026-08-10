@@ -91,7 +91,14 @@ def test_fuori_da_un_pacchetto_il_portable_resta_portable(monkeypatch):
     monkeypatch.setattr(sys, "executable", str(cartella / "MrRao.exe"))
     monkeypatch.setattr(sys, "platform", "win32")
 
-    assert config._writable_dir() == cartella
+    # `.resolve()` su tutt'e due i lati, e non e' pignoleria: `_exe_dir()`
+    # risolve il percorso dell'eseguibile, e sui runner di GitHub la TEMP
+    # arriva in forma corta 8.3 -- `C:\Users\RUNNER~1\...` diventa
+    # `C:\Users\runneradmin\...`. Confrontando la forma non risolta il test
+    # falliva **solo lassu'**, su due scritture della stessa cartella.
+    # Resta capace di dire di no: se la cartella scrivibile finisse nel
+    # profilo utente, nessuna delle due forme coinciderebbe.
+    assert config._writable_dir().resolve() == cartella.resolve()
 
 
 def test_gli_asset_restano_accanto_al_programma(monkeypatch):
