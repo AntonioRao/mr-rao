@@ -168,9 +168,15 @@ Filename: "{app}\app\MrRao.exe"; Description: "Avvia Mr. Rao"; \
 ; lo script ha bisogno di se stesso, e le voci di menu che restano puntano a
 ; un eseguibile che non c'e' piu'. E' esattamente il guasto che questo script
 ; e' nato per chiudere, e disinstallare e' il momento in cui si ripresenta.
+;
+; Niente `runasoriginaluser` qui: e' un flag di [Run] e in questa sezione
+; **non esiste** -- `iscc` risponde «a flag that is not supported in this
+; section» e si ferma. Non serve nemmeno: con `PrivilegesRequired=lowest`
+; la disinstallazione non e' elevata, quindi gira gia' come l'utente che
+; possiede le chiavi HKCU e i collegamenti da togliere.
 Filename: "powershell.exe"; \
     Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\mr_rao_shell.ps1"" -InstallDir ""{app}"" -Remove"; \
-    RunOnceId: "TogliShell"; Flags: runhidden runasoriginaluser
+    RunOnceId: "TogliShell"; Flags: runhidden
 
 [Messages]
 it.WelcomeLabel2=Mr. Rao trasforma PDF, Office, scansioni ed email in Markdown pulito, con i dati personali gia' rimossi.%n%nTutto avviene sul tuo computer: nessun documento esce da questa macchina.

@@ -69,6 +69,66 @@ def test_il_copione_esiste_ed_e_un_copione_inno(iss: str) -> None:
         assert sezione in iss, f"manca la sezione {sezione}"
 
 
+# -------------------------------------- i flag validi non sono gli stessi
+#                                         in tutte le sezioni
+
+# Dalla documentazione di Inno Setup 6. I due insiemi si somigliano e **non
+# coincidono**, ed e' precisamente il modo in cui ci si sbaglia: si copia una
+# voce da [Run] a [UninstallRun] e si porta dietro un flag che li' non
+# esiste. E' successo con `runasoriginaluser`, e il prezzo e' stato un giro
+# di CI intero -- il copione si compila solo dove c'e' `iscc`, cioe' sul
+# runner, cioe' dopo aver costruito e compresso 400 MB.
+FLAG_RUN = {
+    "32bit", "64bit", "dontlogparameters", "hidewizard", "logoutput", "nowait",
+    "postinstall", "runascurrentuser", "runasoriginaluser", "runhidden",
+    "runmaximized", "runminimized", "shellexec", "skipifdoesntexist",
+    "skipifnotsilent", "skipifsilent", "unchecked", "waituntilidle",
+    "waituntilterminated",
+}
+FLAG_UNINSTALLRUN = {
+    "32bit", "64bit", "dontlogparameters", "logoutput", "nowait",
+    "runascurrentuser", "runhidden", "shellexec", "skipifdoesntexist",
+    "waituntilidle", "waituntilterminated",
+}
+
+
+def _flag_della_sezione(iss: str, sezione: str) -> list[str]:
+    """I flag scritti nelle voci di una sezione, righe di continuazione unite."""
+    inizio = iss.index(f"[{sezione}]") + len(sezione) + 2
+    resto = iss[inizio:]
+    fine = re.search(r"^\[", resto, re.M)
+    corpo = resto[: fine.start()] if fine else resto
+    corpo = corpo.replace("\\\n", " ")  # Inno continua le righe con `\`
+    trovati: list[str] = []
+    for m in re.finditer(r"Flags:\s*([A-Za-z0-9 ]+)", corpo):
+        trovati += m.group(1).split()
+    return trovati
+
+
+@pytest.mark.parametrize(
+    "sezione,ammessi",
+    [("Run", FLAG_RUN), ("UninstallRun", FLAG_UNINSTALLRUN)],
+)
+def test_i_flag_esistono_nella_sezione_in_cui_stanno(sezione, ammessi, iss: str) -> None:
+    usati = _flag_della_sezione(iss, sezione)
+    assert usati, f"nessun Flags letto in [{sezione}]: l'estrazione non funziona piu'"
+    fuori = sorted(set(usati) - ammessi)
+    assert not fuori, (
+        f"[{sezione}] usa {fuori}, che in questa sezione non esistono. "
+        f"`iscc` risponde «a flag that is not supported in this section» e "
+        f"si ferma -- ma solo in CI, perche' qui il compilatore non c'e'."
+    )
+
+
+def test_l_elenco_dei_flag_saprebbe_bocciare() -> None:
+    """La guardia della guardia: il flag che ci e' costato un giro di CI
+    deve risultare valido in [Run] e **non** in [UninstallRun], altrimenti
+    i due insiemi sono la stessa cosa scritta due volte."""
+    assert "runasoriginaluser" in FLAG_RUN
+    assert "runasoriginaluser" not in FLAG_UNINSTALLRUN
+    assert FLAG_UNINSTALLRUN < FLAG_RUN
+
+
 # ------------------------------------------------------- niente terza copia
 
 
