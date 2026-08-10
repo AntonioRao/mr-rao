@@ -94,6 +94,19 @@ segnaposto** come se fosse un valore, poi prendeva anche l'etichetta. Il
 difetto c'era da sempre, e i tre `{{SECRET}}` identici lo nascondevano: si è
 visto solo quando i segnaposto sono diventati distinguibili.
 
+**E il collaudo del pacchetto respingeva un pacchetto buono.**
+`scripts/verify_build.py` avvia l'eseguibile costruito, gli fa convertire un
+`.docx`, un `.xlsx` e un `.pptx`, e cerca i segnaposto nel testo che torna:
+cercava `{{EMAIL}}` alla lettera, trovava `{{EMAIL_1}}` e dichiarava
+l'anonimizzazione incompleta. Il pacchetto era a posto, il metro era vecchio.
+
+Nessuno dei test poteva vederlo: quel collaudo vive **fuori da pytest**, gira
+solo dentro `build_portable.bat`, e nulla legava ciò che si aspetta a ciò che
+il motore produce davvero. Ora quel legame c'è — la stessa frase, lo stesso
+motore, lo stesso controllo, dentro la suite — e il controllo continua a dire
+di no nei due casi che contano: il dato uscito in chiaro, e il marcatore
+interno che arriva a chi legge.
+
 ### Segnaposto numerati
 
 `{{NAME_1}}`, `{{NAME_2}}`: persone diverse ricevono numeri diversi, la

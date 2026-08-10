@@ -34,6 +34,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -52,6 +53,23 @@ def porta_libera() -> int:
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]
+
+
+def segnaposto_presente(md: str, etichetta: str) -> bool:
+    """`{{EMAIL}}` oppure `{{EMAIL_1}}`: la numerazione non e' un'assenza.
+
+    Il controllo cercava la forma piatta alla lettera. Da quando i
+    segnaposto escono numerati, `{{EMAIL_1}}` nel testo faceva dire al
+    build che l'anonimizzazione mancava: il pacchetto era buono, il metro
+    era vecchio. Cambiare il prodotto per far tacere il metro sarebbe
+    stato il modo sbagliato di leggerlo.
+
+    Restano due modi di fallire, e sono quelli che contano: il segnaposto
+    non c'e' affatto (il dato e' uscito in chiaro), oppure c'e' ma in una
+    forma che non riconosciamo -- per esempio col marcatore interno
+    ancora attaccato, che non deve mai arrivare a chi legge.
+    """
+    return re.search(r"\{\{" + etichetta + r"(?:_\d+)?\}\}", md) is not None
 
 
 def docx_di_prova(testo: str) -> bytes:
@@ -208,13 +226,13 @@ def main(argv: list[str]) -> int:
         }
         frase = "Contatta mario.rossi@example.it al 335 123 4567 in via Roma 12"
         prove = (
-            # (estensione, contenuto, libreria dietro, segnaposto attesi)
+            # (estensione, contenuto, libreria dietro, etichette attese)
             (".docx", docx_di_prova(frase), "mammoth",
-             ("{{EMAIL}}", "{{PHONE}}", "{{ADDRESS}}")),
+             ("EMAIL", "PHONE", "ADDRESS")),
             (".xlsx", xlsx_di_prova(frase), "pandas + openpyxl",
-             ("{{EMAIL}}", "{{PHONE}}")),
+             ("EMAIL", "PHONE")),
             (".pptx", pptx_di_prova(frase), "python-pptx",
-             ("{{EMAIL}}", "{{PHONE}}")),
+             ("EMAIL", "PHONE")),
         )
         for ext, contenuto, libreria, attesi in prove:
             esito = post_multipart(
@@ -228,7 +246,7 @@ def main(argv: list[str]) -> int:
                     file=sys.stderr,
                 )
                 return 1
-            mancanti = [p for p in attesi if p not in md]
+            mancanti = [e for e in attesi if not segnaposto_presente(md, e)]
             if mancanti:
                 print(
                     f"FALLITO  anonimizzazione incompleta su {ext}, mancano "
