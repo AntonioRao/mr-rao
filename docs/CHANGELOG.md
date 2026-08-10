@@ -165,11 +165,51 @@ e si toglie. Il conto dei falsi positivi su 8,5 milioni di caratteri di
 documenti amministrativi italiani dove l'atteso è zero è rimasto **1**,
 prima e dopo l'allargamento.
 
+### Quanto ci sfugge: adesso c'è un numero
+
+Tutti i banchi di questo progetto misuravano i **falsi positivi** — quante
+volte il motore sbaglia su documenti che non contengono niente. È la metà
+giusta da misurare per prima, ed è metà. L'altra è quella che conta per chi
+si fida: **quanti dati veri restano nel documento**. Fino a oggi non
+avevamo un numero.
+
+Adesso sì, su 29 297 documenti italiani e 118 283 valori la cui aritmetica
+**ricalcoliamo noi** invece di prenderla per buona dal corpus:
+
+| | richiamo |
+|---|---|
+| carte di credito, codici fiscali | 100% |
+| indirizzi di posta | 99,9% |
+| IBAN | 99,8% |
+| telefoni | 99,6% |
+| **nomi** | 99,4% |
+| partite IVA | 98,4% |
+
+Il banco ha trovato cinque buchi, tutti chiusi qui dentro. E il numero dei
+nomi è arrivato dove sta dopo una misura che ha detto **dove** guardare:
+partiva da 92,5%, e quattro cognomi soli — Villa, Conti, Messina, Gentile —
+facevano il **96% delle perdite**. Sono nell'elenco delle parole comuni
+apposta: è la scelta che ha tolto 8 904 sostituzioni sbagliate sui moduli in
+bianco, e levarli da lì sarebbe stato tornare indietro.
+
+Quello che mancava era un'altra cosa: accorgersi che con un **nome di
+battesimo davanti** quella parola non è più ambigua. «Tommaso Gentile» è una
+persona, «Gentile Cliente» resta un saluto — la direzione è tutta la
+sicurezza della regola. Costo misurato: **5 sostituzioni in più** su 8,5
+milioni di caratteri di documenti dove l'atteso è zero, in cambio di 5 417
+nomi che prima restavano nel documento senza che nessuno lo dicesse.
+
+Un numero va letto per quello che è: il corpus è **sintetico**, e sui nomi
+resta indicativo — i nomi generati vengono da elenchi e i nostri
+riconoscitori usano elenchi. Quello che vale davvero lì sono i valori persi,
+che ora sono un'altra popolazione: cognomi con la particella («Di Maio
+Gianni») e nomi scritti in minuscolo.
+
 ### Sotto il cofano
 
 Un banco che ricostruisce da fonti versionate il corpus a verità zero, e due
-corpora italiani etichettati per misurare il **richiamo** — la metà che
-finora non misuravamo. La suite passa da 1 122 a 1 755 prove.
+corpora italiani etichettati per misurare il richiamo. La suite passa da
+1 122 a 1 756 prove.
 
 I corpora non sono nostri e non vengono ridistribuiti: gli script li
 scaricano dalle fonti originali sulla macchina di chi misura. Il credito e
