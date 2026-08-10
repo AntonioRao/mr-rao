@@ -13,10 +13,27 @@ la stessa licenza.
 ### E una cosa in più, dichiarata apertamente
 
 Aprendo una pull request concedi anche ad **Antonio Andrea Rao**, titolare del
-copyright del progetto, il diritto non esclusivo e irrevocabile di licenziare
-il tuo contributo **anche con termini diversi dall'AGPL**, licenze commerciali
-comprese. Resti autore del tuo codice e mantieni ogni diritto di riusarlo dove
-e come vuoi.
+copyright del progetto, il diritto non esclusivo, perpetuo, irrevocabile,
+gratuito e trasferibile di usare, modificare e licenziare il tuo contributo
+**anche con termini diversi dall'AGPL** — licenze commerciali comprese, e
+**compresa l'inclusione in prodotti distinti e anche proprietari**, non solo
+in questo. Resti autore del tuo codice e mantieni ogni diritto di riusarlo
+dove e come vuoi.
+
+Nella stessa concessione rientra una **licenza sui brevetti**: se hai brevetti
+che il tuo contributo violerebbe, concedi il diritto di usarlo senza doverteli
+chiedere. Senza questa riga la concessione sul diritto d'autore lascerebbe in
+piedi un'arma che non c'entra con il diritto d'autore, ed è il motivo per cui
+la clausola sta anche nella licenza Apache e in ogni CLA serio.
+
+E **dichiari due cose sul contributo**: che è tuo o che hai il diritto di
+cederlo, e che non contiene codice preso da un progetto con una licenza
+incompatibile. È la parte che a te non costa nulla e che al progetto serve
+davvero: senza, ogni riga ricevuta è una scommessa sulla provenienza.
+
+Il progetto si riserva anche l'uso del nome «Mr. Rao». **Il nome non è
+coperto dall'AGPL**: chi copia il codice, e ne ha pieno diritto, non può
+pubblicarlo con questo nome.
 
 **Perché serve, detto senza giri di parole.** L'AGPL permette l'uso
 commerciale, ma impone a chi modifica il programma o lo offre in rete di
@@ -33,8 +50,18 @@ nella pull request invece di accettare qualcosa che non condividi. Si trova un
 altro modo: per esempio descrivere il difetto e lasciare che sia il progetto a
 scrivere la correzione.
 
-Per i contributi di poche righe — un refuso, una parola nella documentazione —
-non ci interessa: la clausola vale per il codice.
+La clausola vale per **tutto** quello che entra nel repository. Prima diceva
+«per i contributi di poche righe non ci interessa», e quella frase era un
+buco: nessuno ha mai stabilito quante siano poche righe, e una funzione da
+cinque righe è codice quanto una da cento. Un refuso o una parola cambiata
+restano fuori lo stesso, ma perché **non sono opere dell'ingegno**, non
+perché glielo concediamo noi.
+
+**Come si accetta.** C'è una casella da spuntare nel modello di pull request
+([`.github/pull_request_template.md`](.github/pull_request_template.md)).
+Serve a lasciare una traccia datata dell'accettazione: una clausola che sta
+solo in un file che nessuno è obbligato ad aprire vale poco il giorno in cui
+qualcuno dice «io non l'ho mai letta».
 
 In pratica: usalo, modificalo, ridistribuiscilo. L'unico obbligo serio scatta
 se lo offri ad altri via rete — in quel caso devi rendere disponibile il

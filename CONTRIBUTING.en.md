@@ -15,10 +15,28 @@ under the same licence.
 ### And one more thing, stated openly
 
 By opening a pull request you also grant **Antonio Andrea Rao**, the
-project's copyright holder, the non-exclusive and irrevocable right to
-license your contribution **under terms other than the AGPL**, commercial
-licences included. You remain the author of your code and keep every right
-to reuse it wherever and however you like.
+project's copyright holder, the non-exclusive, perpetual, irrevocable,
+royalty-free and transferable right to use, modify and license your
+contribution **under terms other than the AGPL** — commercial licences
+included, and **including inclusion in separate and even proprietary
+products**, not only in this one. You remain the author of your code and
+keep every right to reuse it wherever and however you like.
+
+The same grant covers **patents**: if you hold patents your contribution
+would infringe, you grant the right to use it without having to ask you.
+Without that line the copyright grant would leave standing a weapon that has
+nothing to do with copyright — which is why the clause is in the Apache
+licence and in every serious CLA.
+
+And you **state two things about the contribution**: that it is yours or that
+you have the right to grant it, and that it contains no code taken from a
+project with an incompatible licence. It is the part that costs you nothing
+and that the project actually needs: without it, every line received is a bet
+on where it came from.
+
+The project also reserves the use of the name "Mr. Rao". **The name is not
+covered by the AGPL**: whoever copies the code — and is fully entitled to —
+may not publish it under this name.
 
 **Why this is needed, without circling the point.** The AGPL permits
 commercial use, but it requires anyone who modifies the program or offers it
@@ -35,8 +53,18 @@ a whim — say so in the pull request instead of accepting something you do
 not agree with. There is another way: for instance, describe the defect and
 let the project write the fix.
 
-For contributions of a few lines — a typo, a word in the documentation — we
-do not care: the clause is about code.
+The clause covers **everything** that enters the repository. It used to say
+"for contributions of a few lines we do not care", and that sentence was a
+hole: nobody ever defined how few is few, and a five-line function is code
+just as much as a hundred-line one. A typo or a changed word is still out of
+scope, but because it is **not a work of authorship** — not because we grant
+an exemption.
+
+**How you accept it.** There is a checkbox in the pull request template
+([`.github/pull_request_template.md`](.github/pull_request_template.md)). It
+exists to leave a dated trace of acceptance: a clause that lives only in a
+file nobody is obliged to open is worth little the day someone says "I never
+read that".
 
 In practice: use it, modify it, redistribute it. The only serious obligation
 kicks in if you offer it to others over a network — in that case you must
