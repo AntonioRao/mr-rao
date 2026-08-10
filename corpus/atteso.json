@@ -1,0 +1,2272 @@
+{
+  "motore": {
+    "app": "1.19.1",
+    "sorgenti": {
+      "mr_rao/privacy.py": "4f09135e6c6e7829cae69efb9fdae89d317f0e720cee3e674cf568c03a45a5da",
+      "mr_rao/en_formats.py": "2ad17caa8a28074f991743c96049ffc117662a18ec2dd5d9095e3f9d0c4e7351",
+      "mr_rao/it_names.py": "0033199e1c52d120eab386b5d59d8b9f584c24b42fc02084b6926608c07e31d9"
+    }
+  },
+  "casi": {
+    "iban-01": {
+      "gruppo": "iban",
+      "uscita": "Accreditare sul conto {{IBAN}} come da mandato.",
+      "report": {
+        "counts": {
+          "iban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "iban-02": {
+      "gruppo": "iban",
+      "uscita": "IBAN: {{IBAN}}",
+      "report": {
+        "counts": {
+          "iban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "iban-03": {
+      "gruppo": "iban",
+      "uscita": "IBAN{{IBAN}}",
+      "report": {
+        "counts": {
+          "iban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "iban-04": {
+      "gruppo": "iban",
+      "uscita": "{{IBAN}}",
+      "report": {
+        "counts": {
+          "iban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "iban-05": {
+      "gruppo": "iban",
+      "uscita": "Coordinate: IT60X0542811101000000123457",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "iban",
+            "sample": "IT•••••••••••••••••••••••57",
+            "why": "ha la forma di un IBAN ma non supera il controllo mod-97"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "iban-06": {
+      "gruppo": "iban",
+      "uscita": "Conto IT60X0542811101000000123456à",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "iban-07": {
+      "gruppo": "iban",
+      "uscita": "Dal conto {{IBAN}} al conto {{IBAN}}.",
+      "report": {
+        "counts": {
+          "iban": 2
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "iban-08": {
+      "gruppo": "iban",
+      "uscita": "Accreditare sul conto IT60X0542811101000000123456 come da mandato.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "iban-09": {
+      "gruppo": "iban",
+      "uscita": "{{IBAN}}",
+      "report": {
+        "counts": {
+          "iban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "bban-01": {
+      "gruppo": "bban",
+      "uscita": "Coordinate bancarie: {{BBAN}}",
+      "report": {
+        "counts": {
+          "bban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "bban-02": {
+      "gruppo": "bban",
+      "uscita": "{{BBAN}}",
+      "report": {
+        "counts": {
+          "bban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "bban-03": {
+      "gruppo": "bban",
+      "uscita": "Sequenza X {{PHONE}} 000000123456 nella tabella allegata.",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "bban-04": {
+      "gruppo": "bban",
+      "uscita": "Coordinate bancarie: X {{PHONE}} 000000123456",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "cf-01": {
+      "gruppo": "codice_fiscale",
+      "uscita": "Il codice fiscale e' {{CODICE_FISCALE}}.",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "cf-02": {
+      "gruppo": "codice_fiscale",
+      "uscita": "{{CODICE_FISCALE}}",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "cf-03": {
+      "gruppo": "codice_fiscale",
+      "uscita": "cod. fisc. {{CODICE_FISCALE}}",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "cf-04": {
+      "gruppo": "codice_fiscale",
+      "uscita": "Codice fiscale {{CODICE_FISCALE}} (omocodia).",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "cf-05": {
+      "gruppo": "codice_fiscale",
+      "uscita": "Codice fiscale {{CODICE_FISCALE}} da verificare.",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "cf-06": {
+      "gruppo": "codice_fiscale",
+      "uscita": "Codice fiscale {{CODICE_FISCALE}}.",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [
+          {
+            "kind": "codice_fiscale",
+            "sample": "RS••••••••••••0X",
+            "why": "sostituito, ma il carattere di controllo non torna: il documento potrebbe contenere altri dati storpiati"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "cf-07": {
+      "gruppo": "codice_fiscale",
+      "uscita": "Sigla pratica RSSMRA85M01H50LX riportata a margine.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "codice_fiscale",
+            "sample": "RS••••••••••••LX",
+            "why": "sedici caratteri con la proporzione di un codice fiscale, ma la struttura non torna: possibile lettura OCR sbagliata"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "cf-08": {
+      "gruppo": "codice_fiscale",
+      "uscita": "Il codice fiscale e' RSSMRA85M01H500R.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "piva-01": {
+      "gruppo": "partita_iva",
+      "uscita": "P.IVA {{PARTITA_IVA}}",
+      "report": {
+        "counts": {
+          "partita_iva": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "piva-02": {
+      "gruppo": "partita_iva",
+      "uscita": "Fornitore {{PARTITA_IVA}}",
+      "report": {
+        "counts": {
+          "partita_iva": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "piva-03": {
+      "gruppo": "partita_iva",
+      "uscita": "Riferimento interno 01234567897 nel registro.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "piva-04": {
+      "gruppo": "partita_iva",
+      "uscita": "Partita IVA {{PARTITA_IVA}}",
+      "report": {
+        "counts": {
+          "partita_iva": 1
+        },
+        "total": 1,
+        "suspects": [
+          {
+            "kind": "partita_iva",
+            "sample": "01•••••••90",
+            "why": "sostituita, ma la cifra di controllo non torna: o non era una partita IVA, o il documento e' storpiato"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "piva-05": {
+      "gruppo": "partita_iva",
+      "uscita": "Protocollo 12345678901 del 12 marzo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "card-01": {
+      "gruppo": "carte",
+      "uscita": "Carta {{CARD}} in scadenza.",
+      "report": {
+        "counts": {
+          "cards": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "card-02": {
+      "gruppo": "carte",
+      "uscita": "Addebito su {{CARD}}",
+      "report": {
+        "counts": {
+          "cards": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "card-03": {
+      "gruppo": "carte",
+      "uscita": "Ordine 5551234567890123 evaso.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "carta",
+            "sample": "55••••••••••••23",
+            "why": "sedici cifre che non superano il controllo di Luhn"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "card-04": {
+      "gruppo": "carte",
+      "uscita": "carta{{CARD}}",
+      "report": {
+        "counts": {
+          "cards": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "card-05": {
+      "gruppo": "carte",
+      "uscita": "Totale ordine 4111111111111112 righe.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "carta",
+            "sample": "41••••••••••••12",
+            "why": "sedici cifre che non superano il controllo di Luhn"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "card-06": {
+      "gruppo": "carte",
+      "uscita": "Carta 4111111111111111 in scadenza.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-01": {
+      "gruppo": "telefoni",
+      "uscita": "Tel. {{PHONE}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-02": {
+      "gruppo": "telefoni",
+      "uscita": "cell. {{PHONE}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-03": {
+      "gruppo": "telefoni",
+      "uscita": "Tel. {{PHONE}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-04": {
+      "gruppo": "telefoni",
+      "uscita": "Tel.{{PHONE}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-05": {
+      "gruppo": "telefoni",
+      "uscita": "Protocollo n. 1234567 del 3 marzo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-06": {
+      "gruppo": "telefoni",
+      "uscita": "Colonne 00 1 2 3 4 5 6 7 8 della tabella.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-07": {
+      "gruppo": "telefoni",
+      "uscita": "Data 01/02/2024 del provvedimento.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "tel-08": {
+      "gruppo": "telefoni",
+      "uscita": "cell. 3O6 1234S67",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "telefono",
+            "sample": "3O•••••••67",
+            "why": "preceduto da una parola di contatto ma contiene lettere: possibile lettura OCR sbagliata"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "tel-09": {
+      "gruppo": "telefoni",
+      "uscita": "Tel. 011 7323929",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "mail-01": {
+      "gruppo": "email",
+      "uscita": "Scrivere a {{EMAIL}} entro venerdi'.",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "mail-02": {
+      "gruppo": "email",
+      "uscita": "scrivere a {{EMAIL}}",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "mail-03": {
+      "gruppo": "email",
+      "uscita": "Recapito: {{EMAIL}}",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "mail-04": {
+      "gruppo": "email",
+      "uscita": "Mittente: {{NAME}} <{{EMAIL}}>",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "mail-05": {
+      "gruppo": "email",
+      "uscita": "Il modulo va spedito all'ufficio (avv.@ non compilato).",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "mail-06": {
+      "gruppo": "email",
+      "uscita": "Scrivere a g.moretti@studiomoretti.it entro venerdi'.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "mail-07": {
+      "gruppo": "email",
+      "uscita": "Due recapiti: {{EMAIL}} e {{EMAIL}}.",
+      "report": {
+        "counts": {
+          "emails": 2
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "url-01": {
+      "gruppo": "url",
+      "uscita": "Vedi {{URL}} per il seguito.",
+      "report": {
+        "counts": {
+          "urls": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "url-02": {
+      "gruppo": "url",
+      "uscita": "Il sito e' {{URL}}.",
+      "report": {
+        "counts": {
+          "urls": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "url-03": {
+      "gruppo": "url",
+      "uscita": "Il documento cita esempio.it come fonte.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "url-04": {
+      "gruppo": "url",
+      "uscita": "Registrazione su {{URL}}",
+      "report": {
+        "counts": {
+          "urls": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "url-05": {
+      "gruppo": "url",
+      "uscita": "Vedi https://esempio.it/pratica per il seguito.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-01": {
+      "gruppo": "segreti",
+      "uscita": "export AWS_ACCESS_KEY_ID={{SECRET}}",
+      "report": {
+        "counts": {
+          "secrets": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-02": {
+      "gruppo": "segreti",
+      "uscita": "password: {{SECRET}}",
+      "report": {
+        "counts": {
+          "secrets": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-03": {
+      "gruppo": "segreti",
+      "uscita": "chiave: importante da ricordare",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-04": {
+      "gruppo": "segreti",
+      "uscita": "Authorization: Bearer {{SECRET}}",
+      "report": {
+        "counts": {
+          "secrets": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-05": {
+      "gruppo": "segreti",
+      "uscita": "token = {{SECRET}}",
+      "report": {
+        "counts": {
+          "secrets": 2
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-06": {
+      "gruppo": "segreti",
+      "uscita": "{{SECRET}}",
+      "report": {
+        "counts": {
+          "secrets": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-07": {
+      "gruppo": "segreti",
+      "uscita": "password: Str0ng-Pass-2026",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "sec-08": {
+      "gruppo": "segreti",
+      "uscita": "La parola d'ordine del reparto e' stata cambiata ieri.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "imp-01": {
+      "gruppo": "importi",
+      "uscita": "Importo: {{AMOUNT}}",
+      "report": {
+        "counts": {
+          "amounts": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "imp-02": {
+      "gruppo": "importi",
+      "uscita": "Saldo da versare: {{AMOUNT}}",
+      "report": {
+        "counts": {
+          "amounts": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "imp-03": {
+      "gruppo": "importi",
+      "uscita": "Aggiornato alla versione 1.10 del programma.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "imp-04": {
+      "gruppo": "importi",
+      "uscita": "Importo: 1.500,00 EUR",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "imp-05": {
+      "gruppo": "importi",
+      "uscita": "Canone: {{AMOUNT}} mensili.",
+      "report": {
+        "counts": {
+          "amounts": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "data-01": {
+      "gruppo": "date_nascita",
+      "uscita": "nato il {{DATE}} a Milano",
+      "report": {
+        "counts": {
+          "dates": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "data-02": {
+      "gruppo": "date_nascita",
+      "uscita": "nata a Palermo il {{DATE}}",
+      "report": {
+        "counts": {
+          "dates": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "data-03": {
+      "gruppo": "date_nascita",
+      "uscita": "Data del provvedimento: 01/02/2024",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "data-04": {
+      "gruppo": "date_nascita",
+      "uscita": "nato il 01/02/1985 a Milano",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "doc-01": {
+      "gruppo": "documenti",
+      "uscita": "Patente n. {{DOC_ID}}",
+      "report": {
+        "counts": {
+          "documenti": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "doc-02": {
+      "gruppo": "documenti",
+      "uscita": "Passaporto {{DOC_ID}} rilasciato nel 2019.",
+      "report": {
+        "counts": {
+          "documenti": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "doc-03": {
+      "gruppo": "documenti",
+      "uscita": "Carta d'identita' {{DOC_ID}}",
+      "report": {
+        "counts": {
+          "documenti": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "doc-04": {
+      "gruppo": "documenti",
+      "uscita": "Riferimento gara AB12345CD del lotto 2.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "documento",
+            "sample": "AB•••••CD",
+            "why": "ha la forma di un numero di documento d'identita', ma intorno non c'e' scritto di che documento si tratta: potrebbe essere un protocollo o un codice pratica"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "doc-05": {
+      "gruppo": "documenti",
+      "uscita": "Patente n. AB1234567C",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "doc-06": {
+      "gruppo": "documenti",
+      "uscita": "Patente n. {{DOC_ID}}",
+      "report": {
+        "counts": {
+          "documenti": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-01": {
+      "gruppo": "indirizzi",
+      "uscita": "Recapito: {{ADDRESS}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-02": {
+      "gruppo": "indirizzi",
+      "uscita": "{{ADDRESS}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-03": {
+      "gruppo": "indirizzi",
+      "uscita": "{{ADDRESS}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-04": {
+      "gruppo": "indirizzi",
+      "uscita": "Trasmesso via PEC in data odierna.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-05": {
+      "gruppo": "indirizzi",
+      "uscita": "Si provvede in via provvisoria.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-06": {
+      "gruppo": "indirizzi",
+      "uscita": "Sede in {{ADDRESS}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-07": {
+      "gruppo": "indirizzi",
+      "uscita": "{{ADDRESS}}\n\nCordiali saluti",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-08": {
+      "gruppo": "indirizzi",
+      "uscita": "Recapito: Via Roma 5, 20121 Milano",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ind-09": {
+      "gruppo": "indirizzi",
+      "uscita": "{{ADDRESS}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-titolo-01": {
+      "gruppo": "nomi",
+      "uscita": "Ha firmato il geom. {{NAME}}.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-titolo-02": {
+      "gruppo": "nomi",
+      "uscita": "Come da parere della dott.ssa {{NAME}}.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-titolo-03": {
+      "gruppo": "nomi",
+      "uscita": "Il sig. Ufficio Protocollo non esiste.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-chiusura-01": {
+      "gruppo": "nomi",
+      "uscita": "Cordiali saluti,\n{{NAME}}",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-chiusura-02": {
+      "gruppo": "nomi",
+      "uscita": "Distinti saluti\n{{NAME}}",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-chiusura-03": {
+      "gruppo": "nomi",
+      "uscita": "Cordiali saluti,\nUfficio Ragioneria",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-email-01": {
+      "gruppo": "nomi",
+      "uscita": "Da: {{NAME}} <{{EMAIL}}>",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-email-02": {
+      "gruppo": "nomi",
+      "uscita": "Contatta {{EMAIL}} per il seguito.",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-email-03": {
+      "gruppo": "nomi",
+      "uscita": "{{EMAIL}} ({{NAME}})",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-coppia-01": {
+      "gruppo": "nomi",
+      "uscita": "Presenti alla riunione {{NAME}} e il responsabile del reparto.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-coppia-02": {
+      "gruppo": "nomi",
+      "uscita": "Riferimento Del {{NAME}} nel verbale.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-singolo-01": {
+      "gruppo": "nomi",
+      "uscita": "La pratica Bernasconi e' stata chiusa.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Be••••••ni",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "nome-singolo-02": {
+      "gruppo": "nomi",
+      "uscita": "Costa complessiva dell'intervento.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-comune-01": {
+      "gruppo": "nomi",
+      "uscita": "Imposta Lorda e Imposta Netta del quadro RN.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-comune-02": {
+      "gruppo": "nomi",
+      "uscita": "Redditi Persone Fisiche - Quadro RN",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-comune-03": {
+      "gruppo": "nomi",
+      "uscita": "COGNOME NOME DATA DI NASCITA LUOGO DI RESIDENZA",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-maiuscolo-01": {
+      "gruppo": "nomi",
+      "uscita": "In fede\n{{NAME}}",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-maiuscolo-02": {
+      "gruppo": "nomi",
+      "uscita": "CHIESA EVANGELICA VALDESE",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-01": {
+      "gruppo": "nomi",
+      "uscita": "Ha firmato il geom. Nazzareno Sbrolli.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "nome-02": {
+      "gruppo": "nomi",
+      "uscita": "Il dott. {{NAME}} abita in {{ADDRESS}} e scrive a {{EMAIL}}.",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "addresses": 1,
+          "names": 1
+        },
+        "total": 3,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ruolo-01": {
+      "gruppo": "ruolo_due_punti",
+      "uscita": "Il Ministro: {{NAME}}",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ruolo-02": {
+      "gruppo": "ruolo_due_punti",
+      "uscita": "Responsabile: SETTORE TECNICO",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ruolo-03": {
+      "gruppo": "ruolo_due_punti",
+      "uscita": "Responsabile della protezione dei dati, all'indirizzo: INPS",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "ruolo-04": {
+      "gruppo": "ruolo_due_punti",
+      "uscita": "Il Presidente: sbrolli",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "stile-01": {
+      "gruppo": "prosa_modulo",
+      "uscita": "Come concordato con {{NAME}}, allego il preventivo.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "stile-02": {
+      "gruppo": "prosa_modulo",
+      "uscita": "Come concordato con Ludovica Sbrancagnoli, allego il preventivo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Lu•••••••••••••••••li",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "stile-03": {
+      "gruppo": "prosa_modulo",
+      "uscita": "Come concordato con Ludovica Sbrancagnoli, allego il preventivo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Lu•••••••••••••••••li",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "stile-04": {
+      "gruppo": "prosa_modulo",
+      "uscita": "Imposta Lorda del quadro RN",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nhs-01": {
+      "gruppo": "nhs",
+      "uscita": "NHS number: {{NHS_NUMBER}}",
+      "report": {
+        "counts": {
+          "nhs_number": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nhs-02": {
+      "gruppo": "nhs",
+      "uscita": "Invoice number 943 476 5919 attached.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nhs-03": {
+      "gruppo": "nhs",
+      "uscita": "NHS number: 9434765918",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nino-01": {
+      "gruppo": "nino",
+      "uscita": "National Insurance number {{NINO}}",
+      "report": {
+        "counts": {
+          "nino": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nino-02": {
+      "gruppo": "nino",
+      "uscita": "For example, QQ123456C is used in the guidance.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nino",
+            "sample": "QQ•••••6C",
+            "why": "ha la forma di un National Insurance Number ma il prefisso non e' mai stato allocato: o e' un esempio, o e' storpiato"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "en-nino-03": {
+      "gruppo": "nino",
+      "uscita": "National Insurance number AB123456C",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-ssn-01": {
+      "gruppo": "ssn",
+      "uscita": "SSN {{SSN}}",
+      "report": {
+        "counts": {
+          "ssn": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-ssn-02": {
+      "gruppo": "ssn",
+      "uscita": "Taxpayer ID {{ITIN}}",
+      "report": {
+        "counts": {
+          "itin": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-ssn-03": {
+      "gruppo": "ssn",
+      "uscita": "Reference 000-45-6789 on the form.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "ssn",
+            "sample": "00•••••••89",
+            "why": "ha la forma di un SSN ma cade in un intervallo mai assegnato: o non e' un SSN, o e' storpiato"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "en-ssn-04": {
+      "gruppo": "ssn",
+      "uscita": "Case number 123456789 filed.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-aba-01": {
+      "gruppo": "aba_sin",
+      "uscita": "Routing number {{ROUTING_NUMBER}}",
+      "report": {
+        "counts": {
+          "routing_number": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-aba-02": {
+      "gruppo": "aba_sin",
+      "uscita": "Order 011000015 shipped.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-aba-03": {
+      "gruppo": "aba_sin",
+      "uscita": "Routing number 011000016",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-sin-01": {
+      "gruppo": "aba_sin",
+      "uscita": "Social insurance number {{SIN}}",
+      "report": {
+        "counts": {
+          "sin": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-sin-02": {
+      "gruppo": "aba_sin",
+      "uscita": "Social insurance number {{PHONE}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-abn-01": {
+      "gruppo": "abn_tfn",
+      "uscita": "ABN {{ABN}}",
+      "report": {
+        "counts": {
+          "abn": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-abn-02": {
+      "gruppo": "abn_tfn",
+      "uscita": "Invoice 51 824 753 556 paid.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-abn-03": {
+      "gruppo": "abn_tfn",
+      "uscita": "ABN 51 824 753 557",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-tfn-01": {
+      "gruppo": "abn_tfn",
+      "uscita": "Tax file number {{TFN}}",
+      "report": {
+        "counts": {
+          "tfn": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-tfn-02": {
+      "gruppo": "abn_tfn",
+      "uscita": "Tax file number 123 456 789",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-post-01": {
+      "gruppo": "postcode",
+      "uscita": "Postcode: {{POSTCODE}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-post-02": {
+      "gruppo": "postcode",
+      "uscita": "Part code EC1A 1BB in the catalogue.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-ind-01": {
+      "gruppo": "indirizzi_en",
+      "uscita": "Registered at {{ADDRESS}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-ind-02": {
+      "gruppo": "indirizzi_en",
+      "uscita": "The Green Lane Logistics depot is closed.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-ind-03": {
+      "gruppo": "indirizzi_en",
+      "uscita": "Meeting on Church Road at nine.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-ind-04": {
+      "gruppo": "indirizzi_en",
+      "uscita": "Meeting on {{NAME}} at nine.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-mrz-01": {
+      "gruppo": "mrz",
+      "uscita": "{{MRZ}}",
+      "report": {
+        "counts": {
+          "mrz": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-mrz-02": {
+      "gruppo": "mrz",
+      "uscita": "P<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C<4UTO7408123F1204158ZE184226B<<<<<10",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "mrz",
+            "sample": "P<•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••10",
+            "why": "ha la forma della zona a lettura automatica di un documento ma nessuna cifra di controllo torna: possibile lettura OCR sbagliata, e li' dentro ci sono nome, nascita e cittadinanza"
+          },
+          {
+            "kind": "nome",
+            "sample": "••••",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2
+      }
+    },
+    "en-nome-01": {
+      "gruppo": "nomi_en",
+      "uscita": "Dear {{NAME}},\nplease find the invoice attached.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "De••••••es",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          },
+          {
+            "kind": "nome",
+            "sample": "Ja•es",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2
+      }
+    },
+    "en-nome-02": {
+      "gruppo": "nomi_en",
+      "uscita": "Dear Sir,\nplease find the invoice attached.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nome-03": {
+      "gruppo": "nomi_en",
+      "uscita": "Kind regards,\n{{NAME}}",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Sa•••••••••••ld",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          },
+          {
+            "kind": "nome",
+            "sample": "Sa•ah",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2
+      }
+    },
+    "en-nome-04": {
+      "gruppo": "nomi_en",
+      "uscita": "The report was signed by Mr {{NAME}}.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nome-05": {
+      "gruppo": "nomi_en",
+      "uscita": "The form was updated (Rev. January 2011).",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "en-nome-06": {
+      "gruppo": "nomi_en",
+      "uscita": "Sarah Whitfield attended the meeting.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Sa•••••••••••ld",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          },
+          {
+            "kind": "nome",
+            "sample": "Sa•ah",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2
+      }
+    },
+    "en-nome-07": {
+      "gruppo": "nomi_en",
+      "uscita": "Sarah Whitfield attended the meeting.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "pack-01": {
+      "gruppo": "pacchetti",
+      "uscita": "Codice fiscale {{CODICE_FISCALE}} e SSN {{SSN}}",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1,
+          "ssn": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "pack-02": {
+      "gruppo": "pacchetti",
+      "uscita": "Codice fiscale {{CODICE_FISCALE}} e SSN 123-45-6789",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "pack-03": {
+      "gruppo": "pacchetti",
+      "uscita": "Codice fiscale RSSMRA85M01H500R e SSN {{SSN}}",
+      "report": {
+        "counts": {
+          "ssn": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "pack-04": {
+      "gruppo": "pacchetti",
+      "uscita": "IBAN {{IBAN}}, carta {{CARD}}, {{URL}}",
+      "report": {
+        "counts": {
+          "urls": 1,
+          "iban": 1,
+          "cards": 1
+        },
+        "total": 3,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "profilo-01": {
+      "gruppo": "profili",
+      "uscita": "Il dott. Mario Rossi, IBAN IT60X0542811101000000123456, importo 1.500,00 EUR, nato il 01/02/1985.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "profilo-02": {
+      "gruppo": "profili",
+      "uscita": "Il dott. {{NAME}}, IBAN {{IBAN}}, importo {{AMOUNT}}, nato il {{DATE}}.",
+      "report": {
+        "counts": {
+          "iban": 1,
+          "dates": 1,
+          "amounts": 1,
+          "names": 1
+        },
+        "total": 4,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "profilo-03": {
+      "gruppo": "profili",
+      "uscita": "Il dott. {{NAME}}, IBAN {{IBAN}}, importo 1.500,00 EUR, nato il 01/02/1985.",
+      "report": {
+        "counts": {
+          "iban": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "profilo-04": {
+      "gruppo": "profili",
+      "uscita": "Il dott. Mario Rossi, IBAN IT60X0542811101000000123456.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "term-01": {
+      "gruppo": "termini",
+      "uscita": "Il fascicolo {{TERM}} passa a {{NAME}}.",
+      "report": {
+        "counts": {
+          "termini": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "term-02": {
+      "gruppo": "termini",
+      "uscita": "Ha firmato il geom. Nazzareno Sbrolli.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "term-03": {
+      "gruppo": "termini",
+      "uscita": "Ha firmato il geom. Nazzareno Sbrolli.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "term-04": {
+      "gruppo": "termini",
+      "uscita": "Cordiali saluti,\nRossi, Bianchi & Co.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "term-06": {
+      "gruppo": "termini",
+      "uscita": "Cordiali saluti,\n{{NAME}}, Bianchi & Co.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "term-05": {
+      "gruppo": "termini",
+      "uscita": "Il fascicolo passa a un altro ufficio.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-01": {
+      "gruppo": "limiti",
+      "uscita": "",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-02": {
+      "gruppo": "limiti",
+      "uscita": "   ",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-03": {
+      "gruppo": "limiti",
+      "uscita": "\n\n",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-04": {
+      "gruppo": "limiti",
+      "uscita": "Citta' e accenti: perche' cosi' e' piu' facile. Nessun dato qui.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-05": {
+      "gruppo": "limiti",
+      "uscita": "Perizia della dott.ssa {{NAME}} sull'immobile di Citta' Studi.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-06": {
+      "gruppo": "limiti",
+      "uscita": "Tel. {{PHONE}}\r\nIBAN {{IBAN}}\r\n",
+      "report": {
+        "counts": {
+          "iban": 1,
+          "phones": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-07": {
+      "gruppo": "limiti",
+      "uscita": "{{CODICE_FISCALE}}",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-08": {
+      "gruppo": "limiti",
+      "uscita": "{{CARD}} e' la carta, il conto e' {{IBAN}}",
+      "report": {
+        "counts": {
+          "iban": 1,
+          "cards": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-09": {
+      "gruppo": "limiti",
+      "uscita": "{{ADDRESS}}\nCordiali saluti,\n{{NAME}}",
+      "report": {
+        "counts": {
+          "addresses": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-10": {
+      "gruppo": "limiti",
+      "uscita": "        Tel. {{PHONE}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "lim-11": {
+      "gruppo": "limiti",
+      "uscita": "IT60X0542811101000000123456IT47K0300203280000000123999",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-01": {
+      "gruppo": "negativi",
+      "uscita": "Protocollo n. 2024/0001234 del 12 marzo 2024, determina 512.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-02": {
+      "gruppo": "negativi",
+      "uscita": "Bando di gara CIG 9876543210, CUP B12345678901234.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-03": {
+      "gruppo": "negativi",
+      "uscita": "Articolo 3, comma 2, lettera b) del decreto legislativo 231/2001.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-04": {
+      "gruppo": "negativi",
+      "uscita": "QUADRO RN - DETERMINAZIONE DELL'IMPOSTA",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-05": {
+      "gruppo": "negativi",
+      "uscita": "Codice ufficio 123456, sportello 12, sportello 13.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-06": {
+      "gruppo": "negativi",
+      "uscita": "Riunione del 12/03/2024 alle 15:30, sala 4.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-07": {
+      "gruppo": "negativi",
+      "uscita": "Versione 2.10.3 del programma, build 20240312.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-08": {
+      "gruppo": "negativi",
+      "uscita": "Il Comune di Milano e la Regione Lombardia hanno firmato l'accordo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-09": {
+      "gruppo": "negativi",
+      "uscita": "Allegato A: Elenco dei Documenti Presentati",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-10": {
+      "gruppo": "negativi",
+      "uscita": "Sequenza di controllo 1234 5678 9012 3456 non valida.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "carta",
+            "sample": "12•••••••••••••••56",
+            "why": "sedici cifre che non superano il controllo di Luhn"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "neg-11": {
+      "gruppo": "negativi",
+      "uscita": "Temperatura 36,50 gradi, pressione 101,30 kPa.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-12": {
+      "gruppo": "negativi",
+      "uscita": "Il modulo va compilato in ogni sua parte e consegnato allo sportello.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-13": {
+      "gruppo": "negativi",
+      "uscita": "Il modulo va compilato in ogni sua parte e consegnato allo sportello.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-14": {
+      "gruppo": "negativi",
+      "uscita": "GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-15": {
+      "gruppo": "negativi",
+      "uscita": "Ordine 4111111111111112 del 3 aprile, quantita' 12.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "carta",
+            "sample": "41••••••••••••12",
+            "why": "sedici cifre che non superano il controllo di Luhn"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "neg-16": {
+      "gruppo": "negativi",
+      "uscita": "Riferimento IT99X0542811101000000123456 nel tabulato.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "iban",
+            "sample": "IT•••••••••••••••••••••••56",
+            "why": "ha la forma di un IBAN ma non supera il controllo mod-97"
+          }
+        ],
+        "suspects_total": 1
+      }
+    },
+    "neg-17": {
+      "gruppo": "negativi",
+      "uscita": "Marca da bollo, numero identificativo 01191234567890123456.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    },
+    "neg-18": {
+      "gruppo": "negativi",
+      "uscita": "Prot. 12345/2024 - Oggetto: trasmissione atti",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0
+      }
+    }
+  }
+}

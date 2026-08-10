@@ -711,7 +711,12 @@ _RE_NAME_AFTER_EMAIL = re.compile(
 # spezzato in due. Prendendo la sequenza intera e decidendo *dentro* quali
 # tratti sono nomi, il problema non si pone: e' la stessa ragione per cui
 # conviene rilevare gli intervalli prima e sostituirli dopo.
-_RE_NAME_RUN = re.compile(rf"(?<!\w){_TOK}(?:{_SP}{_TOK})*(?!\w)")
+#
+# Le graffe nel lookaround non sono un vezzo: `{` e `}` non sono caratteri
+# di parola, quindi senza di loro il confine si apre **dentro** un segnaposto
+# gia' inserito e il motore si rimangia il proprio lavoro. Vedi la nota su
+# `_RE_LONE_TOKEN`, dove il difetto e' stato pagato per davvero.
+_RE_NAME_RUN = re.compile(rf"(?<![\w{{]){_TOK}(?:{_SP}{_TOK})*(?![\w}}])")
 
 # Oltre questa lunghezza non e' un nome: e' un titolo scritto in maiuscolo.
 _MAX_TOKEN_NOME = 4
@@ -725,7 +730,25 @@ _MAX_TOKEN_NOME = 4
 _TOK_UP = r"[A-ZÀ-ÖØ-Þ]{3,}"
 _RE_NAME_PAIR_UPPER = re.compile(rf"(?<![\w{{]){_TOK_UP}(?:{_SP}{_TOK_UP}){{1,2}}(?![\w}}])")
 
-_RE_LONE_TOKEN = re.compile(rf"(?<!\w){_TOK}(?!\w)")
+# La guardia sulle graffe, e il difetto che l'ha resa necessaria.
+#
+# `{{NINO}}` — il segnaposto del National Insurance number britannico — e'
+# anche un nome di battesimo italiano. `{` e `}` non sono caratteri di
+# parola, quindi `(?<!\w)` non impediva niente: questo pattern trovava
+# `NINO` **dentro il segnaposto appena inserito**, lo cercava negli elenchi,
+# lo trovava, e lo depositava fra i sospetti.
+#
+# Il testo usciva giusto; a sporcarsi era il rapporto. Ed e' la parte che
+# conta di piu': i sospetti dicono «qui c'e' qualcosa che assomiglia a un
+# dato personale e **non** l'ho tolto, vallo a guardare». Chi ne trova due o
+# tre finti smette di guardarli tutti.
+#
+# Trovato dal corpus di conformita', non da un test — e per questo il test
+# che lo copre (`tests/test_segnaposto_non_riassorbiti.py`) enumera **tutti**
+# i segnaposto leggendoli da questo sorgente, invece di provare NINO: oggi
+# il collo e' uno su trenta, domani un riconoscitore nuovo puo' portarne un
+# altro e nessuno ci penserebbe.
+_RE_LONE_TOKEN = re.compile(rf"(?<![\w{{]){_TOK}(?![\w}}])")
 
 # Nomi propri che sono anche parole comuni: da soli non bastano.
 _AMBIGUOUS_ALONE = frozenset(

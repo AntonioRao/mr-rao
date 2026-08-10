@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.19.1 — Il motore si rimangiava il proprio lavoro
+
+Un difetto piccolo nel testo e grosso nel rapporto, e **l'ha trovato il
+corpus di conformità** — quello nato per un'altra ragione, tenere allineato
+un motore portato in un altro linguaggio. Non l'ha trovato un test.
+
+`{{NINO}}` — il segnaposto del National Insurance number britannico — è
+anche un nome di battesimo italiano. Le graffe non sono caratteri di parola,
+quindi la guardia `(?<!\w)` non impediva niente: il riconoscitore dei nomi,
+che gira **dopo**, trovava `NINO` dentro il segnaposto appena inserito, lo
+cercava negli elenchi, lo trovava, e lo depositava fra i sospetti.
+
+Il testo usciva giusto. **A sporcarsi era il rapporto, ed è la parte che
+conta di più.** I sospetti dicono «qui c'è qualcosa che assomiglia a un dato
+personale e *non* l'ho tolto, vallo a guardare»: è la lista su cui si regge
+l'onestà del prodotto. Chi ne trova due o tre finti smette di guardarli
+tutti, e a quel punto smette di guardare anche quelli veri.
+
+La guardia sulle graffe c'era già su `_TOK_MISTO` e su
+`_RE_NAME_PAIR_UPPER`; mancava su `_RE_LONE_TOKEN` e `_RE_NAME_RUN`. Adesso
+c'è su tutti e quattro.
+
+**Il test non prova NINO.** Legge i segnaposto **dal sorgente del motore**,
+come fa il gate, e li prova tutti: oggi il collo è uno su trenta, domani un
+riconoscitore nuovo può portarne un altro e nessuno ci penserebbe. Ha anche
+un controllo che fallisce se l'elenco dei segnaposto risulta vuoto — sarebbe
+il modo in cui questa prova diventerebbe verde per non aver guardato niente.
+
+Verificato su tutti e trenta i segnaposto attuali: **NINO era l'unico**.
+
 ## 1.19.0 — Tre cose che si rompevano senza dirlo
 
 Nessun cambio al motore di redazione. Tre difetti che avevano in comune il
