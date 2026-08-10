@@ -21,10 +21,15 @@
    "segnalato": 47,
    "perso": 2
   },
-  "names": {
-   "redatto": 78079,
+  "names_ignoti": {
+   "redatto": 1,
+   "segnalato": 0,
+   "perso": 17
+  },
+  "names_noti": {
+   "redatto": 78078,
    "segnalato": 307,
-   "perso": 154
+   "perso": 137
   },
   "partita_iva": {
    "redatto": 18394,

@@ -68,6 +68,7 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -144,7 +145,39 @@ FUORI = {
 # Il richiamo sui nomi si misura ma non fa fallire il banco: vedi la
 # docstring. Il numero resta stampato e congelato, perche' un crollo va
 # visto -- semplicemente non e' lui a dire se il motore va bene.
-INDICATIVE = {"names"}
+#
+# **Ma solo meta' di quel numero e' viziata**, e tenerle insieme buttava via
+# la meta' buona.
+#
+# Il vizio e' che il corpus genera i nomi da elenchi e noi li riconosciamo
+# con elenchi: dove i due si sovrappongono il richiamo e' alto per
+# costruzione, e non dimostra niente sul motore. Ma **dove non si
+# sovrappongono non c'e' nessun vizio**: un nome che nei nostri elenchi non
+# c'e' puo' essere trovato solo dalle regole di contesto -- titolo davanti,
+# firma, indirizzo di posta accanto, nome e cognome adiacenti. Quella meta'
+# e' una misura vera, ed e' anche la piu' interessante, perche' e' la
+# situazione di un documento reale con dentro una persona che non e' nei
+# nostri elenchi.
+#
+# Percio' i nomi si contano in due categorie separate. `names_noti` resta
+# indicativo; `names_ignoti` no.
+INDICATIVE = {"names", "names_noti"}
+
+
+def _negli_elenchi(valore: str) -> bool:
+    """Almeno una parola del nome sta nei nostri elenchi?
+
+    Basta una: e' la condizione che rende possibile la scorciatoia
+    dell'elenco. Se nessuna c'e', il riconoscimento e' passato per forza da
+    una regola di contesto.
+    """
+    from mr_rao.privacy import FIRST_NAMES, SURNAMES
+
+    for parola in re.split(r"[^\wÀ-ÿ']+", valore):
+        p = parola.casefold()
+        if p and (p in FIRST_NAMES or p in SURNAMES):
+            return True
+    return False
 
 
 def leggi(corpus: Path) -> list[dict]:
@@ -180,6 +213,10 @@ def misura(righe: list[dict]) -> tuple[dict, dict, dict]:
             if conto is not None and not _passa(conto, valore):
                 scartati[categoria] += 1
                 continue
+            # I nomi si separano: quelli che stanno nei nostri elenchi e
+            # quelli che non ci stanno. Vedi `INDICATIVE`.
+            if categoria == "names":
+                categoria = "names_noti" if _negli_elenchi(valore) else "names_ignoti"
             if valore not in fuori:
                 esiti[(categoria, "redatto")] += 1
             elif _mask(valore) in sospetti:
