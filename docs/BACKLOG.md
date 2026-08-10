@@ -390,6 +390,64 @@ misurata invece che promessa.
 | P6.8 | **Una pagina su cosa la redazione NON garantisce** | anonym.legal ha una sezione di casi di studio sulla de-anonimizzazione; noi abbiamo la cosa più difficile da imitare — `docs/VERIFICARE.md` in Mr. Rao Plus, che accanto a ogni promessa mette il modo di controllarla — ma **non abbiamo una pagina che spieghi i limiti del risultato**.<br><br>Il contenuto c'è già sparso: che togliere gli identificatori non rende un testo anonimo (l'inferenza dal contesto resta), che un dizionario reversibile **è** un archivio di dati personali, che i sospetti sono segnalati e **non tolti**. Metterlo in una pagina sola è la cosa più coerente con la voce di questo progetto, ed è precisamente quello che nella documentazione dei concorrenti non c'è | Da valutare |
 | P6.9 | **Sostituzione reversibile con dizionario locale** | rizzo-pii e anonym.legal la mettono al centro: si redige, si manda il testo con i segnaposto, si ripristinano i valori veri nella risposta. Cambia la natura dello strumento — da «prepara un documento da archiviare» a «usa l'LLM sui documenti veri».<br><br>**Non è in cima e c'è un motivo.** Il dizionario placeholder → valore **è un archivio di dati personali**, con la particolarità di essere l'unico file del sistema in cui i dati stanno tutti insieme, scremati dal contesto e pronti da leggere. Oggi Mr. Rao non ha niente da proteggere perché non conserva niente; questa funzione crea la cosa da proteggere. rizzo-pii lo sa e infatti la rende disattivabile.<br><br>Va aperta solo con una risposta scritta a: dove sta il file, per quanto tempo, chi lo cancella, e cosa succede se qualcuno se lo porta via. **P6.1 va fatta prima e da sola**: la numerazione dà buona parte del beneficio senza creare l'archivio | Non ora — decisione registrata |
 
+### Corpora etichettati di terzi: cosa si puo' usare (2026-08-10)
+
+Sono le fonti su cui rizzo-pii ha addestrato il suo modello. **A noi non
+servono per addestrare** -- il motore non si addestra -- ma servirebbero per
+la meta' che oggi non misuriamo: il **richiamo**, cioe' i dati che perdiamo
+in silenzio.
+
+**`DeepMount00/pii-masking-ita`: non utilizzabile.** Il dataset e' ad
+**accesso ristretto** su Hugging Face (serve autenticazione e un permesso
+concesso) e **non dichiara nessuna licenza**. Senza licenza, il predefinito
+e' «tutti i diritti riservati»: non entra ne' in Mr. Rao ne' in Mr. Rao
+Plus.
+
+**`ai4privacy/open-pii-masking-500k`: utilizzabile, con due condizioni.**
+
+La licenza non e' CC-BY-4.0 e basta, come si legge in giro: il dataset e'
+stato **generato con Llama 3.1/3.3**, quindi porta con se' la **Llama
+Community License** e la relativa Acceptable Use Policy. Chi lo usa o lo
+ridistribuisce eredita quelle condizioni. Per un banco locale che non
+ridistribuisce niente il peso e' modesto, ma va scritto in `NOTICE.md` e
+guardato prima di legarlo a un prodotto commerciale.
+
+**La seconda condizione conta di piu', ed e' tecnica.** Le righe italiane
+sono **tradotte a macchina e sintetiche**. Due prese a caso:
+
+    Modello di pianificazione settimanale per Christopherus Kimete:
+    luglio 4o, 2008 - settembre 6o, 1961
+
+    Mercurio Ballabani ha richiesto assistenza per la creazione di un
+    documento che esamina i pattern di distribuzione delle onde radio
+
+«luglio 4o, 2008» e' «July 4th, 2008» passato in italiano; l'intervallo di
+date va all'indietro; «Christopherus Kimete» e «Mercurio Ballabani» non
+sono nomi italiani. E' lo stesso limite che rizzo-pii dichiara per
+DeepMount -- valori Faker anglosassoni in contesto italiano -- e vale anche
+qui.
+
+**Conseguenza operativa, e va nel verso giusto.** Misurare il richiamo dei
+riconoscitori di **nomi** e **date** su questo corpus darebbe un numero
+falso in **basso**: i nostri elenchi di cognomi italiani non contengono
+«Ballabani», e la nostra data non ha la forma «luglio 4o». Un richiamo
+misurato male in basso e' pericoloso, perche' la reazione istintiva e'
+allentare le guardie -- che e' esattamente la direzione che ha prodotto gli
+8 904 errori di `name_guess`.
+
+**Quindi: si usa per i riconoscitori dove conta la forma** (email, telefoni,
+IBAN, carte: la lingua importa poco) **e per la varieta' di formato**, e
+**non** per i nomi e le date italiane. Per quelli la fonte migliore che
+abbiamo resta la **Gazzetta Ufficiale**, che e' prosa vera scritta da
+italiani -- e ha appena prodotto 390 nomi e 221 indirizzi su 11 numeri.
+
+**E le etichette non sono le nostre**: loro separano `GIVENNAME` e
+`SURNAME` dove noi abbiamo `names`; hanno `AGE`, `GENDER` e `TIME` che noi
+non trattiamo; non hanno le credenziali che noi trattiamo. Serve una
+mappatura dichiarata, e si misura **solo sull'intersezione**: un richiamo
+calcolato su etichette che non corrispondono misura il disaccordo fra due
+definizioni, non un difetto del motore.
+
 ### Valutato e scartato come fonte: il corpus di anonym.community (2026-08-10)
 
 `anonym-community-mcp` espone 1 478 «pain point» sulla privacy, 240
