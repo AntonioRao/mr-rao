@@ -981,6 +981,36 @@ _RE_NAME_AFTER_EMAIL = re.compile(
     rf"{_rif_segnaposto('EMAIL')}(?P<sep>\s*[<\(\[]\s*)(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
 )
 
+# Il nome accanto a un **codice fiscale**, che e' la dichiarazione piu' forte
+# che questo motore possa leggere.
+#
+# Perche' e' piu' forte di tutte le altre. Un titolo si scrive anche davanti
+# a un ente, una formula di chiusura puo' precedere una ragione sociale, un
+# indirizzo di posta puo' essere di un ufficio. Un codice fiscale **passa il
+# carattere di controllo**: non capita per caso, e in Italia si rilascia a
+# una persona fisica. Quando ce n'e' uno valido, che li' accanto ci sia una
+# persona non e' un indizio, e' quasi il testo che lo dice.
+#
+# **E non dipende da nessun elenco**, che e' il punto. Le regole che
+# avevamo coprivano il caso «nome e cognome entrambi riconosciuti», cioe'
+# proprio quello che un nome mai visto non puo' soddisfare. Misurato: sul
+# corpus legale, sostituendo i nomi con altri fuori dai nostri elenchi e
+# lasciando le frasi identiche, il richiamo passava da 99,4% a 0,5% --
+# tutto il riconoscimento veniva dagli elenchi. E in quelle stesse frasi il
+# codice fiscale stava attaccato al nome: `Elicio Nazar CF MNTCRL58D07H163B`.
+#
+# La finestra e' stretta apposta -- fra il nome e il codice ci sta
+# l'etichetta (`CF`, `C.F.`, `codice fiscale`) e nient'altro, sulla stessa
+# riga. Con una finestra larga il nome verrebbe preso da un'altra frase, ed
+# e' un modo di sbagliare che il motore ha gia' pagato con gli indirizzi.
+_ETICHETTA_CF = r"(?:[-–—:,]?[ \t]*(?i:c\.?f\.?|cod(?:ice)?\.?[ \t]*fisc(?:ale)?\.?)[ \t]*:?)?"
+
+_RE_NAME_BEFORE_CF = re.compile(
+    rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{1,2}})"
+    rf"(?P<sep>[ \t]*{_ETICHETTA_CF}[ \t]*)"
+    rf"{_rif_segnaposto('CODICE_FISCALE')}"
+)
+
 # Una sequenza *intera* di parole maiuscole, non una finestra di due o tre.
 #
 # Con la finestra, "Riferimento Del Piero Alessandro" veniva agganciata a
@@ -2203,6 +2233,27 @@ def _scrub_names(
 
     text = _RE_NAME_BEFORE_EMAIL.sub(_email_name_sub, text)
     text = _RE_NAME_AFTER_EMAIL.sub(_email_name_sub, text)
+
+    # 2-ter. Il nome accanto a un codice fiscale valido.
+    def _cf_name_sub(m: re.Match) -> str:
+        name = m.group("name")
+        tokens = name.split()
+        # Lo scudo degli enti vale qui come altrove: `Comune di Roma CF
+        # 01234...` non e' una persona, ed e' proprio la forma in cui un
+        # codice fiscale compare accanto a una ragione sociale. Senza questo
+        # la regola trasformerebbe ogni intestazione di ente in un nome.
+        if any(_is_entity_word(t) for t in tokens):
+            return m.group(0)
+        # Una parola sola non basta nemmeno qui: davanti all'etichetta `CF`
+        # ci finisce spesso l'ultima parola della frase precedente.
+        # `{1,2}` nel pattern gia' pretende almeno due parole; questo
+        # resta come guardia se il pattern cambiasse.
+        if len(tokens) < 2:
+            return m.group(0)
+        segno = report.segnaposto("names", "{{NAME}}", name)
+        return m.group(0).replace(name, segno, 1)
+
+    text = _RE_NAME_BEFORE_CF.sub(_cf_name_sub, text)
 
     # 2-bis. La firma. Una formula di chiusura dichiara che quello che
     # segue e' una persona, ed e' l'unico posto dove un cognome da solo --

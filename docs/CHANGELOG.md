@@ -1,6 +1,35 @@
 # Changelog
 
-## 1.22.0 — Tre falsi positivi trovati da un banco che non girava
+## 1.22.0 — Tre falsi positivi, e il segnale che avevamo sotto il naso
+
+### Il nome accanto a un codice fiscale è una persona
+
+Le regole sui nomi erano quattro, e quella che copre la maggior parte dei casi
+— nome e cognome **entrambi riconosciuti negli elenchi** — ha un buco preciso:
+non può scattare su una persona che negli elenchi non c'è.
+
+Quanto fosse grande quel buco non si sapeva, perché il corpus con cui
+misuriamo il richiamo ha i nomi che stanno nei nostri elenchi: **il 99,98%**.
+Prendendo le sue frasi e sostituendo i nomi con altri fuori elenco — stesso
+testo, stesso contesto — il richiamo passa da **99,4% a 0,5%**. Tutto il
+riconoscimento veniva dagli elenchi. Niente dal contesto.
+
+E in quelle stesse frasi c'era un segnale che il motore calcolava e buttava
+via: `Elicio Nazar CF MNTCRL58D07H163B`. Un codice fiscale **passa il
+carattere di controllo**, quindi non capita per caso, e in Italia si rilascia
+a una persona fisica. È la dichiarazione più forte che questo motore possa
+leggere — più di un titolo, che si scrive anche davanti a un ente, e più di un
+indirizzo di posta, che può essere di un ufficio.
+
+**Da 0,5% a 36,0%** su 78 372 nomi che i nostri elenchi non contengono.
+
+**Il prezzo, misurato: zero.** I moduli in bianco sono identici a prima, la
+prosa vera non cala, e il corpus di conformità non cambia in nessuno dei 191
+casi. La regola aggiunge solo dove c'è un codice fiscale valido.
+
+Non prende le ragioni sociali: `Comune di Pontremoli CF …` resta intero. È la
+forma in cui quel numero compare più spesso in un documento amministrativo, e
+prenderla vorrebbe dire togliere il soggetto alla frase.
 
 ### `on` era un titolo, e il punto era facoltativo
 
