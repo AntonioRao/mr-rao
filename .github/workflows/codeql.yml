@@ -1,0 +1,87 @@
+# CodeQL, versione «advanced»: serve solo perche' il file di configurazione
+# lo legge soltanto questa.
+#
+# ===========================================================================
+# NON E' ATTIVO, E NON DEVE ESSERLO FINCHE' NON SI FA UN PASSAGGIO A MANO
+# ===========================================================================
+#
+# Oggi la scansione gira in **default setup**, configurata dall'interfaccia
+# web (Settings > Code security). Le due cose **non possono convivere**: con
+# il default setup acceso, questo workflow fallisce dicendo che c'e' gia'
+# un'analisi configurata.
+#
+# Per questo i trigger qui sotto sono ridotti a `workflow_dispatch`: cosi'
+# il file puo' stare nel repository, essere letto e discusso, senza rompere
+# niente. La sequenza per attivarlo davvero, nell'ordine:
+#
+#   1. disattivare il default setup (Settings > Code security > CodeQL
+#      analysis > Disable, oppure
+#      `gh api -X PATCH repos/AntonioRao/mr-rao/code-scanning/default-setup
+#       -f state=not-configured`);
+#   2. rimettere i trigger veri, che sono commentati qui sotto;
+#   3. pushare e **guardare l'esito della prima esecuzione**, perche' e' il
+#      momento in cui si scopre se la copertura si e' ristretta.
+#
+# ---------------------------------------------------------------------------
+# COSA SI PERDE PASSANDO A ADVANCED, detto prima e non dopo
+# ---------------------------------------------------------------------------
+#
+# Il default setup si aggiorna da solo: versione dell'azione, elenco delle
+# query, e soprattutto **le lingue analizzate**, che rileva lui. Da qui in
+# poi quelle scelte sono nostre e invecchiano con noi.
+#
+# Il default setup oggi dichiara: actions, javascript, javascript-typescript,
+# python, typescript. In advanced le lingue non sono le stesse etichette:
+# JavaScript e TypeScript sono **una sola**, `javascript-typescript`. Se si
+# ricopiasse l'elenco alla lettera l'analisi fallirebbe; se si dimenticasse
+# una riga, la copertura si restringerebbe **in silenzio**, che e' il modo
+# peggiore. Per questo la matrice qui sotto e' esplicita e commentata.
+
+name: CodeQL
+
+on:
+  workflow_dispatch:
+  # Da riattivare al punto 2 della sequenza qui sopra:
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+  # schedule:
+  #   - cron: "0 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analizza:
+    name: Analisi (${{ matrix.linguaggio }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        linguaggio:
+          - actions
+          # Una sola voce per JavaScript **e** TypeScript: in advanced setup
+          # `javascript` e `typescript` non sono due analisi separate.
+          - javascript-typescript
+          - python
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Inizializza CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.linguaggio }}
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Analizza
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.linguaggio }}"

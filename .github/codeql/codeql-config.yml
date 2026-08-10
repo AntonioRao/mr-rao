@@ -1,0 +1,47 @@
+# Configurazione CodeQL — l'unica regola che spegniamo, e cosa la sostituisce.
+#
+# ATTENZIONE: questo file lo legge SOLO l'advanced setup. Con il default
+# setup (quello configurato dall'interfaccia web) viene ignorato in silenzio.
+# Vedi `.github/workflows/codeql.yml` e la nota che porta in testa.
+#
+# ---------------------------------------------------------------------------
+# PERCHE' ESISTE
+# ---------------------------------------------------------------------------
+#
+# `py/bind-socket-all-network-interfaces` segnala il bind su tutte le
+# interfacce dentro `mr_rao/portcheck.py`. E' stato archiviato due volte
+# (alert #11 e #33) con la stessa motivazione, perche' torna a ogni
+# spostamento di riga: l'alert e' legato alla posizione, non al codice, e
+# basta un refactor perche' ricompaia come nuovo.
+#
+# La motivazione, per intero e non per riassunto: quel socket non serve
+# niente a nessuno. Apre, guarda se la porta e' libera e chiude subito (c'e'
+# il `finally`). Non ascolta, non accetta connessioni, non legge. L'unico
+# modo di arrivarci con host largo e' aver scelto `MR_RAO_HOST=0.0.0.0`, che
+# e' l'opzione di esposizione dichiarata; e dalla 1.7.0 quella scelta non
+# spegne piu' la difesa anti DNS-rebinding, perche' l'allow-list resta sugli
+# indirizzi veri della macchina invece di diventare `*`.
+#
+# ---------------------------------------------------------------------------
+# IL PREZZO, DETTO
+# ---------------------------------------------------------------------------
+#
+# `query-filters` in CodeQL **non si puo' restringere a un percorso**: vale
+# per tutto il repository. Quindi questa riga non silenzia l'alert in
+# `portcheck.py`, lo silenzia ovunque — compreso il giorno in cui qualcuno
+# aprisse un bind largo in un file nuovo, che e' esattamente il caso in cui
+# quella regola servirebbe.
+#
+# Spegnere un presidio senza metterne un altro sarebbe barare, e su questo
+# progetto e' una regola di casa: **si allenta solo dove c'e' un conto che
+# possa dire di no**. Il conto e' `tests/test_bind_largo.py`, che fallisce se
+# un bind su tutte le interfacce compare in un qualunque file Python che non
+# sia `mr_rao/portcheck.py`. E' piu' stretto di quello che stiamo togliendo,
+# vive nel repository dove la ragione e' gia' scritta, e gira a ogni commit
+# invece che una volta a settimana.
+
+name: "Mr. Rao — CodeQL"
+
+query-filters:
+  - exclude:
+      id: py/bind-socket-all-network-interfaces
