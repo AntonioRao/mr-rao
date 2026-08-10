@@ -59,7 +59,28 @@ def test_ce_ne_sono_da_provare():
     assert len(segnaposto_emessi()) >= 20
 
 
-@pytest.mark.parametrize("segnaposto", segnaposto_emessi())
+def segnaposto_da_provare() -> list[str]:
+    """I segnaposto nelle due forme in cui escono davvero dal motore.
+
+    Dalla 1.20.0 la forma predefinita e' **numerata**, e la numerata e' la
+    piu' esposta delle due: `{{NAME_12}}` ha delle cifre dentro, e le cifre
+    sono cio' che attira i riconoscitori dei recapiti, dei codici e degli
+    importi. Provare solo `{{NAME}}` vorrebbe dire aver rifatto la guardia
+    per la forma che ormai quasi nessuno vede.
+
+    I numeri provati -- 1, 9, 12, 137 -- non sono decorativi: uno solo, una
+    cifra sola al limite, due cifre, tre cifre. Un documento con centinaia
+    di persone e' raro ma non impossibile, e proprio li' il segnaposto
+    somiglia di piu' a un numero.
+    """
+    base = segnaposto_emessi()
+    numerati = [
+        f"{{{{{s[2:-2]}_{n}}}}}" for s in base for n in (1, 9, 12, 137)
+    ]
+    return base + numerati
+
+
+@pytest.mark.parametrize("segnaposto", segnaposto_da_provare())
 def test_un_segnaposto_non_diventa_un_sospetto(segnaposto: str):
     testo = f"Il valore {segnaposto} resta cosi'."
     uscita, rapporto = apply_privacy_filter(testo, options_from_dict({}))
@@ -80,6 +101,6 @@ def test_il_caso_da_cui_e_nato():
     uscita, rapporto = apply_privacy_filter(
         "National Insurance number AB123456C", options_from_dict({})
     )
-    assert uscita == "National Insurance number {{NINO}}"
+    assert uscita == "National Insurance number {{NINO_1}}"
     assert rapporto.counts == {"nino": 1}
     assert rapporto.suspects == []

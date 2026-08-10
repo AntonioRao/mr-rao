@@ -1,8 +1,8 @@
 import pytest
 
+from aiuti import apply_privacy_filter  # segnaposto appiattiti: vedi tests/aiuti.py
 from mr_rao.privacy import (
     PrivacyOptions,
-    apply_privacy_filter,
     iban_checksum_ok,
     options_from_dict,
     options_from_form,

@@ -267,6 +267,25 @@ def _frontmatter(
         lines.append(f"  total: {redaction.total}")
         for k, v in sorted(redaction.counts.items()):
             lines.append(f"  {k}: {v}")
+    # Cio' che e' stato trovato e lasciato in chiaro **apposta** (P6.2).
+    #
+    # Sta qui, e non solo nella risposta dell'API, perche' il frontmatter e'
+    # l'unica parte del rapporto che **viaggia col documento**: chi lo
+    # riceve fra sei mesi non ha la richiesta HTTP, ha il file. E' li' che
+    # «ho lasciato in chiaro 3 importi, apposta» smette di essere
+    # un'impostazione di qualcuno e diventa una cosa scritta.
+    #
+    # Blocco separato da `redactions` di proposito: sommare cio' che si e'
+    # tolto con cio' che si e' lasciato darebbe un totale che non vuol dire
+    # niente, e il totale e' la prima cosa che si guarda.
+    if redaction.rilevati:
+        per_tipo: dict[str, int] = {}
+        for r in redaction.rilevati:
+            per_tipo[r["kind"]] = per_tipo.get(r["kind"], 0) + 1
+        lines.append("detected_not_replaced:")
+        lines.append(f"  total: {len(redaction.rilevati)}")
+        for k, v in sorted(per_tipo.items()):
+            lines.append(f"  {k}: {v}")
     lines.append("---\n")
     return "\n".join(lines)
 

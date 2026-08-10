@@ -55,7 +55,22 @@ ASSETS = ROOT / "packaging" / "Assets"
 #
 # Riguarda **solo** l'MSIX: nello zip portable la cartella resta, e la
 # libreria continua a funzionare identica nelle due confezioni.
-ESCLUSI = ("default-docx-template",)
+#
+# `uploads` non entra nel pacchetto, ed e' la seconda meta' della
+# correzione al crash all'avvio della 1.20.0.
+#
+# Nel portable quella cartella e' giusta: sta accanto all'eseguibile ed e'
+# scrivibile. Dentro un MSIX finisce in `Program Files\WindowsApps`, dove
+# **non si puo' scrivere**: una cartella degli upload li' dentro non e' un
+# posto dove caricare qualcosa, e' un posto che sembra pronto e non lo e'.
+# I dati adesso vanno nel profilo dell'utente (`config._writable_dir`).
+#
+# Ed e' anche quello che ha reso il difetto invisibile a lungo: la cartella
+# c'era nel layout, quindi sembrava tutto a posto — ma **e' vuota**, e le
+# cartelle vuote non sopravvivono all'impacchettamento. Nel pacchetto finito
+# non c'era, il `mkdir` all'avvio doveva crearla in sola lettura, e il
+# programma moriva prima di stampare una riga.
+ESCLUSI = ("default-docx-template", "uploads")
 
 # Nomi che MSIX riserva a se'. Alla radice del pacchetto il manifesto ci
 # deve stare; ovunque altro sono un errore.

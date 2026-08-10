@@ -41,13 +41,17 @@ def converti(client, **campi):
 
 def test_il_profilo_da_solo_applica_il_preset(client):
     md = converti(client, profile="default")["markdown"]
-    assert "{{EMAIL}}" in md
+    assert "{{EMAIL_1}}" in md
 
 
 def test_l_interruttore_generale_vince_sul_profilo(client):
     md = converti(client, profile="default", privacy_filter="false")["markdown"]
     assert "mario.rossi@example.it" in md
-    assert "{{EMAIL}}" not in md
+    # `{{EMAIL` senza le graffe finali: prende **tutte e due** le forme,
+    # numerata e no. Scritto `"{{EMAIL}}" not in md` sarebbe vero anche con
+    # il filtro acceso -- l'uscita direbbe `{{EMAIL_1}}` -- cioe' un
+    # controllo che non puo' piu' fallire.
+    assert "{{EMAIL" not in md
 
 
 def test_una_singola_casella_vince_sul_profilo(client):
@@ -55,14 +59,48 @@ def test_una_singola_casella_vince_sul_profilo(client):
         client, profile="default", privacy_filter="true", privacy_emails="false"
     )["markdown"]
     assert "mario.rossi@example.it" in md, "la casella Email era spenta"
-    assert "{{PHONE}}" in md, "le altre caselle devono restare come nel profilo"
+    assert "{{PHONE_1}}" in md, "le altre caselle devono restare come nel profilo"
 
 
 def test_si_puo_accendere_un_riconoscitore_su_un_profilo_che_lo_spegne(client):
     md = converti(
         client, profile="no_privacy", privacy_filter="true", privacy_emails="true"
     )["markdown"]
-    assert "{{EMAIL}}" in md
+    assert "{{EMAIL_1}}" in md
+
+
+def test_la_casella_della_numerazione_comanda_il_motore(client):
+    """Parita' GUI per l'opzione nuova: la casella deve fare qualcosa.
+
+    E' il difetto che questo file esiste per prevenire -- un pannello che
+    sembra comandare il motore e non lo comanda -- e un'opzione aggiunta al
+    motore senza il giro completo (modulo, `options_from_form`, pagina) e'
+    esattamente quel difetto.
+    """
+    numerato = converti(client, profile="default")["markdown"]
+    piatto = converti(client, profile="default", privacy_numerati="false")["markdown"]
+    assert "{{EMAIL_1}}" in numerato
+    assert "{{EMAIL}}" in piatto and "{{EMAIL_1}}" not in piatto
+
+
+def test_il_pannello_rileva_ma_non_sostituire_comanda_il_motore():
+    """Parita' GUI per il terzo stato (P6.2).
+
+    Il ramo che l'interfaccia percorre e' quello con il profilo, ed e'
+    separato da `options_from_form`: una funzione aggiunta solo li' arriva
+    all'API e **non** alla pagina. E' successo con la numerazione mentre la
+    scrivevo, quindi qui si prova la strada vera.
+    """
+    app = create_app()
+    app.config["TESTING"] = True
+    cliente = app.test_client()
+
+    risposta = converti(cliente, profile="default", privacy_segnala="emails")
+    md, rapporto = risposta["markdown"], risposta.get("redaction") or {}
+    assert "mario.rossi@example.it" in md, "l'indirizzo doveva restare nel documento"
+    assert "{{EMAIL" not in md
+    # E la parte che vale davvero: il rapporto dice che c'era.
+    assert rapporto.get("detected_counts", {}).get("emails") == 1, rapporto
 
 
 def test_un_campo_assente_resta_quello_del_profilo(client):

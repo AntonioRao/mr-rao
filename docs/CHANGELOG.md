@@ -1,5 +1,184 @@
 # Changelog
 
+## 1.20.0 — I segnaposto hanno un numero, e il rapporto dice cosa è rimasto
+
+Una release nata da un confronto con lo stato dell'arte, e **quasi tutto il
+valore sta nei difetti che il confronto ha fatto emergere**, non nelle
+funzioni nuove. Tre erano già in produzione, e due dei tre erano silenziosi
+— il tipo peggiore, quello in cui il rapporto ti dice che è andato tutto
+bene.
+
+### Il pacchetto dello Store si apriva soltanto sulla macchina di chi lo faceva
+
+La certificazione del Microsoft Store ha rimandato indietro il pacchetto con
+*«The product crashes at launch»*. Aveva ragione, e la causa è di quelle che
+si vedono solo dove il programma non l'hai messo tu.
+
+Un pacchetto MSIX si installa in `C:\Program Files\WindowsApps`, che è
+protetta da ACL e **non è scrivibile nemmeno da un processo elevato**. Fino
+alla 1.19 la cartella scrivibile era sempre quella dell'eseguibile — scelta
+giusta nel portable, dove è proprio ciò che lo rende portable — e all'avvio
+il programma ci creava la cartella degli upload.
+
+Quel `mkdir` non gira dentro una funzione che qualcuno chiama: gira
+**durante l'importazione**. Un'eccezione lì non produce un errore gestito,
+produce un processo che muore prima di stampare una riga.
+
+**Perché non se n'era accorto nessuno.** Il pacchetto *conteneva* una
+cartella `uploads`, quindi a guardarlo sembrava tutto a posto — ma è vuota,
+e le cartelle vuote non sopravvivono all'impacchettamento. Nel file finito
+non c'era. E ogni prova girava su un albero sorgente o su un portable in una
+cartella scrivibile, cioè nell'unica condizione in cui il difetto non esiste.
+
+Corretto in tre punti, perché uno solo sarebbe stato un cerotto: il
+programma ora **sa se sta girando dentro un pacchetto** (lo chiede a
+Windows, non lo indovina dal percorso) e in quel caso scrive nel profilo
+dell'utente; il pacchetto non porta più una cartella upload che non
+potrebbe usare; e nessun `mkdir` all'avvio può più uccidere il programma —
+se la cartella non si può creare si ripiega, lo si scrive nel rapporto, e
+**la finestra si apre lo stesso**. Il portable resta identico: scrive
+accanto a sé, com'è giusto.
+
+### I difetti trovati
+
+**Otto Paesi di IBAN non venivano riconosciuti affatto.** Un IBAN si stampa
+a gruppi di quattro: quando la lunghezza non è divisibile per quattro,
+l'ultimo gruppo può essere di **un** carattere (`PT92 … 6LGU A`). Il pattern
+pretendeva gruppi da almeno due, e su Portogallo, Svizzera, Croazia,
+Brasile, Ucraina, Qatar, Palestina e São Tomé non trovava niente — zero IBAN
+dichiarati su un documento che ne conteneva uno.
+
+Il pattern ora è goloso apposta, e a dire dove finisce il numero è la
+tabella ISO 13616 delle lunghezze per Paese, che serviva già a validare e
+adesso serve anche a tagliare. Quello che il pattern prende in più torna al
+testo invece di far fallire il mod-97. Provato su **79 Paesi su 79, con
+cinque valori ciascuno**.
+
+**E gli IBAN scritti col trattino non hanno mai funzionato.** Il pattern
+accettava `IT60-X054-2811-…` da sempre; il validatore toglieva **il solo
+spazio**, quindi i trattini restavano dentro, la lunghezza non tornava e il
+candidato spariva in silenzio. Nessun test se n'era accorto perché tutti
+usavano gli spazi. È il difetto che nasce ogni volta che due punti del
+motore hanno un'idea diversa di cosa sia un separatore: quando si allarga
+l'uno si guarda l'altro.
+
+**E quelli mandati a capo dall'estrattore nemmeno.** Su una carta intestata
+o una fattura l'IBAN va a capo come qualunque altra riga, e il separatore
+non ammetteva il ritorno a capo. Adesso se ne concede **uno**, non `\s`
+libero: un IBAN va a capo una volta, una colonna di codici in tabella va a
+capo a ogni cella, e con l'a-capo libero due codici diversi diventerebbero
+un candidato solo — bocciato dal mod-97, con l'IBAN vero lasciato in chiaro.
+
+**La carta di credito col punto** (`4111.1111.1111.1111`, come la stampano
+alcuni gestionali) non veniva vista: il telefono accettava già il punto, la
+carta no, e non c'era una ragione.
+
+**Gli enti intitolati a una persona sparivano.** `Ospedale San Raffaele` e
+`Istituto Comprensivo Alessandro Manzoni` restavano interi, ma `Policlinico
+Agostino Gemelli` diventava `{{NAME}}` e `Teatro Giuseppe Verdi` pure: nel
+vocabolario delle parole d'ente c'erano `ospedale` e `istituto`, non
+`policlinico` né `teatro`. Non è una fuga — è il contrario — ma è il falso
+positivo peggiore che questo prodotto possa fare: la frase perde il
+soggetto, e chi legge il documento redatto non sa nemmeno di quale ospedale
+si parlasse.
+
+Aggiunte una quarantina di parole (edifici e istituzioni). **Il prezzo è
+scritto**: una parola d'ente scherma l'intera sequenza maiuscola adiacente,
+quindi `Clinica Mario Rossi` ora è schermato per intero — come lo erano già
+`Ufficio Mario Rossi` e `Fondazione Mario Rossi`. Non vale quando fra
+l'ente e la persona c'è un ruolo o una punteggiatura.
+
+**Il rapporto contava tre segreti dove ce n'era uno.** Su `Chiave: api_key =
+sk-test-…` il motore sostituiva la credenziale, poi **rimangiava il proprio
+segnaposto** come se fosse un valore, poi prendeva anche l'etichetta. Il
+difetto c'era da sempre, e i tre `{{SECRET}}` identici lo nascondevano: si è
+visto solo quando i segnaposto sono diventati distinguibili.
+
+### Segnaposto numerati
+
+`{{NAME_1}}`, `{{NAME_2}}`: persone diverse ricevono numeri diversi, la
+stessa persona ripetuta riceve sempre lo stesso. Senza, «`{{NAME}}` ha
+citato `{{NAME}}` davanti a `{{NAME}}`» non si legge, e un modello
+linguistico non ci può ragionare sopra.
+
+**Acceso di default**, e chi preferisce l'uscita di prima toglie la spunta a
+«Numera i segnaposto».
+
+**Cosa si è perso, detto per intero.** Fino alla 1.19 in uscita non si poteva
+ricollegare chi era chi. Adesso, *dentro un documento*, si può: i numeri
+dicono quante persone distinte ci sono e in quali punti compare ciascuna.
+Non sono i valori — non c'è modo di risalire da `{{NAME_2}}` a un nome — ma
+sono **la struttura** dei dati personali, e prima non usciva. La domanda 8
+delle FAQ è stata riscritta per dirlo, invece di lasciare in piedi una
+promessa più larga del vero.
+
+Restano vere le due proprietà su cui quella pagina continua a costruire: il
+numero **non porta da nessuna parte** (la corrispondenza vive in memoria per
+il tempo della conversione e non viene scritta mai) e **non è stabile fra
+documenti** — dipende dall'ordine di comparsa, quindi non ci si può fare un
+join. Un numero stabile sarebbe un identificatore persistente: un dato
+personale nuovo, inventato da noi, in uno strumento che esiste per toglierli.
+
+I numeri seguono l'ordine del **testo**, non quello in cui scattano i
+riconoscitori, e non toccano i segnaposto che erano già nel documento in
+ingresso: un file redatto e ripassato dal motore non si vede cambiare i
+numeri sotto i piedi.
+
+### Rilevato ma non sostituito
+
+Fino alla 1.19 gli stati erano due, e non erano separabili: cerca e
+sostituisci, oppure non cercare. Chi aveva bisogno di un dato in chiaro —
+gli importi di una fattura da far confrontare a un modello, l'età in una
+cartella clinica — poteva solo spegnere. E spegnere **non lascia traccia**:
+il documento esce con il dato dentro e il rapporto tace, quindi chi lo
+rilegge non sa se lì non c'era niente o se abbiamo guardato dall'altra
+parte.
+
+Adesso gli stati sono tre. Le categorie spuntate in «Rileva ma non
+sostituire» vengono cercate, riportate e lasciate nel documento — e il
+rapporto lo dice: «ho lasciato in chiaro 3 importi, apposta» è
+un'informazione per un DPO, il silenzio no. Il conto finisce anche nel
+**frontmatter**, che è l'unica parte del rapporto che viaggia col documento:
+chi lo riceve fra sei mesi non ha la richiesta HTTP, ha il file.
+
+I tre numeri restano separati — cosa è stato tolto, cosa è stato lasciato
+apposta, cosa il motore non ha saputo decidere. Sommarli darebbe un totale
+che non vuol dire niente.
+
+### Più etichette per le credenziali, e nessuna entropia
+
+Il vocabolario delle etichette che annunciano una credenziale era corto e
+quasi tutto inglese. Adesso copre i token di ogni specie, le chiavi di
+cifratura e di licenza, le stringhe di connessione, le passphrase — e tre
+casi che prima non potevano funzionare: **PIN, CVV e OTP**, che sono corti e
+numerici e non arrivavano al minimo di sei caratteri del valore generico, e
+la **frase di recupero**, l'unico segreto fatto di parole separate da spazi,
+di cui prima sarebbe sparita una parola su dodici lasciando la frase
+utilizzabile e il rapporto soddisfatto.
+
+**Non è stata presa la strada dell'entropia**, cioè riconoscere una
+credenziale perché «sembra generata a caso». Hanno quell'aspetto anche gli
+hash dei commit, gli UUID, le firme base64 dentro un PDF e i numeri di
+serie: su un documento tecnico sarebbe un massacro, e sbaglierebbe in
+silenzio su una classe intera. Un'etichetta sbagliata invece si vede subito
+e si toglie. Il conto dei falsi positivi su 8,5 milioni di caratteri di
+documenti amministrativi italiani dove l'atteso è zero è rimasto **1**,
+prima e dopo l'allargamento.
+
+### Sotto il cofano
+
+Un banco che ricostruisce da fonti versionate il corpus a verità zero, e due
+corpora italiani etichettati per misurare il **richiamo** — la metà che
+finora non misuravamo. La suite passa da 1 122 a 1 755 prove.
+
+I corpora non sono nostri e non vengono ridistribuiti: gli script li
+scaricano dalle fonti originali sulla macchina di chi misura. Il credito e
+le licenze stanno in **[NOTICE.md](../NOTICE.md), sezione 6** — non qui,
+perché un'attribuzione in un changelog scorre via alla release dopo, e
+questa deve restare finché restano i numeri che ci si appoggiano.
+
+---
+
 ## 1.19.1 — Il motore si rimangiava il proprio lavoro
 
 Un difetto piccolo nel testo e grosso nel rapporto, e **l'ha trovato il

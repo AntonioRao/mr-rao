@@ -18,12 +18,12 @@ from pathlib import Path
 
 import pytest
 
+from aiuti import apply_privacy_filter  # segnaposto appiattiti: vedi tests/aiuti.py
 from mr_rao.privacy import (
     CORE,
     EN,
     IT,
     PrivacyOptions,
-    apply_privacy_filter,
 )
 
 DATI = Path(__file__).resolve().parent / "dati"

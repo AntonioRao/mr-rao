@@ -30,11 +30,13 @@ from __future__ import annotations
 
 import pytest
 
-from mr_rao.privacy import PrivacyOptions, apply_privacy_filter
+from mr_rao.privacy import PrivacyOptions, apply_privacy_filter, senza_numeri
 
 
 def _redigi(testo: str) -> str:
-    return apply_privacy_filter(testo, PrivacyOptions())[0]
+    # `senza_numeri`: qui conta *quale* riconoscitore ha morso e *quante*
+    # volte, non la forma del segnaposto. Vedi `tests/aiuti.py`.
+    return senza_numeri(apply_privacy_filter(testo, PrivacyOptions())[0])
 
 
 @pytest.mark.parametrize("testo,deve_restare", [

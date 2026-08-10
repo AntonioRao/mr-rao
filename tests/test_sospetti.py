@@ -15,9 +15,9 @@ compaiano dove servono, e che **non** compaiano dove non servono.
 """
 import pytest
 
+from aiuti import apply_privacy_filter  # segnaposto appiattiti: vedi tests/aiuti.py
 from mr_rao.privacy import (
     PrivacyOptions,
-    apply_privacy_filter,
     cf_check_char_ok,
     no_redaction,
 )

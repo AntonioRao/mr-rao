@@ -15,11 +15,11 @@ import io
 
 import pytest
 
+from aiuti import apply_privacy_filter  # segnaposto appiattiti: vedi tests/aiuti.py
 from mr_rao.app_factory import create_app
 from mr_rao.privacy import (
     MAX_TERMINI,
     PrivacyOptions,
-    apply_privacy_filter,
     termini_da,
 )
 
@@ -185,7 +185,7 @@ def test_le_liste_arrivano_al_motore_anche_col_profilo(client):
         profile="default",
         privacy_sempre="Rossi & Partners",
     )
-    assert "{{TERM}}" in md
+    assert "{{TERM_1}}" in md
     assert "Rossi & Partners" not in md
 
 
@@ -214,12 +214,14 @@ def test_a_filtro_spento_le_liste_non_tolgono_niente(client):
         privacy_sempre="Rossi & Partners",
     )
     assert "Rossi & Partners" in md
-    assert "{{TERM}}" not in md
+    # Senza le graffe finali: prende sia `{{TERM}}` sia `{{TERM_1}}`. Con la
+    # forma chiusa questo controllo sarebbe verde anche a filtro acceso.
+    assert "{{TERM" not in md
 
 
 def test_senza_le_caselle_non_cambia_niente(client):
     md = converti(client, b"Scrivi a mario.rossi@example.it", profile="default")
-    assert "{{EMAIL}}" in md
+    assert "{{EMAIL_1}}" in md
 
 
 # ------------------------------------------------------------ parita' GUI

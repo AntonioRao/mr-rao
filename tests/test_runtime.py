@@ -166,7 +166,7 @@ def test_nessun_avviso_ocr_sui_documenti_nativi(tmp_path):
     p = tmp_path / "nota.txt"
     p.write_text("CF RSSMRA80A01H501U", encoding="utf-8")
     r = convert_file(p, options=ConvertOptions(privacy=PrivacyOptions()))
-    assert "{{CODICE_FISCALE}}" in r.markdown
+    assert "{{CODICE_FISCALE_1}}" in r.markdown
     assert "confronto prima/dopo" not in r.markdown
 
 

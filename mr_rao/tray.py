@@ -31,10 +31,14 @@ def _print_lgpl_notice() -> None:
 def _load_icon_image():
     from PIL import Image
 
+    # `EXE_DIR`, non `WRITABLE_DIR`: l'icona e' un asset e sta dove sta il
+    # programma. Dentro un pacchetto la cartella scrivibile e' nel profilo
+    # dell'utente, dove `static/` non c'e' mai stata — e il ripiego avrebbe
+    # cercato dove non poteva trovare.
     candidates = [
         config.STATIC_FOLDER / "img" / "logo.png",
         config.STATIC_FOLDER / "img" / "favicon-64.png",
-        config.WRITABLE_DIR / "static" / "img" / "logo.png",
+        config.EXE_DIR / "static" / "img" / "logo.png",
     ]
     for p in candidates:
         if p.exists():

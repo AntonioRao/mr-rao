@@ -76,6 +76,11 @@
     "dates",
     "documenti",
     "amounts",
+    // Non e' un riconoscitore -- non decide *se* togliere, ma *come* si
+    // scrive cio' che e' stato tolto -- pero' viaggia sullo stesso modulo
+    // con lo stesso prefisso, quindi sta in questo elenco. Lato Python e'
+    // nominato a mano in `options_from_form` per lo stesso motivo.
+    "numerati",
   ];
 
   const PROFILE_HINTS = {
@@ -471,6 +476,17 @@
     // e’ un campo che un giorno non compare quando serviva.
     if (els.terminiSempre) fd.append("privacy_sempre", els.terminiSempre.value);
     if (els.terminiMai) fd.append("privacy_mai", els.terminiMai.value);
+    // «Rileva ma non sostituire». Un campo unico con i nomi separati da
+    // virgola invece di venti campi: e' la stessa forma che accetta l'API,
+    // quindi chi guarda la richiesta della pagina vede esattamente cio' che
+    // dovrebbe scrivere in uno script. Viaggia sempre, anche vuoto, per lo
+    // stesso motivo delle due liste qui sopra.
+    fd.append(
+      "privacy_segnala",
+      Array.from(document.querySelectorAll(".privacy-segnala:checked"))
+        .map((c) => c.value)
+        .join(","),
+    );
     fd.append("include_tables", els.includeTables.checked);
     fd.append("include_frontmatter", els.includeFrontmatter.checked);
     fd.append("clean_output", els.cleanOutput.checked);

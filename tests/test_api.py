@@ -130,4 +130,7 @@ def test_sync_redige_per_default(client):
     assert r.status_code == 200
     markdown = r.get_json()["markdown"]
     assert "mario.rossi@example.com" not in markdown
-    assert "{{EMAIL}}" in markdown
+    # Numerato: dalla 1.20.0 e' la forma che esce davvero dall'API, e
+    # pretenderla qui e' il modo di accorgersi se l'opzione smettesse di
+    # arrivare fin qui.
+    assert "{{EMAIL_1}}" in markdown

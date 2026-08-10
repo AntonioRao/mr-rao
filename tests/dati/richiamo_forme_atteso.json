@@ -1,0 +1,30 @@
+{
+ "righe": 11900,
+ "gruppi": {
+  "cards/invalido": {
+   "perso": 88,
+   "segnalato": 172
+  },
+  "cards/valido": {
+   "perso": 1,
+   "redatto": 24,
+   "segnalato": 6
+  },
+  "emails/invalido": {
+   "redatto": 7
+  },
+  "emails/valido": {
+   "perso": 54,
+   "redatto": 1300
+  },
+  "phones/invalido": {
+   "perso": 376,
+   "redatto": 430,
+   "segnalato": 6
+  },
+  "phones/valido": {
+   "perso": 12,
+   "redatto": 1096
+  }
+ }
+}

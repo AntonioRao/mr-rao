@@ -91,8 +91,54 @@ _RE_IBAN = re.compile(r"\b([A-Z]{2}\d{2}[A-Z0-9]{11,30})\b")
 # 456" — la forma piu' comune su carta intestata, bonifici e fatture — non
 # trovava nulla. Qui i gruppi sono ammessi, e a scartare i falsi candidati
 # ci pensa il mod-97 come sempre.
+#
+# **Gruppi da UNO, non da due.** Un IBAN si stampa a gruppi di quattro, e
+# quando la sua lunghezza non e' divisibile per quattro l'ultimo gruppo e'
+# piu' corto -- fino a un carattere solo. Succede a tutti i Paesi la cui
+# lunghezza da' resto 1: Portogallo (25), Svizzera (21), Croazia (21),
+# Bulgaria (22 no, 22 da' resto 2)... e su quelli il pattern che pretendeva
+# almeno due caratteri per gruppo **non riconosceva niente**:
+#
+#     PT92 DO9G MNU7 7VTU UJ59 6LGU A   ->   restava in chiaro, per intero
+#
+# Non era un troncamento -- sarebbe stato peggio, perche' il rapporto
+# avrebbe detto «1 IBAN sostituito» -- ma un silenzio: zero IBAN trovati su
+# un documento che ne conteneva uno.
+#
+# Ammettere gruppi da un carattere rende il pattern goloso, e va bene
+# **perche' adesso c'e' chi lo taglia**: `_prefisso_a_norma` riduce il
+# candidato alla lunghezza che il registro ISO 13616 prescrive per quel
+# Paese, quindi cio' che il pattern prende in piu' torna al testo invece di
+# far fallire il mod-97.
+#
+# **L'a-capo, uno solo.** Un IBAN stampato su una carta intestata o una
+# fattura viene mandato a capo dall'estrattore come qualunque altra riga, e
+# fino alla 1.20.0 il separatore ammetteva solo lo spazio e il trattino:
+#
+#     IT60 X054 2811 1010
+#     0000 0123 456          ->  restava in chiaro, per intero
+#
+# E' lo stesso difetto gia' pagato sugli indirizzi di posta
+# (`_RE_EMAIL_SPEZZATA`), e la stessa cura: si concede **un** ritorno a capo,
+# non `\s` libero. Il motivo del limite e' una colonna di codici in tabella
+# -- li' ogni cella e' un a-capo, e con `\s` libero due codici diversi
+# diventerebbero un candidato solo, a cavallo di due righe. A quel punto il
+# mod-97 boccia e l'IBAN vero resta in chiaro: la solita sconfitta
+# silenziosa.
+#
+# **Gruppi fino a trenta caratteri, non sei.** Un IBAN non si stampa solo a
+# quattro: su un estratto conto capita spezzato secondo la sua struttura --
+# `IT87 D6763 451995256291522385`, cioe' paese+controllo, CIN+ABI, e il
+# resto attaccato. Con il tetto a sei quel terzo blocco non entrava, e
+# l'IBAN restava in chiaro **senza nemmeno un sospetto**: 29 casi sul banco
+# del richiamo.
+#
+# Alzare il tetto rende il pattern molto goloso, e va bene per la stessa
+# ragione di prima: `_prefisso_a_norma` taglia alla lunghezza di legge e
+# restituisce al testo tutto cio' che avanza. Un pattern goloso davanti a un
+# taglio esatto non costa niente; sarebbe costato molto senza.
 _RE_IBAN_SPAZIATO = re.compile(
-    r"\b([A-Z]{2}\d{2}(?:[ \-][A-Z0-9]{2,6}){2,9})(?![\w])"
+    r"\b([A-Z]{2}\d{2}(?:[ \-\n][A-Z0-9]{1,30}){2,9})(?![\w])"
 )
 
 # L'IBAN attaccato alla propria etichetta: "IBANIT60X05428…". Non e' un caso
@@ -140,8 +186,17 @@ _RE_SOLO_IBAN = re.compile(r"[A-Z]{2}\d{2}[A-Z0-9]{11,30}")
 # Prima era `(?<![\w.])`, che rifiutava insieme le tre cose: la cifra, la
 # lettera e il punto. Il banco delle scansioni ha mostrato che due su tre
 # erano proprio le forme in cui una carta arriva da un modulo scansionato.
+# Il **punto come separatore fra i gruppi**, non solo davanti: alcuni
+# gestionali stampano `4111.1111.1111.1111`. Il telefono lo accettava gia'
+# («010.2471234»), la carta no, e non c'era una ragione: e' lo stesso segno
+# usato nello stesso modo.
+#
+# Non apre agli importi, ed e' il motivo per cui e' sicuro: `[3-6]\d{3}`
+# pretende **quattro cifre attaccate** in testa, quindi «3.500,00» e
+# «4.111.111» -- dove il punto separa le migliaia dopo una cifra sola --
+# non arrivano nemmeno a proporsi. E a dire l'ultima parola resta Luhn.
 _RE_CARD = re.compile(
-    r"(?<![0-9])(?<![0-9]\.)([3-6]\d{3}(?:[ \-]?\d{2,6}){2,4})(?![\w])"
+    r"(?<![0-9])(?<![0-9]\.)([3-6]\d{3}(?:[ \-.]?\d{2,6}){2,4})(?![\w])"
 )
 
 # Coordinate bancarie italiane senza IBAN: CIN + ABI (5) + CAB (5) + conto
@@ -325,6 +380,33 @@ _RE_EMAIL_OFFUSCATA = re.compile(
     rf"[A-Za-z0-9\-]+)+"
 )
 
+# La chiocciola **vera**, con lo spazio attorno:
+#
+#     v.villa @ contabilita.test
+#
+# Non e' una forma di fantasia: e' come esce da un PDF giustificato, da un
+# OCR, e da chi scrive l'indirizzo staccato per non farsi raccogliere dai
+# robot. Misurata sul banco del richiamo: **609 indirizzi persi in
+# silenzio** su 64 886, ed erano tutti e 609 di questa forma sola.
+#
+# Il riconoscitore delle forme offuscate qui sopra non la prendeva perche'
+# conosce `[at]`, `(at)`, «chiocciola» e « at » -- cioe' tutti i modi di
+# *scrivere a parole* la chiocciola, e non la chiocciola con lo spazio.
+#
+# **Il vincolo che la rende sicura, e senza il quale sarebbe pericolosa**:
+# l'ultimo pezzo del dominio dev'essere di **lettere**. Su una fattura o un
+# ordine «10 @ 4.50» vuol dire dieci pezzi a 4,50, e con il dominio libero
+# diventerebbe un indirizzo di posta — un falso positivo su una notazione
+# commerciale comunissima. Con il dominio di lettere, «50» non passa.
+#
+# Uno spazio da almeno un lato e' obbligatorio: senza spazi la forma e'
+# quella normale, che ha gia' il suo riconoscitore e gira prima di questo.
+_RE_EMAIL_SPAZIATA = re.compile(
+    rf"(?i)\b[A-Za-z0-9._%+\-]+"
+    rf"(?:{_ORIZZ}+@{_ORIZZ}*|{_ORIZZ}*@{_ORIZZ}+)"
+    rf"[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*\.[A-Za-z]{{2,}}\b"
+)
+
 
 # ---------------------------------------------------------------------------
 # Importi
@@ -372,18 +454,139 @@ _RE_SECRETS = [
 # Le etichette sono divise in due gruppi perche' non valgono uguale.
 # "password:" non ha altri significati; "chiave:" in italiano ne ha
 # parecchi, e infatti "chiave: importante da ricordare" finiva sostituito.
-_RE_SECRET_KV = re.compile(
-    r"(?i)\b(password|passwd|pwd|parola d'ordine|token|api[_\- ]?key|"
-    r"secret|client[_\- ]?secret|access[_\- ]?key|chiave (?:privata|segreta|api|di accesso))\b"
-    r"(?P<sep>\s*[:=]\s*)"
-    r"(?P<val>[^\s,;\"']{6,})"
+# `{` fuori dal valore: e' cio' che impedisce di rimangiarsi un segnaposto
+# gia' inserito. E' la stessa convenzione degli altri pattern (vedi il
+# commento sugli indirizzi), e questi due non la seguivano.
+#
+# Il difetto che ne usciva, su «Chiave: api_key = sk-test-ABCDEF0123456789»:
+# il primo passaggio metteva `{{SECRET}}` al posto della credenziale, il
+# secondo prendeva `api_key = {{SECRET}}` e sostituiva **il segnaposto**,
+# il terzo prendeva `Chiave: api_key`. Il rapporto diceva `secrets: 3` per
+# **un** segreto -- e il documento redatto non lo lasciava vedere, perche'
+# i tre segnaposto erano identici. E' saltato fuori con la numerazione, che
+# ha reso i tre distinguibili: `{{SECRET_3}} = {{SECRET_2}}`, senza l'1.
+_VAL_SEGRETO = r"(?P<val>[^\s,;\"'{}]{6,})"
+
+# --------------------------------------------------------------------------
+# Il vocabolario delle etichette
+# --------------------------------------------------------------------------
+#
+# **Perche' la strada e' questa e non l'entropia.** Il buco che resta, dopo
+# le forme note e le etichette, e' la stringa di formato ignoto **senza**
+# niente scritto accanto. Prenderla vorrebbe dire decidere sulla base di
+# «sembra generata a caso» -- e hanno quell'aspetto anche gli hash dei
+# commit, gli UUID, le firme base64 dentro un PDF, i codici a barre e i
+# numeri di serie. Su un documento tecnico diventa un massacro, e uno
+# strumento che cancella mezzo documento viene disinstallato.
+#
+# Allargare il vocabolario prende gran parte degli stessi casi con un
+# rischio di natura diversa: una parola sbagliata si vede subito, si misura,
+# e si toglie. Una soglia sbagliata sbaglia in silenzio su una classe
+# intera.
+#
+# **Il costo, misurato e non stimato.** Su 8,5 M di caratteri di documenti
+# amministrativi e legali italiani dove l'atteso e' zero, il conto dei
+# segreti prima di questo allargamento era **1**. Il numero da guardare dopo
+# ogni aggiunta e' quello.
+
+# Gruppo forte: l'etichetta da sola annuncia una credenziale, e il valore si
+# sostituisce comunque. «password:» non ha altri significati.
+_ETICHETTE_FORTI = (
+    # password e affini
+    r"password|passwd|pwd|parola d'ordine|passphrase|"
+    # token
+    r"(?:access|refresh|bearer|id|auth|session|sas)[_\- ]?token|token|"
+    r"token di (?:accesso|aggiornamento|sessione)|"
+    # chiavi
+    r"api[_\- ]?key|apikey|api[_\- ]?token|api[_\- ]?secret|"
+    r"(?:secret|private|session|master|encryption|signing|access)[_\- ]?key|"
+    r"secret[_\- ]access[_\- ]key|"
+    r"chiave (?:privata|segreta|api|di accesso|di cifratura|crittografica|di licenza)|"
+    # segreti applicativi
+    r"secret|(?:client|app|webhook|signing)[_\- ]secret|shared[_\- ]secret|"
+    r"segreto condiviso|"
+    # stringhe di connessione e firme
+    r"connection[_\- ]?string|stringa di connessione|"
+    r"shared[_\- ]access[_\- ]signature|"
+    # licenze e prodotti
+    r"license[_\- ]?key|product[_\- ]?key|codice di licenza|"
+    # OTP scritti per esteso (la forma corta e' piu' sotto)
+    r"one[_\- ]?time[_\- ]?password|codice usa e getta"
+    #
+    # `authorization` NON entra, ed e' stato provato: aggiunta all'elenco,
+    # su «Authorization: Bearer eyJhbGci...» l'etichetta prendeva come
+    # valore la parola **«Bearer»** -- che e' il nome dello schema, non un
+    # segreto. L'uscita diventava `Authorization: {{SECRET}} {{SECRET}}`,
+    # cioe' meno leggibile di prima, e il rapporto contava due segreti dove
+    # ce n'e' uno. Il token vero ce l'ha gia' un riconoscitore suo
+    # (`bearer`, fra le forme note), quindi questa etichetta non aggiungeva
+    # copertura: solo il difetto. L'ha trovata il corpus di conformita', non
+    # un test.
 )
 
-# Etichette ambigue: il valore deve anche *sembrare* una credenziale.
+_RE_SECRET_KV = re.compile(
+    r"(?i)\b(" + _ETICHETTE_FORTI + r")\b"
+    r"(?P<sep>\s*[:=]\s*)" + _VAL_SEGRETO
+)
+
+# Gruppo debole: etichette che in italiano hanno anche altri significati, e
+# il valore deve **anche** sembrare una credenziale. «chiave: importante da
+# ricordare» finiva sostituito, ed e' il motivo per cui questo gruppo esiste.
+#
+# `chiave` sta qui e non fra le forti apposta: «chiave pubblica» non e' un
+# segreto, e «parola chiave» nemmeno.
+_ETICHETTE_DEBOLI = (
+    r"chiave|credenziali|codice di accesso|codice segreto|codice riservato|"
+    r"segreto|codice di attivazione|codice di autorizzazione|"
+    r"codice utente|user[_\- ]?secret"
+)
+
 _RE_SECRET_KV_DEBOLE = re.compile(
-    r"(?i)\b(chiave|credenziali|codice di accesso|passphrase)\b"
+    r"(?i)\b(" + _ETICHETTE_DEBOLI + r")\b"
+    r"(?P<sep>\s*[:=]\s*)" + _VAL_SEGRETO
+)
+
+# Gruppo corto: PIN, CVV, OTP.
+#
+# Servono un pattern e un valore propri perche' **sono corti**: quattro
+# cifre non arrivano al minimo di sei del valore generico, quindi
+# aggiungerli agli elenchi qui sopra li avrebbe lasciati senza effetto --
+# un'etichetta scritta che non scatta mai e' peggio di un'etichetta
+# mancante, perche' sembra coperta.
+#
+# Quello che li rende sicuri nonostante il valore sia solo cifre e'
+# l'etichetta: `PIN`, `CVV`, `OTP` non hanno altri significati in un
+# documento. Il limite superiore serve a non prendere codici lunghi che
+# sono altro (un numero di pratica, un protocollo): oltre le otto cifre
+# non e' piu' un PIN.
+_RE_SECRET_CORTO = re.compile(
+    r"(?i)\b(pin|codice pin|puk|cvv|cvc|cv2|codice di sicurezza|"
+    r"security code|otp|codice otp|codice temporaneo|codice di sblocco)\b"
+    r"(?P<sep>\s*[:=]?\s*(?:n\.?|num\.?)?\s*)"
+    r"(?P<val>\d{3,8})\b"
+)
+
+# Gruppo lungo: la frase di recupero.
+#
+# Sta a parte perche' e' l'unico segreto fatto di **parole separate da
+# spazi**, e con il valore generico -- che si ferma al primo spazio --
+# usciva cosi':
+#
+#     Frase di recupero: {{SECRET}} batteria graffetta corretta
+#
+# Una parola tolta su dodici. La frase resta utilizzabile, e il rapporto
+# dichiara «1 segreto sostituito»: e' il caso peggiore, perche' il numero
+# dice che e' andato tutto bene. Meglio non riconoscerla affatto che
+# riconoscerla a meta'.
+#
+# Dodici o ventiquattro parole e' lo standard (BIP-39); qui si accetta da 12
+# a 24 per non affezionarsi a un solo formato. Il limite basso e' la
+# protezione: «frase di recupero: vedi allegato» ha due parole e non scatta.
+_RE_SECRET_FRASE = re.compile(
+    r"(?i)\b(seed[_\- ]?phrase|recovery[_\- ]?phrase|frase di recupero|"
+    r"frase mnemonica|mnemonic(?:[_\- ]phrase)?)\b"
     r"(?P<sep>\s*[:=]\s*)"
-    r"(?P<val>[^\s,;\"']{6,})"
+    r"(?P<val>[a-zà-öø-ÿ]{3,}(?:[ \t]+[a-zà-öø-ÿ]{3,}){11,23})\b"
 )
 
 
@@ -695,11 +898,38 @@ _RE_RUOLO_COGNOME = re.compile(
     rf"(?P<name>{_TOK_FIRMA}(?:[ \t]+{_TOK_FIRMA})?)(?!\w)"
 )
 
+# Come si scrive «un segnaposto gia' inserito» dentro un pattern.
+#
+# Alcune regole non guardano il testo originale ma **cio' che un altro
+# riconoscitore ha gia' sostituito**: il nome accanto all'indirizzo di posta
+# si riconosce perche' li' accanto c'e' un `{{EMAIL}}`. Scritto alla
+# lettera, quel riferimento e' saltato il giorno in cui i segnaposto sono
+# diventati numerati (1.20.0): nel testo c'era `{{EMAIL_1}}`, il pattern
+# cercava `{{EMAIL}}`, e la regola ha smesso di funzionare in silenzio --
+# «Rao <a.rao@example.it>» usciva come «Rao <{{EMAIL_1}}>», con il nome
+# ancora li'. Non un falso positivo: un dato lasciato in chiaro.
+#
+# Sta qui, in un posto solo, perche' il prossimo riconoscitore che si
+# aggancia a un segnaposto non debba scoprirlo di nuovo.
+# Carattere dell'area a uso privato Unicode: non compare in nessun testo
+# vero, e nessun documento puo' contenerlo "per caso". Marca i segnaposto
+# che ha messo **questa** conversione, e non sopravvive all'uscita: lo
+# toglie `_rinumera_per_comparsa`, che e' anche l'unico posto che lo legge.
+SENTINELLA = ""
+
+
+def _rif_segnaposto(etichetta: str) -> str:
+    # Le tre forme in cui quel segnaposto puo' presentarsi mentre il motore
+    # sta ancora lavorando: piatto, marcato (l'ha messo questa conversione,
+    # vedi `SENTINELLA`) e numerato (c'era gia' nel documento).
+    return r"\{\{" + etichetta + rf"(?:[_{SENTINELLA}]\d+)?\}}\}}"
+
+
 _RE_NAME_BEFORE_EMAIL = re.compile(
-    rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})(?P<sep>\s*[<\(\[]?\s*)\{{\{{EMAIL\}}\}}"
+    rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})(?P<sep>\s*[<\(\[]?\s*){_rif_segnaposto('EMAIL')}"
 )
 _RE_NAME_AFTER_EMAIL = re.compile(
-    rf"\{{\{{EMAIL\}}\}}(?P<sep>\s*[<\(\[]\s*)(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+    rf"{_rif_segnaposto('EMAIL')}(?P<sep>\s*[<\(\[]\s*)(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
 )
 
 # Una sequenza *intera* di parole maiuscole, non una finestra di due o tre.
@@ -810,6 +1040,20 @@ class PrivacyOptions:
     # dentro `fiscal`: un numero di documento non e' un dato fiscale, e
     # chi spegne i codici tributari non intende scoprire il passaporto.
     documenti: bool = True
+    # Segnaposto numerati per valore distinto: `{{NAME_1}}`, `{{NAME_2}}`
+    # (P6.1). **Acceso di default**, a differenza di `amounts` e `dates`,
+    # perche' non aggiunge ne' toglie sostituzioni: cambia solo come sono
+    # scritte, e senza numeri il documento redatto perde il senso —
+    # «{{NAME}} ha citato {{NAME}} davanti a {{NAME}}» non si legge.
+    #
+    # Il costo di accenderlo di default e' reale e va detto: cambia
+    # l'uscita di ogni conversione, quindi chi aveva costruito qualcosa
+    # sopra la forma vecchia se ne accorge. Spegnerlo la riporta identica.
+    #
+    # Cosa NON e': una sostituzione reversibile. Il numero vive dentro il
+    # documento e non porta da nessuna parte; il dizionario numero->valore
+    # e' P6.9, sta fermo, e ha un'altra ragione di stare fermo.
+    numerati: bool = True
     # QUI C'ERA `name_guess`, RITIRATA NELLA 1.13.0.
     #
     # Era l'euristica del cognome: due parole maiuscole che non sembrano
@@ -845,6 +1089,19 @@ class PrivacyOptions:
     # quelli che non sapresti nemmeno di dover spegnere.
     sempre: tuple[str, ...] = ()
     mai: tuple[str, ...] = ()
+    # Categorie da **rilevare senza sostituire** (P6.2). Il terzo stato che
+    # prima non c'era: fino alla 1.19 spegnere un riconoscitore voleva dire
+    # non cercarlo, e chi rileggeva il documento non aveva modo di sapere se
+    # li' dentro non c'era niente o se avevamo guardato dall'altra parte.
+    #
+    #   interruttore acceso, categoria fuori da `segnala`  ->  sostituisce
+    #   interruttore acceso, categoria dentro `segnala`    ->  rileva e dice
+    #   interruttore spento                                ->  non cerca
+    #
+    # L'interruttore decide **se guardare**, `segnala` decide **cosa fare di
+    # cio' che si trova**: mettere qui una categoria il cui interruttore e'
+    # spento non la accende: non c'e' niente da segnalare se nessuno cerca.
+    segnala: tuple[str, ...] = ()
     # Quali famiglie di riconoscitori eseguire. Il valore predefinito e' il
     # comportamento di sempre: nucleo universale piu' formati italiani.
     # Un documento inglese vorra' ``(CORE,)`` oggi e ``(CORE, EN)`` domani;
@@ -892,6 +1149,19 @@ class RedactionReport:
     # nulla producono lo stesso numero — zero — e sono due situazioni
     # opposte. I sospetti distinguono il silenzio dalla pulizia.
     suspects: list[dict] = field(default_factory=list)
+    # Numerazione dei segnaposto (P6.1). Spenta qui e accesa dalle opzioni:
+    # il rapporto non conosce `PrivacyOptions`, e non deve.
+    numerati: bool = False
+    # valore normalizzato -> numero, per etichetta. Vive nel rapporto e
+    # **muore con lui**: e' cio' che impedisce alla numerazione di diventare
+    # un identificatore persistente (vedi `segnaposto`).
+    _numeri: dict[str, dict[str, int]] = field(default_factory=dict, repr=False)
+    # Categorie da **rilevare senza sostituire** (P6.2). Vedi `segnaposto`.
+    segnala: frozenset[str] = frozenset()
+    # Cio' che e' stato trovato e lasciato in chiaro **apposta**. Sta
+    # separato dai sospetti perche' e' un'altra cosa: un sospetto e' un
+    # dubbio del motore, questo e' una decisione di chi converte.
+    rilevati: list[dict] = field(default_factory=list)
 
     def add(self, kind: str, n: int = 1) -> None:
         if n <= 0:
@@ -899,16 +1169,157 @@ class RedactionReport:
         self.counts[kind] = self.counts.get(kind, 0) + n
         self.total += n
 
+    def segnaposto(
+        self, kind: str, base: str, valore: str, originale: str | None = None
+    ) -> str:
+        """Conta la sostituzione e restituisce il segnaposto da scrivere.
+
+        Rilevato ma non sostituito (P6.2)
+        ---------------------------------
+
+        Se `kind` sta in `segnala`, questo metodo **non sostituisce**:
+        rimette nel testo cio' che c'era e lo annota fra i `rilevati`.
+
+        Fino alla 1.19 spegnere un riconoscitore voleva dire *non cercarlo*,
+        e le due cose non erano separabili. Per chi deve far confrontare
+        degli importi a un modello, o tenere eta' e sesso in una cartella
+        clinica, la differenza e' tutta -- e il valore vero non e' nel testo
+        ma nel rapporto: «ho lasciato in chiaro 3 importi, apposta» e'
+        un'informazione per un DPO, il silenzio no. Oggi un riconoscitore
+        spento non lascia traccia, e chi rilegge il documento non ha modo di
+        sapere se li' dentro non c'era niente o se abbiamo guardato
+        dall'altra parte.
+
+        `originale` esiste per tre chiamanti su cinquantuno: quelli che
+        passano un valore **diverso** dal testo trovato -- i codici corretti
+        dall'OCR passano la versione buona, perche' e' quella che deve
+        ricevere il numero. Restituendo quella si riscriverebbe il documento
+        senza sostituire niente, che e' peggio di tutte e due le scelte.
+        """
+        if kind in self.segnala:
+            testo = valore if originale is None else originale
+            self.rilevati.append({"kind": kind, "sample": _mask(testo)})
+            return testo
+        return self._sostituisci(kind, base, valore)
+
+    def solo_rilevata(self, kind: str) -> bool:
+        """Questa categoria viene trovata e lasciata in chiaro?
+
+        Serve ai due chiamanti che contano **anche** qualcos'altro accanto
+        alla sostituzione (`ocr_corretti`, che vuol dire «recuperato dall'OCR
+        *e sostituito*»): in modalita' «segnala» quel contatore direbbe una
+        cosa che non e' successa.
+        """
+        return kind in self.segnala
+
+    def _sostituisci(self, kind: str, base: str, valore: str) -> str:
+        """Il comportamento di sempre: conta e restituisce il segnaposto.
+
+        Con la numerazione accesa: `{{NAME_1}}`, `{{NAME_2}}`, e **lo stesso
+        valore riceve sempre lo stesso numero dentro lo stesso documento**.
+
+        Perche' serve
+        -------------
+
+        Senza numeri, tre persone diverse diventano tre `{{NAME}}` identici
+        e il documento redatto perde il senso: «`{{NAME}}` ha citato
+        `{{NAME}}` davanti a `{{NAME}}`» non si legge, e un modello
+        linguistico non ci puo' ragionare sopra. Con i numeri la frase resta
+        una frase, e non serve nessun dizionario reversibile per ottenerlo --
+        la numerazione e' una proprieta' del testo redatto, l'archivio dei
+        valori veri e' un'altra cosa, e molto piu' pericolosa.
+
+        Il vincolo che la tiene innocua
+        -------------------------------
+
+        Il numero **non deve essere stabile fra documenti**. Se `Mario
+        Rossi` fosse `{{NAME_7}}` in ogni file, avremmo inventato un
+        identificatore persistente -- cioe' un dato personale nuovo, creato
+        da noi, in uno strumento che esiste per toglierli. Qui non puo'
+        succedere per costruzione: la mappa sta in questo oggetto, che nasce
+        e muore con una conversione. Chi un domani la spostasse in un file o
+        in una cache condivisa cambierebbe la natura del prodotto, non un
+        dettaglio di implementazione.
+
+        Perche' il segnaposto arriva da fuori invece di essere composto qui
+        -------------------------------------------------------------------
+
+        `base` e' il letterale `"{{NAME}}"` scritto al punto di chiamata, e
+        resta li' apposta: `check_docs.py` e
+        `tests/test_segnaposto_non_riassorbiti.py` estraggono i segnaposto
+        **leggendo il sorgente del motore**. Componendoli qui da una tabella,
+        quelle due guardie smetterebbero di vedere qualsiasi cosa -- e
+        passerebbero, verdi, senza guardare niente.
+        """
+        self.add(kind)
+        if not self.numerati:
+            return base
+        etichetta = base[2:-2]
+        # Stesso valore, stesso numero: le differenze di maiuscole, di
+        # spaziatura e di punteggiatura non fanno due persone. «MARIO
+        # ROSSI» e «Mario Rossi» sono lo stesso nome; «IT60 X054…» e
+        # «IT60X054…» lo stesso conto.
+        chiave = "".join(c for c in valore.casefold() if c.isalnum())
+        assegnati = self._numeri.setdefault(etichetta, {})
+        if chiave not in assegnati:
+            assegnati[chiave] = len(assegnati) + 1
+        # `SENTINELLA` al posto del trattino basso, e sparisce alla fine
+        # (`_rinumera_per_comparsa`). Serve a distinguere **i segnaposto che
+        # abbiamo messo noi adesso** da quelli che stavano gia' nel
+        # documento in ingresso: un file gia' redatto, ripassato dal motore,
+        # contiene `{{NAME_5}}` scritti da qualcun altro, e rinumerarli
+        # vorrebbe dire riscrivere del testo che non abbiamo toccato.
+        return f"{{{{{etichetta}{SENTINELLA}{assegnati[chiave]}}}}}"
+
     def suspect(self, kind: str, sample: str, why: str) -> None:
         self.suspects.append({"kind": kind, "sample": _mask(sample), "why": why})
 
     def to_dict(self) -> dict:
+        rilevati_per_tipo: dict[str, int] = {}
+        for r in self.rilevati:
+            rilevati_per_tipo[r["kind"]] = rilevati_per_tipo.get(r["kind"], 0) + 1
         return {
             "counts": dict(self.counts),
             "total": self.total,
             "suspects": list(self.suspects),
             "suspects_total": len(self.suspects),
+            # Tre numeri diversi, e tenerli separati e' il punto: `counts`
+            # dice cosa e' stato tolto, `detected` cosa e' stato trovato e
+            # lasciato **apposta**, `suspects` cosa il motore non ha saputo
+            # decidere. Sommarli darebbe un totale che non vuol dire niente.
+            "detected": list(self.rilevati),
+            "detected_counts": rilevati_per_tipo,
+            "detected_total": len(self.rilevati),
         }
+
+
+_RE_SEGNAPOSTO_NUMERATO = re.compile(r"\{\{([A-Z][A-Z_]*?)_(\d+)\}\}")
+# Solo i nostri, quelli ancora marcati.
+_RE_SEGNAPOSTO_MARCATO = re.compile(rf"\{{\{{([A-Z][A-Z_]*?){SENTINELLA}(\d+)\}}\}}")
+
+
+def senza_numeri(testo: str) -> str:
+    """`{{NAME_3}}` torna `{{NAME}}`: il testo redatto nella forma piatta.
+
+    A cosa serve davvero
+    --------------------
+
+    A confrontare. Due conversioni dello stesso documento con la
+    numerazione accesa differiscono ovunque compaia un valore nuovo, e un
+    confronto fra le due non dice piu' niente. Appiattendo i numeri si
+    confronta cio' che il motore ha **deciso**, che e' la cosa che
+    interessa quando si vuole sapere se e' cambiato il comportamento.
+
+    E' anche il modo giusto di scrivere un controllo negativo. `"{{PHONE}}"
+    not in uscita` con la numerazione accesa e' vero **sempre** -- l'uscita
+    contiene `{{PHONE_1}}` -- quindi e' un controllo che non puo' fallire.
+    Con questa funzione davanti torna a voler dire quello che dice.
+
+    Cosa NON e': un modo di annullare la redazione. Toglie i numeri, non
+    rimette i valori; il numero non porta da nessuna parte per costruzione
+    (vedi `RedactionReport.segnaposto`).
+    """
+    return _RE_SEGNAPOSTO_NUMERATO.sub(r"{{\1}}", testo)
 
 
 def _mask(s: str) -> str:
@@ -921,8 +1332,9 @@ def _mask(s: str) -> str:
 
 def _replace_all(text: str, pattern: re.Pattern, placeholder: str, report: RedactionReport, kind: str) -> str:
     def _sub(m: re.Match) -> str:
-        report.add(kind)
-        return placeholder
+        # Il valore numerato e' l'intera corrispondenza: questi
+        # riconoscitori sostituiscono cio' che hanno trovato, per intero.
+        return report.segnaposto(kind, placeholder, m.group(0))
 
     return pattern.sub(_sub, text)
 
@@ -963,8 +1375,20 @@ _IBAN_LUNGHEZZE = {
 
 
 def iban_checksum_ok(candidate: str) -> bool:
-    """ISO 13616: codice Paese, lunghezza attesa per quel Paese, mod-97."""
-    s = candidate.replace(" ", "").upper()
+    """ISO 13616: codice Paese, lunghezza attesa per quel Paese, mod-97.
+
+    **Si tolgono tutti i separatori che il pattern ammette**, non solo lo
+    spazio, ed e' una riga che vale la pena guardare due volte: qui si
+    toglieva il solo spazio, mentre `_RE_IBAN_SPAZIATO` accettava anche il
+    trattino. Un IBAN scritto `IT60-X054-2811-...` arrivava fin qui, il
+    trattino restava dentro, la lunghezza non tornava, e il candidato veniva
+    **scartato in silenzio** -- il rapporto diceva zero IBAN.
+
+    E' il difetto che si crea ogni volta che due punti del motore hanno
+    un'idea diversa di cosa sia un separatore. Quando si allarga l'uno si
+    guarda l'altro.
+    """
+    s = re.sub(r"[\s\- ]", "", candidate).upper()
     if len(s) < 15 or len(s) > 34:
         return False
     if _IBAN_LUNGHEZZE.get(s[:2]) != len(s):
@@ -1381,6 +1805,55 @@ _ENTITY_WORDS = frozenset(
         "federazione", "confederazione", "sindacato", "partito",
         "repubblica", "stato", "governo", "presidenza", "segreteria",
         "gazzetta", "bollettino", "registro", "albo", "elenco",
+        # --- luoghi e istituzioni intitolati a una persona (1.20.0) ---
+        #
+        # Aggiunte dopo una misura, non a intuito: `Ospedale San Raffaele` e
+        # `Istituto Comprensivo Alessandro Manzoni` restavano intatti perche'
+        # `ospedale` e `istituto` erano gia' qui, mentre `Policlinico Agostino
+        # Gemelli` diventava `{{NAME}}` e `Teatro Giuseppe Verdi` pure. Sono
+        # falsi positivi su una classe intera, e distruttivi: la frase perde
+        # il soggetto, non un dato.
+        #
+        # **Il criterio, e perche' e' stretto.** Una parola di questo elenco
+        # scherma l'INTERA sequenza maiuscola (vedi `_scrub_names`): se ne
+        # entra una che in un documento vero precede il nome di una persona
+        # viva, quella persona smette di essere protetta. Quindi qui va solo
+        # cio' che nomina un **edificio o un'istituzione** e che non regge un
+        # nome di persona come intestatario.
+        #
+        # **Il prezzo, misurato e non stimato.** Lo schermo scatta solo nella
+        # forma *adiacente* -- parola d'ente e nome attaccati, senza
+        # punteggiatura ne' ruolo in mezzo. Quindi «Policlinico Gemelli -
+        # referente Dott. Mario Rossi» resta protetto (il trattino e
+        # l'appellativo spezzano la sequenza), mentre «Clinica Mario Rossi»
+        # ora e' schermato per intero. E' il prezzo di ogni riga di questo
+        # elenco, comprese quelle che c'erano gia' -- «Ufficio Mario Rossi»
+        # e «Fondazione Mario Rossi» si comportano cosi' da sempre -- ed e'
+        # accettato perche' in quella forma la lettura «ente» e' quella
+        # giusta quasi sempre. Non e' accettabile per le parole qui sotto.
+        #
+        # Restano fuori apposta:
+        #
+        #   * `studio`  -- «Studio Legale Avv. Mario Rossi» e' un
+        #                  professionista, cioe' esattamente il dato da
+        #                  proteggere;
+        #   * `ordine`, `opera`, `parco`, `porto`, `monte` -- parole comuni o
+        #                  verbi, che entrerebbero in sequenze che non sono
+        #                  enti;
+        #   * le sigle (`INPS`, `ASL`) -- sono un token solo, non le vede il
+        #                  riconoscitore delle coppie, e schermerebbero
+        #                  «ASL Mario Rossi» senza guadagnare niente.
+        "policlinico", "poliambulatorio", "clinica", "presidio", "distretto",
+        "teatro", "cinema", "auditorium", "museo", "biblioteca", "pinacoteca",
+        "conservatorio", "accademia", "galleria",
+        "aeroporto", "stazione", "interporto",
+        "scuola", "liceo", "ginnasio", "convitto", "seminario", "collegio",
+        "ateneo", "politecnico", "facolta", "facoltà",
+        "caserma", "comando", "municipio", "circoscrizione", "consolato",
+        "ambasciata", "senato", "parlamento", "ispettorato", "osservatorio",
+        "soprintendenza", "sovrintendenza", "autorita", "autorità", "garante",
+        "basilica", "cattedrale", "duomo", "santuario", "abbazia", "monastero",
+        "convento", "oratorio", "istituzione", "cassazione",
     }
 )
 
@@ -1503,8 +1976,7 @@ def _scrub_urls(text: str, report: RedactionReport) -> str:
             raw = raw[:-1]
         if not raw:
             return m.group(0)
-        report.add("urls")
-        return "{{URL}}" + trail
+        return report.segnaposto("urls", "{{URL}}", raw) + trail
 
     return _RE_URL.sub(_sub, text)
 
@@ -1514,25 +1986,45 @@ def _scrub_secrets(text: str, report: RedactionReport) -> str:
         text = _replace_all(text, pattern, "{{SECRET}}", report, "secrets")
 
     def _kv(m: re.Match) -> str:
-        report.add("secrets")
-        return m.group(1) + m.group("sep") + "{{SECRET}}"
+        # Il numero segue il **valore**, non l'etichetta: `token: abc` e
+        # `api_key: abc` sono la stessa credenziale scritta due volte, e
+        # devono ricevere lo stesso numero.
+        return (
+            m.group(1)
+            + m.group("sep")
+            + report.segnaposto("secrets", "{{SECRET}}", m.group("val"))
+        )
 
     def _kv_debole(m: re.Match) -> str:
         if not _secret_value_is_plausible(m.group("val")):
             return m.group(0)
-        report.add("secrets")
-        return m.group(1) + m.group("sep") + "{{SECRET}}"
+        return (
+            m.group(1)
+            + m.group("sep")
+            + report.segnaposto("secrets", "{{SECRET}}", m.group("val"))
+        )
 
+    def _corto(m: re.Match) -> str:
+        return (
+            m.group(1)
+            + m.group("sep")
+            + report.segnaposto("secrets", "{{SECRET}}", m.group("val"))
+        )
+
+    # La frase di recupero per prima: e' l'unica il cui valore contiene
+    # spazi, e se passasse dopo gli altri troverebbe la prima parola gia'
+    # sostituita.
+    text = _RE_SECRET_FRASE.sub(_corto, text)
     text = _RE_SECRET_KV.sub(_kv, text)
-    return _RE_SECRET_KV_DEBOLE.sub(_kv_debole, text)
+    text = _RE_SECRET_KV_DEBOLE.sub(_kv_debole, text)
+    return _RE_SECRET_CORTO.sub(_corto, text)
 
 
 def _scrub_birth_dates(text: str, report: RedactionReport) -> str:
     def _sub(m: re.Match) -> str:
         if not _RE_BIRTH_CTX.search(_context_before(m.string, m.start(), 40)):
             return m.group(0)
-        report.add("dates")
-        return "{{DATE}}"
+        return report.segnaposto("dates", "{{DATE}}", m.group(0))
 
     return _RE_DATE.sub(_sub, text)
 
@@ -1564,8 +2056,7 @@ def _scrub_documenti_id(text: str, report: RedactionReport) -> str:
                 "potrebbe essere un protocollo o un codice pratica",
             )
             return m.group(0)
-        report.add("documenti")
-        return "{{DOC_ID}}"
+        return report.segnaposto("documenti", "{{DOC_ID}}", m.group(0))
 
     return _RE_DOC_ID.sub(_sub, text)
 
@@ -1594,8 +2085,7 @@ def _scrub_addresses(text: str, report: RedactionReport) -> str:
         # scrive un indirizzo per farci arrivare qualcuno scrive il numero.
         if not re.search(r"[a-zà-öø-ÿ]", corpo) and not m.group("civ"):
             return m.group(0)
-        report.add("addresses")
-        return "{{ADDRESS}}"
+        return report.segnaposto("addresses", "{{ADDRESS}}", m.group(0))
 
     return _RE_ADDRESS.sub(_sub, text)
 
@@ -1620,8 +2110,12 @@ def _scrub_names(
         if not tokens:
             return m.group(0)
         kept = " ".join(tokens)
-        report.add("names")
-        return m.group(0).replace(name, "{{NAME}}" + name[len(kept):], 1)
+        # La chiave e' `kept`, non `name`: quando la coda viene restituita
+        # al testo, il nome sostituito e' solo la parte tenuta -- e due
+        # occorrenze della stessa persona con code diverse devono comunque
+        # ricevere lo stesso numero.
+        segno = report.segnaposto("names", "{{NAME}}", kept)
+        return m.group(0).replace(name, segno + name[len(kept):], 1)
 
     text = _RE_TITLE_NAME.sub(_title_sub, text)
 
@@ -1631,8 +2125,7 @@ def _scrub_names(
         tokens = name.split()
         if any(_is_common_word(t) or _is_entity_word(t) for t in tokens):
             return m.group(0)
-        report.add("names")
-        return m.group(0).replace(name, "{{NAME}}", 1)
+        return m.group(0).replace(name, report.segnaposto("names", "{{NAME}}", name), 1)
 
     text = _RE_RUOLO_COGNOME.sub(_ruolo_sub, text)
 
@@ -1654,9 +2147,10 @@ def _scrub_names(
             solo = tokens[0].lower().strip("'’-")
             if solo not in FIRST_NAMES and solo not in SURNAMES:
                 return m.group(0)
-        report.add("names")
         prefix = (" ".join(dropped) + " ") if dropped else ""
-        return m.group(0).replace(name, prefix + "{{NAME}}", 1)
+        tenuto = name[len(prefix):] if prefix else name
+        segno = report.segnaposto("names", "{{NAME}}", tenuto)
+        return m.group(0).replace(name, prefix + segno, 1)
 
     text = _RE_NAME_BEFORE_EMAIL.sub(_email_name_sub, text)
     text = _RE_NAME_AFTER_EMAIL.sub(_email_name_sub, text)
@@ -1673,8 +2167,7 @@ def _scrub_names(
         if not tokens or all(_is_common_in_context(tokens, i) or _is_entity_word(t)
                              for i, t in enumerate(tokens)):
             return m.group(0)
-        report.add("names")
-        return m.group(0).replace(name, "{{NAME}}", 1)
+        return m.group(0).replace(name, report.segnaposto("names", "{{NAME}}", name), 1)
 
     text = _RE_FIRMA_IT.sub(_firma_sub, text)
 
@@ -1697,6 +2190,34 @@ def _scrub_names(
         if any(_is_entity_word(t) for t in tokens):
             return m.group(0)
         common = [_is_common_in_context(tokens, i) for i in range(len(tokens))]
+        # Il cognome che e' anche una parola comune, **appoggiato al nome di
+        # battesimo che ha davanti**.
+        #
+        # `_cognome_appoggiato` esisteva gia' e faceva esattamente questo,
+        # ma girava solo dopo un titolo professionale: qui, dove passano le
+        # sequenze maiuscole normali, la parola comune spezzava la coppia e
+        # il nome restava da solo -- e una parola sola non basta mai.
+        #
+        # **Misurato, non immaginato**: sul banco del richiamo i nomi persi
+        # in silenzio erano 5 571, e **quattro cognomi ne facevano il 96%**
+        # -- Villa (un edificio), Conti (i conti), Messina (una citta'),
+        # Gentile (l'apertura di una lettera). Tutti e quattro stanno negli
+        # elenchi delle parole comuni apposta, ed e' giusto che ci stiano:
+        # e' la scelta che ha tolto 8 904 sostituzioni sbagliate sui moduli
+        # in bianco. Cio' che mancava non era togliere la parola dall'elenco
+        # -- sarebbe stato tornare indietro -- ma accorgersi che con un nome
+        # di battesimo davanti quella parola non e' piu' ambigua.
+        #
+        # **La direzione conta ed e' tutta la sicurezza della regola**:
+        # «Tommaso Gentile» e' una persona, «Gentile Cliente» resta un
+        # saluto, perche' li' la parola comune viene per prima.
+        #
+        # `not common[i - 1]`: l'appoggio dev'essere un token che stiamo
+        # gia' accettando come nome. Senza, due parole comuni di fila si
+        # tirerebbero a vicenda dentro la sequenza.
+        for i in range(1, len(tokens)):
+            if common[i] and not common[i - 1] and _cognome_appoggiato(tokens[i - 1 : i + 1]):
+                common[i] = False
 
         pieces: list[tuple[str, int]] = []  # (testo, indice ultimo token)
         i = 0
@@ -1738,8 +2259,9 @@ def _scrub_names(
             # accettarlo costa 2 739 sostituzioni sbagliate.
             bastano = 1 if prosa else 2
             if lungo_giusto and noti >= bastano:
-                report.add("names")
-                pieces.append(("{{NAME}}", j - 1))
+                pieces.append(
+                    (report.segnaposto("names", "{{NAME}}", " ".join(tokens[i:j])), j - 1)
+                )
             else:
                 if lungo_giusto and noti == 1 and not prosa:
                     report.suspect(
@@ -1818,6 +2340,10 @@ def _scrub_emails(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
     # una riga sola viene preso dal riconoscitore stretto, e questo vede solo
     # cio' che l'altro ha lasciato -- cioe' i casi davvero spezzati.
     out = _replace_all(out, _RE_EMAIL_SPEZZATA, "{{EMAIL}}", report, "emails")
+    # La chiocciola con lo spazio prima di quello offuscato: sono due forme
+    # diverse dello stesso indirizzo e l'ordine non cambia il risultato, ma
+    # questa e' la piu' frequente delle due sui documenti veri.
+    out = _replace_all(out, _RE_EMAIL_SPAZIATA, "{{EMAIL}}", report, "emails")
     return _replace_all(out, _RE_EMAIL_OFFUSCATA, "{{EMAIL}}", report, "emails")
 
 
@@ -1835,16 +2361,14 @@ def _scrub_cf(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
                 "sostituito, ma il carattere di controllo non torna: "
                 "il documento potrebbe contenere altri dati storpiati",
             )
-        report.add("codice_fiscale")
-        return "{{CODICE_FISCALE}}"
+        return report.segnaposto("codice_fiscale", "{{CODICE_FISCALE}}", m.group(1))
 
     def _sub_omocodia(m: re.Match) -> str:
         # Nessun sospetto e nessuna indulgenza: o il carattere di controllo
         # torna, o non e' un codice fiscale. Vedi il commento sul pattern.
         if not cf_check_char_ok(m.group(1)):
             return m.group(0)
-        report.add("codice_fiscale")
-        return "{{CODICE_FISCALE}}"
+        return report.segnaposto("codice_fiscale", "{{CODICE_FISCALE}}", m.group(1))
 
     out = _RE_CF.sub(_sub, text)
     # Dopo quello stretto: cosi' un codice normale viene preso da chi lo sa
@@ -1852,12 +2376,53 @@ def _scrub_cf(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
     return _RE_CF_OMOCODIA.sub(_sub_omocodia, out)
 
 
+def _prefisso_a_norma(candidato: str) -> str | None:
+    """Il candidato tagliato alla lunghezza che il suo Paese prescrive.
+
+    Il pattern degli IBAN spaziati non sa dove finisce il numero: indovina
+    contando i gruppi. Indovinare ha due modi di sbagliare, e la tabella
+    ISO 13616 -- che qui c'e' gia', serve a `iban_checksum_ok` -- li chiude
+    tutti e due, perche' la lunghezza di un IBAN **non e' un'opinione**:
+
+    * **prendere troppo**, inghiottendo la parola dopo. Prima il mod-97
+      bocciava il candidato allungato e l'IBAN restava in chiaro: una
+      sconfitta silenziosa. Ora il di piu' viene restituito al testo;
+    * **prendere troppo poco**, lasciando la coda fuori dal segnaposto. E'
+      il caso peggiore dei due, perche' il rapporto direbbe «1 IBAN
+      sostituito» mentre meta' del numero e' ancora li'.
+
+    Restituisce `None` se il codice Paese non e' nel registro o se i
+    caratteri non bastano: in tutti e due i casi non e' un IBAN, e a dirlo
+    non serve il mod-97.
+    """
+    attesa = _IBAN_LUNGHEZZE.get(candidato[:2])
+    if attesa is None:
+        return None
+    contati = 0
+    for i, c in enumerate(candidato):
+        if c.isalnum():
+            contati += 1
+            if contati == attesa:
+                return candidato[: i + 1]
+    return None
+
+
 def _scrub_iban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
     def _sub(m: re.Match) -> str:
-        if not iban_checksum_ok(m.group(1)):
+        candidato = m.group(1)
+        # Un a-capo si concede, due no: vedi `_RE_IBAN_SPAZIATO`. Il conto
+        # sta qui e non nel pattern perche' «al massimo uno» in un'espressione
+        # regolare si scrive solo duplicando mezzo pattern, e mezzo pattern
+        # duplicato e' mezzo pattern che un giorno cambia da una parte sola.
+        if candidato.count("\n") > 1:
             return m.group(0)
-        report.add("iban")
-        return "{{IBAN}}"
+        preso = _prefisso_a_norma(candidato)
+        if preso is None or not iban_checksum_ok(preso):
+            return m.group(0)
+        # Cio' che il pattern ha preso oltre la lunghezza di legge non e'
+        # parte dell'IBAN e torna al testo: era la parola accanto.
+        segno = report.segnaposto("iban", "{{IBAN}}", preso)
+        return segno + candidato[len(preso):] + m.group(0)[len(candidato):]
 
     def _sub_incollato(m: re.Match) -> str:
         """La parola intera: qui si cerca dove finisce l'etichetta.
@@ -1874,16 +2439,14 @@ def _scrub_iban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str
                 break
             coda = parola[i:]
             if _RE_SOLO_IBAN.fullmatch(coda) and iban_checksum_ok(coda):
-                report.add("iban")
-                return parola[:i] + "{{IBAN}}"
+                return parola[:i] + report.segnaposto("iban", "{{IBAN}}", coda)
         return parola
 
     def _sub_spaziato_incollato(m: re.Match) -> str:
         valore = m.group("valore")
         if not iban_checksum_ok(valore):
             return m.group(0)
-        report.add("iban")
-        return m.group("etichetta") + "{{IBAN}}"
+        return m.group("etichetta") + report.segnaposto("iban", "{{IBAN}}", valore)
 
     out = _RE_IBAN.sub(_sub, text)
     out = _RE_IBAN_SPAZIATO.sub(_sub, out)
@@ -1897,8 +2460,7 @@ def _scrub_cards(text: str, report: RedactionReport, opts: PrivacyOptions) -> st
     def _sub(m: re.Match) -> str:
         if not luhn_ok(m.group(1)):
             return m.group(0)
-        report.add("cards")
-        return "{{CARD}}"
+        return report.segnaposto("cards", "{{CARD}}", m.group(1))
 
     return _RE_CARD.sub(_sub, text)
 
@@ -1910,8 +2472,7 @@ def _scrub_bban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str
         ctx = _context_before(m.string, m.start(), 40).lower()
         if not any(k in ctx for k in ("bban", "coordinate", "c/c", "conto", "cin ")):
             return m.group(0)
-        report.add("bban")
-        return "{{BBAN}}"
+        return report.segnaposto("bban", "{{BBAN}}", m.group(0))
 
     out = _RE_BBAN.sub(_sub, text)
     return _replace_all(out, _RE_ABI_CAB, "{{BBAN}}", report, "bban")
@@ -1923,22 +2484,29 @@ def _scrub_bban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str
 # ai falsi positivi: non decide un'euristica, decide l'aritmetica.
 def _scrub_fuzzy_cf(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
     def _sub(m: re.Match) -> str:
-        if cf_ocr_recover(m.group(0)) is None:
+        corretto = cf_ocr_recover(m.group(0))
+        if corretto is None:
             return m.group(0)
-        report.add("codice_fiscale")
-        report.add("ocr_corretti")
-        return "{{CODICE_FISCALE}}"
+        if not report.solo_rilevata("codice_fiscale"):
+            report.add("ocr_corretti")
+        # La chiave e' il codice **corretto**, non quello storpiato: se lo
+        # stesso codice fiscale compare una volta pulito e una volta rovinato
+        # dall'OCR, sono la stessa persona e devono avere lo stesso numero.
+        return report.segnaposto(
+            "codice_fiscale", "{{CODICE_FISCALE}}", corretto, originale=m.group(0)
+        )
 
     return _RE_FUZZY_CF.sub(_sub, text)
 
 
 def _scrub_fuzzy_iban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
     def _sub(m: re.Match) -> str:
-        if iban_ocr_recover(m.group(0)) is None:
+        corretto = iban_ocr_recover(m.group(0))
+        if corretto is None:
             return m.group(0)
-        report.add("iban")
-        report.add("ocr_corretti")
-        return "{{IBAN}}"
+        if not report.solo_rilevata("iban"):
+            report.add("ocr_corretti")
+        return report.segnaposto("iban", "{{IBAN}}", corretto, originale=m.group(0))
 
     return _RE_FUZZY_IBAN.sub(_sub, text)
 
@@ -1946,10 +2514,21 @@ def _scrub_fuzzy_iban(text: str, report: RedactionReport, opts: PrivacyOptions) 
 def _scrub_piva(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
     # Only replace if preceded by context keywords nearby or IT prefix.
     def _sub(m: re.Match) -> str:
+        # Gli spazi si tolgono prima di cercare le parole di contesto.
+        #
+        # Senza, «P. IVA 98157711791» -- con lo spazio dopo il punto, cioe'
+        # **come si scrive su meta' delle fatture italiane** -- non
+        # corrispondeva a nessuna delle chiavi: nel contesto c'era «p. iva»
+        # e si cercava «p.iva». Tutte le altre forme funzionavano
+        # («P.IVA», «Partita IVA», «C.F./P.IVA», «partita I.V.A.»), e questa
+        # e' rimasta scoperta finche' il banco del richiamo non l'ha
+        # contata: 312 partite IVA valide perse in silenzio su 18 695.
         ctx = _context_before(m.string, m.start()).lower()
+        ctx_compatto = ctx.replace(" ", "").replace("\t", "")
         raw = m.group(0)
         if raw.upper().startswith("IT") or any(
-            k in ctx for k in ("p.iva", "piva", "partita", "vat", "c.f.")
+            k in ctx or k in ctx_compatto
+            for k in ("p.iva", "piva", "partita", "vat", "c.f.")
         ):
             # Stessa scelta del codice fiscale: sostituisce comunque, e se
             # la cifra di controllo non torna lo dice.
@@ -1960,8 +2539,7 @@ def _scrub_piva(text: str, report: RedactionReport, opts: PrivacyOptions) -> str
                     "sostituita, ma la cifra di controllo non torna: "
                     "o non era una partita IVA, o il documento e' storpiato",
                 )
-            report.add("partita_iva")
-            return "{{PARTITA_IVA}}"
+            return report.segnaposto("partita_iva", "{{PARTITA_IVA}}", m.group(1))
         return raw
 
     return _RE_PIVA.sub(_sub, text)
@@ -1971,8 +2549,7 @@ def _scrub_phones(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
     def _sub(m: re.Match) -> str:
         if not _phone_is_plausible(m):
             return m.group(0)
-        report.add("phones")
-        return "{{PHONE}}"
+        return report.segnaposto("phones", "{{PHONE}}", m.group(0))
 
     def _sub_etichetta(m: re.Match) -> str:
         # Il contesto qui non si cerca all'indietro: **e' dentro la
@@ -1980,8 +2557,8 @@ def _scrub_phones(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
         # che sta prima di «Tel.», cioe' il posto sbagliato.
         if not _phone_is_plausible(m, contesto=True):
             return m.group(0)
-        report.add("phones")
-        return m.group("etichetta") + "{{PHONE}}"
+        numero = m.group(0)[len(m.group("etichetta")):]
+        return m.group("etichetta") + report.segnaposto("phones", "{{PHONE}}", numero)
 
     out = _RE_PHONE.sub(_sub, text)
     return _RE_PHONE_ETICHETTA.sub(_sub_etichetta, out)
@@ -1991,8 +2568,7 @@ def _scrub_amounts(text: str, report: RedactionReport, opts: PrivacyOptions) -> 
     def _sub(m: re.Match) -> str:
         if not _amount_is_plausible(m):
             return m.group(0)
-        report.add("amounts")
-        return "{{AMOUNT}}"
+        return report.segnaposto("amounts", "{{AMOUNT}}", m.group(0))
 
     return _RE_AMOUNT.sub(_sub, text)
 
@@ -2051,11 +2627,9 @@ def _scrub_en_ssn(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
     def _sub(m: re.Match) -> str:
         raw = m.group(1)
         if itin_ok(raw):
-            report.add("itin")
-            return "{{ITIN}}"
+            return report.segnaposto("itin", "{{ITIN}}", raw)
         if ssn_ok(raw):
-            report.add("ssn")
-            return "{{SSN}}"
+            return report.segnaposto("ssn", "{{SSN}}", raw)
         # La forma c'e' ma la SSA quel numero non l'ha mai emesso: non si
         # sostituisce, e lo si dice.
         report.suspect(
@@ -2092,8 +2666,7 @@ def _scrub_en_nino(text: str, report: RedactionReport, opts: PrivacyOptions) -> 
                 "non e' mai stato allocato: o e' un esempio, o e' storpiato",
             )
             return m.group(0)
-        report.add("nino")
-        return "{{NINO}}"
+        return report.segnaposto("nino", "{{NINO}}", m.group(0))
 
     return _RE_NINO.sub(_sub, text)
 
@@ -2108,8 +2681,7 @@ def _scrub_en_nhs(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
     def _sub(m: re.Match) -> str:
         if not _con_contesto(m, _CTX_NHS) or not nhs_number_ok(m.group(1)):
             return m.group(0)
-        report.add("nhs_number")
-        return "{{NHS_NUMBER}}"
+        return report.segnaposto("nhs_number", "{{NHS_NUMBER}}", m.group(0))
 
     return _RE_NHS.sub(_sub, text)
 
@@ -2127,11 +2699,9 @@ def _scrub_en_nove_cifre(
     def _sub(m: re.Match) -> str:
         raw = m.group(1)
         if _con_contesto(m, _CTX_ROUTING) and aba_routing_ok(raw):
-            report.add("routing_number")
-            return "{{ROUTING_NUMBER}}"
+            return report.segnaposto("routing_number", "{{ROUTING_NUMBER}}", raw)
         if _con_contesto(m, _CTX_SIN) and sin_ok(raw):
-            report.add("sin")
-            return "{{SIN}}"
+            return report.segnaposto("sin", "{{SIN}}", raw)
         return raw
 
     return _RE_NOVE_CIFRE.sub(_sub, text)
@@ -2189,16 +2759,14 @@ def _scrub_en_addresses(
     text: str, report: RedactionReport, opts: PrivacyOptions
 ) -> str:
     def _sub(m: re.Match) -> str:
-        report.add("addresses")
-        return "{{ADDRESS}}"
+        return report.segnaposto("addresses", "{{ADDRESS}}", m.group(0))
 
     out = _RE_EN_ADDRESS.sub(_sub, text)
 
     def _sub_cap(m: re.Match) -> str:
         if not _con_contesto(m, _CTX_INDIRIZZO):
             return m.group(0)
-        report.add("addresses")
-        return "{{POSTCODE}}"
+        return report.segnaposto("addresses", "{{POSTCODE}}", m.group(0))
 
     return _RE_EN_POSTCODE.sub(_sub_cap, out)
 
@@ -2236,14 +2804,12 @@ def _scrub_en_au(text: str, report: RedactionReport, opts: PrivacyOptions) -> st
     def _sub_abn(m: re.Match) -> str:
         if not _con_contesto(m, _CTX_ABN) or not abn_ok(m.group(1)):
             return m.group(0)
-        report.add("abn")
-        return "{{ABN}}"
+        return report.segnaposto("abn", "{{ABN}}", m.group(0))
 
     def _sub_tfn(m: re.Match) -> str:
         if not _con_contesto(m, _CTX_TFN) or not tfn_ok(m.group(1)):
             return m.group(0)
-        report.add("tfn")
-        return "{{TFN}}"
+        return report.segnaposto("tfn", "{{TFN}}", m.group(0))
 
     out = _RE_ABN.sub(_sub_abn, text)
     return _RE_TFN.sub(_sub_tfn, out)
@@ -2287,8 +2853,7 @@ def _scrub_mrz(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
                 "sbagliata, e li' dentro ci sono nome, nascita e cittadinanza",
             )
             return blocco
-        report.add("mrz")
-        return "{{MRZ}}"
+        return report.segnaposto("mrz", "{{MRZ}}", blocco)
 
     return _RE_MRZ.sub(_sub, text)
 
@@ -2375,10 +2940,10 @@ _RE_EN_FIRMA = re.compile(
 # invece quasi sempre nome e cognome.
 _RE_EN_NOME_PRIMA_EMAIL = re.compile(
     rf"(?P<name>{_TOK}{_SP}{_TOK}(?:{_SP}{_TOK})?)"
-    rf"(?P<sep>\s*[<\(\[]\s*)\{{\{{EMAIL\}}\}}"
+    rf"(?P<sep>\s*[<\(\[]\s*){_rif_segnaposto('EMAIL')}"
 )
 _RE_EN_NOME_DOPO_EMAIL = re.compile(
-    rf"\{{\{{EMAIL\}}\}}(?P<sep>\s*[<\(\[]\s*)"
+    rf"{_rif_segnaposto('EMAIL')}(?P<sep>\s*[<\(\[]\s*)"
     rf"(?P<name>{_TOK}{_SP}{_TOK}(?:{_SP}{_TOK})?)"
 )
 
@@ -2401,10 +2966,10 @@ def _scrub_en_names(text: str, report: RedactionReport, opts: PrivacyOptions) ->
         utile = _en_nome_utile(name)
         if utile is None:
             return m.group(0)
-        report.add("names")
         # Si sostituisce solo la parte utile: la coda ("Thank you" dopo la
         # virgola non ci arriva, ma un titolo di coda si').
-        return m.group(0).replace(name, "{{NAME}}" + name[len(utile):], 1)
+        segno = report.segnaposto("names", "{{NAME}}", utile)
+        return m.group(0).replace(name, segno + name[len(utile):], 1)
 
     for pattern in (
         _RE_EN_TITLE_NAME,
@@ -2612,7 +3177,7 @@ def apply_privacy_filter(
         return text, RedactionReport()
 
     opts = options or PrivacyOptions()
-    report = RedactionReport()
+    report = RedactionReport(numerati=opts.numerati, segnala=frozenset(opts.segnala))
     out = text
 
     # Prima di tutto il resto: i termini della lista «mai» escono di scena e
@@ -2639,7 +3204,59 @@ def apply_privacy_filter(
     # segnalare a ogni conversione un dato che l'utente ha chiesto
     # espressamente di lasciare in chiaro e' rumore, non un avviso.
     find_suspects(out, report, opts)
-    return _ripristina(out, protetti), report
+    return _rinumera_per_comparsa(_ripristina(out, protetti)), report
+
+
+def _rinumera_per_comparsa(testo: str) -> str:
+    """I numeri seguono l'ordine del testo, non quello dei riconoscitori.
+
+    Perche' serve un secondo passaggio
+    ----------------------------------
+
+    I numeri vengono assegnati mentre si sostituisce, e i riconoscitori non
+    scattano nell'ordine in cui le cose stanno scritte: i segreti passano da
+    tre pattern diversi, i nomi da cinque. Il risultato era leggibile solo
+    per fortuna, e su una riga vera veniva cosi':
+
+        Chiave: {{SECRET_2}} = {{SECRET_1}}
+
+    Chi legge non ha modo di sapere che il 2 e' arrivato prima del 1 per
+    ragioni di implementazione, e la prima cosa che pensa e' che manchi un
+    pezzo di documento.
+
+    Cosa NON cambia
+    ---------------
+
+    L'unica proprieta' che conta: **lo stesso valore tiene lo stesso
+    numero**. Qui si rinumerano segnaposto identici, quindi due occorrenze
+    dello stesso valore -- che sono lo stesso segnaposto -- restano
+    identiche. Cambia solo quale numero, e in meglio.
+
+    E resta vero che il numero non e' stabile fra documenti: dipende
+    dall'ordine di comparsa in *questo* testo, che e' esattamente cio' che
+    lo tiene un'informazione locale invece di un identificatore.
+
+    Cosa NON tocca
+    --------------
+
+    I segnaposto che stavano gia' nel documento. Un file redatto e poi
+    ripassato dal motore contiene `{{NAME_5}}` scritti in un'altra
+    conversione: rinumerarli sarebbe riscrivere testo che non abbiamo
+    toccato. La distinzione la fa `SENTINELLA`, che marca solo i nostri e
+    sparisce proprio qui.
+    """
+    if SENTINELLA not in testo:
+        return testo
+    nuovi: dict[str, dict[str, int]] = {}
+
+    def _assegna(m: re.Match) -> str:
+        etichetta, numero = m.group(1), m.group(2)
+        per_etichetta = nuovi.setdefault(etichetta, {})
+        if numero not in per_etichetta:
+            per_etichetta[numero] = len(per_etichetta) + 1
+        return f"{{{{{etichetta}_{per_etichetta[numero]}}}}}"
+
+    return _RE_SEGNAPOSTO_MARCATO.sub(_assegna, testo)
 
 
 # I campi booleani esposti da form, JSON e profili, con il loro valore
@@ -2701,6 +3318,63 @@ FIELD_DEFAULTS: dict[str, bool] = {
 # rimesso qui e non aggirato a valle.
 DETECTOR_FIELDS: tuple[str, ...] = tuple(FIELD_DEFAULTS)
 
+# Le categorie che il motore sa nominare: sono le chiavi di `counts`, cioe'
+# il vocabolario con cui il rapporto parla gia' all'utente. `segnala` usa
+# questo e non `FIELD_DEFAULTS` perche' rispondono a due domande diverse, e
+# con due granularita' diverse:
+#
+#   * l'interruttore dice **se cercare**, per famiglia (`fiscal` copre CF,
+#     partita IVA, IBAN e carte insieme);
+#   * `segnala` dice **cosa fare di cio' che si trova**, per categoria --
+#     ed e' proprio la finezza che serve: «lasciami gli IBAN in chiaro ma
+#     togli i codici fiscali» non si puo' dire con l'interruttore.
+#
+# L'elenco e' scritto a mano e **verificato da un test** contro i nomi che
+# il motore emette davvero (`tests/test_rileva_senza_sostituire.py`): un
+# elenco del genere tenuto allineato a mano invecchia al primo
+# riconoscitore nuovo, e un nome mancante qui vorrebbe dire che quella
+# categoria non si puo' mettere in «segnala» -- in silenzio.
+CATEGORIE: tuple[str, ...] = (
+    "abn", "addresses", "amounts", "bban", "cards", "codice_fiscale",
+    "dates", "documenti", "emails", "iban", "itin", "mrz", "names",
+    "nhs_number", "nino", "partita_iva", "phones", "routing_number",
+    "secrets", "sin", "ssn", "termini", "tfn", "urls",
+)
+
+
+def categorie_da(valore) -> tuple[str, ...]:
+    """Legge l'elenco delle categorie da «rileva ma non sostituire».
+
+    Un nome sconosciuto **non passa in silenzio**. Un refuso -- `email` per
+    `emails` -- produrrebbe altrimenti un'opzione che sembra impostata e non
+    fa niente: l'utente crede di aver lasciato in chiaro gli indirizzi, il
+    documento esce redatto lo stesso, e non c'e' nessun segnale. E' la
+    stessa ragione per cui `only()` rifiuta i riconoscitori inesistenti.
+    """
+    if valore is None:
+        return ()
+    if isinstance(valore, (list, tuple)):
+        nomi = [str(v) for v in valore]
+    else:
+        nomi = [p for p in re.split(r"[\s,;]+", str(valore)) if p]
+
+    fuori: list[str] = []
+    ignoti: list[str] = []
+    for n in nomi:
+        n = n.strip().lower()
+        if not n:
+            continue
+        if n not in CATEGORIE:
+            ignoti.append(n)
+        elif n not in fuori:
+            fuori.append(n)
+    if ignoti:
+        raise ValueError(
+            "categorie inesistenti: " + ", ".join(sorted(ignoti))
+            + ". Quelle valide sono: " + ", ".join(CATEGORIE)
+        )
+    return tuple(fuori)
+
 
 def no_redaction() -> PrivacyOptions:
     """Tutti i riconoscitori spenti.
@@ -2709,8 +3383,17 @@ def no_redaction() -> PrivacyOptions:
     servono significa che il giorno in cui se ne aggiunge uno quel punto
     resta indietro — e siccome i valori predefiniti sono accesi, il difetto
     si manifesta come una redazione che avviene quando non dovrebbe.
+
+    `numerati` e' nominato a mano, ed e' l'unica eccezione: non e' un
+    riconoscitore -- non decide **se** togliere qualcosa, ma **come** si
+    scrive cio' che e' stato tolto -- quindi non sta in `FIELD_DEFAULTS`.
+    Spegnerlo qui non cambia niente (senza redazione non c'e' niente da
+    numerare) e tiene vera l'invariante che il test verifica: dopo
+    `no_redaction()` nessun interruttore booleano e' acceso. Vale la pena
+    perche' quell'invariante e' cio' che accorge di un riconoscitore nuovo
+    dimenticato qui dentro.
     """
-    return PrivacyOptions(**{k: False for k in FIELD_DEFAULTS})
+    return PrivacyOptions(**{k: False for k in FIELD_DEFAULTS}, numerati=False)
 
 
 def only(*fields: str) -> PrivacyOptions:
@@ -2724,6 +3407,28 @@ def only(*fields: str) -> PrivacyOptions:
     if unknown:
         raise ValueError(f"riconoscitori inesistenti: {sorted(unknown)}")
     return PrivacyOptions(**{k: (k in fields) for k in FIELD_DEFAULTS})
+
+
+def segnala_da_form(form) -> tuple[str, ...]:
+    """Le categorie da «rileva ma non sostituire», come le manda la pagina.
+
+    Due strade, e servono tutte e due: una casella per categoria
+    (`privacy_segnala_iban=on`), che e' quello che fa l'interfaccia, e un
+    campo unico con i nomi separati (`privacy_segnala=iban,amounts`), che e'
+    quello che serve a chi chiama l'API da uno script senza doversi
+    inventare venti campi.
+    """
+    if not hasattr(form, "get"):
+        return ()
+    dal_campo = list(categorie_da(form.get("privacy_segnala")))
+    for c in CATEGORIE:
+        val = form.get("privacy_segnala_" + c)
+        if val is None:
+            continue
+        acceso = val if isinstance(val, bool) else str(val).lower() in ("1", "true", "yes", "on")
+        if acceso and c not in dal_campo:
+            dal_campo.append(c)
+    return tuple(dal_campo)
 
 
 def options_from_form(form) -> PrivacyOptions:
@@ -2746,6 +3451,12 @@ def options_from_form(form) -> PrivacyOptions:
         prosa=prosa_da(form.get("privacy_stile") if hasattr(form, "get") else None),
         sempre=termini_da(form.get("privacy_sempre") if hasattr(form, "get") else None),
         mai=termini_da(form.get("privacy_mai") if hasattr(form, "get") else None),
+        segnala=segnala_da_form(form),
+        # Nominato a mano: non e' un riconoscitore, quindi non sta in
+        # `FIELD_DEFAULTS` (vedi `no_redaction`). Il valore predefinito e'
+        # quello della dataclass, non `True` scritto qui: uno solo dei due
+        # posti puo' essere la verita'.
+        numerati=flag("privacy_numerati", PrivacyOptions.numerati),
         **{k: flag("privacy_" + k, d) for k, d in FIELD_DEFAULTS.items()},
     )
 
@@ -2759,5 +3470,7 @@ def options_from_dict(data: dict | None) -> PrivacyOptions:
         prosa=prosa_da(data.get("privacy_stile")),
         sempre=termini_da(data.get("privacy_sempre")),
         mai=termini_da(data.get("privacy_mai")),
+        segnala=categorie_da(data.get("privacy_segnala")),
+        numerati=bool(data.get("privacy_numerati", PrivacyOptions.numerati)),
         **{k: bool(data.get("privacy_" + k, d)) for k, d in FIELD_DEFAULTS.items()},
     )

@@ -1,6 +1,6 @@
 {
-  "uscita": "Oggetto: pratica 2024/118\n\nGentile Dott. {{NAME}},\n\nle confermo quanto concordato. Il referente e' {{NAME}}\n<{{EMAIL}}>, in copia anche {{EMAIL}}\n\nRecapiti: cell. {{PHONE}}, fisso {{PHONE}}, fax {{PHONE}}.\nSede: {{ADDRESS}}.\nRiferimenti su {{URL}} e su {{URL}}\n\nCodice fiscale {{CODICE_FISCALE}}, partita IVA {{PARTITA_IVA}}.\nIBAN {{IBAN}}, oppure {{IBAN}}.\nCarta {{CARD}}. Coordinate: conto CIN X {{BBAN}}.\n\nIl collega, nato il {{DATE}}, seguira' la pratica.\nImporto concordato: {{AMOUNT}}.\n\nDa OCR, storpiati: {{CODICE_FISCALE}} e lT60X05428111010000001234S7\nChiave: {{SECRET}} = {{SECRET}}\n\nCordiali saluti\n{{NAME}}\n",
-  "totale": 24,
+  "uscita": "Oggetto: pratica 2024/118\n\nGentile Dott. {{NAME_1}},\n\nle confermo quanto concordato. Il referente e' {{NAME_2}}\n<{{EMAIL_1}}>, in copia anche {{EMAIL_2}}\n\nRecapiti: cell. {{PHONE_1}}, fisso {{PHONE_2}}, fax {{PHONE_3}}.\nSede: {{ADDRESS_1}}.\nRiferimenti su {{URL_1}} e su {{URL_2}}\n\nCodice fiscale {{CODICE_FISCALE_1}}, partita IVA {{PARTITA_IVA_1}}.\nIBAN {{IBAN_1}}, oppure {{IBAN_1}}.\nCarta {{CARD_1}}. Coordinate: conto CIN X {{BBAN_1}}.\n\nIl collega, nato il {{DATE_1}}, seguira' la pratica.\nImporto concordato: {{AMOUNT_1}}.\n\nDa OCR, storpiati: {{CODICE_FISCALE_1}} e lT60X05428111010000001234S7\nChiave: {{SECRET_1}} = {{SECRET_2}}\n\nCordiali saluti\n{{NAME_3}}\n",
+  "totale": 23,
   "conteggi": {
     "addresses": 1,
     "amounts": 1,
@@ -14,7 +14,7 @@
     "ocr_corretti": 1,
     "partita_iva": 1,
     "phones": 3,
-    "secrets": 3,
+    "secrets": 2,
     "urls": 2
   },
   "sospetti": [

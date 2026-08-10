@@ -1,8 +1,8 @@
 {
   "motore": {
-    "app": "1.19.1",
+    "app": "1.20.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "c0337ca8e52ccf13aed3b8221859afc46f0dd354a2d4a7f1aa046e077a6da7d7",
+      "mr_rao/privacy.py": "9cbc3dcd9bded9fbe44d995baa4e6d816fbcc03a59b54b33dcd5637b5ec4f421",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "0033199e1c52d120eab386b5d59d8b9f584c24b42fc02084b6926608c07e31d9"
     }
@@ -10,50 +10,62 @@
   "casi": {
     "iban-01": {
       "gruppo": "iban",
-      "uscita": "Accreditare sul conto {{IBAN}} come da mandato.",
+      "uscita": "Accreditare sul conto {{IBAN_1}} come da mandato.",
       "report": {
         "counts": {
           "iban": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-02": {
       "gruppo": "iban",
-      "uscita": "IBAN: {{IBAN}}",
+      "uscita": "IBAN: {{IBAN_1}}",
       "report": {
         "counts": {
           "iban": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-03": {
       "gruppo": "iban",
-      "uscita": "IBAN{{IBAN}}",
+      "uscita": "IBAN{{IBAN_1}}",
       "report": {
         "counts": {
           "iban": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-04": {
       "gruppo": "iban",
-      "uscita": "{{IBAN}}",
+      "uscita": "{{IBAN_1}}",
       "report": {
         "counts": {
           "iban": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-05": {
@@ -69,7 +81,10 @@
             "why": "ha la forma di un IBAN ma non supera il controllo mod-97"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-06": {
@@ -79,19 +94,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-07": {
       "gruppo": "iban",
-      "uscita": "Dal conto {{IBAN}} al conto {{IBAN}}.",
+      "uscita": "Dal conto {{IBAN_1}} al conto {{IBAN_2}}.",
       "report": {
         "counts": {
           "iban": 2
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-08": {
@@ -101,132 +122,165 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "iban-09": {
       "gruppo": "iban",
-      "uscita": "{{IBAN}}",
+      "uscita": "{{IBAN_1}}",
       "report": {
         "counts": {
           "iban": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "bban-01": {
       "gruppo": "bban",
-      "uscita": "Coordinate bancarie: {{BBAN}}",
+      "uscita": "Coordinate bancarie: {{BBAN_1}}",
       "report": {
         "counts": {
           "bban": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "bban-02": {
       "gruppo": "bban",
-      "uscita": "{{BBAN}}",
+      "uscita": "{{BBAN_1}}",
       "report": {
         "counts": {
           "bban": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "bban-03": {
       "gruppo": "bban",
-      "uscita": "Sequenza X {{PHONE}} 000000123456 nella tabella allegata.",
+      "uscita": "Sequenza X {{PHONE_1}} 000000123456 nella tabella allegata.",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "bban-04": {
       "gruppo": "bban",
-      "uscita": "Coordinate bancarie: X {{PHONE}} 000000123456",
+      "uscita": "Coordinate bancarie: X {{PHONE_1}} 000000123456",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-01": {
       "gruppo": "codice_fiscale",
-      "uscita": "Il codice fiscale e' {{CODICE_FISCALE}}.",
+      "uscita": "Il codice fiscale e' {{CODICE_FISCALE_1}}.",
       "report": {
         "counts": {
           "codice_fiscale": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-02": {
       "gruppo": "codice_fiscale",
-      "uscita": "{{CODICE_FISCALE}}",
+      "uscita": "{{CODICE_FISCALE_1}}",
       "report": {
         "counts": {
           "codice_fiscale": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-03": {
       "gruppo": "codice_fiscale",
-      "uscita": "cod. fisc. {{CODICE_FISCALE}}",
+      "uscita": "cod. fisc. {{CODICE_FISCALE_1}}",
       "report": {
         "counts": {
           "codice_fiscale": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-04": {
       "gruppo": "codice_fiscale",
-      "uscita": "Codice fiscale {{CODICE_FISCALE}} (omocodia).",
+      "uscita": "Codice fiscale {{CODICE_FISCALE_1}} (omocodia).",
       "report": {
         "counts": {
           "codice_fiscale": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-05": {
       "gruppo": "codice_fiscale",
-      "uscita": "Codice fiscale {{CODICE_FISCALE}} da verificare.",
+      "uscita": "Codice fiscale {{CODICE_FISCALE_1}} da verificare.",
       "report": {
         "counts": {
           "codice_fiscale": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-06": {
       "gruppo": "codice_fiscale",
-      "uscita": "Codice fiscale {{CODICE_FISCALE}}.",
+      "uscita": "Codice fiscale {{CODICE_FISCALE_1}}.",
       "report": {
         "counts": {
           "codice_fiscale": 1
@@ -239,7 +293,10 @@
             "why": "sostituito, ma il carattere di controllo non torna: il documento potrebbe contenere altri dati storpiati"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-07": {
@@ -255,7 +312,10 @@
             "why": "sedici caratteri con la proporzione di un codice fiscale, ma la struttura non torna: possibile lettura OCR sbagliata"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "cf-08": {
@@ -265,31 +325,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "piva-01": {
       "gruppo": "partita_iva",
-      "uscita": "P.IVA {{PARTITA_IVA}}",
+      "uscita": "P.IVA {{PARTITA_IVA_1}}",
       "report": {
         "counts": {
           "partita_iva": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "piva-02": {
       "gruppo": "partita_iva",
-      "uscita": "Fornitore {{PARTITA_IVA}}",
+      "uscita": "Fornitore {{PARTITA_IVA_1}}",
       "report": {
         "counts": {
           "partita_iva": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "piva-03": {
@@ -299,12 +368,15 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "piva-04": {
       "gruppo": "partita_iva",
-      "uscita": "Partita IVA {{PARTITA_IVA}}",
+      "uscita": "Partita IVA {{PARTITA_IVA_1}}",
       "report": {
         "counts": {
           "partita_iva": 1
@@ -317,7 +389,10 @@
             "why": "sostituita, ma la cifra di controllo non torna: o non era una partita IVA, o il documento e' storpiato"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "piva-05": {
@@ -327,31 +402,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "card-01": {
       "gruppo": "carte",
-      "uscita": "Carta {{CARD}} in scadenza.",
+      "uscita": "Carta {{CARD_1}} in scadenza.",
       "report": {
         "counts": {
           "cards": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "card-02": {
       "gruppo": "carte",
-      "uscita": "Addebito su {{CARD}}",
+      "uscita": "Addebito su {{CARD_1}}",
       "report": {
         "counts": {
           "cards": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "card-03": {
@@ -367,19 +451,25 @@
             "why": "sedici cifre che non superano il controllo di Luhn"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "card-04": {
       "gruppo": "carte",
-      "uscita": "carta{{CARD}}",
+      "uscita": "carta{{CARD_1}}",
       "report": {
         "counts": {
           "cards": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "card-05": {
@@ -395,7 +485,10 @@
             "why": "sedici cifre che non superano il controllo di Luhn"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "card-06": {
@@ -405,55 +498,70 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-01": {
       "gruppo": "telefoni",
-      "uscita": "Tel. {{PHONE}}",
+      "uscita": "Tel. {{PHONE_1}}",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-02": {
       "gruppo": "telefoni",
-      "uscita": "cell. {{PHONE}}",
+      "uscita": "cell. {{PHONE_1}}",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-03": {
       "gruppo": "telefoni",
-      "uscita": "Tel. {{PHONE}}",
+      "uscita": "Tel. {{PHONE_1}}",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-04": {
       "gruppo": "telefoni",
-      "uscita": "Tel.{{PHONE}}",
+      "uscita": "Tel.{{PHONE_1}}",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-05": {
@@ -463,7 +571,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-06": {
@@ -473,7 +584,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-07": {
@@ -483,7 +597,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-08": {
@@ -499,7 +616,10 @@
             "why": "preceduto da una parola di contatto ma contiene lettere: possibile lettura OCR sbagliata"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "tel-09": {
@@ -509,48 +629,60 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "mail-01": {
       "gruppo": "email",
-      "uscita": "Scrivere a {{EMAIL}} entro venerdi'.",
+      "uscita": "Scrivere a {{EMAIL_1}} entro venerdi'.",
       "report": {
         "counts": {
           "emails": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "mail-02": {
       "gruppo": "email",
-      "uscita": "scrivere a {{EMAIL}}",
+      "uscita": "scrivere a {{EMAIL_1}}",
       "report": {
         "counts": {
           "emails": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "mail-03": {
       "gruppo": "email",
-      "uscita": "Recapito: {{EMAIL}}",
+      "uscita": "Recapito: {{EMAIL_1}}",
       "report": {
         "counts": {
           "emails": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "mail-04": {
       "gruppo": "email",
-      "uscita": "Mittente: {{NAME}} <{{EMAIL}}>",
+      "uscita": "Mittente: {{NAME_1}} <{{EMAIL_1}}>",
       "report": {
         "counts": {
           "emails": 1,
@@ -558,7 +690,10 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "mail-05": {
@@ -568,7 +703,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "mail-06": {
@@ -578,43 +716,55 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "mail-07": {
       "gruppo": "email",
-      "uscita": "Due recapiti: {{EMAIL}} e {{EMAIL}}.",
+      "uscita": "Due recapiti: {{EMAIL_1}} e {{EMAIL_2}}.",
       "report": {
         "counts": {
           "emails": 2
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "url-01": {
       "gruppo": "url",
-      "uscita": "Vedi {{URL}} per il seguito.",
+      "uscita": "Vedi {{URL_1}} per il seguito.",
       "report": {
         "counts": {
           "urls": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "url-02": {
       "gruppo": "url",
-      "uscita": "Il sito e' {{URL}}.",
+      "uscita": "Il sito e' {{URL_1}}.",
       "report": {
         "counts": {
           "urls": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "url-03": {
@@ -624,19 +774,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "url-04": {
       "gruppo": "url",
-      "uscita": "Registrazione su {{URL}}",
+      "uscita": "Registrazione su {{URL_1}}",
       "report": {
         "counts": {
           "urls": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "url-05": {
@@ -646,31 +802,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "sec-01": {
       "gruppo": "segreti",
-      "uscita": "export AWS_ACCESS_KEY_ID={{SECRET}}",
+      "uscita": "export AWS_ACCESS_KEY_ID={{SECRET_1}}",
       "report": {
         "counts": {
           "secrets": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "sec-02": {
       "gruppo": "segreti",
-      "uscita": "password: {{SECRET}}",
+      "uscita": "password: {{SECRET_1}}",
       "report": {
         "counts": {
           "secrets": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "sec-03": {
@@ -680,43 +845,55 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "sec-04": {
       "gruppo": "segreti",
-      "uscita": "Authorization: Bearer {{SECRET}}",
+      "uscita": "Authorization: Bearer {{SECRET_1}}",
       "report": {
         "counts": {
           "secrets": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "sec-05": {
       "gruppo": "segreti",
-      "uscita": "token = {{SECRET}}",
-      "report": {
-        "counts": {
-          "secrets": 2
-        },
-        "total": 2,
-        "suspects": [],
-        "suspects_total": 0
-      }
-    },
-    "sec-06": {
-      "gruppo": "segreti",
-      "uscita": "{{SECRET}}",
+      "uscita": "token = {{SECRET_1}}",
       "report": {
         "counts": {
           "secrets": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "sec-06": {
+      "gruppo": "segreti",
+      "uscita": "{{SECRET_1}}",
+      "report": {
+        "counts": {
+          "secrets": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "sec-07": {
@@ -726,7 +903,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "sec-08": {
@@ -736,31 +916,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "imp-01": {
       "gruppo": "importi",
-      "uscita": "Importo: {{AMOUNT}}",
+      "uscita": "Importo: {{AMOUNT_1}}",
       "report": {
         "counts": {
           "amounts": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "imp-02": {
       "gruppo": "importi",
-      "uscita": "Saldo da versare: {{AMOUNT}}",
+      "uscita": "Saldo da versare: {{AMOUNT_1}}",
       "report": {
         "counts": {
           "amounts": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "imp-03": {
@@ -770,7 +959,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "imp-04": {
@@ -780,43 +972,55 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "imp-05": {
       "gruppo": "importi",
-      "uscita": "Canone: {{AMOUNT}} mensili.",
+      "uscita": "Canone: {{AMOUNT_1}} mensili.",
       "report": {
         "counts": {
           "amounts": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "data-01": {
       "gruppo": "date_nascita",
-      "uscita": "nato il {{DATE}} a Milano",
+      "uscita": "nato il {{DATE_1}} a Milano",
       "report": {
         "counts": {
           "dates": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "data-02": {
       "gruppo": "date_nascita",
-      "uscita": "nata a Palermo il {{DATE}}",
+      "uscita": "nata a Palermo il {{DATE_1}}",
       "report": {
         "counts": {
           "dates": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "data-03": {
@@ -826,7 +1030,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "data-04": {
@@ -836,43 +1043,55 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "doc-01": {
       "gruppo": "documenti",
-      "uscita": "Patente n. {{DOC_ID}}",
+      "uscita": "Patente n. {{DOC_ID_1}}",
       "report": {
         "counts": {
           "documenti": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "doc-02": {
       "gruppo": "documenti",
-      "uscita": "Passaporto {{DOC_ID}} rilasciato nel 2019.",
+      "uscita": "Passaporto {{DOC_ID_1}} rilasciato nel 2019.",
       "report": {
         "counts": {
           "documenti": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "doc-03": {
       "gruppo": "documenti",
-      "uscita": "Carta d'identita' {{DOC_ID}}",
+      "uscita": "Carta d'identita' {{DOC_ID_1}}",
       "report": {
         "counts": {
           "documenti": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "doc-04": {
@@ -888,7 +1107,10 @@
             "why": "ha la forma di un numero di documento d'identita', ma intorno non c'e' scritto di che documento si tratta: potrebbe essere un protocollo o un codice pratica"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "doc-05": {
@@ -898,55 +1120,70 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "doc-06": {
       "gruppo": "documenti",
-      "uscita": "Patente n. {{DOC_ID}}",
+      "uscita": "Patente n. {{DOC_ID_1}}",
       "report": {
         "counts": {
           "documenti": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-01": {
       "gruppo": "indirizzi",
-      "uscita": "Recapito: {{ADDRESS}}",
+      "uscita": "Recapito: {{ADDRESS_1}}",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-02": {
       "gruppo": "indirizzi",
-      "uscita": "{{ADDRESS}}",
+      "uscita": "{{ADDRESS_1}}",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-03": {
       "gruppo": "indirizzi",
-      "uscita": "{{ADDRESS}}",
+      "uscita": "{{ADDRESS_1}}",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-04": {
@@ -956,7 +1193,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-05": {
@@ -966,31 +1206,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-06": {
       "gruppo": "indirizzi",
-      "uscita": "Sede in {{ADDRESS}}",
+      "uscita": "Sede in {{ADDRESS_1}}",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-07": {
       "gruppo": "indirizzi",
-      "uscita": "{{ADDRESS}}\n\nCordiali saluti",
+      "uscita": "{{ADDRESS_1}}\n\nCordiali saluti",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-08": {
@@ -1000,43 +1249,55 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ind-09": {
       "gruppo": "indirizzi",
-      "uscita": "{{ADDRESS}}",
+      "uscita": "{{ADDRESS_1}}",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-titolo-01": {
       "gruppo": "nomi",
-      "uscita": "Ha firmato il geom. {{NAME}}.",
+      "uscita": "Ha firmato il geom. {{NAME_1}}.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-titolo-02": {
       "gruppo": "nomi",
-      "uscita": "Come da parere della dott.ssa {{NAME}}.",
+      "uscita": "Come da parere della dott.ssa {{NAME_1}}.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-titolo-03": {
@@ -1046,31 +1307,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-chiusura-01": {
       "gruppo": "nomi",
-      "uscita": "Cordiali saluti,\n{{NAME}}",
+      "uscita": "Cordiali saluti,\n{{NAME_1}}",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-chiusura-02": {
       "gruppo": "nomi",
-      "uscita": "Distinti saluti\n{{NAME}}",
+      "uscita": "Distinti saluti\n{{NAME_1}}",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-chiusura-03": {
@@ -1080,12 +1350,15 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-email-01": {
       "gruppo": "nomi",
-      "uscita": "Da: {{NAME}} <{{EMAIL}}>",
+      "uscita": "Da: {{NAME_1}} <{{EMAIL_1}}>",
       "report": {
         "counts": {
           "emails": 1,
@@ -1093,24 +1366,30 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-email-02": {
       "gruppo": "nomi",
-      "uscita": "Contatta {{EMAIL}} per il seguito.",
+      "uscita": "Contatta {{EMAIL_1}} per il seguito.",
       "report": {
         "counts": {
           "emails": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-email-03": {
       "gruppo": "nomi",
-      "uscita": "{{EMAIL}} ({{NAME}})",
+      "uscita": "{{EMAIL_1}} ({{NAME_1}})",
       "report": {
         "counts": {
           "emails": 1,
@@ -1118,31 +1397,40 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-coppia-01": {
       "gruppo": "nomi",
-      "uscita": "Presenti alla riunione {{NAME}} e il responsabile del reparto.",
+      "uscita": "Presenti alla riunione {{NAME_1}} e il responsabile del reparto.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-coppia-02": {
       "gruppo": "nomi",
-      "uscita": "Riferimento Del {{NAME}} nel verbale.",
+      "uscita": "Riferimento Del {{NAME_1}} nel verbale.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-singolo-01": {
@@ -1158,7 +1446,10 @@
             "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-singolo-02": {
@@ -1168,7 +1459,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-comune-01": {
@@ -1178,7 +1472,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-comune-02": {
@@ -1188,7 +1485,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-comune-03": {
@@ -1198,19 +1498,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-maiuscolo-01": {
       "gruppo": "nomi",
-      "uscita": "In fede\n{{NAME}}",
+      "uscita": "In fede\n{{NAME_1}}",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-maiuscolo-02": {
@@ -1220,7 +1526,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-01": {
@@ -1230,12 +1539,15 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "nome-02": {
       "gruppo": "nomi",
-      "uscita": "Il dott. {{NAME}} abita in {{ADDRESS}} e scrive a {{EMAIL}}.",
+      "uscita": "Il dott. {{NAME_1}} abita in {{ADDRESS_1}} e scrive a {{EMAIL_1}}.",
       "report": {
         "counts": {
           "emails": 1,
@@ -1244,19 +1556,25 @@
         },
         "total": 3,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ruolo-01": {
       "gruppo": "ruolo_due_punti",
-      "uscita": "Il Ministro: {{NAME}}",
+      "uscita": "Il Ministro: {{NAME_1}}",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ruolo-02": {
@@ -1266,7 +1584,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ruolo-03": {
@@ -1276,7 +1597,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "ruolo-04": {
@@ -1286,19 +1610,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "stile-01": {
       "gruppo": "prosa_modulo",
-      "uscita": "Come concordato con {{NAME}}, allego il preventivo.",
+      "uscita": "Come concordato con {{NAME_1}}, allego il preventivo.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "stile-02": {
@@ -1314,7 +1644,10 @@
             "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "stile-03": {
@@ -1330,7 +1663,10 @@
             "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "stile-04": {
@@ -1340,19 +1676,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nhs-01": {
       "gruppo": "nhs",
-      "uscita": "NHS number: {{NHS_NUMBER}}",
+      "uscita": "NHS number: {{NHS_NUMBER_1}}",
       "report": {
         "counts": {
           "nhs_number": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nhs-02": {
@@ -1362,7 +1704,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nhs-03": {
@@ -1372,19 +1717,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nino-01": {
       "gruppo": "nino",
-      "uscita": "National Insurance number {{NINO}}",
+      "uscita": "National Insurance number {{NINO_1}}",
       "report": {
         "counts": {
           "nino": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nino-02": {
@@ -1400,7 +1751,10 @@
             "why": "ha la forma di un National Insurance Number ma il prefisso non e' mai stato allocato: o e' un esempio, o e' storpiato"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nino-03": {
@@ -1410,31 +1764,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ssn-01": {
       "gruppo": "ssn",
-      "uscita": "SSN {{SSN}}",
+      "uscita": "SSN {{SSN_1}}",
       "report": {
         "counts": {
           "ssn": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ssn-02": {
       "gruppo": "ssn",
-      "uscita": "Taxpayer ID {{ITIN}}",
+      "uscita": "Taxpayer ID {{ITIN_1}}",
       "report": {
         "counts": {
           "itin": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ssn-03": {
@@ -1450,7 +1813,10 @@
             "why": "ha la forma di un SSN ma cade in un intervallo mai assegnato: o non e' un SSN, o e' storpiato"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ssn-04": {
@@ -1460,19 +1826,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-aba-01": {
       "gruppo": "aba_sin",
-      "uscita": "Routing number {{ROUTING_NUMBER}}",
+      "uscita": "Routing number {{ROUTING_NUMBER_1}}",
       "report": {
         "counts": {
           "routing_number": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-aba-02": {
@@ -1482,7 +1854,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-aba-03": {
@@ -1492,43 +1867,55 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-sin-01": {
       "gruppo": "aba_sin",
-      "uscita": "Social insurance number {{SIN}}",
+      "uscita": "Social insurance number {{SIN_1}}",
       "report": {
         "counts": {
           "sin": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-sin-02": {
       "gruppo": "aba_sin",
-      "uscita": "Social insurance number {{PHONE}}",
+      "uscita": "Social insurance number {{PHONE_1}}",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-abn-01": {
       "gruppo": "abn_tfn",
-      "uscita": "ABN {{ABN}}",
+      "uscita": "ABN {{ABN_1}}",
       "report": {
         "counts": {
           "abn": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-abn-02": {
@@ -1538,7 +1925,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-abn-03": {
@@ -1548,19 +1938,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-tfn-01": {
       "gruppo": "abn_tfn",
-      "uscita": "Tax file number {{TFN}}",
+      "uscita": "Tax file number {{TFN_1}}",
       "report": {
         "counts": {
           "tfn": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-tfn-02": {
@@ -1570,19 +1966,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-post-01": {
       "gruppo": "postcode",
-      "uscita": "Postcode: {{POSTCODE}}",
+      "uscita": "Postcode: {{POSTCODE_1}}",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-post-02": {
@@ -1592,19 +1994,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ind-01": {
       "gruppo": "indirizzi_en",
-      "uscita": "Registered at {{ADDRESS}}",
+      "uscita": "Registered at {{ADDRESS_1}}",
       "report": {
         "counts": {
           "addresses": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ind-02": {
@@ -1614,7 +2022,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ind-03": {
@@ -1624,31 +2035,40 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-ind-04": {
       "gruppo": "indirizzi_en",
-      "uscita": "Meeting on {{NAME}} at nine.",
+      "uscita": "Meeting on {{NAME_1}} at nine.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-mrz-01": {
       "gruppo": "mrz",
-      "uscita": "{{MRZ}}",
+      "uscita": "{{MRZ_1}}",
       "report": {
         "counts": {
           "mrz": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-mrz-02": {
@@ -1669,12 +2089,15 @@
             "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nome-01": {
       "gruppo": "nomi_en",
-      "uscita": "Dear {{NAME}},\nplease find the invoice attached.",
+      "uscita": "Dear {{NAME_1}},\nplease find the invoice attached.",
       "report": {
         "counts": {
           "names": 1
@@ -1692,7 +2115,10 @@
             "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nome-02": {
@@ -1702,12 +2128,15 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nome-03": {
       "gruppo": "nomi_en",
-      "uscita": "Kind regards,\n{{NAME}}",
+      "uscita": "Kind regards,\n{{NAME_1}}",
       "report": {
         "counts": {
           "names": 1
@@ -1725,19 +2154,25 @@
             "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nome-04": {
       "gruppo": "nomi_en",
-      "uscita": "The report was signed by Mr {{NAME}}.",
+      "uscita": "The report was signed by Mr {{NAME_1}}.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nome-05": {
@@ -1747,7 +2182,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nome-06": {
@@ -1768,7 +2206,10 @@
             "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "en-nome-07": {
@@ -1778,12 +2219,15 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "pack-01": {
       "gruppo": "pacchetti",
-      "uscita": "Codice fiscale {{CODICE_FISCALE}} e SSN {{SSN}}",
+      "uscita": "Codice fiscale {{CODICE_FISCALE_1}} e SSN {{SSN_1}}",
       "report": {
         "counts": {
           "codice_fiscale": 1,
@@ -1791,36 +2235,45 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "pack-02": {
       "gruppo": "pacchetti",
-      "uscita": "Codice fiscale {{CODICE_FISCALE}} e SSN 123-45-6789",
+      "uscita": "Codice fiscale {{CODICE_FISCALE_1}} e SSN 123-45-6789",
       "report": {
         "counts": {
           "codice_fiscale": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "pack-03": {
       "gruppo": "pacchetti",
-      "uscita": "Codice fiscale RSSMRA85M01H500R e SSN {{SSN}}",
+      "uscita": "Codice fiscale RSSMRA85M01H500R e SSN {{SSN_1}}",
       "report": {
         "counts": {
           "ssn": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "pack-04": {
       "gruppo": "pacchetti",
-      "uscita": "IBAN {{IBAN}}, carta {{CARD}}, {{URL}}",
+      "uscita": "IBAN {{IBAN_1}}, carta {{CARD_1}}, {{URL_1}}",
       "report": {
         "counts": {
           "urls": 1,
@@ -1829,7 +2282,10 @@
         },
         "total": 3,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "profilo-01": {
@@ -1839,12 +2295,15 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "profilo-02": {
       "gruppo": "profili",
-      "uscita": "Il dott. {{NAME}}, IBAN {{IBAN}}, importo {{AMOUNT}}, nato il {{DATE}}.",
+      "uscita": "Il dott. {{NAME_1}}, IBAN {{IBAN_1}}, importo {{AMOUNT_1}}, nato il {{DATE_1}}.",
       "report": {
         "counts": {
           "iban": 1,
@@ -1854,12 +2313,15 @@
         },
         "total": 4,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "profilo-03": {
       "gruppo": "profili",
-      "uscita": "Il dott. {{NAME}}, IBAN {{IBAN}}, importo 1.500,00 EUR, nato il 01/02/1985.",
+      "uscita": "Il dott. {{NAME_1}}, IBAN {{IBAN_1}}, importo 1.500,00 EUR, nato il 01/02/1985.",
       "report": {
         "counts": {
           "iban": 1,
@@ -1867,7 +2329,10 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "profilo-04": {
@@ -1877,12 +2342,15 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "term-01": {
       "gruppo": "termini",
-      "uscita": "Il fascicolo {{TERM}} passa a {{NAME}}.",
+      "uscita": "Il fascicolo {{TERM_1}} passa a {{NAME_1}}.",
       "report": {
         "counts": {
           "termini": 1,
@@ -1890,7 +2358,10 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "term-02": {
@@ -1900,7 +2371,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "term-03": {
@@ -1910,7 +2384,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "term-04": {
@@ -1920,19 +2397,25 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "term-06": {
       "gruppo": "termini",
-      "uscita": "Cordiali saluti,\n{{NAME}}, Bianchi & Co.",
+      "uscita": "Cordiali saluti,\n{{NAME_1}}, Bianchi & Co.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "term-05": {
@@ -1942,7 +2425,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-01": {
@@ -1952,7 +2438,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-02": {
@@ -1962,7 +2451,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-03": {
@@ -1972,7 +2464,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-04": {
@@ -1982,24 +2477,30 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-05": {
       "gruppo": "limiti",
-      "uscita": "Perizia della dott.ssa {{NAME}} sull'immobile di Citta' Studi.",
+      "uscita": "Perizia della dott.ssa {{NAME_1}} sull'immobile di Citta' Studi.",
       "report": {
         "counts": {
           "names": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-06": {
       "gruppo": "limiti",
-      "uscita": "Tel. {{PHONE}}\r\nIBAN {{IBAN}}\r\n",
+      "uscita": "Tel. {{PHONE_1}}\r\nIBAN {{IBAN_1}}\r\n",
       "report": {
         "counts": {
           "iban": 1,
@@ -2007,24 +2508,30 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-07": {
       "gruppo": "limiti",
-      "uscita": "{{CODICE_FISCALE}}",
+      "uscita": "{{CODICE_FISCALE_1}}",
       "report": {
         "counts": {
           "codice_fiscale": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-08": {
       "gruppo": "limiti",
-      "uscita": "{{CARD}} e' la carta, il conto e' {{IBAN}}",
+      "uscita": "{{CARD_1}} e' la carta, il conto e' {{IBAN_1}}",
       "report": {
         "counts": {
           "iban": 1,
@@ -2032,12 +2539,15 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-09": {
       "gruppo": "limiti",
-      "uscita": "{{ADDRESS}}\nCordiali saluti,\n{{NAME}}",
+      "uscita": "{{ADDRESS_1}}\nCordiali saluti,\n{{NAME_1}}",
       "report": {
         "counts": {
           "addresses": 1,
@@ -2045,19 +2555,25 @@
         },
         "total": 2,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-10": {
       "gruppo": "limiti",
-      "uscita": "        Tel. {{PHONE}}",
+      "uscita": "        Tel. {{PHONE_1}}",
       "report": {
         "counts": {
           "phones": 1
         },
         "total": 1,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "lim-11": {
@@ -2067,7 +2583,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-01": {
@@ -2077,7 +2596,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-02": {
@@ -2087,7 +2609,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-03": {
@@ -2097,7 +2622,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-04": {
@@ -2107,7 +2635,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-05": {
@@ -2117,7 +2648,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-06": {
@@ -2127,7 +2661,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-07": {
@@ -2137,7 +2674,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-08": {
@@ -2147,7 +2687,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-09": {
@@ -2157,7 +2700,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-10": {
@@ -2173,7 +2719,10 @@
             "why": "sedici cifre che non superano il controllo di Luhn"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-11": {
@@ -2183,7 +2732,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-12": {
@@ -2193,7 +2745,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-13": {
@@ -2203,7 +2758,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-14": {
@@ -2213,7 +2771,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-15": {
@@ -2229,7 +2790,10 @@
             "why": "sedici cifre che non superano il controllo di Luhn"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-16": {
@@ -2245,7 +2809,10 @@
             "why": "ha la forma di un IBAN ma non supera il controllo mod-97"
           }
         ],
-        "suspects_total": 1
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-17": {
@@ -2255,7 +2822,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     },
     "neg-18": {
@@ -2265,7 +2835,10 @@
         "counts": {},
         "total": 0,
         "suspects": [],
-        "suspects_total": 0
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
       }
     }
   }

@@ -29,8 +29,10 @@ from mr_rao.docx_export import docx_disponibile, markdown_to_docx
 from mr_rao.i18n import LINGUA_PREDEFINITA, LINGUE, lingua_da, t
 from mr_rao.jobs import job_store
 from mr_rao.privacy import (
+    CATEGORIE,
     FIELD_DEFAULTS,
     PrivacyOptions,
+    segnala_da_form,
     no_redaction,
     options_from_form,
     termini_da,
@@ -98,6 +100,20 @@ def _merge_privacy(form, profile: dict) -> PrivacyOptions:
         # l'intero pannello prima del test di parita'.
         sempre=termini_da(form.get("privacy_sempre")),
         mai=termini_da(form.get("privacy_mai")),
+        # Come le due liste: e' una scelta di chi converte, non del preset,
+        # e questo e' il ramo che l'interfaccia percorre sempre.
+        segnala=segnala_da_form(form),
+        # Stesso discorso della numerazione: non e' un riconoscitore, quindi
+        # non sta in `FIELD_DEFAULTS` ne' nei profili, e va letta a mano da
+        # qui — che e' il ramo percorso dall'interfaccia, la quale manda
+        # sempre un profilo. Dimenticarla qui avrebbe reso la casella
+        # decorativa: e' precisamente il difetto per cui esiste
+        # `tests/test_gui_parity.py`.
+        numerati=(
+            _truthy(form.get("privacy_numerati"), PrivacyOptions.numerati)
+            if "privacy_numerati" in form
+            else PrivacyOptions.numerati
+        ),
         **{
             k: (_truthy(form.get("privacy_" + k), v) if "privacy_" + k in form else v)
             for k, v in base.items()
@@ -232,6 +248,11 @@ def index():
             # Le stesse stringhe al JavaScript, in un blob inline: nessun
             # file in piu' da impacchettare, nessuna chiamata di rete.
             testi_js={k: v[lingua] for k, v in TESTI.items()},
+            # Le categorie del terzo stato («rileva ma non sostituire»)
+            # arrivano dal motore, non da un elenco copiato nel template:
+            # una categoria nuova compare nel pannello il giorno che nasce,
+            # invece di restare irraggiungibile dall'interfaccia in silenzio.
+            categorie=CATEGORIE,
         )
     )
     if request.args.get("lang"):

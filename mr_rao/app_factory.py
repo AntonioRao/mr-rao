@@ -1,6 +1,9 @@
 """Flask application factory for Mr. Rao."""
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
+
 from flask import Flask, jsonify, request
 
 import config
@@ -168,7 +171,39 @@ def create_app() -> Flask:
     app.config["ALLOWED_HOSTS"] = set(config.ALLOWED_HOSTS)
     app.config["MAX_UPLOAD_MB"] = config.MAX_UPLOAD_MB
 
-    config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+    # **Questo `mkdir` non deve poter uccidere il programma.**
+    #
+    # `create_app()` viene chiamata a livello di modulo in `app.py`, cioe'
+    # durante l'importazione: un'eccezione qui non produce un errore
+    # gestito, produce un processo che muore prima di stampare una riga.
+    # E' successo davvero — dentro un pacchetto MSIX la cartella
+    # d'installazione e' di sola lettura, il `mkdir` sollevava
+    # `PermissionError`, e la certificazione dello Store ha rimandato
+    # indietro il pacchetto con «The product crashes at launch».
+    #
+    # La causa e' stata corretta dove andava corretta (`config._writable_dir`
+    # ora sa distinguere il pacchetto dal portable). Questa e' la seconda
+    # difesa, e serve lo stesso: una cartella puo' essere non scrivibile per
+    # ragioni che non prevediamo — profilo su rete, disco pieno, criterio
+    # aziendale, antivirus. In tutti quei casi la cosa giusta e' **aprirsi
+    # comunque**: senza cartella degli upload restano rotte le conversioni
+    # da file, non tutto il programma, e chi apre l'app vede una finestra e
+    # un messaggio invece di un lampo e niente.
+    try:
+        config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+    except OSError as errore:
+        # Si dice, non si tace: un avvio che nasconde un guasto e' il modo
+        # in cui il guasto arriva all'utente sotto un'altra forma.
+        app.config["UPLOAD_FOLDER_ERRORE"] = str(errore)
+        ripiego = Path(tempfile.gettempdir()) / f"{config.APP_SLUG}-uploads"
+        try:
+            ripiego.mkdir(parents=True, exist_ok=True)
+            app.config["UPLOAD_FOLDER"] = str(ripiego)
+        except OSError:
+            # Nemmeno la cartella temporanea: il programma si apre lo
+            # stesso e le conversioni da file falliranno una per una, con
+            # un errore che si legge.
+            pass
     # Le cartelle di lavoro NON si creano all'avvio: chi apre l'app per una
     # conversione al volo non deve trovarsi cartelle nuove nei Documenti.
     # Le crea la UI (POST /api/folders/defaults) o l'attivazione del monitoraggio.

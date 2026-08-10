@@ -23,11 +23,14 @@ from __future__ import annotations
 
 import pytest
 
-from mr_rao.privacy import PrivacyOptions, apply_privacy_filter
+from mr_rao.privacy import PrivacyOptions, apply_privacy_filter, senza_numeri
 
 
 def _redigi(testo: str) -> str:
-    return apply_privacy_filter(testo, PrivacyOptions())[0]
+    # `senza_numeri`: questo file ha quattro asserzioni **negative**
+    # («{{NAME}} non c'e'»), che con i segnaposto numerati sarebbero vere
+    # sempre. Vedi `tests/aiuti.py`.
+    return senza_numeri(apply_privacy_filter(testo, PrivacyOptions())[0])
 
 
 @pytest.mark.parametrize("testo,cognome", [

@@ -524,6 +524,56 @@ TESTI: dict[str, dict[str, str]] = {
     },
     "opt_amounts_titolo": {"it": "Importi in euro", "en": "Euro amounts"},
     "opt_amounts_desc": {"it": "Cifre e totali", "en": "Figures and totals"},
+    # Dice sia cosa si guadagna sia cosa si perde: e' l'unica opzione che
+    # cambia una proprieta' del risultato invece di aggiungere o togliere un
+    # riconoscitore, e la domanda 8 delle FAQ ci costruisce sopra.
+    "tip_numerati": {
+        "it": "Acceso di default. Persone diverse ricevono numeri diversi "
+              "({{NAME_1}}, {{NAME_2}}) e la stessa persona ripetuta riceve "
+              "sempre lo stesso: senza, «{{NAME}} ha citato {{NAME}} davanti "
+              "a {{NAME}}» non si legge. In cambio l'uscita dice quante "
+              "persone distinte ci sono e dove compare ciascuna — non i "
+              "valori, ma la struttura. Il numero vale solo dentro questo "
+              "documento e non viene salvato da nessuna parte. Spegnilo per "
+              "l'uscita della 1.19.",
+        "en": "On by default. Different people get different numbers "
+              "({{NAME_1}}, {{NAME_2}}) and the same person always gets the "
+              "same one: without it, \"{{NAME}} quoted {{NAME}} before "
+              "{{NAME}}\" is unreadable. In exchange the output reveals how "
+              "many distinct people there are and where each appears — not "
+              "the values, but the structure. The number is valid inside "
+              "this document only and is never stored. Turn it off for the "
+              "1.19 output.",
+    },
+    "gruppo_segnala": {
+        "it": "Rileva ma non sostituire", "en": "Detect but do not replace",
+    },
+    "hint_segnala": {
+        "it": "Le categorie spuntate qui vengono cercate e riportate nel "
+              "rapporto, ma restano nel documento. Serve quando un dato ti "
+              "serve in chiaro — gli importi di una fattura, l'età in una "
+              "cartella — e vuoi comunque la prova scritta che c'era.",
+        "en": "Categories ticked here are looked for and listed in the "
+              "report, but stay in the document. Useful when you need a "
+              "value in the clear — the figures on an invoice, an age in a "
+              "medical record — and still want it on record that it was there.",
+    },
+    "tip_segnala": {
+        "it": "Spegnere un riconoscitore vuol dire non cercarlo, e non "
+              "lascia traccia: chi rilegge il documento non sa se lì dentro "
+              "non c'era niente o se abbiamo guardato dall'altra parte. "
+              "Questo è il terzo stato: cercato, trovato, lasciato in "
+              "chiaro apposta, e scritto nel rapporto.",
+        "en": "Turning a recogniser off means not looking for it, and it "
+              "leaves no trace: whoever reads the document later cannot "
+              "tell whether there was nothing there or we looked away. This "
+              "is the third state: looked for, found, deliberately left in "
+              "the clear, and written down in the report.",
+    },
+    "opt_numerati_titolo": {"it": "Numera i segnaposto", "en": "Number the placeholders"},
+    "opt_numerati_desc": {
+        "it": "{{NAME_1}}, {{NAME_2}}", "en": "{{NAME_1}}, {{NAME_2}}",
+    },
     "tip_include_raw": {
         "it": "Conserva anche il testo originale, così nella scheda «Confronto "
               "privacy» puoi vedere esattamente cosa è stato sostituito. Se lo "

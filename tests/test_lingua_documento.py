@@ -134,8 +134,8 @@ def test_i_segnaposto_non_si_traducono(lingua, tmp_path):
         "nota.txt",
         options=ConvertOptions(lingua=lingua, include_frontmatter=False),
     )
-    assert "{{CODICE_FISCALE}}" in r.markdown
-    assert "{{EMAIL}}" in r.markdown
+    assert "{{CODICE_FISCALE_1}}" in r.markdown
+    assert "{{EMAIL_1}}" in r.markdown
 
 
 # ── 4. anche gli errori del server rispondono nella lingua giusta ───────

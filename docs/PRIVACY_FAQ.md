@@ -198,26 +198,48 @@ da ritrovarli nel testo, non da leggerli dal report da soli.
 
 ## 8. Che succede se passo lo stesso documento due volte, o a pezzi?
 
-**I segnaposto non sono numerati.** Due persone diverse diventano lo stesso
-`{{NAME}}`:
+**Dalla 1.20.0 i segnaposto sono numerati** — ed è un cambiamento che
+toglie qualcosa a questa pagina, quindi va detto per primo. Due persone
+diverse ricevono due numeri diversi, la stessa persona ripetuta riceve
+sempre lo stesso:
 
 ```
 Scrivi a Mario Rossi <m.rossi@a.it> e a Luigi Bianchi <l.bianchi@b.it>
-   →  Scrivi a {{NAME}} <{{EMAIL}}> e a {{NAME}} <{{EMAIL}}>
+   →  Scrivi a {{NAME_1}} <{{EMAIL_1}}> e a {{NAME_2}} <{{EMAIL_2}}>
 ```
 
-Sono due proprietà vere e opposte, e conviene saperle prima di scoprirle:
+Il motivo è la leggibilità: senza numeri, «{{NAME}} ha citato {{NAME}}
+davanti a {{NAME}}» non si legge, e un modello linguistico non ci può
+ragionare sopra. Chi preferisce la forma di prima toglie la spunta a
+**«Numera i segnaposto»**, e l'uscita torna identica alla 1.19.
 
-- **in uscita non si può ricollegare chi era chi.** È un bene per
-  l'esposizione, e conferma la domanda 1: non è uno pseudonimizzato su cui
-  fare join, né una tabella di corrispondenze da custodire. Non esiste
-  nessuna mappa da rubare, perché non viene mai costruita;
+**Cosa si è perso, detto senza girarci intorno.** Prima, in uscita non si
+poteva ricollegare chi era chi. Adesso, *dentro un documento*, si può: i
+numeri dicono quante persone distinte ci sono e in quali punti compare
+ciascuna. Non sono i valori — non c'è modo di risalire da `{{NAME_2}}` a
+Luigi Bianchi — ma sono **la struttura** dei dati personali, ed è
+un'informazione che prima non usciva. Se il documento contiene una sola
+persona e chi legge sa di chi si tratta, la numerazione non aggiunge
+niente; se ne contiene quindici, dice che sono quindici.
+
+**Cosa invece non è cambiato**, e regge ancora la domanda 1:
+
+- **il numero non porta da nessuna parte.** Non esiste nessuna mappa da
+  rubare, perché non viene mai costruita: la corrispondenza vive in memoria
+  per il tempo della conversione e non viene scritta da nessuna parte;
+- **il numero non è stabile fra documenti.** Mario Rossi non è `{{NAME_1}}`
+  ovunque: dipende dall'ordine in cui compare in *quel* documento. Un numero
+  stabile sarebbe un identificatore persistente — cioè un dato personale
+  nuovo, inventato da noi — ed è esattamente ciò che questo strumento non
+  deve fare;
 - **un documento spezzato in pezzi perde il contesto fra un pezzo e
   l'altro.** I nomi si riconoscono anche dal contesto — un titolo davanti,
   un'email accanto, un nome proprio che tira il cognome. Se il titolo resta
   nel primo blocco e il nome finisce nel secondo, quel segnale non c'è più.
+  E la numerazione riparte da capo a ogni pezzo, quindi `{{NAME_1}}` del
+  secondo blocco non è la stessa persona di `{{NAME_1}}` del primo.
 
-La seconda è la cosa che si rompe davvero incollando un documento lungo a
+L'ultima è la cosa che si rompe davvero incollando un documento lungo a
 blocchi in una chat. **Conviene convertire il documento intero e incollare
 il risultato**, non convertire i pezzi.
 

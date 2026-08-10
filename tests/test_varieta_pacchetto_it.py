@@ -40,7 +40,7 @@ from pathlib import Path
 
 import pytest
 
-from mr_rao.privacy import PrivacyOptions, apply_privacy_filter
+from mr_rao.privacy import PrivacyOptions, apply_privacy_filter, senza_numeri
 
 RADICE = Path(__file__).resolve().parents[1]
 for percorso in (RADICE, RADICE / "scripts"):
@@ -58,7 +58,11 @@ def dati():
 
 
 def _redigi(testo: str, **kw) -> str:
-    return apply_privacy_filter(testo, PrivacyOptions(**kw))[0]
+    # `senza_numeri`: qui si misura quale riconoscitore ha morso, non come
+    # sono scritti i segnaposto. Senza, le asserzioni negative di questo
+    # file — «{{ADDRESS}} non c'e'» — diventerebbero vere sempre, perche'
+    # nel testo c'e' `{{ADDRESS_1}}`. Vedi `tests/aiuti.py`.
+    return senza_numeri(apply_privacy_filter(testo, PrivacyOptions(**kw))[0])
 
 
 def test_ogni_forma_regge_la_varieta_dei_valori(dati):

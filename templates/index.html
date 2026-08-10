@@ -226,12 +226,28 @@
                             <input type="checkbox" id="privacy-amounts">
                             <span class="opt-text"><span class="opt-title">{{ t('opt_amounts_titolo') }}</span><span class="opt-desc">{{ t('opt_amounts_desc') }}</span></span>
                         </label>
+                        <label class="opt" data-tip="{{ t('tip_numerati') }}">
+                            <input type="checkbox" id="privacy-numerati" checked>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_numerati_titolo') }}</span><span class="opt-desc">{{ t('opt_numerati_desc') }}</span></span>
+                        </label>
                         <label class="opt" data-tip="{{ t('tip_include_raw') }}">
                             <input type="checkbox" id="include-raw" checked>
                             <span class="opt-text"><span class="opt-title">{{ t('opt_include_raw_titolo') }}</span><span class="opt-desc">{{ t('opt_include_raw_desc') }}</span></span>
                         </label>
                     </div>
                     <span class="field-hint" id="privacy-off-hint">{{ t('hint_privacy_spenta') }}</span>
+
+                    <details id="segnala-panel" class="field">
+                        <summary data-tip="{{ t('tip_segnala') }}">{{ t('gruppo_segnala') }}</summary>
+                        <span class="field-hint">{{ t('hint_segnala') }}</span>
+                        {% for c in categorie %}
+                        <label class="opt">
+                            <input type="checkbox" class="privacy-segnala" value="{{ c }}"
+                                   id="privacy-segnala-{{ c }}">
+                            <span class="opt-text"><span class="opt-title">{{ c }}</span></span>
+                        </label>
+                        {% endfor %}
+                    </details>
 
                     <div class="eyebrow">{{ t('gruppo_termini') }}</div>
                     <div id="termini-panel">

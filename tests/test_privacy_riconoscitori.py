@@ -8,9 +8,9 @@ esattamente come uno che non redige niente.
 """
 import pytest
 
+from aiuti import apply_privacy_filter  # segnaposto appiattiti: vedi tests/aiuti.py
 from mr_rao.privacy import (
     PrivacyOptions,
-    apply_privacy_filter,
     luhn_ok,
     no_redaction,
     only,
@@ -325,7 +325,7 @@ def test_un_verbale_amministrativo_esce_intatto():
 # spenta e' la lista vuota, non False. Cio' che va tenuto fermo non e' il
 # valore ma l'effetto — a filtro generale spento non devono togliere niente —
 # ed e' quello che prova `test_a_filtro_spento_le_liste_non_tolgono_niente`.
-NON_INTERRUTTORI = {"pacchetti", "prosa", "sempre", "mai"}
+NON_INTERRUTTORI = {"pacchetti", "prosa", "sempre", "mai", "segnala"}
 
 
 def test_no_redaction_spegne_ogni_riconoscitore():

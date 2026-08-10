@@ -23,20 +23,62 @@ def testo_faq() -> str:
     return FAQ.read_text(encoding="utf-8")
 
 
-def test_i_segnaposto_non_sono_numerati():
-    """La domanda 8 ci costruisce sopra due conclusioni: che l'uscita non si
-    possa ricollegare, e che non esista nessuna mappa da custodire."""
-    testo = "Scrivi a Mario Rossi <m.rossi@a.it> e a Luigi Bianchi <l.bianchi@b.it>"
-    atteso = "Scrivi a {{NAME}} <{{EMAIL}}> e a {{NAME}} <{{EMAIL}}>"
-    risultato, _ = apply_privacy_filter(testo, PrivacyOptions())
-    assert risultato == atteso
+TESTO_8 = "Scrivi a Mario Rossi <m.rossi@a.it> e a Luigi Bianchi <l.bianchi@b.it>"
+ATTESO_8 = "Scrivi a {{NAME_1}} <{{EMAIL_1}}> e a {{NAME_2}} <{{EMAIL_2}}>"
+
+
+def test_i_segnaposto_sono_numerati():
+    """Fino alla 1.19 questo test diceva l'opposto, e aveva ragione allora.
+
+    La domanda 8 costruiva su «i segnaposto non sono numerati» due
+    conclusioni: che in uscita non si potesse ricollegare chi era chi, e che
+    non esistesse nessuna mappa da custodire. La numerazione (1.20.0) toglie
+    la **prima** e lascia intatta la seconda, e la pagina e' stata riscritta
+    per dirlo invece di lasciare in piedi una promessa piu' larga del vero.
+    """
+    risultato, _ = apply_privacy_filter(TESTO_8, PrivacyOptions())
+    assert risultato == ATTESO_8
+
+
+def test_la_numerazione_non_e_stabile_fra_documenti():
+    """La proprieta' su cui la pagina *continua* a costruire.
+
+    Se `Mario Rossi` fosse `{{NAME_1}}` in ogni documento, il numero sarebbe
+    un identificatore persistente -- un dato personale nuovo, creato da noi.
+    Non lo e' perche' dipende dall'ordine di comparsa, e questo test lo
+    mostra invertendo l'ordine: la stessa persona cambia numero.
+    """
+    dritto, _ = apply_privacy_filter("Mario Rossi e Luigi Bianchi", PrivacyOptions())
+    rovescio, _ = apply_privacy_filter("Luigi Bianchi e Mario Rossi", PrivacyOptions())
+    assert dritto == "{{NAME_1}} e {{NAME_2}}"
+    assert rovescio == "{{NAME_1}} e {{NAME_2}}"
+    # Cioe': in uno «{{NAME_1}}» e' Mario, nell'altro e' Luigi. Il numero non
+    # e' una chiave su cui si possa fare un join fra due documenti.
+
+
+def test_spegnere_la_numerazione_riporta_la_forma_di_prima():
+    """La pagina lo promette a chi preferiva l'uscita della 1.19."""
+    risultato, _ = apply_privacy_filter(TESTO_8, PrivacyOptions(numerati=False))
+    assert risultato == "Scrivi a {{NAME}} <{{EMAIL}}> e a {{NAME}} <{{EMAIL}}>"
 
 
 def test_esempio_ancora_presente_nella_pagina(testo_faq):
     """Non basta che il codice si comporti così: l'esempio deve essere ancora
     sulla pagina. Toglierlo e lasciare la conclusione sarebbe l'overclaim."""
-    assert "{{NAME}}> <{{EMAIL}}>" not in testo_faq  # forma sbagliata
-    assert "Scrivi a {{NAME}} <{{EMAIL}}> e a {{NAME}} <{{EMAIL}}>" in testo_faq
+    assert "{{NAME_1}}> <{{EMAIL_1}}>" not in testo_faq  # forma sbagliata
+    assert ATTESO_8 in testo_faq
+
+
+def test_la_pagina_dice_cosa_si_e_perso(testo_faq):
+    """Il pezzo che e' facile dimenticare di scrivere.
+
+    La numerazione fa uscire una cosa che prima non usciva: quante persone
+    distinte ci sono e dove compare ciascuna. Se un domani qualcuno
+    accorcia la domanda 8 e lascia solo la parte comoda -- «non esiste
+    nessuna mappa» -- la pagina torna a promettere piu' del vero.
+    """
+    for pezzo in ("Cosa si è perso", "dentro un documento*, si può"):
+        assert pezzo in testo_faq, pezzo
 
 
 def test_due_passaggi_stesso_risultato():

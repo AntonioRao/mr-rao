@@ -67,6 +67,32 @@ l'intero progetto.
 **Mr. Rao Plus** — l'estensione per browser — è un prodotto distinto, non
 distribuito sotto AGPL, e non fa parte di questo repository.
 
+## 6. Corpora di terzi usati per misurare, e non distribuiti
+
+I numeri che questo progetto pubblica — falsi positivi, richiamo, copertura
+per categoria — sono misurati su documenti e corpora che **non sono
+nostri**. Nessuno di questi materiali sta dentro il repository o dentro il
+programma che si installa: gli script in `scripts/` li scaricano dalle
+fonti originali sulla macchina di chi esegue la misura, e lì restano.
+
+Il credito sta qui lo stesso, per due ragioni. La prima è che **le nostre
+misure si appoggiano al lavoro di qualcun altro**, e citarlo è ciò che le
+rende ricontrollabili invece che da credere sulla parola. La seconda è che
+le licenze qui sotto chiedono l'attribuzione a chi *usa* il materiale, non
+solo a chi lo ridistribuisce.
+
+| Materiale | Cosa misura | Licenza |
+|---|---|---|
+| Gazzette Ufficiali, moduli dell'Agenzia delle Entrate, moduli IRS (`scripts/scarica_corpus_pubblico.py`) | **Falsi positivi**: documenti pubblici che non contengono dati personali, dove ogni sostituzione è un errore | Documenti pubblici degli enti che li pubblicano |
+| `ai4privacy/open-pii-masking-500k-ai4privacy`, righe italiane (`scripts/scarica_corpus_ai4privacy.py`) | **Richiamo** sui dati con una forma riconoscibile | Il campo licenza dice `other`: il corpus è **generato con Llama 3.1/3.3**, quindi porta con sé la Llama Community License e la relativa Acceptable Use Policy, che si ereditano usandolo. Da guardare **prima** di legarlo a un prodotto commerciale |
+| `rizzoaiacademy/anonimizzazione-testi-italiano-clean`, split `validation` (`scripts/scarica_corpus_legale_it.py`) | **Richiamo** su testi amministrativi e legali italiani, con valori dai checksum validi | MIT |
+
+**Cosa non facciamo con questi corpora.** Non ci si addestra niente: il
+motore di Mr. Rao è deterministico e non ha pesi. Servono solo a misurare —
+e i loro limiti sono scritti nella docstring di ciascuno script, perché un
+corpus usato per la cosa sbagliata dà numeri che sembrano solidi e non lo
+sono.
+
 ---
 ---
 
@@ -114,3 +140,25 @@ included. That is the reason for the clause in
 [CONTRIBUTING.en.md](CONTRIBUTING.en.md). **Mr. Rao Plus** — the browser
 extension — is a separate product, not distributed under the AGPL, and is not
 part of this repository.
+
+**6. Third-party corpora used for measurement, and not redistributed.** The
+figures this project publishes — false positives, recall, per-category
+coverage — are measured on documents and corpora that are **not ours**. None
+of that material is inside the repository or the installed program: the
+scripts in `scripts/` download it from the original sources onto the machine
+of whoever runs the measurement, and there it stays. The credit belongs here
+all the same, for two reasons: our measurements **rest on somebody else's
+work**, and citing it is what makes them checkable rather than a matter of
+trust; and the licences below ask for attribution from whoever *uses* the
+material, not only from whoever redistributes it.
+
+| Material | What it measures | Licence |
+|---|---|---|
+| Italian *Gazzetta Ufficiale* issues, Agenzia delle Entrate forms, IRS forms (`scripts/scarica_corpus_pubblico.py`) | **False positives**: public documents containing no personal data, where every substitution is an error | Public documents of the bodies that publish them |
+| `ai4privacy/open-pii-masking-500k-ai4privacy`, Italian rows (`scripts/scarica_corpus_ai4privacy.py`) | **Recall** on data with a recognisable shape | The licence field says `other`: the corpus is **generated with Llama 3.1/3.3**, so it carries the Llama Community Licence and its Acceptable Use Policy, inherited by using it. To be checked **before** tying it to a commercial product |
+| `rizzoaiacademy/anonimizzazione-testi-italiano-clean`, `validation` split (`scripts/scarica_corpus_legale_it.py`) | **Recall** on Italian administrative and legal text, with checksum-valid values | MIT |
+
+Nothing is trained on any of it: the Mr. Rao engine is deterministic and has
+no weights. These corpora only measure — and the limits of each are written
+in the docstring of its script, because a corpus used for the wrong thing
+gives numbers that look solid and are not.

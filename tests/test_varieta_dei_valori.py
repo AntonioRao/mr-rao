@@ -39,10 +39,10 @@ RADICE = Path(__file__).resolve().parents[1]
 if str(RADICE) not in sys.path:
     sys.path.insert(0, str(RADICE))
 
+from aiuti import apply_privacy_filter  # noqa: E402  (vedi tests/aiuti.py)
 from mr_rao.privacy import (  # noqa: E402
     _RE_CF_OMOCODIA,
     PrivacyOptions,
-    apply_privacy_filter,
     cf_check_char_ok,
     only,
 )

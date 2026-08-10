@@ -143,6 +143,11 @@ def test_opzioni_riusate_restano_stabili_con_privacy_on(tmp_path):
 
     r_eml = convert_file(eml, options=opts)
     r_txt = convert_file(txt, options=opts)
-    assert "{{EMAIL}}" in r_eml.markdown
-    assert "{{EMAIL}}" in r_txt.markdown
+    # Tutte e due `_1`, non `_1` e `_2`: e' la prova che la numerazione non
+    # si accumula da un documento all'altro nemmeno riusando lo stesso
+    # oggetto opzioni. Un contatore che sopravvivesse alla conversione
+    # sarebbe un identificatore persistente, cioe' la cosa che questa
+    # funzione non deve diventare.
+    assert "{{EMAIL_1}}" in r_eml.markdown
+    assert "{{EMAIL_1}}" in r_txt.markdown
     assert opts.privacy.emails is True

@@ -89,7 +89,7 @@ def test_un_docx_vero_viene_anonimizzato(tmp_path):
     p = tmp_path / "lettera.docx"
     p.write_bytes(_docx_minimo("Contatta mario.rossi@example.it al 335 123 4567"))
     r = convert_file(p, options=ConvertOptions(include_frontmatter=False))
-    assert "{{EMAIL}}" in r.markdown and "{{PHONE}}" in r.markdown
+    assert "{{EMAIL_1}}" in r.markdown and "{{PHONE_1}}" in r.markdown
 
 
 def test_la_dipendenza_mancante_non_diventa_colpa_del_documento(monkeypatch, tmp_path):

@@ -1,0 +1,40 @@
+{
+ "documenti": 29297,
+ "categorie": {
+  "cards": {
+   "redatto": 15964,
+   "segnalato": 0,
+   "perso": 0
+  },
+  "codice_fiscale": {
+   "redatto": 57995,
+   "segnalato": 0,
+   "perso": 0
+  },
+  "emails": {
+   "redatto": 64277,
+   "segnalato": 0,
+   "perso": 609
+  },
+  "iban": {
+   "redatto": 25549,
+   "segnalato": 47,
+   "perso": 33
+  },
+  "names": {
+   "redatto": 72662,
+   "segnalato": 307,
+   "perso": 5571
+  },
+  "partita_iva": {
+   "redatto": 18394,
+   "segnalato": 0,
+   "perso": 301
+  },
+  "phones": {
+   "redatto": 40909,
+   "segnalato": 0,
+   "perso": 178
+  }
+ }
+}

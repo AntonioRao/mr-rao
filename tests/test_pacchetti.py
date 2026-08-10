@@ -27,8 +27,8 @@ from mr_rao.privacy import (
     PACCHETTI_NOTI,
     SEQUENZA,
     PrivacyOptions,
-    apply_privacy_filter,
 )
+from aiuti import apply_privacy_filter  # segnaposto appiattiti: vedi tests/aiuti.py
 
 # Un documento con dentro un dato universale e uno italiano, vicini.
 TESTO = (
