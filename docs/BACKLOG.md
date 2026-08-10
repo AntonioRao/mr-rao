@@ -245,6 +245,38 @@ lo scrive ha pensato»*. Il NER va misurato su corpora che non abbiamo
 scritto noi, altrimenti si ripete lo stesso errore con uno strumento piu'
 sofisticato.
 
+#### Quale libreria, e un vincolo nuovo (2026-08-10)
+
+**spaCy (MIT), non Stanza (Apache-2.0).** Le licenze vanno bene entrambe;
+decidono le dipendenze, e sono state guardate invece che ricordate:
+
+* `stanza` richiede **`torch`** e **`huggingface-hub`**. Il primo da solo
+  vale piu' di tutto il budget scritto qui sopra — 15–60 MB attesi su un
+  portable che ne pesa gia' 165. Il secondo e' peggio del peso: e' una
+  libreria che **scarica il modello dalla rete al primo uso**, e questo
+  prodotto promette che non esce niente. Si potrebbe imballare il modello e
+  aggiungere una guardia che provi l'assenza di traffico, ma e' lavoro in
+  piu' per arrivare dove spaCy arriva senza;
+* `spacy` non tira dentro `torch` (usa `thinc`, suo). Il modello italiano
+  piccolo si installa come pacchetto, quindi si imballa senza rete.
+
+**Il vincolo nuovo: esiste Mr. Rao Plus.** Questa sezione e' stata scritta
+il 2026-08-09, un giorno prima che nascesse il port TypeScript. Ne' spaCy
+ne' Stanza girano in un browser, e non ci gireranno: **il NER puo' essere
+solo una funzione di Mr. Rao, mai dell'estensione.**
+
+Il che va benissimo, e per una ragione precisa: la forma obbligatoria dice
+gia' **spento di default**. Finche' resta spento, i due motori continuano a
+rispondere uguale e il corpus di conformita' resta verde.
+
+Ma quella compatibilita' non deve restare una fortuna: **serve un test che
+pretenda che nessun caso del corpus accenda il NER.** Il giorno in cui
+qualcuno lo accende in un caso, il port non puo' seguirlo — e le uscite
+sono due, entrambe cattive: il corpus diventa rosso per sempre, oppure lo
+si indebolisce, che e' il modo di distruggere l'unico strumento che rende
+misurabile la divergenza fra i due motori. La divergenza va **dichiarata e
+sorvegliata**, non scoperta.
+
 #### Ordine di lavoro
 
 **Dopo P3.7.** Il NER lavora sui casi dubbi; P3.7 riguarda IBAN e carte che
