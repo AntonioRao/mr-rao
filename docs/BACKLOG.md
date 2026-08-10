@@ -493,6 +493,20 @@ un threat model scritto prima del codice. Mr. Rao resta quello che era.
 
 ---
 
+## P7 — Trovati dal banco che non girava (2026-08-10)
+
+**Da dove vengono.** Non da un'analisi: da una domanda. «Perché mi dice 1
+test skippato?» Quel test è `tests/test_corpus_pubblico.py`, e la risposta
+è stata peggiore della domanda — non salta per caso, salta **sempre**, e
+mentre saltava teneva coperti due reperti veri.
+
+| ID | Item | Perché | Stato |
+|----|------|--------|--------|
+| P7.1 | **Il banco sul corpus pubblico non può girare, e nel mentre nasconde l'altra metà** | Lo dice il repository stesso ([`scripts/scarica_corpus_pubblico.py`](../scripts/scarica_corpus_pubblico.py)): il corpus originale (54 documenti) **non è recuperabile**, quello ricostruibile ne ha 47, e «i numeri attesi vanno rifatti su di lui». Non sono mai stati rifatti. Quindi il test è in una posizione da cui non esce: **senza** corpus salta, **con** il corpus ricostruibile fallisce sull'impronta. Non esiste una configurazione in cui misuri qualcosa.<br><br>**E c'è un secondo difetto sotto il primo.** Il controllo sull'impronta fa `return` (`bench_corpus_pubblico.py`, in `confronta`): non è un avviso premesso agli altri controlli, li **salta tutti**. La metà a verità zero — i moduli in bianco, dove ogni sostituzione è un errore — non viene mai valutata quando l'impronta non torna. Sono 226 sostituzioni mai guardate, ed è così che è emersa P7.2.<br><br>**Cosa fare, nell'ordine**: (a) l'impronta diversa deve **avvisare e proseguire**, non uscire — i gruppi a verità zero non dipendono dal corpus congelato, si possono sempre valutare; (b) ricongelare l'atteso sul corpus riproducibile (verificato intero, 47/47) **dopo** aver chiuso P7.2, altrimenti si congela il difetto insieme al riferimento | Aperta |
+| P7.2 | **Le parole di struttura inglesi finiscono nei nomi** | `reported on Form 1125-A` esce `on {{NAME_1}} 1125-A`; `included on Schedule K` esce `on {{NAME_1}} K`. L'italiano è pulito — `sul Modulo 730 e sul Quadro RW` resta intatto — e il motivo è che il vocabolario che scherma le parole di struttura contiene `modulo`, `quadro`, `allegato` e non i loro equivalenti inglesi.<br><br>È lo stesso difetto di `Policlinico Agostino Gemelli`, chiuso in 1.20.0, tradotto in inglese: non una fuga, ma il falso positivo peggiore che questo prodotto possa fare, perché la frase perde il soggetto e chi legge il documento redatto non sa nemmeno cosa mancava.<br><br>**Quanto pesa**: 101 nomi su 47 documenti del corpus pubblico, concentrati sui moduli IRS. Le altre 105 sostituzioni sullo stesso corpus sono **URL istituzionali** (`irs.gov`, `agenziaentrate.gov.it`): lì il motore fa il suo mestiere, ed è la definizione di «verità zero» del banco a essere troppo severa — va corretta la definizione, non il motore.<br><br>Riguarda solo i documenti in inglese, che però sono nel perimetro dichiarato: l'interfaccia è bilingue e il motore riconosce `NHS_NUMBER` e `NINO` | Aperta |
+
+---
+
 ## Ordine di lavoro consigliato
 
 **Riscritto il 2026-08-10, dopo la 1.19.0.** La 1.19.0 ha chiuso P0.3, P3.17
