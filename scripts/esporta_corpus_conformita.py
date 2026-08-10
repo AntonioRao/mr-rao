@@ -89,16 +89,30 @@ def leggi_casi() -> list[dict]:
 
 
 def impronta() -> dict:
-    """Versione dell'app e SHA-256 dei sorgenti del motore."""
+    """Versione dell'app e SHA-256 dei sorgenti del motore.
+
+    **I fine riga vengono normalizzati prima di calcolare l'impronta**, e non
+    e' pignoleria: la prima versione leggeva i byte grezzi ed e' diventata
+    rossa in CI il giorno stesso. Su Windows git converte in CRLF nella copia
+    di lavoro, sul runner Linux resta LF: stesso contenuto, byte diversi,
+    impronta diversa. Il controllo diceva «il motore e' cambiato» quando il
+    motore non era stato toccato.
+
+    Un controllo che grida al lupo per una causa che non c'entra e' peggio di
+    uno assente: la prima volta lo si indaga, la seconda si rigenera il
+    corpus per far tacere il rosso — ed e' esattamente il gesto che questo
+    presidio esiste per impedire.
+    """
     return {
         "app": APP_VERSION,
-        "sorgenti": {
-            nome: hashlib.sha256(
-                (RADICE / nome).read_bytes()
-            ).hexdigest()
-            for nome in SORGENTI
-        },
+        "sorgenti": {nome: sha_sorgente(RADICE / nome) for nome in SORGENTI},
     }
+
+
+def sha_sorgente(percorso) -> str:
+    """SHA-256 del contenuto, indipendente da come git ha scritto le righe."""
+    testo = percorso.read_text(encoding="utf-8")
+    return hashlib.sha256(testo.replace("\r\n", "\n").encode("utf-8")).hexdigest()
 
 
 def esegui(caso: dict) -> dict:

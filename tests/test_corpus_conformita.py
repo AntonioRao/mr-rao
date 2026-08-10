@@ -224,3 +224,43 @@ def test_ogni_caso_dice_perche_esiste(casi):
         f"solo {len(gruppi)} gruppi nel corpus: la copertura per riconoscitore "
         "si e' ristretta"
     )
+
+
+def test_l_impronta_non_dipende_dai_fine_riga(tmp_path):
+    """La correzione pagata con una CI rossa, e il motivo per cui resta.
+
+    La prima versione dell'impronta leggeva i byte grezzi del sorgente. In
+    locale su Windows git scrive CRLF nella copia di lavoro, sul runner
+    Linux resta LF: stesso contenuto, byte diversi, impronta diversa. Il
+    controllo ha detto «il motore e' cambiato» su un commit che il motore
+    non lo toccava affatto.
+
+    **Un controllo che grida al lupo per una causa che non c'entra e' peggio
+    di uno assente.** La prima volta lo si indaga; la seconda si rigenera il
+    corpus per far tacere il rosso — che e' precisamente il gesto che questo
+    presidio esiste per impedire.
+    """
+    from scripts.esporta_corpus_conformita import sha_sorgente
+
+    contenuto = "def f():\n    return 1\n# accento: citta'\n"
+    lf = tmp_path / "lf.py"
+    crlf = tmp_path / "crlf.py"
+    lf.write_bytes(contenuto.encode("utf-8"))
+    crlf.write_bytes(contenuto.replace("\n", "\r\n").encode("utf-8"))
+
+    assert lf.read_bytes() != crlf.read_bytes(), "il caso di prova non e' valido"
+    assert sha_sorgente(lf) == sha_sorgente(crlf), (
+        "l'impronta cambia con i fine riga: tornera' rossa su un runner "
+        "Linux per un motivo che non c'entra col motore"
+    )
+
+
+def test_l_impronta_si_accorge_di_un_cambiamento_vero(tmp_path):
+    """Il verso opposto: normalizzare i fine riga non deve renderla cieca."""
+    from scripts.esporta_corpus_conformita import sha_sorgente
+
+    a = tmp_path / "a.py"
+    b = tmp_path / "b.py"
+    a.write_text("x = 1\n", encoding="utf-8")
+    b.write_text("x = 2\n", encoding="utf-8")
+    assert sha_sorgente(a) != sha_sorgente(b)
