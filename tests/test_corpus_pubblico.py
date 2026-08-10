@@ -67,14 +67,31 @@ def test_si_accorge_quando_il_motore_prende_meno():
     assert any("MENO" in g for g in guasti), guasti
 
 
-def test_si_accorge_di_una_sostituzione_sui_moduli_in_bianco():
-    """E la direzione che gli altri banchi guardano, tenuta anche qui:
-    su un modulo in bianco ogni sostituzione e' per definizione un errore."""
+def test_si_accorge_di_una_sostituzione_in_piu_sui_moduli_in_bianco():
+    """La soglia sui moduli in bianco non e' piu' «zero» ma «non piu' di
+    prima», e va provata nel verso giusto: una in piu' e' un guasto.
+
+    Perche' non e' piu' zero lo spiega `bench_corpus_pubblico.py`: un modulo
+    ufficiale porta i recapiti dell'ente che lo pubblica, e alcuni sono
+    firmati da una persona vera.
+    """
     atteso = _atteso()
     peggiorato = json.loads(json.dumps(atteso))
-    peggiorato["conteggi"]["itmod"] = {"names": 1}
+    categoria = peggiorato["conteggi"]["itmod"]
+    categoria["names"] = categoria.get("names", 0) + 1
     guasti = confronta(atteso, peggiorato)
-    assert any("atteso zero" in g for g in guasti), guasti
+    assert any("PIU'" in g for g in guasti), guasti
+
+
+def test_una_sostituzione_in_meno_sui_moduli_in_bianco_non_e_un_guasto():
+    """Il verso opposto, ed e' quello che rende utile il ratchet: togliere
+    un falso positivo deve poter passare senza rigenerare niente,
+    altrimenti ogni correzione richiede prima di aggiornare l'atteso e la
+    tentazione e' di aggiornarlo senza guardarlo."""
+    atteso = _atteso()
+    migliorato = json.loads(json.dumps(atteso))
+    migliorato["conteggi"]["itmod"] = {}
+    assert confronta(atteso, migliorato) == []
 
 
 def test_un_corpus_diverso_non_viene_scambiato_per_una_regressione():

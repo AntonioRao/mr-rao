@@ -24,9 +24,12 @@ li avrebbe trovati nessun banco fatto in casa.
 Due gruppi, due domande opposte
 -------------------------------
 
-* `itmod--*` e `irs--*` sono **moduli in bianco**: non contengono un solo
-  dato personale, quindi ogni sostituzione e' un errore. Atteso: **zero**,
-  e deve restare zero;
+* `itmod--*` e `irs--*` sono **moduli in bianco**: quasi tutto cio' che il
+  motore ci trova e' un falso positivo, e il numero **non deve crescere**.
+  Non «deve essere zero», come diceva questa riga fino al 2026-08-11: un
+  modulo ufficiale porta i recapiti dell'ente che lo pubblica, e qualcuno
+  e' firmato da una persona vera. Il perche' esteso sta su
+  `MODULI_IN_BIANCO`, piu' sotto;
 * `gu--*` e' **prosa giuridica vera**, con dentro indirizzi di ministeri e
   cognomi di ministri. Li' le sostituzioni sono giuste, e il numero non
   deve **scendere**.
@@ -70,8 +73,39 @@ from mr_rao.privacy import PrivacyOptions, apply_privacy_filter  # noqa: E402
 
 ATTESO = RADICE / "tests" / "dati" / "corpus_pubblico_atteso.json"
 
-# I gruppi in cui ogni sostituzione e' un errore.
-VERITA_ZERO = ("itmod", "irs")
+# I gruppi di moduli in bianco. **Non sono a zero assoluto, e credere che
+# lo fossero e' stato il difetto.**
+#
+# L'idea era: un modulo in bianco non contiene dati personali, quindi ogni
+# sostituzione e' un errore. Vera sul corpus originale (54 documenti, oggi
+# perduto), falsa su qualunque altro, e per due ragioni che non si possono
+# togliere:
+#
+#   * un modulo ufficiale porta i **recapiti dell'ente che lo pubblica** --
+#     `www.irs.gov`, `via Giorgione 106`, `phishing@irs.gov`. Sono un URL,
+#     un indirizzo e un'email veri, e il motore fa il suo mestiere a
+#     toglierli. Non sono dati personali di nessuno, ma non c'e' modo di
+#     distinguerli guardando la forma, e non dovrebbe essercene: un
+#     indirizzo e' un indirizzo;
+#   * alcuni moduli sono **firmati**. `Rossella Orlandi` su un provvedimento
+#     dell'Agenzia delle Entrate e' una persona vera, e redigerla e' giusto.
+#     Quel documento non e' a verita' zero, e chiamarlo cosi' era
+#     un'etichetta sbagliata, non un difetto del motore.
+#
+# Quindi il controllo non e' piu' «zero» ma **«non piu' di prima»**: i
+# conteggi si congelano e crescere e' un guasto. Perde la purezza della
+# soglia assoluta e guadagna la sola cosa che serve -- accorgersi quando il
+# motore comincia a prendere roba che prima non prendeva.
+#
+# Il ratchet e' onesto perche' il numero congelato **si guarda**: le 226
+# sostituzioni di partenza contenevano tre difetti veri (`on` letto come
+# «onorevole», `at` letto come chiocciola, civico attaccato al tipo di via),
+# trovati proprio guardandole una per una. Congelare senza guardare
+# sarebbe stato il modo di renderle invisibili per sempre.
+MODULI_IN_BIANCO = ("itmod", "irs")
+
+# Nome storico, tenuto perche' lo importano altri file.
+VERITA_ZERO = MODULI_IN_BIANCO
 
 
 def corpo(t: str) -> str:
@@ -126,19 +160,55 @@ def misura(cartella: Path) -> dict:
 
 
 def confronta(atteso: dict, ora: dict) -> list[str]:
-    """Restituisce i guasti. Vuoto = tutto a posto."""
-    guasti: list[str] = []
-    if atteso["impronta"] != ora["impronta"]:
-        return [f"corpus diverso da quello congelato "
-                f"({ora['documenti']} documenti, impronta {ora['impronta']}, "
-                f"attesa {atteso['impronta']}): i numeri non sono confrontabili"]
+    """Restituisce i guasti. Vuoto = tutto a posto.
 
-    for gruppo in VERITA_ZERO:
-        n = sum(ora["conteggi"].get(gruppo, {}).values())
-        if n:
-            guasti.append(
-                f"{gruppo}: {n} sostituzioni su moduli in bianco, atteso zero — "
-                f"{ora['conteggi'][gruppo]}")
+    L'impronta diversa **avvisa e prosegue**, non esce.
+    ---------------------------------------------------
+
+    Prima usciva, e per mesi ha nascosto la meta' piu' importante di questo
+    banco. Il ragionamento sembrava solido: corpus diverso, numeri non
+    confrontabili, inutile continuare. Ed e' vero **solo** per i confronti
+    che guardano l'atteso congelato.
+
+    I gruppi a verita' zero non lo guardano. Sono moduli in bianco: l'attesa
+    e' zero perche' non c'e' niente da togliere, e vale su **qualunque**
+    modulo in bianco, congelato o no. Saltarli quando l'impronta non torna
+    voleva dire spegnere l'unico controllo che non dipendeva dall'impronta.
+
+    Quanto e' costato: 226 sostituzioni su documenti senza un solo dato
+    personale, mai guardate da nessuno, e dentro c'era un difetto vero --
+    `on` era nell'elenco dei titoli («onorevole») col punto facoltativo, e
+    ogni `on` seguito da una parola maiuscola diventava una persona.
+
+    Un banco che tace quando cambia il corpus non e' prudente: e' cieco
+    proprio nel momento in cui qualcuno lo sta toccando.
+    """
+    guasti: list[str] = []
+    corpus_diverso = atteso["impronta"] != ora["impronta"]
+    if corpus_diverso:
+        guasti.append(
+            f"corpus diverso da quello congelato "
+            f"({ora['documenti']} documenti, impronta {ora['impronta']}, "
+            f"attesa {atteso['impronta']}): i confronti con l'atteso sono "
+            f"sospesi, i moduli in bianco no")
+
+    # I moduli in bianco: non piu' di prima, categoria per categoria.
+    # Il confronto e' per categoria e non sul totale, perche' un totale che
+    # resta uguale mentre gli indirizzi calano e i nomi salgono descrive due
+    # cose opposte con lo stesso numero.
+    for gruppo in MODULI_IN_BIANCO:
+        prima = atteso.get("conteggi", {}).get(gruppo, {})
+        adesso = ora["conteggi"].get(gruppo, {})
+        for categoria in sorted(set(prima) | set(adesso)):
+            era, ha = prima.get(categoria, 0), adesso.get(categoria, 0)
+            if ha > era:
+                guasti.append(
+                    f"{gruppo}/{categoria}: da {era} a {ha} su moduli in "
+                    f"bianco — il motore prende PIU' di prima dove non "
+                    f"dovrebbe prendere niente di nuovo")
+
+    if corpus_diverso:
+        return guasti
 
     for gruppo, categorie in atteso["conteggi"].items():
         if gruppo in VERITA_ZERO:
@@ -169,11 +239,11 @@ def main() -> int:
     ora = misura(cartella)
     print(f"{ora['documenti']} documenti, impronta {ora['impronta']}")
     for gruppo, categorie in ora["conteggi"].items():
-        marchio = "  (atteso zero)" if gruppo in VERITA_ZERO else ""
+        marchio = "  (moduli in bianco)" if gruppo in VERITA_ZERO else ""
         print(f"  {gruppo:<8} {sum(categorie.values()):>5}{marchio}   {categorie}")
     for gruppo in VERITA_ZERO:
         if gruppo not in ora["conteggi"]:
-            print(f"  {gruppo:<8} {0:>5}  (atteso zero)")
+            print(f"  {gruppo:<8} {0:>5}  (moduli in bianco)")
 
     if args.rigenera:
         ATTESO.write_text(json.dumps(ora, indent=2, ensure_ascii=False) + "\n",

@@ -1,5 +1,62 @@
 # Changelog
 
+## 1.22.0 — Tre falsi positivi trovati da un banco che non girava
+
+### `on` era un titolo, e il punto era facoltativo
+
+`reported on Form 1125-A` usciva `reported on {{NAME_1}} 1125-A`. `included on
+Schedule K` perdeva la parola `Schedule`.
+
+Nell'elenco dei titoli professionali c'era **`on`** — l'abbreviazione di
+«onorevole» — e la regola accettava il punto come facoltativo. Risultato: ogni
+`on` seguito da una parola maiuscola diventava una persona. In inglese `on` è
+una preposizione, quindi succedeva a ogni riga.
+
+**Non è un difetto dei documenti inglesi**, ed è la cosa che avevamo capito
+male: `Income included on Quadro K` sbagliava identico in italiano. I documenti
+inglesi lo *rivelano*, non lo causano.
+
+Ora c'è una classe di abbreviazioni che pretendono il punto: `On. Mario Rossi`
+funziona, `on Form` no. Chi scrive «On Mario Rossi» senza punto perde questa
+regola ma non il riconoscimento — nome e cognome adiacenti ne hanno una loro.
+
+**Nomi inventati sui moduli fiscali statunitensi in bianco: da 100 a 2.**
+
+### E altri due, dallo stesso posto
+
+**`at` nudo letto come chiocciola.** `available at IRS.gov`, `visit us at
+IRS.gov`, `estimator at www.irs.gov` finivano tutti in `{{EMAIL}}`: dieci
+falsi positivi su undici, su moduli che non contengono un solo indirizzo di
+posta. Ora un `at` senza parentesi pretende che **anche il punto sia
+offuscato** — `mario at esempio dot it` resta riconosciuto, `available at
+IRS.gov` no. Chi maschera un indirizzo lo maschera tutto.
+
+**Civico attaccato al tipo di via.** `43 Court` (da «43 Court Ordered
+Payments»), `225 St`, `2 Circle` erano indirizzi. Ora fra il numero e il tipo
+di via serve almeno una parola: è il nome della strada, e in un indirizzo vero
+c'è sempre.
+
+**Il costo è misurato: zero.** Richiamo invariato su 29 297 documenti — nomi
+99,4%, email 99,9%, IBAN 99,8%, carte e codice fiscale 100%. Il corpus di
+conformità cambia in **un solo caso su 191**, e quel caso era il difetto
+congelato come comportamento atteso.
+
+### Il banco che non poteva girare
+
+Tutti e tre sono usciti da `bench_corpus_pubblico.py`, che **non girava**.
+Senza corpus si autoescludeva, con il corpus ricostruibile falliva
+sull'impronta — e l'impronta diversa faceva `return`, saltando anche i
+controlli che con l'impronta non c'entravano niente. 226 sostituzioni su
+documenti senza dati personali, mai guardate da nessuno.
+
+Ora l'impronta **avvisa e prosegue**. E la soglia è cambiata, perché era
+sbagliata in partenza: «zero» è falso su qualunque modulo ufficiale, che porta
+i recapiti dell'ente che lo pubblica e a volte la firma di una persona vera —
+`Rossella Orlandi` su un provvedimento dell'Agenzia delle Entrate non era un
+falso positivo, era un'etichetta sbagliata del corpus. Adesso è un **ratchet
+per categoria**: crescere è un guasto, calare passa senza dover rigenerare
+niente.
+
 ## 1.21.0 — Un installer, e quattro modi di prendere Mr. Rao che dicono in cosa differiscono
 
 Fino a ieri le confezioni erano due: lo zip portable e l'MSIX per il

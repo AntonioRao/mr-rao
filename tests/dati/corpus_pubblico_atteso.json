@@ -1,12 +1,29 @@
 {
-  "impronta": "f168a0a37975841a",
-  "documenti": 54,
+  "impronta": "dba7fa491e67f615",
+  "documenti": 47,
   "conteggi": {
     "gu": {
-      "addresses": 42,
-      "names": 107
+      "addresses": 218,
+      "codice_fiscale": 11,
+      "emails": 56,
+      "iban": 1,
+      "names": 391,
+      "partita_iva": 17,
+      "phones": 123,
+      "secrets": 1,
+      "urls": 75
     },
-    "irs": {},
-    "itmod": {}
+    "irs": {
+      "addresses": 1,
+      "emails": 2,
+      "names": 1,
+      "urls": 92
+    },
+    "itmod": {
+      "addresses": 4,
+      "emails": 4,
+      "names": 1,
+      "urls": 13
+    }
   }
 }

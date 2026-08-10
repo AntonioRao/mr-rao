@@ -370,14 +370,42 @@ _RE_EMAIL_SPEZZATA = re.compile(
 # quello scritto a cavallo di due righe che divorare un paragrafo.
 _ORIZZ = r"[^\S\r\n]"
 
+# La chiocciola **dichiarata**: fra parentesi di qualunque tipo, o scritta
+# per esteso. Chi scrive cosi' sta offuscando, e non c'e' altro modo di
+# leggerlo.
+_AT_MARCATO = (
+    rf"(?:\[{_ORIZZ}*at{_ORIZZ}*\]|\({_ORIZZ}*at{_ORIZZ}*\)"
+    rf"|\{{{_ORIZZ}*at{_ORIZZ}*\}}|\bchiocciola\b)"
+)
+# La chiocciola **presunta**: un `at` nudo fra due spazi. In italiano e' raro,
+# in inglese e' una preposizione ordinaria.
+_AT_NUDO = rf"{_ORIZZ}+at{_ORIZZ}+"
+
+_PUNTO_MARCATO = (
+    rf"(?:\[{_ORIZZ}*(?:dot|punto){_ORIZZ}*\]|\({_ORIZZ}*(?:dot|punto){_ORIZZ}*\)"
+    rf"|\bpunto\b|\bdot\b)"
+)
+_PUNTO_QUALSIASI = rf"(?:{_PUNTO_MARCATO}|\.)"
+_LOCALE_OFF = r"[A-Za-z0-9._%+\-]+"
+_PEZZO_OFF = r"[A-Za-z0-9\-]+"
+
+# **Il `at` nudo pretende che anche il punto sia offuscato**, e non e' una
+# raffinatezza: e' il difetto piu' grosso che il corpus a verita' zero abbia
+# rivelato. `available at IRS.gov`, `visit us at IRS.gov`, `estimator at
+# www.irs.gov` finivano tutti in `{{EMAIL}}` -- dieci falsi positivi su
+# undici, su moduli senza un solo indirizzo di posta. In inglese «at» davanti
+# a un dominio e' il modo normale di scrivere «lo trovi qui».
+#
+# Il criterio: chi maschera un indirizzo lo maschera **tutto**. `mario at
+# esempio dot it` resta riconosciuto, `available at IRS.gov` no. La forma
+# con le parentesi non ha bisogno di questa stretta, perche' li' l'intenzione
+# e' gia' scritta.
 _RE_EMAIL_OFFUSCATA = re.compile(
-    rf"(?i)\b[A-Za-z0-9._%+\-]+{_ORIZZ}*"
-    rf"(?:\[{_ORIZZ}*at{_ORIZZ}*\]|\({_ORIZZ}*at{_ORIZZ}*\)|\{{{_ORIZZ}*at{_ORIZZ}*\}}"
-    rf"|\bchiocciola\b|{_ORIZZ}+at{_ORIZZ}+){_ORIZZ}*"
-    rf"[A-Za-z0-9\-]+"
-    rf"(?:{_ORIZZ}*(?:\[{_ORIZZ}*(?:dot|punto){_ORIZZ}*\]|\({_ORIZZ}*(?:dot|punto){_ORIZZ}*\)"
-    rf"|\bpunto\b|\bdot\b|\.){_ORIZZ}*"
-    rf"[A-Za-z0-9\-]+)+"
+    rf"(?i)\b{_LOCALE_OFF}{_ORIZZ}*"
+    rf"(?:{_AT_MARCATO}{_ORIZZ}*{_PEZZO_OFF}"
+    rf"(?:{_ORIZZ}*{_PUNTO_QUALSIASI}{_ORIZZ}*{_PEZZO_OFF})+"
+    rf"|{_AT_NUDO}{_ORIZZ}*{_PEZZO_OFF}"
+    rf"(?:{_ORIZZ}*{_PUNTO_MARCATO}{_ORIZZ}*{_PEZZO_OFF})+)"
 )
 
 # La chiocciola **vera**, con lo spazio attorno:
@@ -821,9 +849,29 @@ _TITLES = (
     r"sig|sig\.ra|sig\.na|signor|signora|signorina|dott|dott\.ssa|dr|dr\.ssa|"
     r"dottor|dottore|dottoressa|ing|ingegner|ingegnere|avv|avvocato|"
     r"avvocatessa|geom|geometra|arch|architetto|prof|prof\.ssa|professor|"
-    r"professore|professoressa|rag|ragionier|ragioniere|on|onorevole|"
+    r"professore|professoressa|rag|ragionier|ragioniere|onorevole|"
     r"egr|gent|mr|mrs|ms"
 )
+
+# Abbreviazioni che **senza il punto sono parole comuni**, e che quindi il
+# punto lo devono avere.
+#
+# `on.` e' «onorevole», e stava insieme agli altri titoli con il punto
+# facoltativo. Il risultato: **ogni `on` seguito da una parola maiuscola
+# diventava una persona**. In inglese `on` e' una preposizione, quindi
+# `reported on Form 1125-A` usciva `reported on {{NAME_1}} 1125-A` e
+# `included on Schedule K` perdeva la parola `Schedule`.
+#
+# Non e' un difetto dei documenti inglesi, e' un difetto che i documenti
+# inglesi rivelano: `Income included on Quadro K` sbagliava allo stesso
+# modo in italiano. Misurato sul corpus pubblico: **101 nomi inventati** su
+# 47 documenti a verita' zero, quasi tutti moduli fiscali statunitensi.
+#
+# Il punto non e' una formalita': `On. Mario Rossi` e' come si scrive
+# davvero l'abbreviazione. Senza punto non e' un'abbreviazione, e' un'altra
+# parola. Chi scrive `On Mario Rossi` perde questa regola ma non il
+# riconoscimento: nome e cognome adiacenti hanno una regola loro.
+_TITOLI_COL_PUNTO = r"on"
 
 # Fra un nome e il suo cognome ci puo' essere uno spazio, non un a capo:
 # usare \s farebbe attraversare le righe e incollerebbe la firma alla riga
@@ -832,7 +880,8 @@ _TITLES = (
 _SP = r"[ \t]+"
 
 _RE_TITLE_NAME = re.compile(
-    rf"(?<!\w)(?i:{_TITLES})\.?{_SP}(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+    rf"(?<!\w)(?:(?i:{_TITLES})\.?|(?i:{_TITOLI_COL_PUNTO})\.)"
+    rf"{_SP}(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
 )
 
 # Un nome accanto a un indirizzo di posta: "Mario Rossi <mario@x.it>",
@@ -2739,7 +2788,14 @@ _US_ZIP = r"\d{5}(?:-\d{4})?"
 _RE_EN_ADDRESS = re.compile(
     r"(?<![\w/-])"
     r"\d{1,5}[A-Za-z]?"                                   # il civico
-    rf"{_SP}(?:{_TOK}{_SP}){{0,3}}(?i:{_EN_TIPI_VIA})\b"   # ... Baker Street
+    # Almeno **una** parola fra il civico e il tipo di via: e' il nome della
+    # strada, e in un indirizzo vero c'e' sempre. Con zero ammesse bastava
+    # «numero + parola che e' anche un tipo di via», e sui moduli fiscali
+    # statunitensi in bianco usciva `43 Court` (da «43 Court Ordered
+    # Payments»), `225 St`, `2 Circle`: nove indirizzi inventati su documenti
+    # che non ne contengono nessuno. Un civico attaccato al tipo di via senza
+    # nome in mezzo non e' un indirizzo, e' un numero seguito da una parola.
+    rf"{_SP}(?:{_TOK}{_SP}){{1,3}}(?i:{_EN_TIPI_VIA})\b"   # ... Baker Street
     rf"(?:{_SP}(?i:NE|NW|SE|SW|N|S|E|W)\b)?"              # ... Avenue NW
     rf"(?:,[ \t]*[^,\n]{{1,40}}){{0,3}}"                  # interno, citta'
     rf"(?:[ \t]+(?:{_UK_POSTCODE}|{_US_ZIP}))?"           # e il codice postale
