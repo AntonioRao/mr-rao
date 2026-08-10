@@ -9,8 +9,8 @@
 [![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.20.0-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1763%20passing-10b981)](tests/)
+[![Version](https://img.shields.io/badge/version-1.21.0-3b82f6)](docs/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-1774%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -224,11 +224,19 @@ leaves the room.
 
 ### Windows, without installing Python
 
-**[⬇️ Download the latest release](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** — then extract the zip and double-click **`Installa Mr Rao.bat`**.
+Three packages of the same program, from the same build. They are **not equivalent**, and the difference that matters is what Windows will say:
+
+| | | Windows will say |
+|---|---|---|
+| **[⬇️ Installer `.exe`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe)** | Double-click and done, with an entry under "Installed apps" to remove it | "Unknown publisher" — the package is **not signed** |
+| **[⬇️ Portable `.zip`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** | No installation: extract and run, from a USB stick too, with its data next to the program | A milder warning on the downloaded file |
+| **Microsoft Store** — *coming soon* | One click, and Windows handles the uninstall | **Nothing**: Microsoft signs it |
 
 Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is ~165 MB, ~330 MB once installed.
 
-Installing creates the desktop shortcut, the Start menu entry and the "Apri con Mr. Rao" right-click action on any file, with a dedicated entry for the ten commonest formats. `Disinstalla Mr Rao.bat` removes all of it — your working folders stay where they are.
+With the zip, installing means running `Installa Mr Rao.bat`. Either way you get the desktop shortcut, the Start menu entry and the "Apri con Mr. Rao" right-click action on any file, with a dedicated entry for the ten commonest formats — and it is **the same script** doing it (`mr_rao_shell.ps1`), so the two paths cannot drift apart. `Disinstalla Mr Rao.bat`, or the Windows uninstaller, removes all of it — your working folders stay where they are.
+
+Why the warning appears, and how to check where the file really came from instead of taking our word for it, is [further down](#windows-will-say-the-publisher-is-unknown).
 
 ### With Python
 
@@ -382,7 +390,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Six steps: compilation, importing every module one by one, dependency health, licence alignment, **1763 tests**, published-docs alignment.
+Six steps: compilation, importing every module one by one, dependency health, licence alignment, **1774 tests**, published-docs alignment.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 

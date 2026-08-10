@@ -169,16 +169,18 @@ def test_la_pubblicazione_non_avviene_da_sola():
     assert passi[0].get("if") == "inputs.pubblica != ''"
 
 
-def test_alla_release_finiscono_tutti_e_tre_gli_allegati():
-    """`make_release_zip.py` ne produce tre e stampa «allegare TUTTI E TRE».
+def test_alla_release_finiscono_tutti_gli_allegati():
+    """Erano tre, da quando c'e' l'installer sono cinque.
+
     Questo passo ne caricava due: l'archivio versionato era rimasto fuori da
     quando e' entrato (P3.4).
 
-    I due nomi non sono ridondanti. Quello **fisso** e' l'unica cosa che fa
-    funzionare `/releases/latest/download/...`, cioe' i link di
-    scaricamento nei due README e nella landing: se manca, quei link danno
-    404 e non lo dice nessuno. Quello **versionato** e' cio' che resta
-    riconoscibile nella cartella Download di chi scarica.
+    I due nomi non sono ridondanti, e vale per **tutte e due** le confezioni
+    scaricabili. Quello **fisso** e' l'unica cosa che fa funzionare
+    `/releases/latest/download/...`, cioe' i pulsanti nei due README e nelle
+    due landing: se manca, quei link danno 404 e non lo dice nessuno. Quello
+    **versionato** e' cio' che resta riconoscibile nella cartella Download di
+    chi scarica.
 
     L'MSIX non deve esserci: non e' firmato, e uno scaricato da qui non si
     installa. Va allo Store, che e' l'unico posto in cui quel pacchetto ha
@@ -188,8 +190,27 @@ def test_alla_release_finiscono_tutti_e_tre_gli_allegati():
     comando = str(passo["run"])
     assert "dist/MrRao-Portable.zip" in comando, "manca l'archivio a nome fisso"
     assert "dist/MrRao-Portable-*.zip" in comando, "manca l'archivio versionato"
+    assert "dist/MrRaoSetup.exe" in comando, "manca l'installer a nome fisso"
+    assert "dist/MrRaoSetup-*.exe" in comando, "manca l'installer versionato"
     assert "SHA256SUMS.txt" in comando, "mancano le impronte"
     assert ".msix" not in comando, "l'MSIX non firmato non va allegato alla release"
+
+
+def test_l_attestazione_copre_ogni_confezione():
+    """La provenienza vale per cio' che si scarica, non per una parte.
+
+    L'attestazione Sigstore e' l'unica risposta che questo progetto puo' dare
+    a «da dove viene questo file»: non c'e' un certificato di code signing, e
+    il README ci manda esplicitamente (`gh attestation verify`). Una
+    confezione lasciata fuori dall'elenco e' una confezione su cui quel
+    comando risponde che non ne sa niente -- proprio la piu' nuova, cioe'
+    quella su cui Windows fara' l'avviso piu' spaventoso.
+    """
+    passi = [p for p in _portable()["steps"] if "attest-build-provenance" in str(p.get("uses", ""))]
+    assert len(passi) == 1, passi
+    soggetti = str(passi[0]["with"]["subject-path"])
+    for atteso in ("MrRao-Portable*.zip", "MrRao-*.msix", "MrRaoSetup*.exe"):
+        assert atteso in soggetti, f"{atteso} non e' fra i file attestati"
 
 
 def test_le_licenze_del_pacchetto_pubblicato_non_sono_saltate():

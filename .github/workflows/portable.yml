@@ -159,6 +159,22 @@ jobs:
         run: venv\Scripts\python scripts\make_msix.py
         shell: cmd
 
+      # La terza confezione, dalla stessa cartella delle altre due.
+      #
+      # Inno Setup e' preinstallato sui runner windows-latest (6.7.1), quindi
+      # non c'e' niente da installare qui: se un domani sparisse dall'immagine,
+      # questo passo fallirebbe dicendolo invece di produrre un pacchetto in
+      # meno senza che nessuno se ne accorga.
+      #
+      # L'installer **non e' firmato**, e Windows dira' «editore sconosciuto».
+      # E' la stessa condizione dello zip, resa piu' visibile dal fatto che un
+      # `.exe` scaricato da internet e' il caso che SmartScreen tratta peggio.
+      # I pulsanti nei README e nelle landing lo dicono, invece di lasciarlo
+      # scoprire a chi ha gia' cliccato.
+      - name: Installer .exe (Inno Setup)
+        run: venv\Scripts\python scripts\make_installer.py
+        shell: cmd
+
       - name: Firma del pacchetto (Sigstore)
         uses: actions/attest-build-provenance@v3
         with:
@@ -169,6 +185,7 @@ jobs:
           subject-path: |
             dist/MrRao-Portable*.zip
             dist/MrRao-*.msix
+            dist/MrRaoSetup*.exe
 
       - name: Pacchetto costruito in camera pulita
         if: github.event_name == 'workflow_dispatch'
@@ -178,6 +195,7 @@ jobs:
           path: |
             dist/MrRao-Portable-*.zip
             dist/MrRao-*.msix
+            dist/MrRaoSetup-*.exe
             dist/SHA256SUMS.txt
           retention-days: 7
           if-no-files-found: error
@@ -258,6 +276,11 @@ jobs:
       #    caricava due;
       #  * `SHA256SUMS.txt`, che nomina entrambi.
       #
+      # E lo stesso vale per l'installer, che nasce con la stessa coppia di
+      # nomi e per la stessa ragione: `MrRaoSetup.exe` senza numero regge il
+      # pulsante «Installer» delle due landing, `MrRaoSetup-<versione>.exe`
+      # resta riconoscibile nella cartella Download.
+      #
       # L'MSIX **non** si allega: non e' firmato -- lo firma Microsoft dopo
       # la certificazione -- e un pacchetto non firmato scaricato da qui non
       # si installa senza sideload. Va allo Store, non alla release.
@@ -267,6 +290,8 @@ jobs:
           gh release upload "${{ inputs.pubblica }}"
           dist/MrRao-Portable.zip
           dist/MrRao-Portable-*.zip
+          dist/MrRaoSetup.exe
+          dist/MrRaoSetup-*.exe
           dist/SHA256SUMS.txt
           --clobber
         shell: bash

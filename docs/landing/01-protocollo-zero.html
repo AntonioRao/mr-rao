@@ -366,6 +366,61 @@
     background: rgba(10,16,12,0.6);
   }
   .btn-ghost:hover { border-color: var(--phosphor-dim); color: var(--phosphor); }
+  /* I quattro modi di prendere Mr. Rao. Non sono equivalenti, e la griglia
+     non deve far finta che lo siano: sotto ogni pulsante c'e' una riga che
+     dice cosa cambia davvero, cioe' se Windows mostrera' l'avviso. Quattro
+     pulsanti uguali manderebbero la maggioranza sulla strada con l'avviso
+     piu' spaventoso senza dirglielo prima. */
+  .dl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+    gap: 0.85rem;
+    margin-top: 1.5rem;
+  }
+  .dl-card { display: flex; flex-direction: column; gap: 0.5rem; }
+  .dl-card .btn { justify-content: center; text-align: center; min-height: 3.2rem; }
+  .dl-note {
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--fog);
+    margin: 0;
+  }
+  .dl-note.warn { color: var(--amber); }
+  /* Il pulsante dello Store c'e' gia' ma non porta da nessuna parte finche'
+     la certificazione non passa: e' uno <span>, non un <a>, cosi' non
+     esiste un link morto da cliccare. */
+  /* L'etichetta sta in alto e la fascia sotto, non al centro: una fascia
+     che passa per il mezzo del pulsante coprirebbe proprio la parola
+     «Microsoft Store», cioe' la sola cosa che quel pulsante deve dire. */
+  .btn-soon {
+    position: relative;
+    overflow: hidden;
+    border: 1px dashed var(--line);
+    color: var(--fog);
+    background: rgba(10,16,12,0.4);
+    cursor: default;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0;
+    padding-top: 0.7rem;
+  }
+  .btn-soon-label { position: relative; z-index: 1; }
+  .btn-soon-band {
+    position: absolute;
+    left: -18%;
+    right: -18%;
+    bottom: 0.3rem;
+    transform: rotate(-7deg);
+    padding: 0.2rem 0;
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--phosphor);
+    background: rgba(61,255,154,0.16);
+    border-top: 1px solid rgba(61,255,154,0.45);
+    border-bottom: 1px solid rgba(61,255,154,0.45);
+  }
   .meta-row {
     margin-top: 2.5rem;
     display: flex;
@@ -751,7 +806,7 @@
           <img class="wm-logo" src="../../static/img/logo.svg" alt="" width="512" height="512" />
           <span>Mr<span class="dot">.</span>Rao</span>
         </span>
-        <span class="ver">offline by design · v1.20.0</span>
+        <span class="ver">offline by design · v1.21.0</span>
       </p>
       <h1>
         <span class="line-reveal"><span>Il contratto</span></span>
@@ -954,9 +1009,23 @@
       Portable Windows, niente Python. Oppure clona il repo e fai girare i test.
       Se il motore sbaglia su un documento tuo (senza dati reali in issue), dillo: è l’unico modo per migliorarlo.
     </p>
-    <div class="actions">
-      <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">↓ MrRao-Portable.zip</a>
-      <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">github.com/AntonioRao/mr-rao</a>
+    <div class="dl-grid">
+      <div class="dl-card">
+        <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">↓ Installer .exe</a>
+        <p class="dl-note warn">Doppio clic e installato. Windows dirà «editore sconosciuto»: il pacchetto non è firmato.</p>
+      </div>
+      <div class="dl-card">
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">↓ Portable .zip</a>
+        <p class="dl-note">Nessuna installazione. Va anche su chiavetta, con i dati accanto al programma.</p>
+      </div>
+      <div class="dl-card">
+        <span class="btn btn-soon" aria-disabled="true"><span class="btn-soon-label">Microsoft Store</span><span class="btn-soon-band">in arrivo</span></span>
+        <p class="dl-note">Un clic e nessun avviso: lo firma Microsoft. In certificazione.</p>
+      </div>
+      <div class="dl-card">
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">↗ GitHub</a>
+        <p class="dl-note">Il codice, i 1774 test e le attestazioni di provenienza di ogni file.</p>
+      </div>
     </div>
   </section>
 

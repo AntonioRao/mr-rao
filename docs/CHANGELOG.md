@@ -1,5 +1,66 @@
 # Changelog
 
+## 1.21.0 — Un installer, e quattro modi di prendere Mr. Rao che dicono in cosa differiscono
+
+Fino a ieri le confezioni erano due: lo zip portable e l'MSIX per il
+Microsoft Store. In mezzo mancava il caso più comune su Windows — scarico un
+file, doppio clic, installato — e chi non voleva scompattare uno zip non
+aveva una strada.
+
+Adesso ce n'è una terza, **costruita dalla stessa build delle altre due**:
+`MrRaoSetup.exe`, fatto con Inno Setup dal workflow che già produce lo zip e
+l'MSIX. Installa in `%LOCALAPPDATA%\MrRao` senza chiedere l'elevazione, mette
+la voce in «App installate» e si disinstalla da lì.
+
+### Quello che l'installer non fa, ed è la parte importante
+
+Non sa niente di collegamenti, di menu contestuale e di estensioni: **chiama
+`mr_rao_shell.ps1`**, lo stesso script che usa `Installa Mr Rao.bat`.
+
+Non è pigrizia. Quello script esiste proprio perché era già successo il
+contrario: quando l'elenco delle dieci estensioni viveva in due file, i due
+sono andati fuori sincrono e la disinstallazione lasciava voci di menu che
+puntavano a un eseguibile non più esistente. Riscrivere quelle undici chiavi
+dentro il copione dell'installer avrebbe ricreato lo stesso difetto con una
+confezione in più. C'è un test che lo impedisce, e nel primo giro ha bocciato
+il copione per il `.txt` di `LEGGIMI.txt`: guardava la stringa invece
+dell'uso, ed è stato stretto.
+
+Stessa storia per la versione precedente, che l'installer **rimuove** invece
+di sovrascrivere: aggiornando dalla 1.3.2 alla 1.3.3 erano rimasti sul disco
+120 MB di librerie non più incluse, perché una copia sovrascrive ciò che
+trova e non tocca ciò che non c'è più.
+
+### Quattro pulsanti che non fingono di essere equivalenti
+
+Sulle due landing e nei due README ci sono ora quattro strade: installer,
+portable, Microsoft Store — con la fascia «in arrivo», finché la
+certificazione non passa — e GitHub.
+
+Sotto ognuna c'è scritto **cosa cambia davvero**, cioè cosa dirà Windows: il
+`.exe` non firmato è il caso che SmartScreen tratta peggio, lo zip è più
+lieve, dallo Store non compare niente perché lo firma Microsoft. Quattro
+pulsanti uguali avrebbero mandato la maggioranza sulla strada con l'avviso
+più spaventoso senza dirglielo prima.
+
+### Sotto il cofano
+
+- L'installer nasce con **due nomi**, come lo zip: `MrRaoSetup.exe` fisso —
+  che è l'unica cosa che fa funzionare `releases/latest/download/...`, cioè i
+  pulsanti — e `MrRaoSetup-1.21.0.exe` versionato. Quando l'archivio
+  versionato entrò nella release, i link col nome fisso cominciarono a
+  rispondere 404 in silenzio: qui il trattamento c'è dal primo giorno.
+- `SHA256SUMS.txt` ora nomina anche l'installer. Lo scriveva
+  `make_release_zip.py`, che conosce solo gli zip: pubblicare un elenco di
+  impronte che non copre uno dei file scaricabili è peggio che non
+  pubblicarlo.
+- L'attestazione di provenienza Sigstore copre **tutte e tre** le confezioni,
+  con un test che lo verifica: senza, la più nuova — quella su cui Windows fa
+  l'avviso più grosso — sarebbe anche l'unica su cui `gh attestation verify`
+  non sa niente.
+- Inno Setup è preinstallato sui runner `windows-latest` (6.7.1), quindi non
+  c'è niente da installare in CI.
+
 ## 1.20.0 — I segnaposto hanno un numero, e il rapporto dice cosa è rimasto
 
 Una release nata da un confronto con lo stato dell'arte, e **quasi tutto il
