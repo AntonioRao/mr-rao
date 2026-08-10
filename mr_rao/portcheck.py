@@ -14,6 +14,8 @@ import json
 import socket
 import urllib.error
 import urllib.request
+from dataclasses import dataclass, field
+from typing import Callable
 
 
 def connect_host(host: str) -> str:
@@ -57,18 +59,37 @@ def port_in_use(host: str, port: int) -> bool:
         s.close()
 
 
-def describe_occupant(host: str, port: int, timeout: float = 1.0) -> str | None:
-    """Se chi occupa la porta è un Mr. Rao, dice quale versione."""
+@dataclass(frozen=True)
+class Occupante:
+    """Chi risponde già su quella porta, quando è uno dei nostri."""
+
+    app: str
+    versione: str
+
+    def __str__(self) -> str:
+        return f"{self.app} v{self.versione}"
+
+
+def identifica_occupante(host: str, port: int, timeout: float = 1.0) -> Occupante | None:
+    """Interroga `/api/health` e restituisce nome e versione, o None.
+
+    None copre due casi che *per la decisione* si comportano allo stesso
+    modo — «non è un Mr. Rao» e «non risponde HTTP» — ma non allo stesso modo
+    per l'utente: in entrambi la porta resta occupata da un estraneo, e
+    riusarla significherebbe mandarci il browser alla cieca.
+    """
     url = f"http://{connect_host(host)}:{port}/api/health"
     try:
         with urllib.request.urlopen(url, timeout=timeout) as r:
             data = json.loads(r.read().decode("utf-8", "replace"))
     except (urllib.error.URLError, OSError, ValueError, json.JSONDecodeError):
         return None
+    if not isinstance(data, dict):
+        return None
     app = data.get("app")
     if not app:
         return None
-    return f"{app} v{data.get('version', '?')}"
+    return Occupante(app=str(app), versione=str(data.get("version", "?")))
 
 
 def find_free_port(host: str, preferred: int, attempts: int = 20) -> int | None:
@@ -76,3 +97,100 @@ def find_free_port(host: str, preferred: int, attempts: int = 20) -> int | None:
         if not port_in_use(host, candidate):
             return candidate
     return None
+
+
+# --- P0.3: che cosa fare quando la porta è già occupata --------------------
+#
+# Prima di questa voce la risposta era una sola per tutti i casi: **parti su
+# un'altra porta**. Verso un programma estraneo è la risposta giusta; verso
+# un altro Mr. Rao è precisamente la «seconda istanza cieca» che il backlog
+# chiede di evitare da undici release. Costa più di quanto sembri:
+#
+#   - due icone nella barra, e nessuna delle due dice quale sta servendo cosa;
+#   - la scorciatoia degli appunti è **una sola** per tutta la sessione di
+#     Windows (`RegisterHotKey` è esclusiva): la seconda istanza non la
+#     ottiene, e la perde in silenzio;
+#   - il browser si apre sulla porta nuova, mentre eventuali segnalibri e la
+#     finestra già aperta continuano a parlare con la vecchia.
+#
+# Chi lancia due volte non sta chiedendo due server: sta chiedendo *la
+# finestra*. Quindi quando dall'altra parte c'è già la stessa versione, non
+# nasce nessun processo — si apre il browser su quella e si esce.
+#
+# La versione **diversa** è il caso in cui non si riusa. L'utente ha appena
+# lanciato un eseguibile preciso: mandarlo su una versione differente senza
+# dirlo sarebbe il difetto originale (l'app che mostra un altro programma)
+# ripetuto al contrario. Lì si parte su un'altra porta e si dicono entrambi
+# i numeri.
+
+RIUSA = "riusa"
+PARTI = "parti"
+RINUNCIA = "rinuncia"
+
+
+@dataclass(frozen=True)
+class Decisione:
+    """Cosa fare all'avvio, e cosa dire mentre lo si fa."""
+
+    azione: str
+    porta: int | None
+    righe: tuple[str, ...] = field(default=())
+
+
+def decidi_avvio(
+    host: str,
+    porta: int,
+    versione: str,
+    *,
+    occupata: Callable[[str, int], bool] = port_in_use,
+    chi_occupa: Callable[[str, int], "Occupante | None"] = identifica_occupante,
+    porta_libera: Callable[[str, int], "int | None"] = find_free_port,
+) -> Decisione:
+    """Decide, senza toccare nulla: è una funzione pura con le sonde iniettate.
+
+    Sta qui e non in `app.py` per una ragione sola: in `app.py` il modulo
+    costruisce l'applicazione Flask all'import, e un test che volesse provare
+    questa scelta si porterebbe dietro tutto il server. Una decisione che non
+    si può provare a buon mercato finisce per non essere provata.
+    """
+    if not occupata(host, porta):
+        return Decisione(PARTI, porta)
+
+    chi = chi_occupa(host, porta)
+
+    if chi is not None and chi.versione == versione:
+        return Decisione(
+            RIUSA,
+            porta,
+            (
+                f"{chi} e' gia' in ascolto sulla porta {porta}.",
+                "-> Apro quella finestra invece di aprire una seconda istanza.",
+            ),
+        )
+
+    libera = porta_libera(host, porta + 1)
+    if libera is None:
+        return Decisione(
+            RINUNCIA,
+            None,
+            (
+                f"!! La porta {porta} e' occupata da: {chi or 'un altro programma'}",
+                "!! Nessuna porta libera trovata. Chiudi l'altra istanza e riprova.",
+            ),
+        )
+
+    if chi is not None:
+        righe = (
+            f"!! Sulla porta {porta} risponde {chi}, ma questo eseguibile e'"
+            f" la v{versione}.",
+            "!! Non riuso quella finestra: mostrerebbe un programma diverso"
+            " da quello che hai lanciato.",
+            f"-> Questa istanza parte sulla porta {libera}.",
+        )
+    else:
+        righe = (
+            f"!! La porta {porta} e' gia' occupata da: un altro programma",
+            "!! Se volevi usare quella, chiudi prima l'altra istanza.",
+            f"-> Questa istanza parte sulla porta {libera}.",
+        )
+    return Decisione(PARTI, libera, righe)

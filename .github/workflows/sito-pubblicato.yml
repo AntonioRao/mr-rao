@@ -1,0 +1,53 @@
+name: Sito pubblicato
+
+# Il sito e' su Cloudflare Pages a **caricamento diretto**: `git push` non
+# pubblica niente. Il 2026-08-09 la landing inglese era corretta in git e
+# online c'era ancora la vecchia, e non c'era niente che lo dicesse.
+#
+# Questo lavoro lo dice. Non pubblica: scarica la pagina, legge la versione
+# dichiarata e la confronta con APP_VERSION. Nessun segreto, nessun token
+# Cloudflare, nessun permesso di scrittura -- e' la ragione per cui e' stato
+# preferito a un deploy automatico su push: un'azione che pubblica manda
+# online **qualunque cosa** finisca su main, compresa una landing modificata
+# e non riletta.
+#
+# **Perche' non e' un passo di ci.yml.** Fra il push del bump di versione e
+# la pubblicazione del sito passa del tempo, e in quella finestra il sito e'
+# legittimamente indietro: un controllo rosso per mezz'ora dopo ogni release
+# insegna a ignorare il rosso, e il rosso che si impara a ignorare non e'
+# questo -- e' quello degli altri passi, che stanno nello stesso posto.
+# Quindi una volta al giorno, e a mano quando serve.
+
+on:
+  # Dopo l'orario tipico di lavoro: se il deploy e' stato dimenticato oggi,
+  # la notizia arriva la mattina dopo invece che dopo il fine settimana.
+  schedule:
+    - cron: "0 6 * * *"
+  # Da lanciare subito dopo un deploy, invece di aspettare il giro notturno
+  # per sapere se e' andato a buon fine.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  controlla:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # Nessun `pip install`: lo script usa solo la libreria standard e legge
+      # APP_VERSION da config.py. Una dipendenza qui vorrebbe dire un
+      # controllo che puo' fallire per un motivo che non c'entra col sito.
+      - name: Versione pubblicata contro APP_VERSION
+        run: python scripts/check_sito_pubblicato.py
+
+      # Nessun `--tollera-rete-assente`: su un runner GitHub «il sito non
+      # risponde» e' una notizia vera, non il portatile di qualcuno senza
+      # rete. Il codice di uscita 2 dice proprio quello, ed e' distinto dal 1
+      # (sito indietro) apposta.

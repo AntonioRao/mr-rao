@@ -1181,6 +1181,58 @@ textarea:focus,
   border-radius: 4px;
 }
 
+/* Confronto prima/dopo (`renderDiff` in static/js/app.js). Queste regole
+   stavano scritte in linea dentro il JS: uno stile in linea batte qualsiasi
+   media query, quindi il riquadro del testo originale restava alto 240px
+   anche a schermo basso — proprio nella scheda che secondo i nostri documenti
+   e' «il controllo che conta». In CSS invece il @media puo' vincere. */
+.diff-riepilogo {
+  margin-bottom: 0.75rem;
+  color: var(--text-2);
+  font-size: 0.8rem;
+}
+
+/* `font: inherit` perche' il <pre> deve prendere il monospazio del riquadro
+   che lo contiene, non quello predefinito del browser. */
+.diff-testo,
+.diff-originale {
+  white-space: pre-wrap;
+  font: inherit;
+  margin: 0;
+}
+
+.diff-testo { color: var(--text); }
+
+/* L'originale e' il termine di paragone, non il contenuto principale: sta
+   sotto, piu' spento, e scorre per conto suo invece di spingere in fondo
+   alla pagina il testo ripulito. */
+.diff-originale {
+  color: var(--text-2);
+  max-height: 240px;
+  overflow: auto;
+}
+
+.diff-separatore {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+.diff-etichetta {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-bottom: 0.35rem;
+}
+
+/* I segnaposto sostituiti si devono vedere a colpo d'occhio: e' l'unica cosa
+   che l'utente sta cercando in questa scheda. */
+.diff-marca {
+  background: rgba(239, 68, 68, 0.35);
+  color: #fecaca;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
 .preview-output { display: none; color: var(--text); }
 
 .preview-output h1,
@@ -1504,6 +1556,11 @@ input[data-tip] { cursor: pointer; }
   gap: 0.45rem;
   margin-bottom: 0.15rem;
 }
+
+/* La dicitura «allegati» prende tutta la riga cosi' i pulsanti cominciano
+   sotto e non le si affiancano. Stava in linea nel JS, dove nessun media
+   query avrebbe potuto cambiarla. */
+#attachments-bar .muted { width: 100%; }
 
 /* Il pulsante di un allegato porta il nome del file, che nessuno sceglie
    corto. `.btn` taglia quello che eccede (gli serve overflow:hidden per il
@@ -1902,6 +1959,9 @@ input[data-tip] { cursor: pointer; }
 @media (max-height: 640px) {
   .markdown-output,
   .preview-output { max-height: 62vh; }
+  /* Dentro un riquadro alto 62vh un originale fisso da 240px si mangiava
+     quasi tutto lo spazio del testo ripulito, che e' quello da leggere. */
+  .diff-originale { max-height: 30vh; }
   .drop-zone { padding: 1.6rem 1.1rem; }
 }
 

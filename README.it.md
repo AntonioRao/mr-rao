@@ -9,8 +9,8 @@
 [![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.18.2-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-1040%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.19.0-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-1080%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -242,7 +242,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Si apre da solo su `http://127.0.0.1:5000`. Se quella porta è occupata te lo dice — indicando **chi** la occupa — e usa la prima libera.
+Si apre da solo su `http://127.0.0.1:5000`. Se quella porta è occupata te lo dice, indicando **chi** la occupa. Se a occuparla è già Mr. Rao nella stessa versione — cioè se lo hai lanciato due volte — non ne parte un secondo: si apre quella finestra. Se è un altro programma, o un Mr. Rao di versione diversa, usa la prima porta libera e dice perché.
 
 ### Da riga di comando
 
@@ -394,7 +394,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **1040 test**, allineamento dei documenti pubblicati.
+Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **1080 test**, allineamento dei documenti pubblicati.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 

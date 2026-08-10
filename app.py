@@ -45,30 +45,28 @@ def _run_server(port: int):
     )
 
 
-def _resolve_port() -> int:
-    """Scegli una porta libera e dillo, invece di sovrapporsi in silenzio.
+def _decidi_porta():
+    """Scegli la porta e dillo, invece di sovrapporsi in silenzio.
 
     Su Windows il bind su una porta occupata riesce comunque (SO_REUSEADDR):
     senza questo controllo l'app apre il browser su un server altrui — tipico
     caso: una vecchia versione installata ancora in esecuzione.
+
+    La scelta vera sta in `mr_rao.portcheck.decidi_avvio`, che si può provare
+    senza alzare un server; qui resta solo l'effetto — stampare, e uscire
+    quando non c'è niente da avviare.
     """
-    from mr_rao.portcheck import describe_occupant, find_free_port, port_in_use
+    from mr_rao.portcheck import RINUNCIA, decidi_avvio
 
-    port = config.PORT
-    if not port_in_use(config.HOST, port):
-        return port
-
-    occupante = describe_occupant(config.HOST, port) or "un altro programma"
-    libera = find_free_port(config.HOST, port + 1)
-    _safe_print("")
-    _safe_print(f"!! La porta {port} e' gia' occupata da: {occupante}")
-    if libera is None:
-        _safe_print("!! Nessuna porta libera trovata. Chiudi l'altra istanza e riprova.")
+    d = decidi_avvio(config.HOST, config.PORT, config.APP_VERSION)
+    if d.righe:
+        _safe_print("")
+        for riga in d.righe:
+            _safe_print(riga)
+        _safe_print("")
+    if d.azione == RINUNCIA:
         raise SystemExit(1)
-    _safe_print(f"!! Se volevi usare quella, chiudi prima l'altra istanza.")
-    _safe_print(f"-> Questa istanza parte sulla porta {libera}.")
-    _safe_print("")
-    return libera
+    return d
 
 
 if __name__ == "__main__":
@@ -84,10 +82,22 @@ if __name__ == "__main__":
         raise SystemExit(cli_main(["convert", *sys.argv[1:]]))
 
     _safe_print(f"{config.APP_NAME} v{config.APP_VERSION}")
-    port = _resolve_port()
-    from mr_rao.portcheck import connect_host
+    decisione = _decidi_porta()
+    port = decisione.porta
+    from mr_rao.portcheck import RIUSA, connect_host
 
     url = f"http://{connect_host(config.HOST)}:{port}"
+
+    if decisione.azione == RIUSA:
+        # Nessun server, nessuna icona nella barra, nessun tentativo di
+        # registrare la scorciatoia (che è esclusiva: il secondo processo la
+        # perderebbe in silenzio). Si apre la finestra e si esce con 0 —
+        # perché non è successo niente di sbagliato: era già tutto acceso.
+        _safe_print(f"-> {url}")
+        if config.OPEN_BROWSER:
+            webbrowser.open(url)
+        raise SystemExit(0)
+
     _safe_print(f"-> {url}")
     _safe_print(
         f"   debug={config.DEBUG} tray={config.USE_TRAY} frozen={getattr(sys, 'frozen', False)}"

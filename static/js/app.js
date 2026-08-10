@@ -288,25 +288,29 @@
       return;
     }
     // Highlight placeholders in scrubbed view vs note raw length
+    //
+    // L'aspetto sta tutto in `static/css/app.css` (classi `.diff-*`): scritto
+    // in linea qui vinceva sui media query, e il confronto prima/dopo era
+    // l'unica parte della pagina che non si adattava allo schermo basso.
     const scrubbedEsc = escapeHtml(scrubbed || "");
     const highlighted = scrubbedEsc.replace(
       /\{\{[A-Z0-9_]+\}\}/g,
-      '<mark style="background:rgba(239,68,68,0.35);color:#fecaca;padding:0 2px;border-radius:3px">$&</mark>'
+      '<mark class="diff-marca">$&</mark>'
     );
     els.diffOut.innerHTML =
-      '<div style="margin-bottom:0.75rem;color:var(--text-2);font-size:0.8rem">' +
+      '<div class="diff-riepilogo">' +
       escapeHtml(
         t("js_diff_intestazione", { prima: raw.length, dopo: (scrubbed || "").length })
       ) +
       "</div>" +
-      '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:var(--text)">' +
+      '<pre class="diff-testo">' +
       highlighted +
       "</pre>" +
-      '<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">' +
-      '<div style="font-size:0.75rem;color:var(--text-3);margin-bottom:0.35rem">' +
+      '<hr class="diff-separatore">' +
+      '<div class="diff-etichetta">' +
       escapeHtml(t("js_diff_originale")) +
       "</div>" +
-      '<pre style="white-space:pre-wrap;font:inherit;margin:0;color:var(--text-2);max-height:240px;overflow:auto">' +
+      '<pre class="diff-originale">' +
       escapeHtml(raw) +
       "</pre>";
   }
@@ -320,7 +324,7 @@
     }
     els.attachmentsBar.style.display = "flex";
     els.attachmentsBar.innerHTML =
-      `<span class="muted" style="width:100%">${escapeHtml(t("js_allegati_email"))}</span>` +
+      `<span class="muted">${escapeHtml(t("js_allegati_email"))}</span>` +
       list
         .map((a, i) => {
           if (a.skipped) {

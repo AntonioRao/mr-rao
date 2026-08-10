@@ -1,5 +1,115 @@
 # Changelog
 
+## 1.19.0 — Tre cose che si rompevano senza dirlo
+
+Nessun cambio al motore di redazione. Tre difetti che avevano in comune il
+modo di manifestarsi: **niente**. Nessun errore, nessun messaggio, e un
+programma che sembrava aver funzionato.
+
+### La seconda istanza non nasce più (P0.3)
+
+Era l'ultima P0 aperta, ferma da undici release. Fino alla 1.18.2 la porta
+occupata aveva **una sola** risposta per tutti i casi: parti su un'altra
+porta. Verso un programma estraneo è quella giusta. Verso un altro Mr. Rao
+era esattamente la «seconda istanza cieca» che la voce chiedeva di evitare —
+e costava più della porta:
+
+- due icone nella barra, e nessuna delle due dice quale sta servendo cosa;
+- **la scorciatoia degli appunti persa in silenzio**: `RegisterHotKey` è
+  esclusiva per tutta la sessione di Windows, il secondo processo non la
+  ottiene e nessuno se ne accorge finché Ctrl+Alt+R non risponde;
+- il browser aperto sulla porta nuova, mentre la finestra già aperta e i
+  segnalibri continuano a parlare con la vecchia.
+
+Chi lancia due volte non sta chiedendo due server: sta chiedendo *la
+finestra*. Adesso l'avvio guarda **chi** risponde su `/api/health`. Stessa
+versione: non nasce nessun processo, si apre quella finestra e si esce con
+`0` — perché non è successo niente di sbagliato. Versione diversa: si parte
+altrove **dicendo entrambi i numeri**, perché mandare qualcuno su una
+versione che non ha lanciato sarebbe il difetto originale al contrario.
+Estraneo: prima porta libera, come prima.
+
+La decisione sta in `mr_rao/portcheck.py` come funzione pura con le sonde
+iniettate, e non in `app.py`, dove l'import costruisce l'applicazione Flask:
+una scelta che non si può provare a buon mercato finisce per non essere
+provata. Ma le sonde iniettate provano la *decisione*, non che l'avvio la
+rispetti — quindi c'è anche un test che lancia `app.py` per davvero contro
+un finto `/api/health` che dichiara la nostra versione, e controlla che
+nessuna porta in più sia stata presa **mentre il processo è vivo**.
+
+**Il difetto è stato riprodotto prima di correggerlo.** Sul commit
+precedente, stesso scenario: `-> Questa istanza parte sulla porta 12639`, e
+la 12639 occupata. È anche il motivo per cui il banco usa `Popen` e non
+`subprocess.run`: al timeout `run` uccide il figlio, la porta si libera, e
+il controllo direbbe «nessuna seconda istanza» proprio nel caso in cui ce
+n'è una.
+
+### Il confronto prima/dopo si adatta agli schermi bassi (P4.7)
+
+`renderDiff()` scriveva gli stili in linea, e uno stile in linea batte
+qualsiasi media query: il riquadro del testo originale restava alto 240 px
+anche su uno schermo da 375 px di altezza. Su un telefono girato il
+contenitore ne misura 232: il solo testo originale chiedeva più spazio della
+scatola che lo conteneva. E succedeva nella scheda che secondo i nostri
+stessi documenti è «il controllo che conta».
+
+Ora sono sei classi in CSS. A viewport normale **niente cambia** — verificato
+confrontando 27 proprietà calcolate su tutti e sei gli elementi, classi nuove
+contro il vecchio attributo `style`: identiche. A viewport bassa il media
+query finalmente vince: 240 px diventano 180, 150 e 112,56 px a 800, 600,
+500 e 375 px di altezza.
+
+Nella stessa passata sono stati guardati **tutti** gli stili in linea del
+front-end. Ne è stato spostato un secondo (la dicitura degli allegati); gli
+altri restano dove sono, con la ragione scritta: `display` è stato
+dell'interfaccia e non aspetto, la larghezza della barra di avanzamento e le
+coordinate del tooltip si calcolano a runtime, e l'allineamento delle celle
+arriva dal documento convertito — è un dato, non presentazione.
+
+### Il sito pubblicato adesso lo dice, quando è indietro (P3.17)
+
+Il progetto Cloudflare Pages è a **caricamento diretto**: `git push` non
+pubblica niente. Finché non girano `_rebuild.py` e `wrangler pages deploy`,
+online resta la versione di prima **in silenzio**. È successo il 2026-08-09:
+la landing inglese era corretta, committata e pushata, e online c'era ancora
+la vecchia. Se n'è accorto l'utente guardando il sito.
+
+È lo stesso modo di rompersi che `check_docs.py` esiste per impedire,
+spostato di un passo più in là: quel gate garantisce che il repository sia
+coerente con sé stesso, e nessuno garantiva che il **pubblicato** fosse il
+repository.
+
+`scripts/check_sito_pubblicato.py` scarica le pagine online, legge la
+versione dichiarata e la confronta con `APP_VERSION`. Non pubblica: non
+chiede nessuna credenziale, nessun token Cloudflare, nessun permesso di
+scrittura. È la ragione per cui è stato preferito a un deploy automatico su
+push — un'azione che pubblica manda online **qualunque cosa** finisca su
+main, compresa una landing modificata e non riletta.
+
+**Quattro esiti, non due.** `0` allineato, `1` disallineato (indietro o
+avanti, detti separatamente), `2` irraggiungibile, `3` cieco. Il `2` non è
+mai il `0`: un controllo di rete che in caso di errore tace è verde proprio
+quando servirebbe. Il `3` è quello che merita più attenzione ed è il più
+facile da non scrivere — se le pagine spariscono dall'elenco o online non
+c'è più un numero riconoscibile, tutti i confronti passano senza confrontare
+niente. Gli indirizzi non sono scritti nello script: si leggono dal
+`<link rel="canonical">` delle pagine pubblicate, perché una seconda copia
+dell'indirizzo è una seconda cosa che può restare indietro.
+
+**Non è nel gate bloccante, ed è una scelta.** Fra il push del bump e il
+deploy il sito è legittimamente indietro: un rosso di mezz'ora dopo ogni
+release non segnala un difetto, addestra a ignorare il rosso — e il rosso
+che si impara a ignorare non è questo, è quello degli altri passi, che
+stanno nello stesso posto. Gira una volta al giorno e a mano quando serve.
+
+**Al primo giro ha trovato un difetto vero**: online c'era la 1.18.1 mentre
+il repository era già alla 1.18.2. Cioè la 1.18.2 era stata rilasciata e il
+sito non l'aveva mai vista, esattamente come la voce descriveva.
+
+E che sappia dire di no è stato dimostrato guastandolo in tre modi — l'errore
+di rete inghiottito, il confronto svuotato, la pagina senza numero trattata
+come normale: dieci test rossi in tutto, poi ripristinato e riverificato.
+
 ## 1.18.2 — Nessuno aveva mai premuto quei tasti
 
 Due controlli, nessun cambio di comportamento.

@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
-from mr_rao.portcheck import connect_host, describe_occupant, find_free_port, port_in_use
+from mr_rao.portcheck import connect_host, find_free_port, identifica_occupante, port_in_use
 
 
 @pytest.fixture()
@@ -130,13 +130,13 @@ def finto_server():
 
 def test_riconosce_l_istanza_che_occupa_la_porta(finto_server):
     """È l'informazione che serviva: chi c'è e che versione ha."""
-    assert describe_occupant("127.0.0.1", finto_server) == "Mr. Rao v1.0.0"
+    assert str(identifica_occupante("127.0.0.1", finto_server)) == "Mr. Rao v1.0.0"
 
 
 def test_occupante_sconosciuto(porta_occupata):
     """Un socket che non parla HTTP non deve far esplodere nulla."""
-    assert describe_occupant("127.0.0.1", porta_occupata, timeout=0.5) is None
+    assert identifica_occupante("127.0.0.1", porta_occupata, timeout=0.5) is None
 
 
 def test_porta_libera_nessun_occupante():
-    assert describe_occupant("127.0.0.1", _porta_libera(), timeout=0.5) is None
+    assert identifica_occupante("127.0.0.1", _porta_libera(), timeout=0.5) is None
