@@ -1,0 +1,77 @@
+name: "Qualcosa non funziona"
+description: "Un errore, una schermata che si blocca, un file che non si apre, l'installazione che non va"
+title: "[difetto] "
+labels: ["difetto"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Per i difetti dell'**anonimizzazione** ci sono due moduli apposta —
+        «un dato personale è sfuggito» e «ha tolto qualcosa che non doveva» —
+        che chiedono le cose giuste. Questo è per tutto il resto.
+
+        **Non incollare dati personali reali** nei messaggi di errore né nei
+        percorsi dei file: questo repository è pubblico. Un percorso come
+        `C:\Users\mario.rossi\Documenti\cartella clinica Bianchi.pdf` è esso
+        stesso un dato personale — sostituiscilo con `C:\...\documento.pdf`.
+
+  - type: checkboxes
+    id: niente-dati-veri
+    attributes:
+      label: Conferma
+      options:
+        - label: "Non ho incollato dati personali reali, nemmeno dentro percorsi o messaggi di errore."
+          required: true
+
+  - type: textarea
+    id: cosa
+    attributes:
+      label: Cosa succede
+      description: "Cosa hai fatto, cosa ti aspettavi, cosa è successo invece."
+    validations:
+      required: true
+
+  - type: textarea
+    id: riprodurre
+    attributes:
+      label: Come si riproduce
+      description: "I passi, nell'ordine. Se dipende da un file, dicci **che tipo** di file e quanto grande, non il file."
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+
+  - type: input
+    id: versione
+    attributes:
+      label: Versione
+      placeholder: "1.19.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: come
+    attributes:
+      label: Come lo usi
+      options:
+        - "Pacchetto portable per Windows"
+        - "Microsoft Store"
+        - "Dai sorgenti (Python)"
+        - "Docker"
+        - "Riga di comando"
+    validations:
+      required: true
+
+  - type: textarea
+    id: traccia
+    attributes:
+      label: La traccia dell'ultimo errore
+      description: |
+        Se una conversione è fallita, il programma lascia **una riga sola** in
+        `%LOCALAPPDATA%\Mr Rao\ultimo-errore.txt`. Contiene data, estensione,
+        dimensione e motivo — **non** il nome del documento, il percorso o il
+        contenuto: un registro, su questo programma, è esso stesso un dato.
+        Puoi incollarla così com'è.
+      render: text

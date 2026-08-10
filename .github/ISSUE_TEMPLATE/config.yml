@@ -1,0 +1,18 @@
+# `false`: le issue senza modulo restano possibili. I moduli aiutano a
+# ricevere le informazioni giuste, ma chi ha una domanda che non ci sta dentro
+# non deve trovarsi la porta chiusa — e chi ha appena scoperto una fuga di
+# dati non deve perdere tempo a scegliere la casella giusta.
+blank_issues_enabled: true
+
+contact_links:
+  - name: "Una vulnerabilità di sicurezza"
+    url: https://github.com/AntonioRao/mr-rao/security/advisories/new
+    about: "NON aprire una issue pubblica. Le vulnerabilità si segnalano in privato: vedi SECURITY.md."
+
+  - name: "Una domanda su come funziona"
+    url: https://github.com/AntonioRao/mr-rao/discussions
+    about: "Se non è un difetto ma un dubbio, qui si risponde senza aprire una issue."
+
+  - name: "Cosa manca e cosa è in programma"
+    url: https://github.com/AntonioRao/mr-rao/blob/main/docs/BACKLOG.md
+    about: "Il backlog è pubblico e onesto su cosa non c'è. Guarda lì prima di chiedere una funzione."

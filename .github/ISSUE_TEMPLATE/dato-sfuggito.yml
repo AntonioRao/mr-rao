@@ -1,0 +1,88 @@
+name: "Un dato personale è sfuggito"
+description: "Il motore ha lasciato in chiaro qualcosa che doveva togliere (falso negativo)"
+title: "[sfuggito] "
+labels: ["motore", "falso negativo"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Grazie: questa è la segnalazione più utile che esista per questo
+        progetto.
+
+        ## Prima, la regola che viene prima di tutto
+
+        **Non incollare qui il dato vero.** Questo repository è pubblico, e
+        ciò che ci finisce resta recuperabile anche dopo la cancellazione —
+        nella cronologia di git, nella cache di GitHub e nelle copie già
+        scaricate da altri.
+
+        **Inventane uno che gli somigli.** I riconoscitori guardano la
+        struttura, non la persona: un IBAN inventato che passa il mod-97
+        riproduce il difetto esattamente come quello vero. Se il valore deve
+        superare un controllo aritmetico e non sai come costruirlo, dillo e
+        basta — lo costruiamo noi.
+
+  - type: checkboxes
+    id: niente-dati-veri
+    attributes:
+      label: Conferma
+      options:
+        - label: "In questa segnalazione **non c'è nessun dato personale reale**: tutto quello che ho scritto è inventato."
+          required: true
+
+  - type: textarea
+    id: testo
+    attributes:
+      label: Il testo in ingresso
+      description: "Con valori **inventati**. Bastano le poche righe intorno al dato: il contesto conta, perché molti riconoscitori decidono guardandolo."
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: uscita
+    attributes:
+      label: Cosa è uscito
+      description: "Il Markdown prodotto, o almeno la parte che riguarda il dato rimasto."
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: atteso
+    attributes:
+      label: Cosa ti aspettavi
+      description: "Quale segnaposto avresti voluto vedere, e perché quel dato è personale nel tuo contesto."
+    validations:
+      required: true
+
+  - type: input
+    id: versione
+    attributes:
+      label: Versione
+      description: "La trovi nel titolo della finestra, o con `MrRao.exe health`."
+      placeholder: "1.19.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: origine
+    attributes:
+      label: Da dove veniva il documento
+      description: "Serve più di quanto sembri: un PDF scansionato passa dall'OCR e arriva al motore storpiato, e i difetti di quella strada sono diversi."
+      options:
+        - "PDF con testo"
+        - "PDF scansionato (OCR)"
+        - "Immagine (OCR)"
+        - "Word / Excel / PowerPoint"
+        - "Email .eml"
+        - "Testo incollato / appunti"
+        - "Altro"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sospetti
+    attributes:
+      label: Il rapporto diceva qualcosa?
+      description: "Il dato compariva fra i **sospetti**? È una differenza importante: «visto e lasciato» e «non visto» sono due difetti diversi, e si correggono in punti diversi."
