@@ -367,6 +367,8 @@ You may use, study, modify and redistribute it — including commercially — un
 
 That is the gap the plain GPL leaves open: putting software on a server is not distributing copies, so without section 13 you could keep your changes to yourself. For a tool that lives on trust, that gap was worth closing.
 
+**The name is the one thing the licence does not grant.** The code may be copied, modified and redistributed without exception; a modified version, however, must carry a different name and mark itself as different. The additional terms, permitted by section 7, are in [NOTICE.md](NOTICE.md).
+
 This is a good-faith summary, not legal advice — the text that governs is [LICENSE](LICENSE).
 
 Distributed **without any warranty**, in the hope that it will be useful.

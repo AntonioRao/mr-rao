@@ -380,6 +380,11 @@ software su un server non sta distribuendo copie, e senza l'articolo 13 potrebbe
 tenersi le proprie modifiche. Per uno strumento che si regge sulla fiducia, quel
 buco era da chiudere.
 
+**Il nome è l'unica cosa che la licenza non concede.** Il codice si copia, si
+modifica e si ridistribuisce senza eccezioni; una versione modificata però deve
+chiamarsi diversamente e dichiararsi diversa. Le condizioni aggiuntive, ammesse
+dall'articolo 7, stanno in [NOTICE.md](NOTICE.md).
+
 Questa è una sintesi in buona fede, non consulenza legale: il testo che vale è
 [LICENSE](LICENSE).
 
