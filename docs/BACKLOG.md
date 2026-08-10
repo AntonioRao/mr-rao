@@ -245,6 +245,24 @@ lo scrive ha pensato»*. Il NER va misurato su corpora che non abbiamo
 scritto noi, altrimenti si ripete lo stesso errore con uno strumento piu'
 sofisticato.
 
+#### Il determinismo non e' un dettaglio: e' un requisito di spedizione
+
+Un NER a rete neurale **non e' deterministico** per costruzione: batching,
+stato della GPU e non-associativita' in virgola mobile fanno si' che lo
+stesso documento processato due volte possa dare falsi positivi diversi.
+spaCy lo documenta.
+
+Per questo progetto non e' un fastidio, e' un veto: **il corpus di
+conformita' e tutti i banchi congelati si reggono sulla ripetibilita'**. Un
+riconoscitore che risponde in modo diverso alla seconda esecuzione non si
+puo' fissare in un atteso, e la lezione «un banco ballerino mi ha fatto
+inseguire una regressione mai esistita» e' gia' stata pagata una volta.
+
+**Requisito, non raccomandazione**: modalita' deterministica provata da un
+test che esegue lo stesso documento N volte e pretende lo stesso risultato,
+oppure il NER non si spedisce. Da verificare **prima** di scegliere il
+modello, non dopo.
+
 #### Quale libreria, e un vincolo nuovo (2026-08-10)
 
 **spaCy (MIT), non Stanza (Apache-2.0).** Le licenze vanno bene entrambe;
@@ -371,6 +389,39 @@ misurata invece che promessa.
 | P6.7 | **Glossario e FAQ nella documentazione** | Da [anonym.legal](https://anonym.legal/it/docs), che ha 94 definizioni e oltre 140 risposte. Per il pubblico di Mr. Rao — DPO, studi, uffici pubblici — un glossario che distingua **pseudonimizzazione e anonimizzazione**, titolare e responsabile, dato personale e dato identificativo, vale più di una funzione: è ciò che rende il documento citabile in una valutazione d'impatto.<br><br>Costo basso, e va sotto `check_docs.py` come tutto il resto o invecchia in silenzio | Da valutare |
 | P6.8 | **Una pagina su cosa la redazione NON garantisce** | anonym.legal ha una sezione di casi di studio sulla de-anonimizzazione; noi abbiamo la cosa più difficile da imitare — `docs/VERIFICARE.md` in Mr. Rao Plus, che accanto a ogni promessa mette il modo di controllarla — ma **non abbiamo una pagina che spieghi i limiti del risultato**.<br><br>Il contenuto c'è già sparso: che togliere gli identificatori non rende un testo anonimo (l'inferenza dal contesto resta), che un dizionario reversibile **è** un archivio di dati personali, che i sospetti sono segnalati e **non tolti**. Metterlo in una pagina sola è la cosa più coerente con la voce di questo progetto, ed è precisamente quello che nella documentazione dei concorrenti non c'è | Da valutare |
 | P6.9 | **Sostituzione reversibile con dizionario locale** | rizzo-pii e anonym.legal la mettono al centro: si redige, si manda il testo con i segnaposto, si ripristinano i valori veri nella risposta. Cambia la natura dello strumento — da «prepara un documento da archiviare» a «usa l'LLM sui documenti veri».<br><br>**Non è in cima e c'è un motivo.** Il dizionario placeholder → valore **è un archivio di dati personali**, con la particolarità di essere l'unico file del sistema in cui i dati stanno tutti insieme, scremati dal contesto e pronti da leggere. Oggi Mr. Rao non ha niente da proteggere perché non conserva niente; questa funzione crea la cosa da proteggere. rizzo-pii lo sa e infatti la rende disattivabile.<br><br>Va aperta solo con una risposta scritta a: dove sta il file, per quanto tempo, chi lo cancella, e cosa succede se qualcuno se lo porta via. **P6.1 va fatta prima e da sola**: la numerazione dà buona parte del beneficio senza creare l'archivio | Non ora — decisione registrata |
+
+### Valutato e scartato come fonte: il corpus di anonym.community (2026-08-10)
+
+`anonym-community-mcp` espone 1 478 «pain point» sulla privacy, 240
+giurisdizioni, 134 FAQ e 1 600+ riferimenti. Il repository e' un client di
+16 KB: **i dati non ci sono dentro**, si scaricano da
+`https://anonym.community/data/*.json` — che sono pubblici e si leggono
+senza installare niente.
+
+**Il contenuto ha valore come elenco di modi di sbagliare**, ed e' scritto
+da chi il problema lo conosce: confini di entita', nomi rari, ambiguita'
+nome/luogo, collisioni fra identificatori numerici, sovra-redazione che
+distrugge il senso. Diverse voci descrivono difetti che questo motore ha
+gia' affrontato, e due indicano cose che nessuno fa e che noi facciamo: la
+distinzione **prosa/modulo** (loro: «nessuno strumento mantiene il contesto
+di impaginazione») e il tracciamento delle entita' lungo il documento
+(P6.1).
+
+**Ma le fonti non reggono un controllo a campione, e questo decide come si
+usa.** Tutte e 1 478 le voci hanno `provenance: "community"` e
+`references: []`; le fonti stanno in un campo di testo libero. Delle due
+voci che citano numeri di issue verificabili, **due su due sono
+sbagliate**: `presidio#891`, citata a sostegno di un'affermazione
+sull'architettura dei recognizer, e' «bump pillow to version 9»;
+`presidio#456`, citata come «issue sulla coreference», e' «analyze/ to
+return json, not json string». I riferimenti accademici famosi (Homer 2008,
+Gymrek 2013) sono invece reali: e' il profilo tipico di citazioni generate.
+
+**Regola d'uso: si legge come elenco di casi da provare, non si cita mai.**
+Ogni affermazione che entra nei nostri documenti deve avere dietro una
+misura nostra. La credibilita' di questo progetto sta tutta nel fatto che
+non abbiamo mai scritto un numero che non avevamo misurato, e importare
+prove altrui non verificate e' il modo piu' rapido di perderla.
 
 **Nota su P5.6.** La voce «estensione browser che redige l'incolla verso le
 chat AI» era chiusa con *non ora*, e le tre obiezioni erano giuste. È stata
