@@ -1,8 +1,8 @@
 {
   "motore": {
-    "app": "1.22.0",
+    "app": "1.23.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "8c8e0ab0edde4b8df227f69ed253174d26c2b872545bfa15c99accb5526bc011",
+      "mr_rao/privacy.py": "bcbae625e46790b9f37e602bfd73d1ec9aadbc68c10d27ff370f559fd0a317fa",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "0033199e1c52d120eab386b5d59d8b9f584c24b42fc02084b6926608c07e31d9"
     }
@@ -3225,6 +3225,219 @@
     "negativi-foglio-di-relazione": {
       "gruppo": "negativi",
       "uscita": "Vedi il foglio 3 della relazione tecnica allegata.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-rg": {
+      "gruppo": "atti",
+      "uscita": "Iscritta al n. {{PRATICA_1}} R.G. del Tribunale.",
+      "report": {
+        "counts": {
+          "pratica": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-protocollo": {
+      "gruppo": "atti",
+      "uscita": "Vista la nota prot. n. {{PRATICA_1}} del 19 ottobre.",
+      "report": {
+        "counts": {
+          "pratica": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-protocollo-anno-barra": {
+      "gruppo": "atti",
+      "uscita": "Protocollo {{PRATICA_1}}",
+      "report": {
+        "counts": {
+          "pratica": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-repertorio": {
+      "gruppo": "atti",
+      "uscita": "Vista la procura notarile rep. n. {{PRATICA_1}} in data 12 novembre.",
+      "report": {
+        "counts": {
+          "pratica": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-targa": {
+      "gruppo": "atti",
+      "uscita": "Rilevato il veicolo targato {{TARGA_1}} in sosta.",
+      "report": {
+        "counts": {
+          "targa": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-targa-motociclo": {
+      "gruppo": "atti",
+      "uscita": "Motociclo targa {{TARGA_1}} sequestrato.",
+      "report": {
+        "counts": {
+          "targa": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-protocollo-spento": {
+      "gruppo": "negativi",
+      "uscita": "Vista la nota prot. n. 26597 del 19 ottobre.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-protocollo-convenzione": {
+      "gruppo": "negativi",
+      "uscita": "Protocollo n. 5 della Convenzione europea.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-citazione-di-legge": {
+      "gruppo": "negativi",
+      "uscita": "Ai sensi del decreto legislativo 231/2001 e del regolamento 2016/679.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-targa-alfabeto": {
+      "gruppo": "negativi",
+      "uscita": "Il codice IO 123 QU e il lotto MB 12345 di magazzino.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "quasi-eta-sesso": {
+      "gruppo": "quasi_identificatori",
+      "uscita": "Paziente di anni 78, sesso F, ricoverata il 3 marzo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [
+          {
+            "kind": "eta",
+            "sample": "di••••••78"
+          },
+          {
+            "kind": "genere",
+            "sample": "se••• F"
+          }
+        ],
+        "detected_counts": {
+          "eta": 1,
+          "genere": 1
+        },
+        "detected_total": 2
+      }
+    },
+    "quasi-eta-enne": {
+      "gruppo": "quasi_identificatori",
+      "uscita": "Un 45enne residente in Pisa.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [
+          {
+            "kind": "eta",
+            "sample": "45••ne"
+          }
+        ],
+        "detected_counts": {
+          "eta": 1
+        },
+        "detected_total": 1
+      }
+    },
+    "negativi-anni-di-durata": {
+      "gruppo": "negativi",
+      "uscita": "Collocato a riposo dopo 45 anni di servizio, con un contratto di 30 anni.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-genere-letterario": {
+      "gruppo": "negativi",
+      "uscita": "Il genere letterario dell'opera e il suo genere musicale.",
       "report": {
         "counts": {},
         "total": 0,

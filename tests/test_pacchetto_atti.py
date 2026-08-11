@@ -125,6 +125,143 @@ def test_quello_che_non_e_un_catastale_resta(frase: str) -> None:
     assert "{{CATASTO}}" not in redigi(frase, pacchetti=ACCESO), frase
 
 
+# ------------------------------------------------------ numeri di pratica
+
+
+def test_col_pacchetto_spento_la_pratica_resta() -> None:
+    """La riga che protegge il pubblico opposto.
+
+    Qui il pacchetto **capovolge** una scelta presa altrove nel motore: per
+    tutti gli altri «protocollo» e «repertorio» servono a dire di *non*
+    redigere. Se questo scattasse di serie, ogni numero di pratica
+    comincerebbe a sparire dai documenti aziendali.
+    """
+    testo = "Vista la nota prot. n. 26597 del 19 ottobre."
+    assert redigi(testo) == testo
+
+
+@pytest.mark.parametrize(
+    ("frase", "resta"),
+    [
+        ("Iscritta al n. 1234/2023 R.G. del Tribunale.", "R.G."),
+        ("Prot. n. 55871 del 12 marzo 2024", "Prot. n."),
+        ("Protocollo 2024/000123", "Protocollo"),
+        ("Rep. n. 45678", "Rep. n."),
+        ("Vista la procura notarile rep. n. 8757 in data 12 novembre", "rep. n."),
+        ("Repertorio n. 45678, raccolta 12345", "raccolta"),
+        ("R.G.N.R. 4567/2022", "R.G.N.R."),
+        ("cron. 998", "cron."),
+    ],
+)
+def test_sparisce_il_numero_e_resta_l_etichetta(frase: str, resta: str) -> None:
+    """Sparisce il numero, **resta la parola**.
+
+    E' la stessa scelta fatta per gli appellativi e per le parole d'ente: la
+    parola dice di che genere di dato si trattava, e chi rilegge capisce la
+    frase senza poter risalire a niente. Toglierla insieme al numero
+    renderebbe il documento illeggibile in cambio di nessuna protezione.
+    """
+    fuori = redigi(frase, pacchetti=ACCESO)
+    assert "{{PRATICA}}" in fuori, fuori
+    assert resta in fuori, fuori
+
+
+def test_il_numero_col_l_anno_non_si_spezza_a_meta() -> None:
+    """«Protocollo 2024/000123» e' anno-barra-progressivo.
+
+    Con il numeratore limitato a quattro cifre il pattern ripiegava sulla
+    seconda alternativa e sostituiva **meta' numero**, lasciando
+    `{{PRATICA}}/000123` nel testo — che e' peggio di non sostituire,
+    perche' sembra fatto.
+    """
+    fuori = redigi("Protocollo 2024/000123", pacchetti=ACCESO)
+    assert fuori == "Protocollo {{PRATICA}}"
+
+
+@pytest.mark.parametrize(
+    "frase",
+    [
+        # Il quinto protocollo di una convenzione non e' un numero di
+        # pratica. E' la cifra sola a distinguerli: una pratica ne ha almeno
+        # due, oppure ha l'anno accanto.
+        "Protocollo n. 5 della Convenzione",
+        # Le citazioni di legge sono la forma piu' comune che esista in un
+        # atto, e senza l'etichetta davanti finirebbero tutte nel tritacarne.
+        "L'articolo 12 del regolamento 2016/679",
+        "Il decreto legislativo 231/2001",
+        "Ai sensi della legge 241/1990",
+    ],
+)
+def test_quello_che_non_e_una_pratica_resta(frase: str) -> None:
+    assert redigi(frase, pacchetti=ACCESO) == frase
+
+
+def test_la_pratica_la_spegne_anche_l_interruttore() -> None:
+    testo = "Prot. n. 55871 del 12 marzo 2024"
+    assert redigi(testo, pacchetti=ACCESO, atti=False) == testo
+
+
+# -------------------------------------------------------------- le targhe
+
+
+def test_col_pacchetto_spento_la_targa_resta() -> None:
+    testo = "Veicolo targato AB 123 CD."
+    assert redigi(testo) == testo
+
+
+@pytest.mark.parametrize(
+    "frase",
+    [
+        "Veicolo targato AB 123 CD, di proprieta' della societa'.",
+        "Autovettura AB123CD",
+        "Rilevata la vettura AB-123-CD",
+        # Ciclomotore: due lettere e cinque cifre, e li' la parola davanti
+        # e' obbligatoria.
+        "Motociclo targa AB 12345",
+        "targa n. AB12345",
+    ],
+)
+def test_la_targa_sparisce(frase: str) -> None:
+    assert "{{TARGA}}" in redigi(frase, pacchetti=ACCESO), frase
+
+
+@pytest.mark.parametrize(
+    "frase",
+    [
+        # Sulle targhe italiane I, O, Q e U non esistono — si confonderebbero
+        # con 1 e 0 — ed e' l'unico controllo disponibile qui.
+        "IO 123 QU non e' una targa",
+        "AU 123 CD nemmeno",
+        # Minuscolo: una targa si scrive maiuscola sempre.
+        "ab 123 cd",
+        # Due lettere e cinque cifre senza la parola davanti puo' essere
+        # qualunque codice, e infatti quasi sempre lo e'.
+        "Codice MB 12345 di magazzino",
+        # Tre cifre in mezzo, ma le lettere non bastano.
+        "AB 1234 CD",
+    ],
+)
+def test_quello_che_non_e_una_targa_resta(frase: str) -> None:
+    assert "{{TARGA}}" not in redigi(frase, pacchetti=ACCESO), frase
+
+
+def test_la_targa_la_spegne_anche_l_interruttore() -> None:
+    testo = "Veicolo targato AB 123 CD."
+    assert redigi(testo, pacchetti=ACCESO, atti=False) == testo
+
+
+# ------------------------------------------------- le tre stanno insieme
+
+
+def test_le_tre_categorie_sono_dichiarate() -> None:
+    """Una categoria che il motore emette ma che non sta in `CATEGORIE` non
+    si puo' mettere in «segnala»: sparirebbe in silenzio dall'interfaccia."""
+    from mr_rao.privacy import CATEGORIE
+
+    for c in ("catasto", "pratica", "targa"):
+        assert c in CATEGORIE, c
+
+
 def test_e_raggiungibile_dall_interfaccia() -> None:
     """Parita' GUI: un pacchetto che si puo' accendere solo dall'API e'
     una funzione che per chi usa il programma non esiste."""

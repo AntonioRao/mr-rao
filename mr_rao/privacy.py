@@ -1217,6 +1217,13 @@ class PrivacyOptions:
     #: Sono due assi, come per i pacchetti nazionali -- l'interruttore dice
     #: *quale dato*, il pacchetto dice *per quale mestiere*.
     atti: bool = True
+    #: Eta' e sesso: si trovano, si dicono nel rapporto, **non si tolgono**.
+    #:
+    #: L'interruttore decide se guardare, e non c'e' nessun secondo stato:
+    #: acceso li segnala, spento non li cerca. E' l'unico caso nel motore in
+    #: cui la sostituzione non esiste proprio, e la ragione sta scritta per
+    #: esteso accanto ai due riconoscitori.
+    quasi_id: bool = True
     amounts: bool = False
     urls: bool = True
     addresses: bool = True
@@ -1387,6 +1394,17 @@ class RedactionReport:
             self.rilevati.append({"kind": kind, "sample": _mask(testo)})
             return testo
         return self._sostituisci(kind, base, valore)
+
+    def rilevata(self, kind: str, valore: str) -> None:
+        """Annota un dato trovato e lasciato in chiaro **per costruzione**.
+
+        Non e' la stessa cosa di `segnaposto` con la categoria in `segnala`:
+        li' e' una scelta di chi converte, che puo' cambiarla; qui non c'e'
+        nessun percorso che sostituisca, e la ragione sta scritta accanto ai
+        due riconoscitori che usano questo metodo (eta' e sesso). Chi volesse
+        toglierli davvero ha gia' l'elenco «nascondi sempre», che li toglie.
+        """
+        self.rilevati.append({"kind": kind, "sample": _mask(valore)})
 
     def solo_rilevata(self, kind: str) -> bool:
         """Questa categoria viene trovata e lasciata in chiaro?
@@ -2259,6 +2277,191 @@ def _scrub_catasto(text: str, report: RedactionReport) -> str:
         return report.segnaposto("catasto", "{{CATASTO}}", m.group(0))
 
     return _RE_CATASTO.sub(_sub, text)
+
+
+# Il numero di pratica: R.G., protocollo, repertorio, raccolta, cronologico.
+#
+# **Questa e' la regola che capovolge una scelta gia' presa**, e va letta
+# sapendolo. Altrove nel motore «protocollo» e «repertorio» servono a dire di
+# *non* redigere: sono cio' che impedisce a un numero di dieci cifre di essere
+# letto come un telefono. Qui l'etichetta fa il lavoro opposto, e per un
+# pubblico opposto -- in un atto il numero di ruolo generale identifica le
+# parti quanto il loro nome, perche' da quel numero si arriva al fascicolo.
+#
+# Per un'azienda toglierlo rende il documento inservibile senza proteggere
+# nessuno: e' precisamente il motivo per cui il pacchetto e' spento di serie.
+#
+# L'etichetta e' **obbligatoria** e non e' un rafforzativo: un numero con un
+# anno accanto e' la forma piu' comune che esista in un documento, e senza la
+# parola davanti si redigerebbero le citazioni di legge.
+_PRATICA_ETICHETTA = (
+    r"(?:r\.[^\S\r\n]?g\.?(?:[^\S\r\n]?n\.[^\S\r\n]?r\.?)?"
+    r"|ruolo[^\S\r\n]+generale"
+    r"|prot(?:\.|ocollo)"
+    r"|rep(?:\.|ertorio)"
+    r"|racc(?:\.|olta)"
+    r"|cron(?:\.|ologico))"
+)
+
+# **La cifra sola non basta, la coppia con l'anno si'.** «Protocollo n. 5» in
+# un trattato e' il quinto protocollo, non un numero di pratica; «prot. 7/2024»
+# lo e'. Chiedere due cifre -- oppure una barra con l'anno -- e' l'unica parte
+# di questa regola che sappia dire di no, e c'e' un test che la muove in
+# peggio per controllare in che verso si sposta il conto.
+#
+# La barra prende **tutte** le cifre dei due lati e non solo un anno di
+# quattro: «Protocollo 2024/000123» e' anno-barra-progressivo, ed e' scritto
+# in questo verso almeno quanto nell'altro. Con il numeratore limitato a
+# quattro cifre il pattern ripiegava sulla seconda alternativa e sostituiva
+# **meta' numero**, lasciando «{{PRATICA}}/000123» nel testo -- che e' peggio
+# di non sostituire, perche' sembra fatto.
+_PRATICA_NUM = r"(?:\d{1,8}[^\S\r\n]*/[^\S\r\n]*\d{1,8}|\d{2,8})"
+
+_RE_PRATICA = re.compile(
+    rf"(?<!\w)(?i:{_PRATICA_ETICHETTA})[^\S\r\n]*:?[^\S\r\n]*"
+    rf"(?:n[.°]?[^\S\r\n]*)?(?P<val>{_PRATICA_NUM})(?!\d)"
+)
+
+# La forma con l'etichetta **dopo**, che negli atti e' quella canonica:
+# «n. 1234/2023 R.G.». Solo per il ruolo generale: «12345 prot.» non si scrive.
+_RE_PRATICA_POST = re.compile(
+    r"(?<!\w)(?:n[.°][^\S\r\n]*)?(?P<val>" + _PRATICA_NUM + r")"
+    r"[^\S\r\n]*(?i:r\.[^\S\r\n]?g\.?(?:[^\S\r\n]?n\.[^\S\r\n]?r\.?)?)(?!\w)"
+)
+
+
+def _scrub_pratica(text: str, report: RedactionReport) -> str:
+    """Numeri di pratica, **tenendo l'etichetta nel testo**.
+
+    Sparisce il numero, resta «Prot. n.». E' la stessa scelta fatta per gli
+    appellativi e per le parole d'ente: la parola dice di che genere di dato
+    si trattava, e chi rilegge capisce la frase senza poter risalire a niente.
+    Toglierla insieme al numero renderebbe il documento illeggibile in cambio
+    di nessuna protezione in piu'.
+
+    Cosa non trova, dichiarato: il numero in una tabella la cui intestazione
+    di colonna sta dieci righe sopra. Li' l'etichetta non c'e', e senza
+    etichetta questa regola non deve scattare.
+    """
+    def _sub(m: re.Match) -> str:
+        prima = m.string[m.start():m.start("val")]
+        return prima + report.segnaposto("pratica", "{{PRATICA}}", m.group("val"))
+
+    def _sub_post(m: re.Match) -> str:
+        # Anche qui **tutto cio' che non e' il numero resta**, compreso il
+        # «n.» davanti: e' la stessa regola di sopra, e dimenticarla qui
+        # faceva sparire l'abbreviazione insieme alla cifra.
+        prima = m.string[m.start():m.start("val")]
+        dopo = m.string[m.end("val"):m.end()]
+        return prima + report.segnaposto("pratica", "{{PRATICA}}", m.group("val")) + dopo
+
+    return _RE_PRATICA_POST.sub(_sub_post, _RE_PRATICA.sub(_sub, text))
+
+
+# La targa italiana. **Il pattern propone, l'alfabeto decide**: sulle targhe
+# non esistono I, O, Q, U -- si confonderebbero con 1 e 0 -- e quelle quattro
+# lettere mancanti sono l'unico controllo aritmetico disponibile qui. Non e'
+# molto, ma e' vero: rifiuta circa una sigla inventata su due.
+_TARGA_L = "[ABCDEFGHJKLMNPRSTVWXYZ]"
+
+# Maiuscolo obbligatorio, e non e' pedanteria: una targa si scrive maiuscola
+# sempre, mentre «ab 123 cd» minuscolo in un testo e' quasi sempre altro.
+_RE_TARGA = re.compile(
+    rf"(?<![\w-]){_TARGA_L}{{2}}[ .-]?\d{{3}}[ .-]?{_TARGA_L}{{2}}(?![\w-])"
+)
+
+# La targa di motocicli e ciclomotori -- due lettere e **cinque** cifre -- ha
+# una forma molto piu' comune: «MB 12345» puo' essere qualunque codice. Qui
+# la parola davanti e' obbligatoria, ed e' il prezzo giusto per una forma che
+# da sola non dice niente.
+_RE_TARGA_CTX = re.compile(
+    r"(?i:targ(?:a|he))[^\S\r\n]*:?[^\S\r\n]*(?:n[.°]?[^\S\r\n]*)?"
+    rf"(?P<val>{_TARGA_L}{{2}}[ .-]?\d{{5}})(?![\w-])"
+)
+
+
+def _scrub_targhe(text: str, report: RedactionReport) -> str:
+    """Targhe di veicoli.
+
+    Una targa e' un identificatore diretto -- dal PRA si arriva
+    all'intestatario in un accesso -- ma sta nel pacchetto spento insieme al
+    resto: in un verbale serve toglierla, in un ordine di acquisto di flotta
+    aziendale toglierla cancella l'oggetto del documento.
+    """
+    def _sub(m: re.Match) -> str:
+        return report.segnaposto("targa", "{{TARGA}}", m.group(0))
+
+    def _sub_ctx(m: re.Match) -> str:
+        prima = m.string[m.start():m.start("val")]
+        return prima + report.segnaposto("targa", "{{TARGA}}", m.group("val"))
+
+    return _RE_TARGA.sub(_sub, _RE_TARGA_CTX.sub(_sub_ctx, text))
+
+
+# ---------------------------------------------------------------------------
+# Eta' e sesso: si trovano, si dicono, **non si tolgono mai**
+# ---------------------------------------------------------------------------
+#
+# Sono quasi-identificatori, ed e' una categoria diversa da tutto il resto di
+# questo file. Un IBAN identifica una persona da solo; «45 anni» no -- ma «45
+# anni» insieme a un comune piccolo e a una professione la identifica benissimo,
+# ed e' esattamente cosi' che si de-anonimizza un archivio.
+#
+# **Perche' non c'e' nessun percorso che li sostituisca.** Chi chiede a un
+# modello di ragionare su una cartella clinica, su una statistica del personale
+# o su una perizia sta chiedendo proprio di quei due dati: toglierli non
+# protegge nessuno di piu' e rende il documento inservibile per l'unico uso per
+# cui era stato preparato. Lasciarli in silenzio, pero', vuol dire che chi
+# rilegge non sa che ci sono.
+#
+# Quindi la terza via, che qui e' la sola giusta: **compaiono nel rapporto**.
+# «Ho lasciato in chiaro 3 eta' e 1 sesso, apposta» e' un'informazione che un
+# DPO puo' usare per decidere; il silenzio no.
+#
+# E niente e' perduto: chi vuole toglierli davvero ha gia' l'elenco «nascondi
+# sempre», che li toglie senza che serva un'altra leva.
+
+# Solo le forme in cui il contesto e' una **dichiarazione**, non un indizio.
+# «45 anni» nudo e' quasi sempre una durata -- «dopo 45 anni di servizio»,
+# «un contratto di 45 anni» -- e prenderlo vorrebbe dire riempire di
+# segnalazioni ogni relazione aziendale. Dichiarato: l'eta' scritta cosi' non
+# la vediamo, ed e' la scelta giusta finche' l'unico esito e' una riga di
+# rapporto.
+_RE_ETA = re.compile(
+    r"(?<!\w)(?:"
+    r"(?i:d'|di[^\S\r\n]+)anni[^\S\r\n]+(?P<a>\d{1,3})"
+    r"|(?P<b>\d{1,3})[^\S\r\n]+anni[^\S\r\n]+(?i:d'|di[^\S\r\n]+)et[àa]"
+    r"|(?i:et[àa])[^\S\r\n]*:?[^\S\r\n]+(?P<c>\d{1,3})"
+    r"|(?P<d>\d{1,3})enne"
+    r")(?!\d)"
+)
+
+# Il campo etichettato dei moduli e dei record. La lettera sola («M», «F») non
+# si guarda senza l'etichetta davanti: sarebbe una lettera qualsiasi.
+_RE_SESSO = re.compile(
+    r"(?<!\w)(?i:sesso|genere)[^\S\r\n]*:?[^\S\r\n]*"
+    r"(?P<v>(?i:maschile|femminile|maschio|femmina)|[MF](?![\w]))"
+)
+
+
+def _scrub_eta_sesso(text: str, report: RedactionReport) -> str:
+    """Li trova e li **restituisce identici**. Non e' un segnaposto mancato.
+
+    Il testo esce dalla funzione com'era entrato: l'unico effetto e' una riga
+    nel rapporto. Se un domani qualcuno aggiungesse qui una sostituzione,
+    romperebbe la ragione per cui questi due riconoscitori esistono — e c'e'
+    un test che tiene fermo proprio questo.
+    """
+    for m in _RE_ETA.finditer(text):
+        valore = next(g for g in m.groups() if g is not None)
+        eta = int(valore)
+        # Oltre i 120 non e' un'eta': e' un anniversario, una durata, o un
+        # numero che ha trovato la parola sbagliata accanto.
+        if eta <= 120:
+            report.rilevata("eta", m.group(0))
+    for m in _RE_SESSO.finditer(text):
+        report.rilevata("genere", m.group(0))
+    return text
 
 
 def _scrub_documenti_id(text: str, report: RedactionReport) -> str:
@@ -3345,7 +3548,18 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("documenti_id", IT, "documenti", 52,
           lambda t, r, o: _scrub_documenti_id(t, r)),
     # Pacchetto «atti e pratiche», spento di serie: vedi `ATTI`.
+    #
+    # Il numero di pratica sta **prima** dei telefoni di proposito: le due
+    # regole guardano la stessa cifra con l'intenzione opposta -- il
+    # riconoscitore dei telefoni rifiuta un protocollo, questo lo cerca -- e
+    # chi ha acceso il pacchetto ha detto quale delle due vuole.
+    Passo("pratica", ATTI, "atti", 54, lambda t, r, o: _scrub_pratica(t, r)),
     Passo("catasto", ATTI, "atti", 55, lambda t, r, o: _scrub_catasto(t, r)),
+    Passo("targhe", ATTI, "atti", 56, lambda t, r, o: _scrub_targhe(t, r)),
+    # Non tocca il testo: l'unico effetto e' una riga di rapporto. Sta nel
+    # pacchetto italiano perche' sono le parole italiane a dichiararli.
+    Passo("eta_sesso", IT, "quasi_id", 58,
+          lambda t, r, o: _scrub_eta_sesso(t, r)),
     Passo("phones", CORE, "phones", 60, _scrub_phones),
     # Euro e parole italiane: "importo", "imponibile", "canone".
     Passo("amounts", IT, "amounts", 65, _scrub_amounts),
@@ -3615,6 +3829,9 @@ FIELD_DEFAULTS: dict[str, bool] = {
     # qui lo stesso perche' e' un interruttore vero: deve comparire in
     # `no_redaction()` e nell'interfaccia come tutti gli altri.
     "atti": True,
+    # Acceso, ma non sostituisce **mai**: segnala e basta. Spegnerlo non
+    # rende il documento piu' pulito, lo rende piu' silenzioso.
+    "quasi_id": True,
     "amounts": False,
     "urls": True,
     "addresses": True,
@@ -3648,9 +3865,15 @@ DETECTOR_FIELDS: tuple[str, ...] = tuple(FIELD_DEFAULTS)
 # categoria non si puo' mettere in «segnala» -- in silenzio.
 CATEGORIE: tuple[str, ...] = (
     "abn", "addresses", "amounts", "bban", "cards", "catasto",
+    # `eta` e `genere` NON stanno qui, ed e' giusto cosi': non sono mai
+    # chiavi di `counts`, perche' non c'e' nessun percorso che le sostituisca.
+    # Vivono in `detected_counts`, che e' un altro conto e un'altra frase.
+    # Metterle qui offrirebbe una casella «segnala anziche' sostituire» che
+    # non e' attaccata a niente.
     "codice_fiscale", "dates", "documenti", "emails", "iban", "itin", "mrz",
-    "names", "nhs_number", "nino", "partita_iva", "phones", "routing_number",
-    "secrets", "sin", "ssn", "termini", "tfn", "urls",
+    "names", "nhs_number", "nino", "partita_iva", "phones", "pratica",
+    "routing_number", "secrets", "sin", "ssn", "targa", "termini", "tfn",
+    "urls",
 )
 
 

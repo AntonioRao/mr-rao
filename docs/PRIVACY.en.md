@@ -61,10 +61,43 @@ read. That is the limit measured further down this page, not a hypothesis.
 | Personal names | `{{NAME}}` | See below |
 | Keys and passwords | `{{SECRET}}` | Tokens, API keys, JWTs, private-key blocks, `password: ...` |
 | Land registry references | `{{CATASTO}}` | **«Deeds and case files» pack, off by default.** Sheet **and** parcel together, sub-unit optional. The sheet alone is a page number |
+| Case and file numbers | `{{PRATICA}}` | **«Deeds and case files» pack, off by default.** Court docket (R.G.), protocol, deed register (repertorio), collection, chronological number. The label is required and **stays in the text**: the number goes, «Prot. n.» remains. Two digits at least, or a year beside it — «Protocollo n. 5» of a convention is not a case number. The register suffix (`/P`, `/CU`) stays too: it says which register, not which file |
+| Vehicle plates | `{{TARGA}}` | **«Deeds and case files» pack, off by default.** `AB 123 CD` in upper case, with or without separators; I, O, Q and U do not exist on Italian plates and are rejected. The moped form (`AB 12345`) needs the word «targa» in front |
 | Identity documents | `{{DOC_ID}}` | Electronic ID card, driving licence, passport. **The document type must be written nearby**, see below |
 | Dates of birth | `{{DATE}}` | **Off by default.** Only with birth context beside it |
 | Amounts | `{{AMOUNT}}` | **Off by default.** Currency, thousands separator, or accounting context |
 | Your own terms | `{{TERM}}` | The "always hide" list written by whoever is converting |
+
+### Two things Mr. Rao finds and never removes: age and sex
+
+They have no placeholder, and that is not an oversight.
+
+They are **quasi-identifiers**: «45 years old» identifies nobody on its own,
+but together with a small town and an occupation it does — and that is exactly
+how an archive gets de-anonymised. Removing them, though, protects nobody
+further and makes the document useless for the one purpose it was prepared
+for: whoever works on a medical record, on workforce statistics or on an
+expert report is asking for **precisely those two facts**.
+
+Leaving them in silence would mean the person re-reading does not know they
+are there. So the third way, which here is the only right one: **they appear
+in the report**, in the `detected_not_replaced` block, kept apart from the
+substitutions because adding what was removed to what was left would give a
+total that means nothing. «3 ages left in the clear, on purpose» is something
+a DPO can act on; silence is not.
+
+They are recognised only where **the context is a declaration**: `di anni 45`,
+`45 anni di età`, `età: 45`, `45enne`, `sesso: F`, `genere femminile`. A bare
+`45 anni` is not looked at, and that is declared: it is nearly always a
+duration («after 45 years of service»), and taking it would fill every company
+report with flags.
+
+The «Age and sex» switch decides **whether to look**, and has no second state:
+on it reports them, off it does not search. Turning it off does not make the
+document cleaner, it makes it quieter. Anyone who really wants them gone
+already has the **«always hide»** list, which removes them — no capability is
+lost, and that is what makes the choice not to offer substitution an honest
+one.
 
 ### The Anglo pack
 

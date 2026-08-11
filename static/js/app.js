@@ -73,6 +73,7 @@
     "urls",
     "fiscal",
     "atti",
+    "quasi_id",
     "secrets",
     "dates",
     "documenti",

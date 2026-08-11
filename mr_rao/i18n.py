@@ -1445,42 +1445,88 @@ TESTI: dict[str, dict[str, str]] = {
     "cat_catasto": {
         "it": "Riferimenti catastali", "en": "Land registry references",
     },
+    "cat_pratica": {
+        "it": "Numeri di pratica (R.G., protocollo, repertorio)",
+        "en": "Case and file numbers (docket, protocol, deed register)",
+    },
+    "cat_targa": {"it": "Targhe di veicoli", "en": "Vehicle plates"},
+    "cat_eta": {"it": "Età", "en": "Age"},
+    "cat_genere": {"it": "Sesso", "en": "Sex"},
+
+    # -- età e sesso: si trovano, si dicono, non si tolgono ---------------
+    "opt_quasi_id_titolo": {"it": "Età e sesso", "en": "Age and sex"},
+    "opt_quasi_id_desc": {
+        "it": "Segnalati nel rapporto, mai tolti dal testo",
+        "en": "Reported, never removed from the text",
+    },
+    "tip_quasi_id": {
+        "it": "Sono quasi-identificatori: «45 anni» da solo non identifica "
+              "nessuno, ma insieme a un comune piccolo e a una professione "
+              "sì — ed è esattamente così che si de-anonimizza un archivio. "
+              "**Mr. Rao non li toglie mai**, perché chi lavora su una "
+              "cartella clinica o su una statistica del personale sta "
+              "chiedendo proprio quei due dati, e toglierli renderebbe il "
+              "documento inutile senza proteggere nessuno di più. Li trova e "
+              "te li dice: «lasciate in chiaro 3 età, apposta» è "
+              "un'informazione, il silenzio no. Se vuoi toglierli davvero, "
+              "l'elenco «nascondi sempre» lo fa.",
+        "en": "These are quasi-identifiers: «45 years old» identifies nobody "
+              "on its own, but together with a small town and an occupation "
+              "it does — and that is exactly how an archive gets "
+              "de-anonymised. **Mr. Rao never removes them**, because "
+              "whoever works on a medical record or on workforce statistics "
+              "is asking for precisely those two facts, and removing them "
+              "would make the document useless while protecting nobody. It "
+              "finds them and tells you: «3 ages left in the clear, on "
+              "purpose» is information, silence is not. To remove them for "
+              "real, the «always hide» list does it.",
+    },
 
     # -- il pacchetto «atti e pratiche», e il suo interruttore -------------
     "pack_atti_titolo": {"it": "Atti e pratiche", "en": "Deeds and case files"},
     "pack_atti_desc": {
-        "it": "Riferimenti catastali. Spento di serie",
-        "en": "Land registry references. Off by default",
+        "it": "Catastali, numeri di pratica, targhe. Spento di serie",
+        "en": "Land registry, case numbers, plates. Off by default",
     },
     "tip_pack_atti": {
         "it": "Per notai, avvocati e tecnici. In un atto il riferimento "
               "catastale è il dato più sensibile della frase: dice di quale "
-              "immobile si parla, e da lì si risale al proprietario. Per "
-              "chiunque altro è rumore — ed è il motivo per cui questo "
-              "pacchetto è spento finché non lo accendi tu.",
+              "immobile si parla, e da lì si risale al proprietario; e il "
+              "numero di ruolo identifica le parti quanto il loro nome. Per "
+              "un'azienda invece il numero di protocollo è ciò che permette "
+              "di **ritrovare** la pratica, e toglierlo rende il documento "
+              "inservibile senza proteggere nessuno — ed è il motivo per cui "
+              "questo pacchetto è spento finché non lo accendi tu.",
         "en": "For notaries, lawyers and surveyors. In a deed the land "
               "registry reference is the most sensitive thing on the line: "
               "it says which property, and from there the owner is one "
-              "search away. For everybody else it is noise — which is why "
-              "this pack stays off until you turn it on.",
+              "search away; and the docket number identifies the parties as "
+              "surely as their names. For a company, though, the protocol "
+              "number is what lets you **find** the file again, and removing "
+              "it makes the document useless while protecting nobody — which "
+              "is why this pack stays off until you turn it on.",
     },
     "opt_atti_titolo": {
         "it": "Atti e pratiche", "en": "Deeds and case files",
     },
     "opt_atti_desc": {
-        "it": "Riferimenti catastali",
-        "en": "Land registry references",
+        "it": "Catastali, numeri di pratica, targhe",
+        "en": "Land registry, case numbers, plates",
     },
     "tip_atti": {
         "it": "«Foglio 12 particella 345 sub 6» diventa un segnaposto. Il "
               "foglio da solo non basta: «foglio 3» in una relazione è la "
               "pagina tre, ed è la coppia foglio+particella a dire che si "
-              "parla di un immobile. **Serve anche il pacchetto «Atti e "
+              "parla di un immobile. Insieme spariscono i numeri di pratica "
+              "(«R.G. 1234/2023», «Prot. n. 55871») — l'etichetta resta, il "
+              "numero no — e le targhe. **Serve anche il pacchetto «Atti e "
               "pratiche» acceso**, che di serie non lo è.",
         "en": "«Foglio 12 particella 345 sub 6» becomes a placeholder. The "
               "sheet alone is not enough — «foglio 3» in a report is page "
               "three — it is the sheet+parcel pair that says a property is "
-              "meant. **The «Deeds and case files» pack must be on too**, "
+              "meant. Case numbers go too («R.G. 1234/2023», «Prot. n. "
+              "55871»): the label stays, the number does not. So do vehicle "
+              "plates. **The «Deeds and case files» pack must be on too**, "
               "and by default it is not.",
     },
 }
@@ -1493,6 +1539,9 @@ TESTI: dict[str, dict[str, str]] = {
 #: invece di sostituirle vuol dire chiedere al programma di disobbedire a
 #: una richiesta esplicita, e non c'e' un caso in cui serva: chi non vuole
 #: che una parola sia sostituita non la mette nell'elenco.
+#: `eta` e `genere` non compaiono qui perche' non stanno nemmeno in
+#: `CATEGORIE`: sono **sempre e solo** segnalate, quindi non c'e' niente da
+#: escludere — non c'e' proprio la casella.
 CATEGORIE_NON_SEGNALABILI = frozenset({"termini"})
 
 

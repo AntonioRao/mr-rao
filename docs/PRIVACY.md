@@ -63,9 +63,41 @@ avanti in questa pagina, non un'ipotesi.
 | Chiavi e password | `{{SECRET}}` | Token, chiavi API, JWT, blocchi di chiave privata, `password: ...` |
 | Documenti d'identità | `{{DOC_ID}}` | Carta d'identità elettronica, patente, passaporto. **Serve il tipo di documento scritto vicino**, vedi sotto |
 | Riferimenti catastali | `{{CATASTO}}` | **Pacchetto «Atti e pratiche», spento di default.** Foglio **e** particella insieme, subalterno facoltativo. Il foglio da solo è la pagina di una relazione |
+| Numeri di pratica | `{{PRATICA}}` | **Pacchetto «Atti e pratiche», spento di default.** R.G., protocollo, repertorio, raccolta, cronologico. L'etichetta è obbligatoria e **resta nel testo**: sparisce il numero, resta «Prot. n.». Servono almeno due cifre, oppure l'anno accanto — «Protocollo n. 5» di una convenzione non è una pratica. Il suffisso di registro (`/P`, `/CU`) resta anche lui: dice quale registro, non quale fascicolo |
+| Targhe di veicoli | `{{TARGA}}` | **Pacchetto «Atti e pratiche», spento di default.** `AB 123 CD` in maiuscolo, con o senza separatori; I, O, Q e U non esistono sulle targhe e vengono rifiutate. La forma da ciclomotore (`AB 12345`) richiede la parola «targa» davanti |
 | Date di nascita | `{{DATE}}` | **Spento di default.** Solo con contesto di nascita accanto |
 | Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
 | Termini tuoi | `{{TERM}}` | L'elenco «nascondi sempre» scritto da chi converte |
+
+### Due dati che Mr. Rao trova e non toglie mai: età e sesso
+
+Non hanno un segnaposto, e non è una dimenticanza.
+
+Sono **quasi-identificatori**: «45 anni» da solo non identifica nessuno, ma
+insieme a un comune piccolo e a una professione sì — ed è esattamente così che
+si de-anonimizza un archivio. Toglierli, però, non protegge nessuno di più e
+rende il documento inservibile per l'unico uso per cui era stato preparato: chi
+lavora su una cartella clinica, su una statistica del personale o su una
+perizia sta chiedendo **proprio quei due dati**.
+
+Lasciarli in silenzio, però, vorrebbe dire che chi rilegge non sa che ci sono.
+Quindi la terza via, che qui è la sola giusta: **compaiono nel rapporto**, nel
+blocco `detected_not_replaced`, separato dalle sostituzioni perché sommare ciò
+che si è tolto con ciò che si è lasciato darebbe un totale che non vuol dire
+niente. «Lasciate in chiaro 3 età, apposta» è un'informazione che un DPO può
+usare per decidere; il silenzio no.
+
+Si riconoscono solo dove **il contesto è una dichiarazione**: `di anni 45`,
+`45 anni di età`, `età: 45`, `45enne`, `sesso: F`, `genere femminile`. Il
+`45 anni` nudo non si guarda, ed è dichiarato: è quasi sempre una durata
+(«dopo 45 anni di servizio»), e prenderlo riempirebbe di segnalazioni ogni
+relazione aziendale.
+
+L'interruttore «Età e sesso» decide **se guardare**, e non ha un secondo
+stato: acceso li segnala, spento non li cerca. Spegnerlo non rende il documento
+più pulito, lo rende più silenzioso. Chi li vuole togliere davvero ha già
+l'elenco **«nascondi sempre»**, che li toglie — nessuna capacità è perduta, ed
+è questo a rendere onesta la scelta di non offrire la sostituzione.
 
 ### Il pacchetto anglosassone
 

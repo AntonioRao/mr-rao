@@ -1,5 +1,97 @@
 # Changelog
 
+## 1.23.0 — Il pacchetto «atti e pratiche», e due dati che si trovano e non si tolgono
+
+### Una divergenza vera, e hanno ragione tutti e due
+
+Per un notaio il riferimento catastale è il dato più sensibile della frase:
+dice esattamente di quale immobile si parla, e da un foglio e una particella
+si arriva al proprietario in un pomeriggio. Il numero di ruolo generale
+identifica le parti quanto il loro nome.
+
+Per un'azienda il numero di protocollo è ciò che permette di **ritrovare** la
+pratica, e toglierlo rende il documento inservibile senza proteggere nessuno.
+Non è un caso che «protocollo» e «repertorio» stiano già nel vocabolario di
+ciò che il motore **non** redige: è quello che impedisce a ogni numero di
+pratica di essere letto come un telefono.
+
+Quindi non un interruttore nuovo ma un **pacchetto «atti e pratiche», spento
+di serie** — perché una cosa che capovolge una scelta già presa non si accende
+da sola. Due assi, come per i pacchetti nazionali: l'interruttore dice *quale
+dato*, il pacchetto dice *per quale mestiere*, e c'è un test per ciascuno dei
+due versi.
+
+Dentro ci sono tre categorie, e ognuna è passata perché ha **qualcosa che sa
+dire di no**:
+
+- **riferimenti catastali** — servono foglio **e** particella insieme, il
+  subalterno è facoltativo. Il foglio da solo è la pagina tre di una relazione;
+- **numeri di pratica** (R.G., protocollo, repertorio, raccolta, cronologico)
+  — l'etichetta è obbligatoria e **resta nel testo**: sparisce il numero,
+  resta «Prot. n.». Servono due cifre o l'anno accanto, ed è quella la sola
+  parte della regola capace di rifiutare: «Protocollo n. 5» di una convenzione
+  non è una pratica, e «decreto legislativo 231/2001» nemmeno;
+- **targhe** — `AB 123 CD` in maiuscolo. Il pattern propone, **l'alfabeto
+  decide**: I, O, Q e U sulle targhe non esistono. La forma da ciclomotore
+  (`AB 12345`) è troppo comune per reggersi da sola e pretende la parola
+  «targa» davanti.
+
+**Il prezzo, misurato e non stimato.** Col pacchetto spento — cioè di serie —
+il corpus pubblico non si muove di un'unità (moduli in bianco 96 e 22, prosa
+vera 893) e nessuno dei 217 casi di conformità cambia esito. Col pacchetto
+acceso: 91 sostituzioni su 47 documenti, **guardate una per una** — `prot. n.
+26597`, `rep. n. 8757`, `protocollo n. 61238`. Sono tutte numeri di pratica
+veri: zero falsi positivi.
+
+Una trappola pagata durante la misura: `Protocollo 2024/000123` è
+anno-barra-progressivo, e con il numeratore limitato a quattro cifre il
+pattern ripiegava sull'altra alternativa e sostituiva **metà numero**,
+lasciando `{{PRATICA}}/000123` nel testo. È peggio di non sostituire, perché
+sembra fatto.
+
+### `ORG` no, e non è un rinvio
+
+Era la quarta categoria del gruppo, ed è l'unica che non ha niente capace di
+dire di no. Con le sole sigle prende `Rossi S.r.l.` e perde `Banca Intesa`;
+con un vocabolario di ragioni sociali prende ogni maiuscola del documento. E
+il costo cadrebbe dove sbagliare si vede di più: il nome di un'azienda in un
+atto **è il contesto**, e toglierlo lascia una frase che non dice più di che
+pratica si parla.
+
+### Età e sesso: si trovano, si dicono, non si tolgono mai
+
+Sono quasi-identificatori, ed è una categoria diversa da tutto il resto del
+motore. «45 anni» da solo non identifica nessuno, ma insieme a un comune
+piccolo e a una professione sì — ed è esattamente così che si de-anonimizza un
+archivio.
+
+Non hanno un segnaposto, e non è una dimenticanza: **non esiste nessun
+percorso che li sostituisca**. Chi lavora su una cartella clinica, su una
+statistica del personale o su una perizia sta chiedendo proprio quei due dati,
+e toglierli non protegge nessuno di più mentre rende il documento inservibile.
+Lasciarli in silenzio, però, vuol dire che chi rilegge non sa che ci sono.
+
+Quindi la terza via: restano nel testo e **compaiono nel rapporto**, nel
+blocco `detected_not_replaced`. «Lasciate in chiaro 3 età, apposta» è
+un'informazione che un DPO può usare per decidere; il silenzio no.
+
+Si guardano solo dove il contesto è una dichiarazione — `di anni 45`, `45 anni
+di età`, `età: 45`, `45enne`, `sesso: F`, `genere femminile`. Il `45 anni`
+nudo no, ed è dichiarato: è quasi sempre una durata, e prenderlo riempirebbe
+di segnalazioni ogni relazione aziendale.
+
+Nessuna capacità è perduta: chi li vuole togliere davvero ha già l'elenco
+«nascondi sempre», ed è questo a rendere onesta la scelta di non offrire la
+sostituzione.
+
+### `TIME` non si fa
+
+Le tassonomie dei motori a riconoscimento automatico elencano gli orari
+accanto alle date. «Alle 14:30» non identifica nessuno: quello che identifica
+è la data, che trattiamo già. E un orario ha la forma di una durata, di un
+punteggio e di metà delle celle di un foglio di calcolo — paga tantissimo e
+rende quasi niente. Nei verbali, poi, toglierlo rompe il documento.
+
 ## 1.22.0 — Tre falsi positivi, e il segnale che avevamo sotto il naso
 
 ### Il nome accanto a un codice fiscale è una persona
