@@ -9,3 +9,26 @@
 # programma di installazione di Git, quindi senza questa riga basta un clone
 # per ritrovarsi il file convertito.
 .githooks/** text eol=lf
+
+# Gli asset del sito **non si toccano**: i loro byte sono la loro identita'.
+#
+# `_rebuild.py` mette nell'indirizzo di logo e favicon l'impronta del
+# contenuto (`?v=<sha>`), cosi' cambiando l'immagine cambia l'indirizzo e la
+# cache dei browser viene aggirata da sola. Ha un prezzo: se git riscrive
+# quei file in checkout, l'impronta cambia **senza che sia cambiato niente**.
+#
+# L'SVG e' testo, quindi su Windows con `core.autocrlf=true` -- cioe' su
+# quasi ogni clone Windows, e sui runner `windows-latest` -- viene convertito
+# in CRLF e l'impronta diventa un'altra. Misurato: `bdb291803a` in locale,
+# `879377444b` sul runner, per lo stesso identico disegno. La conseguenza e'
+# che chi rilancia il rigeneratore su Windows si ritrova le due pagine
+# pubblicate modificate senza aver cambiato nulla, e le pubblica cosi'.
+#
+# L'ha trovato `tests/test_landing_pubblicata.py` al primo giro di CI: e' il
+# test che rilancia il rigeneratore e pretende che non cambi niente.
+*.svg  -text
+*.ico  -text
+*.png  -text
+*.jpg  -text
+*.jpeg -text
+*.woff2 -text
