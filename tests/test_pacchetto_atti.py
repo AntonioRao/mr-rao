@@ -201,6 +201,50 @@ def test_la_pratica_la_spegne_anche_l_interruttore() -> None:
     assert redigi(testo, pacchetti=ACCESO, atti=False) == testo
 
 
+# ---------------------------------- le forme trovate misurando il richiamo
+#
+# Nessuna di queste sarebbe venuta in mente leggendo il codice: sono uscite
+# tendendo una rete piu' larga del motore su un corpus di atti veri e
+# guardando cosa prendeva lei e non lui.
+
+
+@pytest.mark.parametrize(
+    ("frase", "resta"),
+    [
+        # `Rac.` con una c sola: e' l'abbreviazione che gli atti notarili usano
+        # davvero. Chiedendo le due c si perdevano 6 728 numeri di raccolta.
+        ("atto Rep. 74570 Rac. 1261 del 2017-11-20", "Rac."),
+        # Il ruolo generale **senza punti**, comunissimo negli atti.
+        ("fattura RG 87220/2020 scadenza 27-11-2020", "RG"),
+        ("Atto notarile repertorio RG 99654/2021", "repertorio"),
+        # Il «n.» maiuscolo: stava fuori dal gruppo insensibile al caso, e
+        # un atto scritto tutto in maiuscolo non veniva riconosciuto.
+        ("REPERTORIO N. 182/2023 ROGATO DAL NOTAIO", "REPERTORIO N."),
+        ("PROT. N. 55871 del 12 marzo", "PROT. N."),
+    ],
+)
+def test_le_forme_che_il_richiamo_ha_scoperto(frase: str, resta: str) -> None:
+    fuori = redigi(frase, pacchetti=ACCESO)
+    assert "{{PRATICA}}" in fuori, fuori
+    assert resta in fuori, fuori
+
+
+def test_la_sigla_di_ragusa_non_e_un_numero_di_ruolo() -> None:
+    """**Il prezzo di aver ammesso `RG` senza punti**, e come si tiene.
+
+    `RG` nudo e' anche la sigla della provincia di Ragusa, che il
+    riconoscitore degli indirizzi ha imparato a tenersi. La discriminante e'
+    la barra con l'anno: un numero di ruolo si scrive `12345/2020`, una sigla
+    di provincia non e' mai seguita da numero-barra-numero.
+
+    Senza questa riga, «Ragusa RG 97100» perderebbe il CAP.
+    """
+    for frase in ("residente a Ragusa RG atto",
+                  "Comune di Ragusa RG 97100",
+                  "Sede in Ragusa RG 12"):
+        assert "{{PRATICA}}" not in redigi(frase, pacchetti=ACCESO), frase
+
+
 # -------------------------------------------------------------- le targhe
 
 
@@ -219,10 +263,27 @@ def test_col_pacchetto_spento_la_targa_resta() -> None:
         # e' obbligatoria.
         "Motociclo targa AB 12345",
         "targa n. AB12345",
+        # «targato», non solo «targa»: e' la forma piu' comune in un verbale,
+        # e chiedendo la parola esatta si perdevano 67 targhe.
+        "il veicolo targato AB 12345 sequestrato",
+        "targate AB 12345",
+        # Tutto minuscolo: nei documenti trascritti a mano c'e', e non e' raro.
+        "Il veicolo vm916jx condotto dal conducente",
     ],
 )
 def test_la_targa_sparisce(frase: str) -> None:
     assert "{{TARGA}}" in redigi(frase, pacchetti=ACCESO), frase
+
+
+def test_la_targa_a_caso_misto_no() -> None:
+    """**Tutto maiuscolo oppure tutto minuscolo, mai misto**, ed e' misurato.
+
+    Ammettere il minuscolo senza condizioni costava un falso positivo su 47
+    documenti pubblici: `ge 021 CV`, un frammento d'OCR dentro una frase sulle
+    clementine. Quel frammento e' misto, le targhe vere no.
+    """
+    fuori = redigi("Clementine del ge 021 CV con peduncolo", pacchetti=ACCESO)
+    assert "{{TARGA}}" not in fuori, fuori
 
 
 @pytest.mark.parametrize(
@@ -232,8 +293,12 @@ def test_la_targa_sparisce(frase: str) -> None:
         # con 1 e 0 — ed e' l'unico controllo disponibile qui.
         "IO 123 QU non e' una targa",
         "AU 123 CD nemmeno",
-        # Minuscolo: una targa si scrive maiuscola sempre.
-        "ab 123 cd",
+        # Il minuscolo **non** e' piu' qui, ed e' un cambio di decisione, non
+        # una svista: fino alla 1.23.0 «ab 123 cd» era escluso perche' «una
+        # targa si scrive maiuscola sempre». Misurandolo si e' visto che non e'
+        # vero — 135 targhe minuscole su un corpus di atti — e che il costo
+        # vero veniva dal caso **misto**, non dal minuscolo. Vedi
+        # `test_la_targa_a_caso_misto_no`.
         # Due lettere e cinque cifre senza la parola davanti puo' essere
         # qualunque codice, e infatti quasi sempre lo e'.
         "Codice MB 12345 di magazzino",

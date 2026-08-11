@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.23.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "bcbae625e46790b9f37e602bfd73d1ec9aadbc68c10d27ff370f559fd0a317fa",
+      "mr_rao/privacy.py": "9a5d6e52e0b58f3e5696fcb7b8ee8d0e9e16411d8b2398cf3b07f6d7a4333b0a",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "0033199e1c52d120eab386b5d59d8b9f584c24b42fc02084b6926608c07e31d9"
     }
@@ -3438,6 +3438,79 @@
     "negativi-genere-letterario": {
       "gruppo": "negativi",
       "uscita": "Il genere letterario dell'opera e il suo genere musicale.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-raccolta-una-c": {
+      "gruppo": "atti",
+      "uscita": "Atto Rep. {{PRATICA_1}} Rac. {{PRATICA_2}} del 12 novembre.",
+      "report": {
+        "counts": {
+          "pratica": 2
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-ruolo-senza-punti": {
+      "gruppo": "atti",
+      "uscita": "Fattura RG {{PRATICA_1}} con scadenza al 27 novembre.",
+      "report": {
+        "counts": {
+          "pratica": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-tutto-maiuscolo": {
+      "gruppo": "atti",
+      "uscita": "REPERTORIO N. {{PRATICA_1}} ROGATO DAL NOTAIO.",
+      "report": {
+        "counts": {
+          "pratica": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-targa-minuscola": {
+      "gruppo": "atti",
+      "uscita": "Il veicolo {{TARGA_1}} condotto dal conducente.",
+      "report": {
+        "counts": {
+          "targa": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-ragusa-non-e-un-ruolo": {
+      "gruppo": "negativi",
+      "uscita": "Sede in Ragusa RG 97100, comune capoluogo.",
       "report": {
         "counts": {},
         "total": 0,

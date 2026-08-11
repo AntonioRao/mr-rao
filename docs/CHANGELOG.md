@@ -84,6 +84,63 @@ Nessuna capacità è perduta: chi li vuole togliere davvero ha già l'elenco
 «nascondi sempre», ed è questo a rendere onesta la scelta di non offrire la
 sostituzione.
 
+### E poi il richiamo, che è la metà che non avevamo misurato
+
+Delle tre categorie sapevamo quanto **costano** — zero falsi positivi su 47
+documenti pubblici, 91 numeri di pratica guardati uno per uno. Non sapevamo
+quanto ne **perdiamo**, ed è la metà che conta di più: un falso positivo si
+vede rileggendo, un dato perso no.
+
+Il corpus non dice dove stanno i riferimenti catastali, quindi si tende una
+**rete più larga del motore** e si guarda cosa prende lei e non lui. La rete
+non è la verità — prende anche cose che non sono dati personali — è un elenco
+di candidati da leggere a mano.
+
+Su un corpus di atti italiani, 29 297 righe: **catasto 100%, targa 99,1%,
+pratica 53,9%.** Quel 53,9% erano quattro difetti veri, tutti invisibili
+leggendo il codice:
+
+- **`Rac.` con una c sola.** È l'abbreviazione che gli atti notarili usano
+  davvero accanto al repertorio — «Rep. 55231 Rac. 7814». Chiedendo le due c
+  si perdevano 6 728 numeri di raccolta;
+- **il ruolo generale senza punti**, «fattura RG 87220/2020». Si accetta solo
+  nella forma numero-barra-numero, perché `RG` nudo è anche la sigla della
+  provincia di Ragusa: l'anno è ciò che distingue le due cose, e senza quella
+  condizione «Ragusa RG 97100» perderebbe il CAP;
+- **il `n.` maiuscolo.** Stava fuori dal gruppo insensibile al caso, quindi un
+  atto scritto tutto in maiuscolo — `REPERTORIO N. 182/2023` — non veniva
+  riconosciuto. Un carattere di differenza, e nessun test se ne accorgeva;
+- **«targato», non solo «targa»**, che in un verbale è la forma più comune.
+
+E una decisione ribaltata, con la misura in mano: fino a ieri il minuscolo era
+escluso perché «una targa si scrive maiuscola sempre». Non è vero — 135 targhe
+minuscole nel corpus — e il costo vero veniva dal caso **misto**, non dal
+minuscolo: l'unico falso positivo che nasceva era `ge 021 CV`, un frammento di
+OCR dentro una frase sulle clementine. Chiedendo che le quattro lettere abbiano
+tutte lo stesso caso si recuperano le 135 e si rifiuta lui.
+
+**Dopo: 100%, 100%, 100%.** E il prezzo, misurato: sul corpus pubblico non si
+muove niente (893, 96, 22), e con il pacchetto acceso le sostituzioni restano
+91, le stesse di prima.
+
+Il banco è `scripts/bench_richiamo_atti.py`, e non pubblica una percentuale di
+richiamo: il denominatore è una rete scritta a mano, non una verità, e
+spacciarlo per richiamo sarebbe un numero che sembra solido e non lo è.
+
+**E la prova su 900 PDF veri va letta al contrario di come sembra.** Su
+documenti tecnici e aziendali la rete trova 16 «targhe» e il motore ne prende
+**zero**: sono `ge 021 CV`, `in 250 ml`, `da 140 Kg` — la rete che pesca due
+lettere attorno a tre cifre. A rifiutarle sono esattamente le due regole che
+sembravano pedanteria: l'alfabeto delle targhe (in `in 250 ml` la «i» non
+esiste sulle targhe) e il caso uniforme (`ge 021 CV` è misto). Uno zero per
+cento che è il risultato giusto.
+
+Stessa cosa per `protocollo 802.1X`, che è un protocollo di rete e resta dove
+sta: è la regola delle due cifre a rifiutarlo, la stessa che rifiuta
+«Protocollo n. 5» di una convenzione. E lo stesso motivo per cui `Rep. n. 2`
+di un'ordinanza **non** viene preso: è una rinuncia dichiarata, non una svista,
+e il suo prezzo era stato misurato.
+
 ### `TIME` non si fa
 
 Le tassonomie dei motori a riconoscimento automatico elencano gli orari

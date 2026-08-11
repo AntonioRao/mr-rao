@@ -2299,9 +2299,27 @@ _PRATICA_ETICHETTA = (
     r"|ruolo[^\S\r\n]+generale"
     r"|prot(?:\.|ocollo)"
     r"|rep(?:\.|ertorio)"
-    r"|racc(?:\.|olta)"
+    # **`Rac.` con una c sola**: e' l'abbreviazione che gli atti notarili usano
+    # davvero accanto al repertorio — «Rep. 55231 Rac. 7814». Chiedendo le due
+    # c si perdevano 6 728 numeri di raccolta su un corpus di atti, ed e' la
+    # forma piu' frequente delle due.
+    r"|racc?(?:\.|olta)"
     r"|cron(?:\.|ologico))"
 )
+
+# Il ruolo generale scritto **senza punti**, che negli atti e' comunissimo:
+# «fattura RG 87220/2020», «repertorio RG 99654/2021».
+#
+# Sta separato dalle altre etichette, e non per ordine: `RG` nudo e' anche la
+# **sigla della provincia di Ragusa**, che il riconoscitore degli indirizzi ha
+# imparato a tenersi. Ammetterlo alle stesse condizioni delle altre vorrebbe
+# dire mangiarsi un CAP dopo il nome di un comune — «Ragusa RG 97100».
+#
+# La discriminante e' l'anno: un numero di ruolo si scrive `12345/2020`, una
+# sigla di provincia non e' mai seguita da numero-barra-numero. Quindi il
+# ruolo nudo si accetta **solo nella forma con la barra**, e i 6 919 casi del
+# corpus di atti hanno tutti quella forma.
+_PRATICA_RG_NUDO = r"(?:r[^\S\r\n]?g(?:[^\S\r\n]?n[^\S\r\n]?r)?)"
 
 # **La cifra sola non basta, la coppia con l'anno si'.** «Protocollo n. 5» in
 # un trattato e' il quinto protocollo, non un numero di pratica; «prot. 7/2024»
@@ -2317,15 +2335,24 @@ _PRATICA_ETICHETTA = (
 # di non sostituire, perche' sembra fatto.
 _PRATICA_NUM = r"(?:\d{1,8}[^\S\r\n]*/[^\S\r\n]*\d{1,8}|\d{2,8})"
 
+#: Solo la forma numero-barra-numero: e' quella che distingue un ruolo
+#: generale da una sigla di provincia.
+_PRATICA_NUM_BARRA = r"\d{1,8}[^\S\r\n]*/[^\S\r\n]*\d{1,8}"
+
 _RE_PRATICA = re.compile(
     rf"(?<!\w)(?i:{_PRATICA_ETICHETTA})[^\S\r\n]*:?[^\S\r\n]*"
-    rf"(?:n[.°]?[^\S\r\n]*)?(?P<val>{_PRATICA_NUM})(?!\d)"
+    rf"(?:[nN][.°]?[^\S\r\n]*)?(?P<val>{_PRATICA_NUM})(?!\d)"
+)
+
+_RE_PRATICA_RG_NUDO = re.compile(
+    rf"(?<!\w)(?i:{_PRATICA_RG_NUDO})[^\S\r\n]*:?[^\S\r\n]*"
+    rf"(?:[nN][.°]?[^\S\r\n]*)?(?P<val>{_PRATICA_NUM_BARRA})(?!\d)"
 )
 
 # La forma con l'etichetta **dopo**, che negli atti e' quella canonica:
 # «n. 1234/2023 R.G.». Solo per il ruolo generale: «12345 prot.» non si scrive.
 _RE_PRATICA_POST = re.compile(
-    r"(?<!\w)(?:n[.°][^\S\r\n]*)?(?P<val>" + _PRATICA_NUM + r")"
+    r"(?<!\w)(?:[nN][.°][^\S\r\n]*)?(?P<val>" + _PRATICA_NUM + r")"
     r"[^\S\r\n]*(?i:r\.[^\S\r\n]?g\.?(?:[^\S\r\n]?n\.[^\S\r\n]?r\.?)?)(?!\w)"
 )
 
@@ -2355,7 +2382,10 @@ def _scrub_pratica(text: str, report: RedactionReport) -> str:
         dopo = m.string[m.end("val"):m.end()]
         return prima + report.segnaposto("pratica", "{{PRATICA}}", m.group("val")) + dopo
 
-    return _RE_PRATICA_POST.sub(_sub_post, _RE_PRATICA.sub(_sub, text))
+    # L'ordine conta: il ruolo nudo per ultimo, su cio' che e' rimasto. Le
+    # etichette con i punti sono piu' specifiche e vanno servite prima.
+    fuori = _RE_PRATICA_POST.sub(_sub_post, _RE_PRATICA.sub(_sub, text))
+    return _RE_PRATICA_RG_NUDO.sub(_sub, fuori)
 
 
 # La targa italiana. **Il pattern propone, l'alfabeto decide**: sulle targhe
@@ -2364,18 +2394,31 @@ def _scrub_pratica(text: str, report: RedactionReport) -> str:
 # molto, ma e' vero: rifiuta circa una sigla inventata su due.
 _TARGA_L = "[ABCDEFGHJKLMNPRSTVWXYZ]"
 
-# Maiuscolo obbligatorio, e non e' pedanteria: una targa si scrive maiuscola
-# sempre, mentre «ab 123 cd» minuscolo in un testo e' quasi sempre altro.
+# Tutto maiuscolo **oppure** tutto minuscolo, mai misto — e la regola non e'
+# estetica, e' misurata.
+#
+# Il maiuscolo secco perdeva 135 targhe su un corpus di atti, tutte scritte
+# `vm916jx`: nei documenti trascritti a mano il minuscolo c'e' e non e' raro.
+# Ammettere il minuscolo senza condizioni pero' costava un falso positivo su 47
+# documenti pubblici — `ge 021 CV`, un frammento di OCR dentro una frase sulle
+# clementine. Quel frammento e' **misto**, le targhe vere no: chiedere che le
+# quattro lettere abbiano tutte lo stesso caso recupera le 135 e rifiuta lui.
+_TARGA_L_MIN = "[abcdefghjklmnprstvwxyz]"
 _RE_TARGA = re.compile(
-    rf"(?<![\w-]){_TARGA_L}{{2}}[ .-]?\d{{3}}[ .-]?{_TARGA_L}{{2}}(?![\w-])"
+    rf"(?<![\w-])(?:{_TARGA_L}{{2}}[ .-]?\d{{3}}[ .-]?{_TARGA_L}{{2}}"
+    rf"|{_TARGA_L_MIN}{{2}}[ .-]?\d{{3}}[ .-]?{_TARGA_L_MIN}{{2}})(?![\w-])"
 )
 
 # La targa di motocicli e ciclomotori -- due lettere e **cinque** cifre -- ha
 # una forma molto piu' comune: «MB 12345» puo' essere qualunque codice. Qui
 # la parola davanti e' obbligatoria, ed e' il prezzo giusto per una forma che
 # da sola non dice niente.
+#
+# «targato», non solo «targa»: e' la forma piu' comune in un verbale — «il
+# veicolo targato AB 12345». Chiedendo la parola esatta si perdevano 67 targhe
+# su un corpus di atti, tutte scritte cosi'.
 _RE_TARGA_CTX = re.compile(
-    r"(?i:targ(?:a|he))[^\S\r\n]*:?[^\S\r\n]*(?:n[.°]?[^\S\r\n]*)?"
+    r"(?i:targ(?:a|he|at[oaie]))[^\S\r\n]*:?[^\S\r\n]*(?:[nN][.°]?[^\S\r\n]*)?"
     rf"(?P<val>{_TARGA_L}{{2}}[ .-]?\d{{5}})(?![\w-])"
 )
 
