@@ -72,6 +72,7 @@
     "addresses",
     "urls",
     "fiscal",
+    "atti",
     "secrets",
     "dates",
     "documenti",
@@ -123,6 +124,7 @@
     packPanel: $("pack-panel"),
     packIt: $("privacy-pack_it"),
     packEn: $("privacy-pack_en"),
+    packAtti: $("privacy-pack_atti"),
     stile: $("privacy-stile"),
     terminiSempre: $("privacy-sempre"),
     terminiMai: $("privacy-mai"),
@@ -469,6 +471,7 @@
     // mescolarle vorrebbe dire che spegnere i telefoni spegne anche l'IBAN.
     if (els.packIt) fd.append("privacy_pack_it", els.packIt.checked);
     if (els.packEn) fd.append("privacy_pack_en", els.packEn.checked);
+    if (els.packAtti) fd.append("privacy_pack_atti", els.packAtti.checked);
     // Tri-stato: vuoto = automatico, e «non lo so» non e’ «e’ un modulo».
     if (els.stile) fd.append("privacy_stile", els.stile.value);
     // Le due liste dello studio. Viaggiano sempre, anche vuote: il server

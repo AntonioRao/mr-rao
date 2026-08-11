@@ -1184,7 +1184,24 @@ CORE = "core"
 IT = "it"
 EN = "en"
 
-PACCHETTI_NOTI: tuple[str, ...] = (CORE, IT, EN)
+#: Atti notarili, ricorsi, pratiche edilizie. **Spento di serie**, ed e' il
+#: cuore della decisione, non un dettaglio di comodo.
+#:
+#: Qui c'e' una divergenza vera fra due pubblici, e hanno ragione tutti e
+#: due. Per un notaio il riferimento catastale **e'** il dato piu' sensibile
+#: della frase: dice esattamente di quale immobile si parla, e da li' si
+#: risale al proprietario in un pomeriggio. Per un'azienda il numero di
+#: protocollo e' cio' che permette di **ritrovare** la pratica, e toglierlo
+#: rende il documento inservibile senza proteggere nessuno.
+#:
+#: Non si puo' decidere per entrambi con un interruttore acceso di serie,
+#: e non e' un caso che «protocollo» e «repertorio» stiano gia' nel
+#: vocabolario di cio' che **non** si redige: e' quello che impedisce a ogni
+#: numero di pratica di essere letto come un telefono. Questo pacchetto
+#: **capovolge** quella scelta, e per questo va acceso da chi sa di volerlo.
+ATTI = "atti"
+
+PACCHETTI_NOTI: tuple[str, ...] = (CORE, IT, EN, ATTI)
 
 
 @dataclass
@@ -1193,6 +1210,13 @@ class PrivacyOptions:
     phones: bool = True
     names: bool = True
     fiscal: bool = True  # CF, P.IVA, IBAN, carte di pagamento
+    #: Riferimenti catastali e numeri di pratica.
+    #:
+    #: Il campo e' acceso, ma i suoi passi stanno nel pacchetto `ATTI`, che
+    #: e' **spento**: serve accendere il pacchetto perche' succeda qualcosa.
+    #: Sono due assi, come per i pacchetti nazionali -- l'interruttore dice
+    #: *quale dato*, il pacchetto dice *per quale mestiere*.
+    atti: bool = True
     amounts: bool = False
     urls: bool = True
     addresses: bool = True
@@ -2189,6 +2213,52 @@ def _scrub_birth_dates(text: str, report: RedactionReport) -> str:
         return report.segnaposto("dates", "{{DATE}}", m.group(0))
 
     return _RE_DATE.sub(_sub, text)
+
+
+# ---------------------------------------------------------------------------
+# Pacchetto «atti e pratiche» (spento di serie, vedi ATTI)
+# ---------------------------------------------------------------------------
+
+# Il riferimento catastale: foglio, particella, subalterno.
+#
+# **E' il candidato migliore per cominciare**, e la ragione e' la stessa per
+# cui il codice fiscale accanto a un nome funziona: il contesto qui non e' un
+# indizio, e' una dichiarazione. «Foglio 12 particella 345 sub 6» non capita
+# per caso in nessun altro genere di frase.
+#
+# Per un notaio e' il dato **piu' sensibile** della riga: dice esattamente di
+# quale immobile si parla, e da un riferimento catastale al proprietario si
+# arriva in un pomeriggio. Per chiunque altro e' rumore, ed e' il motivo per
+# cui sta in un pacchetto spento.
+#
+# Le tre parole devono stare **vicine**, sulla stessa riga o su due: in una
+# tabella catastale le colonne sono «Fg. | Part. | Sub», e con una finestra
+# larga si prenderebbero tre celle di righe diverse.
+_CATASTO_FOGLIO = r"(?:f(?:oglio|g)?\.?)"
+_CATASTO_PART = r"(?:part(?:icella|\.)?|mapp(?:ale|\.)?|p\.lla)"
+_CATASTO_SUB = r"(?:sub(?:alterno|\.)?)"
+_H_CAT = r"[^\S\r\n]"
+
+_RE_CATASTO = re.compile(
+    rf"(?<!\w)(?i:{_CATASTO_FOGLIO}){_H_CAT}*:?{_H_CAT}*\d{{1,4}}"
+    rf"(?:{_H_CAT}*[,;\-–]?{_H_CAT}*(?:\r?\n{_H_CAT}*)?"
+    rf"(?i:{_CATASTO_PART}){_H_CAT}*:?{_H_CAT}*\d{{1,5}}"
+    rf"(?:{_H_CAT}*[,;\-–]?{_H_CAT}*(?:\r?\n{_H_CAT}*)?"
+    rf"(?i:{_CATASTO_SUB}){_H_CAT}*:?{_H_CAT}*\d{{1,4}})?)"
+)
+
+
+def _scrub_catasto(text: str, report: RedactionReport) -> str:
+    """Il riferimento catastale, **solo** con foglio e particella insieme.
+
+    Il foglio da solo non basta e non deve bastare: «foglio 3» in una
+    relazione e' la pagina tre. E' la coppia a essere una dichiarazione, e
+    il subalterno e' facoltativo perche' non tutti gli immobili ne hanno.
+    """
+    def _sub(m: re.Match) -> str:
+        return report.segnaposto("catasto", "{{CATASTO}}", m.group(0))
+
+    return _RE_CATASTO.sub(_sub, text)
 
 
 def _scrub_documenti_id(text: str, report: RedactionReport) -> str:
@@ -3274,6 +3344,8 @@ SEQUENZA: tuple[Passo, ...] = (
     # quando arrivera' il pacchetto inglese con le regole NANP.
     Passo("documenti_id", IT, "documenti", 52,
           lambda t, r, o: _scrub_documenti_id(t, r)),
+    # Pacchetto «atti e pratiche», spento di serie: vedi `ATTI`.
+    Passo("catasto", ATTI, "atti", 55, lambda t, r, o: _scrub_catasto(t, r)),
     Passo("phones", CORE, "phones", 60, _scrub_phones),
     # Euro e parole italiane: "importo", "imponibile", "canone".
     Passo("amounts", IT, "amounts", 65, _scrub_amounts),
@@ -3504,6 +3576,9 @@ def _rinumera_per_comparsa(testo: str) -> str:
 PACK_FIELD_DEFAULTS: dict[str, bool] = {
     IT: True,
     EN: True,
+    # Spento: vedi `ATTI`. Un pacchetto che capovolge una scelta gia' presa
+    # non puo' accendersi da solo.
+    ATTI: False,
 }
 
 
@@ -3534,6 +3609,12 @@ FIELD_DEFAULTS: dict[str, bool] = {
     "phones": True,
     "names": True,
     "fiscal": True,
+    # Acceso, ma i suoi passi vivono nel pacchetto `ATTI` che e' **spento**:
+    # l'interruttore dice *quale dato*, il pacchetto dice *per quale
+    # mestiere*, e finche' il secondo e' spento questo non fa niente. Sta
+    # qui lo stesso perche' e' un interruttore vero: deve comparire in
+    # `no_redaction()` e nell'interfaccia come tutti gli altri.
+    "atti": True,
     "amounts": False,
     "urls": True,
     "addresses": True,
@@ -3566,9 +3647,9 @@ DETECTOR_FIELDS: tuple[str, ...] = tuple(FIELD_DEFAULTS)
 # riconoscitore nuovo, e un nome mancante qui vorrebbe dire che quella
 # categoria non si puo' mettere in «segnala» -- in silenzio.
 CATEGORIE: tuple[str, ...] = (
-    "abn", "addresses", "amounts", "bban", "cards", "codice_fiscale",
-    "dates", "documenti", "emails", "iban", "itin", "mrz", "names",
-    "nhs_number", "nino", "partita_iva", "phones", "routing_number",
+    "abn", "addresses", "amounts", "bban", "cards", "catasto",
+    "codice_fiscale", "dates", "documenti", "emails", "iban", "itin", "mrz",
+    "names", "nhs_number", "nino", "partita_iva", "phones", "routing_number",
     "secrets", "sin", "ssn", "termini", "tfn", "urls",
 )
 

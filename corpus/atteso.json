@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.22.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "c93c3f0f29d3a320b9ddfac15184b958340a49496121d323a1a9c715e3a09fc2",
+      "mr_rao/privacy.py": "8c8e0ab0edde4b8df227f69ed253174d26c2b872545bfa15c99accb5526bc011",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "0033199e1c52d120eab386b5d59d8b9f584c24b42fc02084b6926608c07e31d9"
     }
@@ -3172,6 +3172,62 @@
           "addresses": 1
         },
         "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-catastale": {
+      "gruppo": "atti",
+      "uscita": "Immobile identificato al {{CATASTO_1}} in Pisa.",
+      "report": {
+        "counts": {
+          "catasto": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "atti-catastale-abbreviato": {
+      "gruppo": "atti",
+      "uscita": "Bene censito al {{CATASTO_1}}.",
+      "report": {
+        "counts": {
+          "catasto": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-catastale-spento": {
+      "gruppo": "negativi",
+      "uscita": "Immobile identificato al foglio 12 particella 345 sub 6 in Pisa.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-foglio-di-relazione": {
+      "gruppo": "negativi",
+      "uscita": "Vedi il foglio 3 della relazione tecnica allegata.",
+      "report": {
+        "counts": {},
+        "total": 0,
         "suspects": [],
         "suspects_total": 0,
         "detected": [],

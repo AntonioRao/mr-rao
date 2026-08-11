@@ -1442,6 +1442,47 @@ TESTI: dict[str, dict[str, str]] = {
     "cat_abn": {"it": "ABN (Australia)", "en": "ABN (Australia)"},
     "cat_tfn": {"it": "TFN (Australia)", "en": "TFN (Australia)"},
     "cat_termini": {"it": "Termini protetti", "en": "Protected terms"},
+    "cat_catasto": {
+        "it": "Riferimenti catastali", "en": "Land registry references",
+    },
+
+    # -- il pacchetto «atti e pratiche», e il suo interruttore -------------
+    "pack_atti_titolo": {"it": "Atti e pratiche", "en": "Deeds and case files"},
+    "pack_atti_desc": {
+        "it": "Riferimenti catastali. Spento di serie",
+        "en": "Land registry references. Off by default",
+    },
+    "tip_pack_atti": {
+        "it": "Per notai, avvocati e tecnici. In un atto il riferimento "
+              "catastale è il dato più sensibile della frase: dice di quale "
+              "immobile si parla, e da lì si risale al proprietario. Per "
+              "chiunque altro è rumore — ed è il motivo per cui questo "
+              "pacchetto è spento finché non lo accendi tu.",
+        "en": "For notaries, lawyers and surveyors. In a deed the land "
+              "registry reference is the most sensitive thing on the line: "
+              "it says which property, and from there the owner is one "
+              "search away. For everybody else it is noise — which is why "
+              "this pack stays off until you turn it on.",
+    },
+    "opt_atti_titolo": {
+        "it": "Atti e pratiche", "en": "Deeds and case files",
+    },
+    "opt_atti_desc": {
+        "it": "Riferimenti catastali",
+        "en": "Land registry references",
+    },
+    "tip_atti": {
+        "it": "«Foglio 12 particella 345 sub 6» diventa un segnaposto. Il "
+              "foglio da solo non basta: «foglio 3» in una relazione è la "
+              "pagina tre, ed è la coppia foglio+particella a dire che si "
+              "parla di un immobile. **Serve anche il pacchetto «Atti e "
+              "pratiche» acceso**, che di serie non lo è.",
+        "en": "«Foglio 12 particella 345 sub 6» becomes a placeholder. The "
+              "sheet alone is not enough — «foglio 3» in a report is page "
+              "three — it is the sheet+parcel pair that says a property is "
+              "meant. **The «Deeds and case files» pack must be on too**, "
+              "and by default it is not.",
+    },
 }
 
 #: Le categorie che nel pannello «rilevato ma non sostituito» non hanno

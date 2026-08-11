@@ -60,6 +60,7 @@ read. That is the limit measured further down this page, not a hypothesis.
 | Postal addresses | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada and others, including abbreviated (`V.le`, `P.zza`, `P.le`, `L.go`, `C.so`); street name in full or as an initial (`Via A. Volta`); with number, postcode and town |
 | Personal names | `{{NAME}}` | See below |
 | Keys and passwords | `{{SECRET}}` | Tokens, API keys, JWTs, private-key blocks, `password: ...` |
+| Land registry references | `{{CATASTO}}` | **«Deeds and case files» pack, off by default.** Sheet **and** parcel together, sub-unit optional. The sheet alone is a page number |
 | Identity documents | `{{DOC_ID}}` | Electronic ID card, driving licence, passport. **The document type must be written nearby**, see below |
 | Dates of birth | `{{DATE}}` | **Off by default.** Only with birth context beside it |
 | Amounts | `{{AMOUNT}}` | **Off by default.** Currency, thousands separator, or accounting context |

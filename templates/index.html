@@ -169,6 +169,14 @@
                             <input type="checkbox" id="privacy-pack_en" checked>
                             <span class="opt-text"><span class="opt-title">{{ t('pack_en_titolo') }}</span><span class="opt-desc">{{ t('pack_en_desc') }}</span></span>
                         </label>
+                        {# Senza `checked`: questo pacchetto capovolge una
+                           scelta gia' presa — «protocollo» e «repertorio»
+                           stanno nel vocabolario di cio' che NON si redige —
+                           e va acceso da chi sa di volerlo. #}
+                        <label class="opt" data-tip="{{ t('tip_pack_atti') }}">
+                            <input type="checkbox" id="privacy-pack_atti">
+                            <span class="opt-text"><span class="opt-title">{{ t('pack_atti_titolo') }}</span><span class="opt-desc">{{ t('pack_atti_desc') }}</span></span>
+                        </label>
                     </div>
                     <label class="field" data-tip="{{ t('tip_tipo_documento') }}">
                         {{ t('tipo_documento') }}
@@ -225,6 +233,10 @@
                         <label class="opt" data-tip="{{ t('tip_amounts') }}">
                             <input type="checkbox" id="privacy-amounts">
                             <span class="opt-text"><span class="opt-title">{{ t('opt_amounts_titolo') }}</span><span class="opt-desc">{{ t('opt_amounts_desc') }}</span></span>
+                        </label>
+                        <label class="opt" data-tip="{{ t('tip_atti') }}">
+                            <input type="checkbox" id="privacy-atti" checked>
+                            <span class="opt-text"><span class="opt-title">{{ t('opt_atti_titolo') }}</span><span class="opt-desc">{{ t('opt_atti_desc') }}</span></span>
                         </label>
                         <label class="opt" data-tip="{{ t('tip_numerati') }}">
                             <input type="checkbox" id="privacy-numerati" checked>

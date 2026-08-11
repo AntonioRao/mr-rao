@@ -62,6 +62,7 @@ avanti in questa pagina, non un'ipotesi.
 | Nomi di persona | `{{NAME}}` | Vedi sotto |
 | Chiavi e password | `{{SECRET}}` | Token, chiavi API, JWT, blocchi di chiave privata, `password: ...` |
 | Documenti d'identità | `{{DOC_ID}}` | Carta d'identità elettronica, patente, passaporto. **Serve il tipo di documento scritto vicino**, vedi sotto |
+| Riferimenti catastali | `{{CATASTO}}` | **Pacchetto «Atti e pratiche», spento di default.** Foglio **e** particella insieme, subalterno facoltativo. Il foglio da solo è la pagina di una relazione |
 | Date di nascita | `{{DATE}}` | **Spento di default.** Solo con contesto di nascita accanto |
 | Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
 | Termini tuoi | `{{TERM}}` | L'elenco «nascondi sempre» scritto da chi converte |
