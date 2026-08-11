@@ -6,11 +6,11 @@
 **In uscita `.md`, `.txt` o `.docx`: tutti e tre già anonimizzati.**
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
-[![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+[![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20169%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.23.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-1956%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.24.0-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-1981%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -29,7 +29,7 @@
 
 ![Mr. Rao — interfaccia](docs/img/schermata.png)
 
-> **Interfaccia e documento in italiano o in inglese**, scelti dal browser e cambiabili con un clic. Oltre ai formati italiani il motore riconosce quelli britannici, statunitensi, canadesi e australiani: NHS number, National Insurance number, SSN, ITIN, routing bancario ABA, SIN, ABN, TFN, codice postale britannico e la zona a lettura automatica dei passaporti.
+> **Interfaccia e documento in italiano o in inglese**, scelti dal browser e cambiabili con un clic. Oltre ai formati italiani il motore riconosce quelli britannici, statunitensi, canadesi e australiani: NHS number, National Insurance number, SSN, ITIN, routing bancario ABA, SIN, ABN, TFN, codice postale britannico e la zona a lettura automatica dei passaporti — ognuno con la sua cifra di controllo, dove esiste. Il riconoscimento dei **nomi in inglese** si regge solo sul contesto ed è **deliberatamente più stretto** di quello italiano: [PRIVACY.md](docs/PRIVACY.md) dice cosa costa.
 
 ---
 
@@ -98,6 +98,10 @@ Nessun elenco di cognomi è completo, e nessun elenco basta da solo: «Chiesa»,
 - **formula di chiusura** — «Cordiali saluti, Esposito»: la firma è l'unico posto dove un cognome da solo è davvero un cognome;
 - **nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`, il caso più frequente nelle email;
 - **nome e cognome adiacenti**, entrambi riconosciuti.
+
+Queste quattro reggono la maggior parte del lavoro; le regole in tutto sono
+**nove**, e [PRIVACY.md](docs/PRIVACY.md) le elenca nell'ordine in cui il
+motore le esegue, dal segnale più forte al più debole.
 
 **Segnala e basta** quando la prova è debole: un riscontro singolo negli elenchi, una parola isolata, una sequenza di maiuscole senza altro contesto. Il documento resta intatto e chi controlla sa dove guardare.
 
@@ -173,7 +177,10 @@ Vale anche il rovescio, ed è la ragione per cui il banco delle scansioni trova 
 | 👁️ **Scansioni e foto** | OCR offline su PNG, JPG, TIFF, WebP, BMP, GIF — e su PDF scansionati |
 | 📊 **Tabelle PDF** | Ricostruite come tabelle Markdown, non sfilacciate in righe di testo |
 | 📧 **Email** | File `.eml` col thread separato messaggio per messaggio, allegati scaricabili |
-| 🛡️ **Dati personali** | Nomi, indirizzi, telefoni, email, URL, codice fiscale, P.IVA, IBAN, carte, chiavi API → sostituiti con segnaposto |
+| 🛡️ **Dati personali** | Nomi, indirizzi, telefoni, email, URL, codice fiscale, P.IVA, IBAN, carte, chiavi API → sostituiti con segnaposto **numerati** (`{{NAME_1}}`, `{{NAME_2}}`), così il testo redatto si legge ancora |
+| 👁 **Trovato e lasciato apposta** | **Età e sesso** si riconoscono e **non si tolgono mai**: sono quasi-identificatori, e chi redige una cartella clinica o una statistica del personale sta chiedendo proprio quei due dati. Non restano in silenzio: finiscono nel rapporto, e nel risultato come terzo conto, `👁 N in chiaro`. Lo stesso trattamento si può chiedere per altre ventisei categorie, una per una |
+| ⚖️ **Pacchetto «Atti e pratiche»** | Riferimenti catastali, numeri di pratica (R.G., protocollo, repertorio) e targhe di veicoli. **Spento di serie**: per un notaio il riferimento catastale è il dato più sensibile della pagina, per un ufficio il numero di protocollo è ciò che permette di ritrovare la pratica. Due pubblici, e hanno ragione tutti e due |
+| 🪟 **Finestra dell'applicazione** | Non una scheda del browser: stessa interfaccia, stesso server locale, motore di rendering **del sistema** — nessun browser nel pacchetto. È il comportamento di serie; se il motore di sistema non c'è si apre il browser come sempre, e `MR_RAO_FINESTRA=0` sceglie il browser per scelta |
 | 🔍 **Verifica** | Scheda «prima / dopo» che mostra esattamente cosa è stato tolto |
 | ⌨️ **Scorciatoia sugli appunti** | Copi il testo, premi **Ctrl+Alt+R**, incolli: quello che arriva è già redatto — [come funziona, e perché non è un keylogger](docs/SCORCIATOIA-APPUNTI.md) |
 | 📁 **Cartella automatica** | Butti i file in una cartella, i `.md` compaiono nell'altra |
@@ -234,9 +241,9 @@ Tre confezioni dello stesso programma, dalla stessa build. **Non sono equivalent
 |---|---|---|
 | **[⬇️ Installer `.exe`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe)** | Doppio clic e installato, con la voce in «App installate» per toglierlo | «Editore sconosciuto» — il pacchetto **non è firmato** |
 | **[⬇️ Portable `.zip`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** | Nessuna installazione: si estrae e va, anche da chiavetta, coi dati accanto al programma | Un avviso sul file scaricato, più lieve |
-| **Microsoft Store** — *in arrivo* | Un clic, e la disinstallazione la gestisce Windows | **Niente**: lo firma Microsoft |
+| **[⬇️ Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC)** | Un clic; aggiornamenti e disinstallazione li gestisce Windows, e non c'è nessun `.bat` da lanciare | **Niente**: il pacchetto lo firma lo Store, quindi l'avviso «editore sconosciuto» non compare affatto |
 
-Non serve altro: Python, modelli OCR e dipendenze sono già dentro. Lo zip pesa ~165 MB, ~330 MB una volta installato.
+Non serve altro: Python, modelli OCR e dipendenze sono già dentro. Lo zip pesa **~169 MB**, ~348 MB una volta scompattato (misurati sulla build 1.24.0; sono MB, non MiB — Esplora file mostrerà 161 e 332). Quasi tutto il peso sono i modelli dell'OCR e del riconoscimento del tipo di file: è il prezzo del funzionare offline.
 
 Con lo zip, l'installazione è `Installa Mr Rao.bat`. In tutti e due i casi vengono creati il collegamento sul desktop, la voce nel menu Start e il tasto destro «Apri con Mr. Rao» su qualunque file, con una voce dedicata per i dieci formati più frequenti — ed è **lo stesso script** a farlo (`mr_rao_shell.ps1`), così le due strade non possono divergere. `Disinstalla Mr Rao.bat`, o la disinstallazione di Windows, tolgono tutto — le tue cartelle di lavoro restano dove sono.
 
@@ -276,10 +283,10 @@ Pubblicato **solo su localhost**: l'app non ha autenticazione, esporla in rete d
 ## Casi d'uso reali
 
 **Studio legale — thread email da allegare a una pratica.**
-Un `.eml` con venti risposte impilate diventa un Markdown leggibile, un messaggio per volta, con gli allegati estratti. Il profilo «Email legali» toglie nomi, indirizzi e recapiti: quello che resta si può girare a un consulente o a un assistente AI senza esporre le controparti.
+Un `.eml` con venti risposte impilate diventa un Markdown leggibile, un messaggio per volta, con gli allegati estratti. Il profilo «Email legali» toglie nomi, indirizzi e recapiti, **e in più gli importi e le date di nascita**, che negli altri profili restano: quello che resta si può girare a un consulente o a un assistente AI senza esporre le controparti.
 
 **Commercialista — fatture e prima nota.**
-Il profilo predefinito ricostruisce le tabelle e nasconde codice fiscale, P.IVA e IBAN **lasciando visibili gli importi**, che sono il motivo per cui stai leggendo il documento: le cifre non sono un dato personale e nessun profilo le tocca.
+Il profilo predefinito ricostruisce le tabelle e nasconde codice fiscale, P.IVA e IBAN **lasciando visibili gli importi**, che sono il motivo per cui stai leggendo il documento. La redazione degli importi è spenta di serie e resta spenta in quattro profili su cinque. L'eccezione è **«Email legali»**, che accende sia gli importi sia le date di nascita: su un thread che va a un consulente, una cifra e una data sono esattamente ciò che rende riconoscibile una persona senza nominarla.
 
 **Chi lavora con gli assistenti AI.**
 Il profilo «Pronto per LLM» produce testo essenziale, senza intestazioni tecniche, coi dati personali già sostituiti. Copi e incolli senza pensarci due volte.
@@ -300,7 +307,7 @@ Ogni file può portare in cima una scheda con origine, data, motore usato e **qu
 Meglio dirlo subito:
 
 - **Non è un traduttore di layout.** Produce testo strutturato, non un clone grafico del PDF. Vale anche per l'uscita in `.docx`: è un documento nuovo costruito dal testo redatto, non l'originale ripulito, quindi margini, caratteri e disposizione delle pagine non si conservano.
-- **Il riconoscimento dei nomi non è infallibile.** Oltre a un elenco di nomi italiani valgono le regole di contesto — un titolo davanti, un indirizzo email accanto, due parole maiuscole che non sono parole italiane — ma un cognome che assomiglia a una parola comune può sfuggire. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
+- **Il riconoscimento dei nomi non è infallibile.** Oltre a un elenco di nomi italiani valgono le regole di contesto — un titolo davanti, un indirizzo email accanto, una firma, un codice fiscale a fianco — ma un cognome fuori elenco e senza niente intorno può restare, e un cognome che assomiglia a una parola comune può sfuggire. La regola che indovinava senza riscontri («due parole maiuscole che non sono parole italiane») è **ritirata dalla 1.13.0**, ed è una perdita dichiarata: su venti moduli in bianco produceva 8 904 sostituzioni sbagliate. Per questo esiste la scheda «prima / dopo» — **controlla sempre** prima di condividere.
 - **L'OCR non fa miracoli.** Su una scansione storta e sfocata sbaglia, come tutti.
 - **Sui documenti scansionati la protezione è più debole.** I riconoscitori cercano un codice fiscale o un IBAN scritti bene: se l'OCR legge `A01` come `AD1`, il codice non viene riconosciuto e resta nel testo. Il risultato lo segnala con un avviso, ma è lì che il confronto «prima / dopo» va guardato davvero.
 - **Non ha autenticazione.** È un tool locale per una persona, non un servizio multiutente.
@@ -320,7 +327,10 @@ Non è uno slogan, è verificabile:
 
 ## Windows dirà che l'editore è sconosciuto
 
-Succede, ed è giusto sapere perché.
+Succede — per l'`.exe` e per lo `.zip` — ed è giusto sapere perché.
+**Installando [dal Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC)
+non succede affatto**, perché lì il pacchetto lo firma Microsoft. Il resto di
+questa sezione riguarda le altre due strade.
 
 **Non c'entra il prezzo del software.** Il pacchetto non è firmato con un
 certificato di *code signing* — costa qualche centinaio di euro l'anno, e per
@@ -408,7 +418,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **1956 test**, allineamento dei documenti pubblicati.
+Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **1981 test**, allineamento dei documenti pubblicati.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 
@@ -426,6 +436,7 @@ I test non coprono solo il caso felice. Coprono i difetti che sono costati caro:
 - [Portable](docs/PORTABLE.md) — come si costruisce il pacchetto Windows
 - [Policy di firma del codice](docs/CODE-SIGNING-POLICY.md) — chi può far firmare un binario, e cosa dev'essere vero prima
 - [Sicurezza](SECURITY.md) — come segnalare un problema
+- [Contribuire](CONTRIBUTING.md) — i sei passi del gate, e i termini di licenza da accettare in una pull request
 
 ---
 
@@ -438,7 +449,15 @@ I test non coprono solo il caso felice. Coprono i difetti che sono costati caro:
 | `MR_RAO_MAX_OCR_PAGES` | `50` | Massimo pagine OCR per PDF |
 | `MR_RAO_OCR_TIMEOUT` | `900` | Secondi massimi per un OCR (`0` = nessun limite) |
 | `MR_RAO_MAX_WORKERS` | `2` | Conversioni in parallelo; le altre restano in coda |
+| `MR_RAO_MAX_JOBS` | `50` | Quanti lavori finiti restano in memoria (minimo 4) |
+| `MR_RAO_JOB_TTL` | `3600` | Secondi di sopravvivenza di un lavoro finito prima di essere buttato |
+| `MR_RAO_OCR_DPI` | `250` | Risoluzione a cui una pagina PDF viene resa immagine per l'OCR |
+| `MR_RAO_MAX_ATTACH_MB` | `15` | Tetto sulla dimensione di un singolo allegato estratto da un `.eml` |
 | `MR_RAO_FOLDER_ROOT` | automatico | Dove creare le cartelle di lavoro |
+| `MR_RAO_FINESTRA` | `1` | La finestra dell'applicazione. `0` **torna al browser**, che è anche quello che succede da solo se manca il motore di rendering di sistema |
+| `MR_RAO_TRAY` | `1` | L'icona vicino all'orologio. `0` la toglie — e con lei la voce «ripristina l'originale» della scorciatoia sugli appunti |
+| `MR_RAO_OPEN_BROWSER` | `1` | Se aprire un browser all'avvio. Ha effetto solo quando non si usa la finestra |
+| `MR_RAO_SCORCIATOIA` | `ctrl+alt+r` | La scorciatoia sugli appunti: `0` la spegne, qualunque altra cosa è la combinazione ([dettaglio](docs/SCORCIATOIA-APPUNTI.md)) |
 | `MR_RAO_ALLOWED_HOSTS` | gli indirizzi di questa macchina | Host ammessi nell'header `Host` |
 | `MR_RAO_SECRET` | casuale a ogni avvio | Chiave di firma; oggi non la usa niente ([perché](SECURITY.md#chiave-di-firma)) |
 

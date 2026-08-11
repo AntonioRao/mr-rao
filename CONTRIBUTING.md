@@ -83,7 +83,7 @@ In particolare sono benvenuti:
   il caso va aggiunto lì. Una regola non negoziabile: **non deve mai emettere
   un `<img>` remoto**, perché sarebbe una chiamata di rete partita dal
   documento che si sta anonimizzando.
-- **Test.** Ce ne sono 1956 test e non bastano mai. (Il numero è scritto prima
+- **Test.** Ce ne sono 1981 test e non bastano mai. (Il numero è scritto prima
   della parola «test» di proposito: è così che `scripts/check_docs.py` lo
   trova. Scritto al contrario era rimasto fermo a 161 per venti release.)
 
@@ -93,7 +93,18 @@ In particolare sono benvenuti:
 scripts\quality_gate.bat
 ```
 
-Deve passare: compilazione, dipendenze, licenze allineate, test.
+Sono **sei** passi, e vale la pena saperli per nome: quando uno diventa rosso,
+il messaggio dice quale.
+
+1. `compileall` — la sintassi;
+2. `scripts/check_import.py` — l'import di ogni modulo, uno per uno. Un import
+   circolare supera il passo 1 a pieni voti;
+3. `mr_rao.cli health` — le dipendenze ci sono e si caricano;
+4. `scripts/gen_third_party.py --check` — le licenze di terze parti sono
+   allineate ai pacchetti installati;
+5. `pytest`;
+6. `scripts/check_docs.py` — i documenti pubblicati dicono ancora la verità:
+   versioni, conteggi di test, link, segnaposto, opzioni della riga di comando.
 
 ### Il gate pre-commit, se lo vuoi
 
@@ -117,11 +128,15 @@ una ventina, quasi tutti di pytest — e venti secondi a ogni commit non sono
 tanti in assoluto, sono tanti nel punto sbagliato. Un hook lento non viene
 tolto, viene aggirato: si impara `--no-verify` e da quel momento non gira più
 nemmeno la metà veloce. Quindi l'hook risponde a una sola domanda, quella che
-ha senso fare a ogni commit: *questo albero si carica?* Se vuoi tutto:
+ha senso fare a ogni commit: *questo albero si carica?* Se vuoi anche i test:
 
 ```bash
 MR_RAO_HOOK_FULL=1 git commit ...
 ```
+
+Quella variabile aggiunge **pytest e nient'altro** (`.githooks/pre-commit`):
+non è «tutto il gate». Licenze e documenti pubblicati restano fuori dall'hook
+in ogni caso, e si controllano lanciando `scripts\quality_gate.bat`.
 
 Due cose dette apertamente invece di lasciartele scoprire:
 

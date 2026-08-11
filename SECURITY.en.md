@@ -35,7 +35,15 @@ browser. Distinct attacks, distinct controls:
 | **Port neighbours** — another page on `127.0.0.1`, different port: to `Origin` it is the same hostname | `Sec-Fetch-Site: same-site` refused |
 | **Side effects from GET** — `<img src="http://127.0.0.1:5000/...">` on any page | GETs are read-only: none of them creates a file or a folder |
 | **Clickjacking** — the app framed inside another page to get "start watching" clicked | `Content-Security-Policy: frame-ancestors 'none'` |
+| **Images fetched from outside** — an `<img>` that would leave the machine, and take the "nothing leaves" promise with it | `img-src 'self' data: blob:` in the same CSP: the only images allowed are in `/static` or are the user's own, already in memory |
+| **Type guessed by the browser** — a response interpreted as something it is not | `X-Content-Type-Options: nosniff` |
+| **Local address leaking in `Referer`** — the URL of a local page ending up in a third party's logs | `Referrer-Policy: no-referrer` |
 | **Worker starvation** — one enormous scan tying up the OCR | Caps on pages, on time (`MR_RAO_OCR_TIMEOUT`) and on upload size |
+
+The three headers go out on **every** response
+([`mr_rao/app_factory.py`](mr_rao/app_factory.py)), not just on the page: a
+defence that covers the HTML and not the JSON covers the place nobody
+attacks.
 
 Why **two** anti-CSRF controls rather than one: the `Origin` check is
 conditional on the header being present, and a cross-site `<form>`

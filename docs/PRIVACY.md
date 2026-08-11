@@ -46,11 +46,28 @@ avanti in questa pagina, non un'ipotesi.
 
 ## Cosa viene sostituito
 
+**I segnaposto sono numerati, e lo sono di serie.** Dalla 1.20.0 ogni valore
+distinto riceve un numero — `{{NAME_1}}`, `{{NAME_2}}` — e lo stesso valore
+ripetuto riceve sempre lo stesso. Senza numeri il documento redatto perde il
+senso: *«{{NAME}} ha citato {{NAME}} davanti a {{NAME}}»* non si legge, e un
+modello linguistico non ci può ragionare sopra.
+
+Nella tabella qui sotto i segnaposto sono scritti nella **forma base**, senza
+numero, perché è quella che identifica il tipo. Nel documento vero arrivano
+col suffisso, a meno che non si tolga la spunta a «Numera i segnaposto» —
+allora l'uscita torna identica alla 1.19.
+
+Il numero non è una chiave: vale **dentro un documento e basta**. Non esiste
+nessuna mappa da numero a valore, perché non viene mai costruita, e lo stesso
+nome in un altro documento riceve un numero diverso. Un numero stabile fra
+documenti sarebbe un identificatore persistente, cioè un dato personale nuovo
+inventato da noi.
+
 | Tipo | Segnaposto | Come viene deciso |
 |------|-----------|-------------------|
-| Email | `{{EMAIL}}` | Forma dell'indirizzo, comprese quelle offuscate (`[at]`, `chiocciola`, `punto`) |
-| Indirizzi web | `{{URL}}` | `http`, `https`, `www.` — solo questi |
-| Telefoni | `{{PHONE}}` | Prefisso `+39`, cellulari `3xx`, parola di contesto (`cell`, `tel`, `fax`), oppure fisso con separatori. La **barra** (`011/7323929`) vale solo con la parola di contatto o il prefisso internazionale davanti |
+| Email | `{{EMAIL}}` | Forma dell'indirizzo, comprese quelle offuscate (`[at]`, `chiocciola`, `punto`) e la **chiocciola spaziata** (`mario @ esempio.it`). Su quest'ultima l'ultimo pezzo del dominio dev'essere di lettere: senza quel vincolo, `10 @ 4.50` su una fattura diventerebbe un indirizzo |
+| Indirizzi web | `{{URL}}` | Schema esplicito — `http`, `https`, `ftp`, `ftps` — oppure `www.`. Non basta un `nome.it` in mezzo al testo |
+| Telefoni | `{{PHONE}}` | Prefisso internazionale **qualunque** (`+39`, `+44`, `0033`: da una a tre cifre dopo `+` o `00`), cellulari italiani `3xx`, parola di contesto (`cell`, `tel`, `fax`), oppure fisso con separatori. La **barra** (`011/7323929`) vale solo con la parola di contatto o il prefisso internazionale davanti |
 | Codice fiscale | `{{CODICE_FISCALE}}` | Struttura a 16 caratteri. Il **carattere di controllo** non rifiuta, segnala |
 | | | Riconosce anche l'**omocodia** — le cifre sostituite da lettere quando due persone collidono — ma lì il carattere di controllo **deve** tornare |
 | | | Recupera anche la forma storpiata dall'OCR, se il controllo del candidato corretto torna |
@@ -61,10 +78,12 @@ avanti in questa pagina, non un'ipotesi.
 | Indirizzi | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada e altri, anche abbreviati (`V.le`, `P.zza`, `P.le`, `L.go`, `C.so`); nome per esteso o con l'iniziale puntata (`Via A. Volta`); con civico, CAP e comune |
 | Nomi di persona | `{{NAME}}` | Vedi sotto |
 | Chiavi e password | `{{SECRET}}` | Token, chiavi API, JWT, blocchi di chiave privata, `password: ...` |
+| | | Anche i **codici corti**: PIN, PUK, CVV, CVC, codice di sicurezza, OTP, codice di sblocco. Da tre a otto cifre — sopra le otto non è più un PIN, è un protocollo — e serve l'etichetta, che è ciò che li rende sicuri: quelle parole in un documento non hanno altro significato |
+| | | E la **frase di recupero** (`frase mnemonica`, `seed phrase`): da 12 a 24 parole, lo standard BIP-39. Sta a parte perché è l'unico segreto fatto di parole separate da spazi, e col valore generico — che si ferma al primo spazio — ne usciva **una sola sostituita su dodici**, con il rapporto che diceva «1 segreto» e la frase ancora utilizzabile |
 | Documenti d'identità | `{{DOC_ID}}` | Carta d'identità elettronica, patente, passaporto. **Serve il tipo di documento scritto vicino**, vedi sotto |
 | Riferimenti catastali | `{{CATASTO}}` | **Pacchetto «Atti e pratiche», spento di default.** Foglio **e** particella insieme, subalterno facoltativo. Il foglio da solo è la pagina di una relazione |
 | Numeri di pratica | `{{PRATICA}}` | **Pacchetto «Atti e pratiche», spento di default.** R.G., protocollo, repertorio, raccolta, cronologico. L'etichetta è obbligatoria e **resta nel testo**: sparisce il numero, resta «Prot. n.». Servono almeno due cifre, oppure l'anno accanto — «Protocollo n. 5» di una convenzione non è una pratica. Il suffisso di registro (`/P`, `/CU`) resta anche lui: dice quale registro, non quale fascicolo |
-| Targhe di veicoli | `{{TARGA}}` | **Pacchetto «Atti e pratiche», spento di default.** `AB 123 CD` in maiuscolo, con o senza separatori; I, O, Q e U non esistono sulle targhe e vengono rifiutate. La forma da ciclomotore (`AB 12345`) richiede la parola «targa» davanti |
+| Targhe di veicoli | `{{TARGA}}` | **Pacchetto «Atti e pratiche», spento di default.** `AB 123 CD`, con o senza separatori. Il vincolo non è il maiuscolo ma la **coerenza**: tutto maiuscolo o tutto minuscolo, mai misto — `Ab 123 cD` non è una targa, è un refuso o un'altra cosa. I, O, Q e U non esistono sulle targhe e vengono rifiutate. La forma da ciclomotore (`AB 12345`) richiede «targa» o «targato» davanti |
 | Date di nascita | `{{DATE}}` | **Spento di default.** Solo con contesto di nascita accanto |
 | Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
 | Termini tuoi | `{{TERM}}` | L'elenco «nascondi sempre» scritto da chi converte |
@@ -99,6 +118,51 @@ più pulito, lo rende più silenzioso. Chi li vuole togliere davvero ha già
 l'elenco **«nascondi sempre»**, che li toglie — nessuna capacità è perduta, ed
 è questo a rendere onesta la scelta di non offrire la sostituzione.
 
+### «Segnala anziché sostituisci»: il terzo stato, e non riguarda solo questi due
+
+Età e sesso sono il caso in cui quel comportamento è **obbligato**. Ma dalla
+1.20.0 lo si può chiedere per **ventisei categorie** — praticamente tutte
+quelle che il motore riconosce — e la scelta è per categoria, non per famiglia.
+
+Le tre combinazioni, e sono tre cose diverse:
+
+| interruttore | categoria in «segnala» | cosa succede |
+|---|---|---|
+| acceso | no | **sostituisce** — arriva il segnaposto |
+| acceso | sì | **trova e lascia dov'era**, e lo dice nel rapporto |
+| spento | — | **non cerca**, e non lascia traccia |
+
+La riga di mezzo è quella che prima non c'era, e serve a chi il dato lo vuole
+leggere: gli importi che un modello deve confrontare, l'età in una cartella
+clinica. Il valore vero non è nel testo, è nel rapporto — *«ho lasciato in
+chiaro 3 importi, apposta»* è un'informazione che un DPO può usare per
+decidere; il silenzio no. Un riconoscitore **spento** non lascia traccia, e
+chi rilegge non ha modo di sapere se lì dentro non c'era niente o se abbiamo
+guardato dall'altra parte.
+
+L'unica categoria che resta fuori è **«termini tuoi»**, ed è una decisione:
+quell'elenco è ciò che l'utente ha chiesto esplicitamente di proteggere, e
+segnalarlo invece di sostituirlo vorrebbe dire disobbedire a una richiesta
+esplicita.
+
+Nell'interfaccia il conto è **triplo**, e i tre numeri rispondono a tre
+domande diverse:
+
+```
+🛡️ 12 redazioni · ⚠️ 2 da controllare · 👁 3 in chiaro
+```
+
+L'ultimo è questa sezione: quello che il motore ha trovato e ha lasciato lì
+per scelta di chi converte. Passandoci sopra si leggono le categorie, coi nomi
+che si leggono e non con quelli con cui il codice parla a sé stesso. Sommarlo
+agli altri due darebbe un totale che non vuol dire niente, ed è il motivo per
+cui sono tre numeri e non uno.
+
+Nel documento la stessa informazione viaggia col frontmatter, nel blocco
+`detected_not_replaced:` — separato da `redactions:`. È l'unica parte del
+rapporto che resta attaccata al file: chi lo riceve fra sei mesi non ha la
+richiesta HTTP.
+
 ### Il pacchetto anglosassone
 
 Arrivato con la 1.8.0 e rimasto fuori da questa tabella fino alla 1.11 — un
@@ -108,22 +172,50 @@ ne trova uno solo di troppo.
 
 | Tipo | Segnaposto | Come viene deciso |
 |------|-----------|-------------------|
-| NHS number (UK) | `{{NHS_NUMBER}}` | **Mod-11**. È un conto vero: una cifra sbagliata non passa |
-| Routing bancario ABA (US) | `{{ROUTING_NUMBER}}` | Checksum pesato **3-7-1** *più* gli intervalli di prefisso in uso |
-| ABN (AU) | `{{ABN}}` | **Mod-89**, con la sottrazione di 1 alla prima cifra |
-| TFN (AU) | `{{TFN}}` | **Mod-11** pesato |
-| SIN (CA) | `{{SIN}}` | **Luhn** |
-| Zona a lettura ottica dei passaporti | `{{MRZ}}` | Cifra di controllo **ICAO 9303** — documento, nascita, scadenza e composita |
+| NHS number (UK) | `{{NHS_NUMBER}}` | **Mod-11** *e* la parola «NHS» accanto |
+| Routing bancario ABA (US) | `{{ROUTING_NUMBER}}` | Checksum pesato **3-7-1**, gli intervalli di prefisso in uso, *e* una parola di contesto |
+| SIN (CA) | `{{SIN}}` | **Luhn** *e* una parola di contesto |
+| ABN (AU) | `{{ABN}}` | **Mod-89** (con la sottrazione di 1 alla prima cifra) *e* la sigla accanto |
+| TFN (AU) | `{{TFN}}` | **Mod-11** pesato *e* la sigla accanto |
+| Zona a lettura ottica dei passaporti | `{{MRZ}}` | Cifra di controllo **ICAO 9303** su numero del documento, nascita o scadenza. **L'unico che decide da solo** |
 | National Insurance number (UK) | `{{NINO}}` | **Nessun checksum**: struttura, più i prefissi che l'HMRC non assegna |
-| SSN (US) | `{{SSN}}` | **Nessun checksum**: struttura, più le esclusioni pubblicate dalla SSA |
+| SSN (US) | `{{SSN}}` | **Nessun checksum**: la forma trattinata 3-2-4, più le esclusioni pubblicate dalla SSA. Nove cifre attaccate non si toccano |
 | ITIN (US) | `{{ITIN}}` | **Nessun checksum**: struttura e intervalli IRS |
-| Codice postale britannico | `{{POSTCODE}}` | **Nessun checksum**, come ogni codice postale: solo la struttura |
+| Codice postale britannico | `{{POSTCODE}}` | **Nessun checksum**, come ogni codice postale: struttura *e* una parola di recapito accanto, quando non sta già dentro un indirizzo completo |
+| Indirizzi anglosassoni | `{{ADDRESS}}` | Il **civico** davanti, almeno una parola in mezzo, e un tipo di via in coda (`Street`, `Road`, `Lane`, `Way`, …), con CAP britannico o ZIP facoltativo |
+| Nomi anglosassoni | `{{NAME}}` | **Nessun elenco**: solo dove il testo dichiara che è una persona — titolo davanti, formula di apertura o di chiusura, indirizzo di posta accanto |
 
-La divisione fra le due metà è la cosa da leggere. Dove c'è un conto, il
-riconoscitore **dimostra**; dove non c'è, può solo escludere ciò che è
-palesemente impossibile — e su quei quattro il rischio di prendere un codice
-qualsiasi resta più alto. È la stessa ragione per cui i documenti d'identità
-italiani pretendono il contesto.
+**La divisione da leggere non è quella fra chi ha un conto e chi no.** Il
+checksum, da solo, non basta quasi mai: il mod-11 dell'NHS lascia passare
+circa una sequenza di dieci cifre su nove, e da solo redigerebbe numeri di
+fattura. **Cinque di questi sei riconoscitori aritmetici non sostituiscono
+niente senza una parola di contesto vicina** — NHS, routing ABA, SIN, ABN e
+TFN. Il validatore riduce il rumore, il contesto lo azzera.
+
+L'unico che decide da solo è la **riga MRZ**, e non perché sia più fortunato:
+perché la forma è irripetibile. Solo maiuscole, cifre e riempitivi, con almeno
+un doppio `<` — nessun'altra riga di testo assomiglia a quella. Vale la pena
+proprio lì, perché una MRZ contiene cognome, nome, cittadinanza, data di
+nascita, sesso e scadenza tutti insieme.
+
+Una precisazione sulla MRZ, perché è il tipo di dettaglio che sembra un
+dettaglio: **la cifra composita di fine riga non si usa**, di proposito. Si
+calcola su pezzi **non contigui**, e darle in pasto la riga intera la fa
+fallire sempre. I campi controllati sono tre — numero del documento, data di
+nascita, scadenza — e ne basta uno che torni.
+
+E dove il conto non c'è del tutto (NINO, SSN, ITIN) resta solo la struttura,
+più le esclusioni pubblicate: lì il rischio di prendere un codice qualsiasi è
+più alto, ed è la stessa ragione per cui i documenti d'identità italiani
+pretendono il contesto.
+
+**Una parola su un numero italiano scambiato per americano.** `Tel. 078-05-1120`
+ha esattamente la forma 3-2-4 di un SSN, e il pacchetto anglosassone è acceso
+di serie: un notaio italiano si vedeva contare come «SSN» il centralino dello
+studio. Il dato spariva comunque — il passo dei telefoni gira dopo e lo prende
+—, ma **il rapporto sbagliava il tipo**, e un rapporto che sbaglia il tipo non
+serve a rispondere a chi chiede *cosa* c'era nel file. Adesso una parola di
+contatto davanti fa lasciare stare quel numero al riconoscitore del SSN.
 
 ### Perché i documenti d'identità pretendono il contesto
 
@@ -152,21 +244,75 @@ scoprire il passaporto.
 Su oltre cento documenti a verità zero il costo misurato è **zero**: nessuna
 sostituzione sbagliata, nessun sospetto in più.
 
-## I nomi di persona: tre segnali, tutti con un riscontro
+## I nomi di persona: nove segnali, tutti con un riscontro
 
 Un elenco di nomi non è mai completo, e affidarsi solo a quello lascia
 passare tutti i cognomi non comuni. Valgono quindi anche le regole di
-contesto, dal segnale più forte al più debole:
+contesto. `_scrub_names` le esegue in quest'ordine, dal segnale più forte al
+più debole:
 
 1. **Titolo professionale davanti** — Dott., Ing., Geom., Avv., Sig.
 2. **Ruolo, due punti, cognome in maiuscolo** — `Il Ministro: GIORGETTI`.
    È la firma degli atti pubblici italiani.
-3. **Nome accanto a un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`.
+3. **Nome prima di un indirizzo di posta** — `Tizio Caio <t.caio@x.it>`.
    È il caso più frequente nelle email.
-4. **Nome proprio riconosciuto** che tira dentro la parola successiva.
+4. **Nome dopo un indirizzo di posta** — `t.caio@x.it (Tizio Caio)`.
+5. **Nome accanto a un codice fiscale valido** — `Elicio Nazar CF
+   MNTCRL58D07H163B`. La finestra è stretta apposta: fra il nome e il codice
+   ci sta l'etichetta e nient'altro, sulla stessa riga.
+6. **Ruolo dichiarato** — `il cliente Mario Rossi`, `il ricorrente …`.
+   Pretende **due** parole.
+7. **Campo di modulo** — `Nome: Mario Rossi`, `COGNOME= …`. Qui ne basta una:
+   l'etichetta non lascia dubbi su cosa venga dopo.
+8. **Formula di chiusura** — `Cordiali saluti, Esposito`. È l'unico posto in
+   cui un cognome da solo vale come prova.
+9. **Nome e cognome adiacenti**, riconosciuti negli elenchi. Quanti riscontri
+   servano — uno o due — lo decide la soglia prosa/modulo, più sotto.
 
-Tutte chiedono **un riscontro**. Ce n'era una quinta che non lo chiedeva,
-ed è stata tolta.
+L'ordine non è decorativo: i primi otto sono regole di **contesto**, e non
+hanno bisogno che il nome sia in un elenco. Il nono è l'unico che si appoggia
+agli elenchi, ed è per questo che è l'ultimo.
+
+C'è poi un decimo caso che **non sostituisce mai**: una parola sola che
+risulta negli elenchi, senza niente intorno, diventa un **sospetto**. Sotto le
+quattro lettere non si guarda nemmeno — «Re» e «Rao» sono cognomi italiani
+veri e su un modello Redditi in bianco venivano sostituiti.
+
+Tutte chiedono **un riscontro**, di elenco o di contesto. Ce n'era una che non
+lo chiedeva, ed è stata tolta.
+
+### Prosa o modulo: quanti riscontri chiede il nono segnale
+
+Sul segnale più debole la stessa regola ha **segno opposto** a seconda del
+documento, e non è un'opinione. Su una lettera, due parole maiuscole di cui
+una risulta negli elenchi sono quasi sempre una persona; su un modulo sono
+quasi sempre l'etichetta di un campo — «Imposta Lorda», «Quadro RN».
+
+Misurato: pretendere due riscontri toglie **2 739** sostituzioni sbagliate sui
+moduli amministrativi in bianco e costa **609** nomi su 1 500 email vere. Non
+esiste un valore giusto per entrambi, quindi non se ne sceglie uno: si guarda
+il documento.
+
+**Il segnale che decide sta nel PDF, non nel testo.** Le caselle di un modulo
+sono righe e rettangoli vettoriali: sopravvivono alla lettura del file e
+muoiono nella conversione, quindi si contano lì. La soglia è **0,5 elementi
+vettoriali ogni 100 caratteri**, e sta nel vuoto fra due popolazioni misurate,
+non a ridosso di una: le istruzioni dell'Agenzia delle Entrate — libretti in
+prosa — stanno a 0,2, i modelli dello stesso ente a 0,7, i moduli fiscali
+statunitensi fra 3,7 e 9,8.
+
+Per gli altri formati non serve contare: `.eml`, `.txt`, `.md`, `.rtf`,
+`.docx`, `.doc`, `.odt`, `.pptx` e `.ppt` sono **prosa**; `.xlsx`, `.xls`,
+`.csv`, `.json` e `.xml` sono **moduli**.
+
+Su una scansione la risposta è **«non lo so»**, ed è un terzo stato vero:
+contare vettori su un'immagine darebbe zero, e zero verrebbe letto come
+«prosa» — la risposta giusta per il motivo sbagliato. In quel caso si sceglie
+la prudenza sul documento, cioè il sospetto, e non sul richiamo: un falso
+positivo si vede rileggendo l'uscita, un nome lasciato in chiaro no.
+
+Nell'interfaccia lo si può contraddire a mano. Dalla riga di comando no: lì
+vale sempre quello che il programma deduce.
 
 ### La firma degli atti pubblici
 
@@ -267,7 +413,10 @@ che non abbiamo scelto noi: è la differenza che conta.
 **Richiamo sulle forme regolari: 100%.** Dati dal valore noto inseriti in
 paragrafi veri di Gazzetta Ufficiale, verificati puliti prima
 dell'inserimento: 520 casi su 520, zero perdite silenziose. Otto tipi di
-dato in tre cornici ciascuno, e i nomi in tutti e cinque i livelli di prova.
+dato in tre cornici ciascuno, e i nomi in **quattro** livelli di prova —
+titolo davanti, firma, accanto a un'email, nome+cognome — più il caso
+**nudo**, che di prova non ne ha nessuna e sta lì apposta: è quello che
+misura il limite dichiarato più avanti, non un quinto livello.
 
 **Richiamo sulle forme difficili: 73% redatto, 20% segnalato, 6,7% perso in
 silenzio.** È il numero onesto, perché è così che i dati arrivano davvero da
@@ -320,11 +469,11 @@ Resta a zero, per scelta documentata, la **partita IVA nuda**: undici cifre
 senza prefisso `IT` né contesto fiscale vicino sono indistinguibili da un
 numero qualsiasi.
 
-La stessa domanda girata sui **venti riconoscitori anglosassoni** e sui
-documenti d'identità — NHS, National Insurance, SSN, ITIN, routing ABA, SIN,
-ABN, TFN, tutti e sei i formati di codice postale britannico, MRZ, BBAN,
-carta d'identità, patente, passaporto — non ha trovato niente:
-`scripts/bench_varieta_en.py`, tutti al 100%.
+La stessa domanda girata sui **dieci riconoscitori anglosassoni** — NHS,
+National Insurance, SSN, ITIN, routing ABA, SIN, ABN, TFN, tutti e sei i
+formati di codice postale britannico, MRZ — più i documenti d'identità
+italiani e le coordinate bancarie non-IBAN, non ha trovato niente:
+`scripts/bench_varieta_en.py`, venti tipi in tutto, tutti al 100%.
 
 Sul **resto del pacchetto italiano** (`scripts/bench_varieta_it.py`,
 ventisei forme, duecento valori ciascuna) sono usciti invece tre difetti,
@@ -368,7 +517,7 @@ congelati insieme all'impronta dell'elenco dei file, così un corpus diverso
 viene detto invece di sembrare una regressione.
 
 Il corpus non sta nel repository: sono decine di megabyte e non sono nostri
-da ridistribuire. Il test si salta dicendolo, ma i tre test che provano il
+da ridistribuire. Il test si salta dicendolo, ma i **quattro** test che provano il
 **meccanismo** girano sempre — un controllo che gira solo sulla macchina di
 chi sviluppa non è un controllo.
 
@@ -386,7 +535,9 @@ numero e due situazioni opposte.
 Per questo, dopo la sostituzione, un passaggio sul testo rimasto segnala
 ciò che somiglia a un dato personale senza esserlo abbastanza da poterlo
 togliere. Compaiono nel rapporto come `suspects`, e nell'interfaccia
-accanto al conteggio: **«🛡️ 3 redazioni · ⚠️ 2 da controllare»**.
+accanto al conteggio: **«🛡️ 3 redazioni · ⚠️ 2 da controllare»**. Se qualcosa
+è stato lasciato in chiaro apposta, accanto compare anche il terzo conto —
+`👁 N in chiaro`, spiegato più sopra.
 
 I campioni sono mascherati (`RS••••••••••••2S`): quanto basta a
 ritrovarli nel documento, non a leggerli.
@@ -423,10 +574,19 @@ iniziali dev'essere già una lettera.
 
 ## Report
 
-La risposta API include `redaction: { total, counts }`, l'interfaccia mostra
-il totale e la scheda **«Confronto privacy»** mostra il testo prima e dopo.
-Quella scheda è il controllo che conta: è lì che si vede cosa è stato tolto
-e, soprattutto, cosa è sfuggito.
+La risposta API porta **tre conti separati**, e tenerli separati è il punto:
+
+| campo | cosa dice |
+|---|---|
+| `counts`, `total` | cosa è stato **tolto** |
+| `detected`, `detected_counts`, `detected_total` | cosa è stato trovato e **lasciato apposta** — età, sesso, e le categorie messe in «segnala» |
+| `suspects`, `suspects_total` | cosa il motore **non ha saputo decidere** |
+
+Sommarli darebbe un totale che non vuol dire niente. L'interfaccia li mostra
+tutti e tre accanto al risultato, e la scheda **«Confronto privacy»** mostra
+il testo prima e dopo. Quella scheda è il controllo che conta: è lì che si
+vede cosa è stato tolto e, soprattutto, cosa è sfuggito — perché una perdita
+silenziosa, per definizione, in nessuno dei tre numeri compare.
 
 ## Limiti dichiarati
 
@@ -502,6 +662,40 @@ e, soprattutto, cosa è sfuggito.
   e un cognome raro in un contesto ambiguo può ancora restare, o sparire a
   sproposito. L'euristica che indovinava senza riscontri, che era la fonte
   principale degli errori, è stata **ritirata nella 1.13.0**.
+- **La redazione PDF→PDF non tratta tutte le pagine, e lo dichiara pagina per
+  pagina.** Un PDF che entra e un PDF che esce è un percorso a parte
+  (`mr_rao/redazione_pdf.py`), e ha limiti suoi:
+  - **le scansioni si rifiutano**, e il rifiuto è per pagina, non per
+    documento. Senza testo estraibile non ci sono glifi da togliere:
+    disegnarci sopra dei rettangoli sembrerebbe una redazione e non lo
+    sarebbe. Una pagina scansionata infilata in mezzo a pagine digitali —
+    l'allegato firmato a mano — è il caso tipico, e prima usciva contata fra
+    quelle trattate. Una pagina **bianca** invece non è un allarme: non ha
+    niente da togliere, e resta silenziosa;
+  - **le pagine in ripiego non sono redatte.** Quando il testo estratto non si
+    ritrova nel flusso di contenuto, o un tratto non si riconduce a nessun
+    glifo, la pagina esce **com'era**. Compaiono in `pagine_in_ripiego` con il
+    motivo accanto, e il pannello le mostra **sempre**, anche quando sono
+    zero, nella tinta dei sospetti — che qui vuol dire «tocca a te guardare».
+    Chiamarle redatte sarebbe il modo peggiore di sbagliare;
+  - restano fuori, dichiarati, gli operatori di testo `'` e `"`.
+
+  **Il PDF segue le stesse opzioni del Markdown, profilo compreso** — e dalla
+  1.24.0 anche il profilo. Prima no: le rotte del PDF costruivano le opzioni
+  senza guardare il profilo scelto, quindi la stessa pagina, con le stesse
+  caselle, poteva produrre un Markdown redatto in un modo e un PDF redatto in
+  un altro. La differenza si vedeva solo aprendo i due file uno accanto
+  all'altro, che è il posto in cui nessuno guarda. Ora la regola sta in un
+  punto solo (`_privacy_dalla_richiesta`), e ha un nome proprio perché una
+  rotta nuova non possa ripetere il difetto.
+
+  **Le annotazioni e i campi modulo invece ci sono, dalla 1.24.0.** Prima no,
+  e il difetto era grosso: quel testo non sta nel flusso della pagina, quindi
+  usciva intero da un file chiamato `-redatto.pdf` — un codice fiscale ancora
+  leggibile dentro un documento il cui nome dice il contrario. Insieme al
+  valore viene buttato l'aspetto memorizzato del campo (`/AP`) e si accende
+  `NeedAppearances`: senza, sullo schermo resterebbe disegnato il nome di
+  prima, con il dato tolto solo sotto.
 - **I formati coperti sono italiani e anglosassoni.** Codice fiscale, partita
   IVA, IBAN e BBAN italiani; NHS number, National Insurance number, SSN, ITIN,
   routing ABA, SIN canadese, ABN e TFN australiani, codice postale britannico,

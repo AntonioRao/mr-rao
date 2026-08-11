@@ -38,6 +38,8 @@ Scorciatoia ──► appunti ──► stesso motore privacy ──► appunti
 
 | Modulo | Responsabilità |
 |--------|----------------|
+| `app.py` | Punto d'ingresso del server locale. Sceglie **prima** la finestra dell'applicazione e ripiega sul browser; avvia tray, watch e il controllo della porta |
+| `console_win.py` | Sta alla radice e non in `mr_rao/` di proposito: aggancia la console di Windows **prima** che qualunque altro modulo stampi. L'eseguibile è costruito senza console, così il doppio clic non apre una finestra nera; senza questo aggancio `MrRao.exe convert` non stamperebbe niente e sembrerebbe non aver fatto nulla |
 | `config.py` | Brand, path (frozen/dev), limiti, env |
 | `mr_rao/app_factory.py` | Factory Flask, middleware sicurezza Host/CSRF |
 | `mr_rao/routes.py` | HTTP API + template |
@@ -68,11 +70,19 @@ nome stabile, pacchetto, interruttore che lo accende, priorità.
 `apply_privacy_filter` è un ciclo: un passo gira se il suo pacchetto è fra
 quelli scelti **e** se il suo interruttore è acceso.
 
-**I pacchetti** (`CORE`, `IT`, `EN`) separano ciò che vale ovunque da ciò
-che vale in un Paese solo. Il nucleo non si spegne: l'IBAN passa il mod-97
-in tutti i Paesi SEPA, la carta passa Luhn ovunque. Sono cumulabili — lo
-studio italiano col contratto inglese è il caso d'uso vero — e scegliibili
-da interfaccia, JSON e riga di comando.
+**I pacchetti sono quattro** (`CORE`, `IT`, `EN`, `ATTI`), e non rispondono
+tutti alla stessa domanda. I primi tre separano ciò che vale ovunque da ciò
+che vale in un Paese solo: il nucleo non si spegne — l'IBAN passa il mod-97
+in tutti i Paesi SEPA, la carta passa Luhn ovunque — e i due nazionali sono
+cumulabili, perché lo studio italiano col contratto inglese è il caso d'uso
+vero. `ATTI` invece dice **per quale mestiere**: catasto, numeri di pratica e
+targhe sono dati che un notaio vuole togliere e un ufficio acquisti vuole
+tenere, e per questo è **spento di serie**.
+
+Dove si scelgono, e non è lo stesso per tutti: `CORE`, `IT` ed `EN` si
+scelgono da interfaccia, JSON e riga di comando (`--no-pack-it`,
+`--no-pack-en`). **`ATTI` solo da interfaccia e JSON**: la riga di comando non
+ha nessuna opzione che lo accenda.
 
 **La priorità è del tipo di dato, non del pacchetto.** Codice fiscale (it)
 e SSN (en) girano insieme, prima dei telefoni: è ciò che impedisce a un
@@ -93,10 +103,17 @@ file e muoiono nella conversione. Per questo `_e_prosa()` vive in
 contare vettori su un'immagine darebbe zero e zero verrebbe letto come
 «prosa»: la risposta giusta per il motivo sbagliato.
 
-**I nomi sono a livelli di prova.** Titolo professionale, ruolo davanti ai
-due punti (`Il Ministro: GIORGETTI`), firma, indirizzo di posta accanto →
-sostituzione. Riscontro debole → **sospetto**, non sostituzione: il
-documento resta leggibile e chi controlla sa dove guardare.
+**I nomi sono a livelli di prova.** `_scrub_names` esegue **nove** regole in
+ordine, dalla più forte alla più debole: titolo professionale davanti; ruolo,
+due punti e cognome in maiuscolo (`Il Ministro: GIORGETTI`); nome prima di un
+indirizzo di posta; nome dopo di esso; nome accanto a un codice fiscale
+valido; ruolo dichiarato (`il cliente Mario Rossi`); campo di modulo
+(`Nome: Mario Rossi`); formula di chiusura (`Cordiali saluti, Esposito`);
+coppia adiacente riconosciuta negli elenchi. Le prime otto sostituiscono; la
+nona sostituisce solo con il numero di riscontri che chiede la soglia
+prosa/modulo. Una parola sola in elenco, senza niente intorno, diventa
+**sospetto** e non sostituzione: il documento resta leggibile e chi controlla
+sa dove guardare.
 
 ## Flusso conversione
 

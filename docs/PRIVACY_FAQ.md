@@ -25,6 +25,16 @@ eventi: tutto ciò che identifica una persona **senza nominarla**. Gli
 importi si possono togliere, ma la casella è spenta di default, quindi
 con le impostazioni predefinite restano anche loro.
 
+Nella stessa categoria — riconosciuti ma **spenti di serie** — sta il
+pacchetto **«Atti e pratiche»**: riferimenti catastali, numeri di pratica
+(R.G., protocollo, repertorio) e targhe di veicoli. È spento perché su questi
+tre dati due pubblici hanno ragione tutti e due: per un notaio il riferimento
+catastale *è* il dato più sensibile della frase, perché dice di quale immobile
+si parla; per un ufficio il numero di protocollo è ciò che permette di
+**ritrovare** la pratica, e toglierlo rende il documento inservibile senza
+proteggere nessuno. Non è un interruttore acceso a metà: lo si accende
+sapendo di volerlo, dall’interfaccia o dal JSON (dalla riga di comando no).
+
 Usarlo per *ridurre* l’esposizione prima di un incolla in un’AI, con
 controllo umano del prima/dopo, è lo scopo dichiarato. Usarlo per dire
 «questo file non contiene più dati personali» **non** lo è.
@@ -194,6 +204,32 @@ ciecamente è un rischio — è scritto anche in UI e README.
 I campioni nei sospetti sono mascherati (`RS••••••••••••2S`): abbastanza
 da ritrovarli nel testo, non da leggerli dal report da soli.
 
+**Gli esiti sono tre, non due.** Fra «tolto» e «non visto» c’è una terza
+categoria, ed è la sola che il rapporto può raccontare per intero: **trovato e
+lasciato in chiaro, apposta**.
+
+| esito | campo nel rapporto | nell’interfaccia |
+|---|---|---|
+| tolto | `counts` / `total` | 🛡️ N redazioni |
+| trovato, non tolto **per scelta** | `detected` / `detected_counts` | 👁 N in chiaro |
+| visto ma non deciso | `suspects` | ⚠️ N da controllare |
+
+Ci finiscono due cose. **Età e sesso**, che non hanno un segnaposto e non ne
+avranno uno: sono quasi-identificatori, e chi passa al motore una cartella
+clinica o una statistica del personale sta chiedendo proprio quei due dati.
+Si riconoscono solo dove il contesto è una **dichiarazione** — `di anni 45`,
+`età: 45`, `45enne`, `sesso: F` — e il `45 anni` nudo non si guarda, perché è
+quasi sempre una durata. E poi tutte le categorie che si sono messe in
+**«segnala anziché sostituisci»**, che dalla 1.20.0 sono ventisei.
+
+Perché non si sommano: «lasciate in chiaro 3 età, apposta» è un’informazione
+che un DPO può usare per decidere; sommata alle redazioni diventa un numero
+che non vuol dire niente. Il silenzio, invece, non è un’informazione affatto —
+ed è quello che succedeva prima, quando spegnere un riconoscitore era l’unico
+modo di non sostituire.
+
+Dettaglio in [PRIVACY.md](PRIVACY.md#segnala-anziché-sostituisci-il-terzo-stato-e-non-riguarda-solo-questi-due).
+
 ---
 
 ## 8. Che succede se passo lo stesso documento due volte, o a pezzi?
@@ -288,12 +324,25 @@ versione (sez. 13). Dettaglio in [LICENSE](../LICENSE) e README.
 | Opzioni da form/CLI/profili | `PrivacyOptions`, `options_from_form`, [`mr_rao/profiles.py`](../mr_rao/profiles.py) |
 | Principi e limiti | [PRIVACY.md](PRIVACY.md) |
 | Test duali e regressioni | `tests/test_privacy.py`, `tests/test_privacy_riconoscitori.py`, `tests/test_sospetti.py` |
+| Redazione PDF→PDF | [`mr_rao/redazione_pdf.py`](../mr_rao/redazione_pdf.py) — `redigi_pdf`, `_redigi_annotazioni`, `_pagina_e_una_scansione` |
 | Sicurezza server locale (altro pezzo) | [SECURITY.md](../SECURITY.md), `tests/test_security.py`, `tests/test_limiti_ocr.py` |
+| Finestra dell’applicazione | [`mr_rao/finestra.py`](../mr_rao/finestra.py), avviata da [`app.py`](../app.py) |
 | Lezioni da bug reali | [CHANGELOG.md](CHANGELOG.md) — ogni voce dice il bug, non solo la funzione |
 
 Punto d’ingresso per un’analisi automatica: leggere il docstring di
 modulo di `privacy.py`, poi `apply_privacy_filter` (ordine delle fasi),
 poi i test che fallivano sulle regressioni citate nel changelog.
+
+**Una cosa che sposta il perimetro dell’ispezione, ed è giusto trovarla qui.**
+Di serie l’interfaccia non si apre in una scheda del browser ma in una
+**finestra dell’applicazione** (`mr_rao/finestra.py`, via `pywebview`). È la
+stessa pagina servita dallo stesso server su `127.0.0.1`: non cambia niente
+del motore, e nessun browser viene impacchettato — si usa il motore di
+rendering **già presente nel sistema** (WebView2 su Windows). Se quel motore
+non c’è, `finestra.disponibile()` dice di no e si apre il browser come sempre.
+Per scegliere il browser di proposito: **`MR_RAO_FINESTRA=0`**. Chi vuole
+ispezionare la pagina con gli strumenti di sviluppo del proprio browser
+comincia da lì.
 
 ---
 

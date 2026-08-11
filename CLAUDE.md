@@ -25,7 +25,7 @@ have to be learnt twice.
 - **Check CI after every push.** A green run on the developer's machine has
   never proved anything about a clean one.
 - **Run the quality gate before committing**: `scripts\quality_gate.bat`.
-  Five steps; the last checks that the published documents still tell the
+  Six steps; the last checks that the published documents still tell the
   truth.
 - **A check that cannot fail is not a check.** Before saying "verified", ask
   how that check would have said no. Start from `git ls-files`, not from the

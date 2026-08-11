@@ -1,12 +1,39 @@
 # Riga di comando
 
-Tutto quello che si fa dall'interfaccia si fa anche da qui — e il contrario
-vale come regola del progetto: **nessuna funzione può esistere solo da riga di
-comando**, perché chi usa Mr. Rao apre una pagina, non un terminale.
+La regola del progetto vale **in un verso solo**, e conviene dirlo prima che
+qualcuno ci conti sopra: **nessuna funzione esiste solo da riga di comando**,
+perché chi usa Mr. Rao apre una pagina, non un terminale. Il contrario **non**
+è vero — la pagina sa fare cose che qui non si possono chiedere.
 
-Questo file esiste perché non era così: per venti release le opzioni non
-erano scritte da nessuna parte. Ora `scripts/check_docs.py` **interroga il
-parser vero** e fallisce se ne compare una che qui non c'è.
+Cosa resta fuori, oggi:
+
+- **i profili** (`Predefinito`, `Email legali`, `Solo OCR`, `Pronto per LLM`,
+  `Nessuna redazione`): non c'è un `--profile`, e le opzioni si scelgono una
+  per una;
+- **il pacchetto «Atti e pratiche»** — catasto, numeri di pratica, targhe. Da
+  qui si spengono i due pacchetti nazionali (`--no-pack-it`, `--no-pack-en`) e
+  basta: quello degli atti non si accende;
+- **prosa o modulo**: la riga di comando prende quello che deduce
+  `converter._e_prosa()`, e non lo si può contraddire;
+- **il terzo stato «segnala anziché sostituisci»**, cioè rilevare un dato e
+  lasciarlo nel testo dichiarandolo nel rapporto;
+- **i segnaposto numerati**: sono accesi di serie e da qui non si spengono;
+- **i singoli riconoscitori.** Ci sono `--no-privacy` (tutto), `--scrub-amounts`
+  e `--scrub-dates` (due che di serie sono spenti): accendere o spegnere
+  email, telefoni, nomi, indirizzi, chiavi o documenti d'identità uno per uno
+  si fa dalla pagina;
+- **la redazione di un PDF che resta un PDF** e le esportazioni `.txt` e
+  `.docx`: da qui esce Markdown.
+
+Non è un elenco di cose da fare: è ciò che serve sapere prima di scrivere uno
+script che dà per scontata una parità che non c'è.
+
+Questo file esiste perché le opzioni non erano scritte da nessuna parte per
+venti release. Ora `scripts/check_docs.py` **interroga il parser vero** e
+fallisce se ne compare una che qui non c'è — il che tiene aggiornato l'elenco
+delle opzioni, non l'elenco qui sopra: una funzione che la riga di comando non
+ha non porta nessuna opzione nuova, quindi passa invisibile. Questa parte si
+rilegge a mano.
 
 ```bash
 python -m mr_rao.cli --help

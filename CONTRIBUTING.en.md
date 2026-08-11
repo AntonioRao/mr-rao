@@ -86,7 +86,7 @@ what is missing *(Italian)*. Particularly welcome:
   document that renders badly, the case belongs there. One non-negotiable
   rule: **it must never emit a remote `<img>`**, because that would be a
   network call originating from the very document being redacted.
-- **Tests.** There are 1956 tests and they are never enough. (The number is
+- **Tests.** There are 1981 tests and they are never enough. (The number is
   written before the word "tests" on purpose: that is how
   `scripts/check_docs.py` finds it. Written the other way round it stayed
   stuck at 161 for twenty releases.)
@@ -97,7 +97,18 @@ what is missing *(Italian)*. Particularly welcome:
 scripts\quality_gate.bat
 ```
 
-It has to pass: compilation, dependencies, licence alignment, tests.
+There are **six** steps, and they are worth knowing by name: when one goes
+red, the message says which.
+
+1. `compileall` — the syntax;
+2. `scripts/check_import.py` — importing every module, one by one. A circular
+   import passes step 1 with flying colours;
+3. `mr_rao.cli health` — the dependencies are present and they load;
+4. `scripts/gen_third_party.py --check` — the third-party licence list still
+   matches the installed packages;
+5. `pytest`;
+6. `scripts/check_docs.py` — the published documents still tell the truth:
+   versions, test counts, links, placeholders, command-line options.
 
 ### The pre-commit gate, if you want it
 
@@ -121,11 +132,15 @@ twenty seconds, almost all of it pytest — and twenty seconds per commit is
 not a lot in absolute terms, it is a lot in the wrong place. A slow hook does
 not get removed, it gets bypassed: you learn `--no-verify` and from then on
 not even the fast half runs. So the hook answers one question, the one worth
-asking at every commit: *does this tree load?* If you want everything:
+asking at every commit: *does this tree load?* If you want the tests too:
 
 ```bash
 MR_RAO_HOOK_FULL=1 git commit ...
 ```
+
+That variable adds **pytest and nothing else** (`.githooks/pre-commit`): it is
+not "the whole gate". Licences and published documents stay outside the hook
+either way, and are checked by running `scripts\quality_gate.bat`.
 
 Two things said openly instead of leaving you to find them out:
 

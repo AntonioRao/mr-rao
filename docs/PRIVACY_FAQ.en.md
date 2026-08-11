@@ -25,6 +25,16 @@ everything that identifies a person **without naming them**. Amounts can be
 removed, but that box is off by default, so with the default settings they
 stay too.
 
+In the same category — recognised but **off by default** — sits the **"Deeds
+and case files"** pack: land registry references, case and file numbers
+(court docket, protocol, deed register) and vehicle plates. It is off because
+on these three, two audiences are both right: for a notary the land registry
+reference *is* the most sensitive item in the sentence, because it says which
+property is meant; for an office, the protocol number is what lets a file be
+**found again**, and removing it makes the document useless without protecting
+anyone. It is not a half-open switch: you turn it on knowing you want it, from
+the interface or from JSON (not from the command line).
+
 Using it to *reduce* exposure before pasting into an AI, with a human
 checking the before/after, is the stated purpose. Using it to say "this file
 no longer contains personal data" is **not**.
@@ -195,31 +205,78 @@ risk — that is written in the UI and the README too.
 Samples in suspects are masked (`RS••••••••••••2S`): enough to find them
 again in the text, not enough to read them from the report alone.
 
+**There are three outcomes, not two.** Between "removed" and "not seen" there
+is a third category, and it is the only one the report can tell in full:
+**found and left in the clear, on purpose**.
+
+| outcome | field in the report | in the interface |
+|---|---|---|
+| removed | `counts` / `total` | 🛡️ N redactions |
+| found, not removed **by choice** | `detected` / `detected_counts` | 👁 N in the clear |
+| seen but not decided | `suspects` | ⚠️ N to review |
+
+Two things end up there. **Age and sex**, which have no placeholder and will
+not get one: they are quasi-identifiers, and whoever passes the engine a
+medical record or workforce statistics is asking for precisely those two
+facts. They are recognised only where the context is a **declaration** —
+`di anni 45`, `età: 45`, `45enne`, `sesso: F` — and a bare `45 anni` is not
+looked at, because it is almost always a duration. And then every category
+put into **"report instead of replace"**, which since 1.20.0 means
+twenty-six of them.
+
+Why they are not added together: "3 ages left in the clear, on purpose" is
+something a DPO can act on; added to the redactions it becomes a number that
+means nothing. Silence, on the other hand, is not information at all — and
+that is what used to happen, when switching a recogniser off was the only way
+not to substitute.
+
+Detail in [PRIVACY.en.md](PRIVACY.en.md#report-instead-of-replace-the-third-state-and-it-is-not-only-about-those-two).
+
 ---
 
 ## 8. What if I pass the same document twice, or in pieces?
 
-**Placeholders are not numbered.** Two different people become the same
-`{{NAME}}`:
+**Since 1.20.0 placeholders are numbered** — and that is a change which takes
+something away from this page, so it comes first. Two different people get two
+different numbers; the same person repeated always gets the same one:
 
 ```
 Scrivi a Mario Rossi <m.rossi@a.it> e a Luigi Bianchi <l.bianchi@b.it>
-   →  Scrivi a {{NAME}} <{{EMAIL}}> e a {{NAME}} <{{EMAIL}}>
+   →  Scrivi a {{NAME_1}} <{{EMAIL_1}}> e a {{NAME_2}} <{{EMAIL_2}}>
 ```
 
-These are two real and opposite properties, and it is better to know them
-before discovering them:
+The reason is readability: without numbers, "{{NAME}} cited {{NAME}} before
+{{NAME}}" cannot be read, and a language model cannot reason over it. Anyone
+who prefers the old form unticks **"Number the placeholders"**, and the output
+goes back to being identical to 1.19.
 
-- **in the output you cannot reconnect who was who.** That is good for
-  exposure, and it confirms question 1: this is not a pseudonymised dataset
-  to join on, nor a mapping table to safeguard. There is no map to steal,
-  because none is ever built;
-- **a document split into pieces loses the context between one piece and
-  the next.** Names are also recognised from context — a title in front, an
-  email beside, a first name pulling the surname. If the title stays in the
-  first block and the name ends up in the second, that signal is gone.
+**What was lost, said without circling it.** Before, you could not reconnect
+who was who in the output. Now, *inside one document*, you can: the numbers
+say how many distinct people there are and where each one appears. They are
+not the values — there is no way back from `{{NAME_2}}` to Luigi Bianchi — but
+they are **the structure** of the personal data, and that is information that
+did not use to come out. If the document contains one person and the reader
+knows who it is, the numbering adds nothing; if it contains fifteen, it says
+there are fifteen.
 
-The second is what actually breaks when pasting a long document into a chat
+**What has not changed**, and still holds up question 1:
+
+- **the number leads nowhere.** There is no map to steal, because none is ever
+  built: the correspondence lives in memory for the duration of the
+  conversion and is never written down anywhere;
+- **the number is not stable across documents.** Mario Rossi is not
+  `{{NAME_1}}` everywhere: it depends on the order in which he appears in
+  *that* document. A stable number would be a persistent identifier — that is,
+  a new piece of personal data invented by us — and that is exactly what this
+  tool must not do;
+- **a document split into pieces loses the context between one piece and the
+  next.** Names are also recognised from context — a title in front, an email
+  beside, a first name pulling the surname. If the title stays in the first
+  block and the name ends up in the second, that signal is gone. And the
+  numbering restarts with each piece, so `{{NAME_1}}` in the second block is
+  not the same person as `{{NAME_1}}` in the first.
+
+The last one is what actually breaks when pasting a long document into a chat
 in blocks. **Convert the whole document and paste the result**, rather than
 converting the pieces.
 
@@ -268,12 +325,24 @@ to others, the obligation to offer the source of your version kicks in
 | Options from form/CLI/profiles | `PrivacyOptions`, `options_from_form`, [`mr_rao/profiles.py`](../mr_rao/profiles.py) |
 | Principles and limits | [PRIVACY.en.md](PRIVACY.en.md) |
 | Dual tests and regressions | `tests/test_privacy.py`, `tests/test_privacy_riconoscitori.py`, `tests/test_sospetti.py` |
+| PDF→PDF redaction | [`mr_rao/redazione_pdf.py`](../mr_rao/redazione_pdf.py) — `redigi_pdf`, `_redigi_annotazioni`, `_pagina_e_una_scansione` |
 | Local server security (a separate piece) | [SECURITY.en.md](../SECURITY.en.md), `tests/test_security.py`, `tests/test_limiti_ocr.py` |
+| The application window | [`mr_rao/finestra.py`](../mr_rao/finestra.py), started by [`app.py`](../app.py) |
 | Lessons from real bugs | [CHANGELOG.md](CHANGELOG.md) — every entry states the bug, not just the feature *(Italian)* |
 
 Entry point for an automated analysis: read the module docstring of
 `privacy.py`, then `apply_privacy_filter` (the order of the phases), then
 the tests that were failing on the regressions cited in the changelog.
+
+**One thing that moves the boundary of what you are inspecting, and it belongs
+here.** By default the interface does not open in a browser tab but in an
+**application window** (`mr_rao/finestra.py`, via `pywebview`). It is the same
+page served by the same server on `127.0.0.1`: nothing about the engine
+changes, and no browser is bundled — it uses the rendering engine **already
+present on the system** (WebView2 on Windows). If that engine is missing,
+`finestra.disponibile()` says so and the browser opens as it always did. To
+choose the browser on purpose: **`MR_RAO_FINESTRA=0`**. Anyone who wants to
+inspect the page with their own browser's developer tools starts there.
 
 ---
 

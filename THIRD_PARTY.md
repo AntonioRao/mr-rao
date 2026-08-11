@@ -6,11 +6,18 @@
 Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze.
 Le loro licenze restano integre e **prevalgono** sui rispettivi file.
 
-Mr. Rao è distribuito sotto **[AGPL-3.0](LICENSE)**. Tutte le licenze qui
+Mr. Rao è distribuito sotto **[AGPL-3.0](LICENSE)**. Le licenze qui
 elencate sono compatibili con l'AGPL-3.0: permissive (MIT, BSD, Apache-2.0,
 PSF), copyleft di file (MPL-2.0, esplicitamente compatibile) e LGPL, che
 l'AGPL può incorporare. La licenza di Mr. Rao **non** limita i diritti che
 queste librerie concedono.
+
+**Con un'eccezione, e riguarda cosa si può verificare, non la
+compatibilità.** `clr_loader` non dichiara nessuna licenza nei propri
+metadati, quindi la riga più in basso dice «non dichiarata» e questo
+generatore non ha modo di sapere di più: legge i metadati, non i
+repository. Chi ridistribuisce e ha bisogno della certezza la cerca
+nel sorgente del pacchetto, non in questa tabella.
 
 Pacchetti nell'ambiente: **74** — di cui **6** con obblighi
 oltre la semplice attribuzione (copyleft o eccezioni).
@@ -40,7 +47,7 @@ costruire e distribuire programmi non liberi: è ciò che rende lecito
 distribuire `MrRao.exe`, il cui bootloader deriva da PyInstaller.
 Serve solo per costruire il pacchetto portable, non a runtime.
 
-**MPL-2.0** (certifi) è copyleft *per file*: obbliga a rendere
+**MPL-2.0** (certifi, pikepdf, tqdm) è copyleft *per file*: obbliga a rendere
 disponibile il sorgente dei soli file MPL eventualmente modificati.
 Mr. Rao non li modifica.
 
@@ -50,26 +57,33 @@ Mr. Rao non li modifica.
 |----------|----------|----------------|---------|---------------|
 | [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/bs4/download/) | 4.15.0 | Corpo HTML delle email → testo | MIT License | — |
 | [Flask](https://flask.palletsprojects.com/page/changes/) | 3.1.3 | Server web locale | BSD-3-Clause | — |
-| [magika](https://google.github.io/magika/) | 0.6.2 | Riconoscimento del tipo di file | Apache Software License | — |
+| [mammoth](https://github.com/mwilliamson/python-mammoth) | 1.11.0 | Lettura dei .docx dentro MarkItDown | BSD License | — |
 | [markitdown](https://github.com/microsoft/markitdown#readme) | 0.1.7 | Documenti Office/HTML/PDF → Markdown | MIT | — |
 | [onnxruntime](https://onnxruntime.ai) | 1.28.0 | Esecuzione dei modelli OCR | MIT License | — |
+| [openpyxl](https://openpyxl.readthedocs.io) | 3.1.5 | Lettura dei .xlsx | MIT License | — |
+| [pandas](https://pandas.pydata.org) | 3.0.5 | Lettura dei .xlsx e .xls dentro MarkItDown | BSD License | — |
 | [pdfminer.six](https://github.com/pdfminer/pdfminer.six) | 20260107 | Parsing PDF (usato da pdfplumber) | MIT | — |
 | [pdfplumber](https://github.com/jsvine/pdfplumber) | 0.11.10 | Estrazione testo e tabelle da PDF | MIT License | — |
+| [pikepdf](https://pikepdf.readthedocs.io/) | 10.11.0 | Redazione PDF→PDF: taglia il flusso di contenuto e le annotazioni | MPL-2.0 | — |
 | [pillow](https://pillow.readthedocs.io/en/stable/releasenotes/index.html) | 12.3.0 | Immagini | MIT-CMU | — |
 | [pyinstaller](https://pyinstaller.org) | 6.21.0 | Build del pacchetto portable (solo sviluppo) | GNU General Public License v2 (GPLv2) | — |
+| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.12.1 | Redazione PDF→PDF: trova il riquadro di ogni carattere | BSD-3-Clause, Apache-2.0, dependency licenses | — |
 | [pystray](https://github.com/moses-palmer/pystray) | 0.19.5 | Icona nella barra di sistema | GNU Lesser General Public License v3 (LGPLv3) | [`licenses/pystray/`](licenses/pystray/) |
 | [pytest](https://docs.pytest.org/en/stable/changelog.html) | 9.1.1 | Test (solo sviluppo) | MIT | — |
 | [python-docx](https://github.com/python-openxml/python-docx/blob/master/HISTORY.rst) | 1.2.0 | Esportazione del documento redatto in .docx | MIT License | — |
+| [python-pptx](https://github.com/scanny/python-pptx/blob/master/HISTORY.rst) | 1.0.2 | Lettura dei .pptx dentro MarkItDown | MIT License | — |
+| [pywebview](https://pywebview.flowrl.com/) | 6.2.1 | Finestra dell'applicazione sul motore di rendering di sistema | BSD License | — |
 | [PyYAML](https://pyyaml.org/) | 6.0.3 | Verifica del frontmatter nei test | MIT License | — |
 | [rapidocr](https://rapidai.github.io/RapidOCRDocs) | 3.9.2 | OCR offline (immagini e PDF scansionati), modelli PP-OCRv6 inclusi | Apache-2.0 | — |
 | [Werkzeug](https://werkzeug.palletsprojects.com/page/changes/) | 3.1.8 | Livello WSGI | BSD-3-Clause | — |
+| [xlrd](http://www.python-excel.org/) | 2.0.2 | Lettura dei .xls | BSD License | — |
 
 ## Dipendenze indirette
 
 Arrivano come dipendenze delle precedenti. Sono elencate per intero perché
 l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 
-<details><summary>Elenco completo (59 pacchetti)</summary>
+<details><summary>Elenco completo (52 pacchetti)</summary>
 
 | Progetto | Versione | Licenza | Notice locale |
 |----------|----------|---------|---------------|
@@ -94,18 +108,15 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [itsdangerous](https://itsdangerous.palletsprojects.com/changes/) | 2.2.0 | BSD License | — |
 | [Jinja2](https://jinja.palletsprojects.com/changes/) | 3.1.6 | BSD License | — |
 | [lxml](https://lxml.de/) | 6.1.1 | BSD-3-Clause | — |
-| [mammoth](https://github.com/mwilliamson/python-mammoth) | 1.11.0 | BSD License | — |
+| [magika](https://google.github.io/magika/) | 0.6.2 | Apache Software License | — |
 | [markdownify](http://github.com/matthewwithanm/python-markdownify) | 1.2.3 | MIT License | — |
 | [MarkupSafe](https://palletsprojects.com/donate) | 3.0.3 | BSD-3-Clause | — |
 | [numpy](https://numpy.org) | 2.5.1 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 | — |
 | [olefile](https://www.decalage.info/python/olefileio) | 0.47 | BSD License | — |
 | [omegaconf](https://github.com/omry/omegaconf) | 2.3.1 | BSD License | — |
 | [opencv-python](https://github.com/opencv/opencv-python) | 5.0.0.93 | Apache Software License | — |
-| [openpyxl](https://openpyxl.readthedocs.io) | 3.1.5 | MIT License | — |
 | [packaging](https://packaging.pypa.io/) | 26.3 | Apache-2.0 OR BSD-2-Clause | — |
-| [pandas](https://pandas.pydata.org) | 3.0.5 | BSD License | — |
 | [pefile](https://github.com/erocarrera/pefile) | 2024.8.26 | MIT | — |
-| [pikepdf](https://pikepdf.readthedocs.io/) | 10.11.0 | MPL-2.0 | — |
 | [pip](https://pip.pypa.io/en/stable/news/) | 26.2.1 | MIT | — |
 | pluggy | 1.6.0 | MIT License | — |
 | [protobuf](https://developers.google.com/protocol-buffers/) | 7.35.1 | 3-Clause BSD License | — |
@@ -114,12 +125,9 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [pycparser](https://github.com/eliben/pycparser) | 3.0 | BSD-3-Clause | — |
 | [Pygments](https://pygments.org) | 2.20.0 | BSD-2-Clause | — |
 | [pyinstaller-hooks-contrib](https://github.com/pyinstaller/pyinstaller-hooks-contrib) | 2026.6 | Apache Software License; GNU General Public License v2 (GPLv2) | — |
-| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.12.1 | BSD-3-Clause, Apache-2.0, dependency licenses | — |
 | [python-dateutil](https://github.com/dateutil/dateutil) | 2.9.0.post0 | BSD License; Apache Software License | — |
 | [python-dotenv](https://github.com/theskumar/python-dotenv) | 1.2.2 | BSD-3-Clause | — |
-| [python-pptx](https://github.com/scanny/python-pptx/blob/master/HISTORY.rst) | 1.0.2 | MIT License | — |
 | [pythonnet](https://pythonnet.github.io/) | 3.1.0 | MIT | — |
-| [pywebview](https://pywebview.flowrl.com/) | 6.2.1 | BSD License | — |
 | [pywin32-ctypes](https://github.com/enthought/pywin32-ctypes) | 0.2.3 | BSD-3-Clause | — |
 | [requests](https://requests.readthedocs.io) | 2.34.2 | Apache Software License | — |
 | [setuptools](https://github.com/pypa/setuptools) | 83.0.0 | MIT | — |
@@ -130,7 +138,6 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [typing_extensions](https://github.com/python/typing_extensions/issues) | 4.16.0 | PSF-2.0 | — |
 | [tzdata](https://github.com/python/tzdata) | 2026.3 | Apache-2.0 | — |
 | [urllib3](https://github.com/urllib3/urllib3/blob/main/CHANGES.rst) | 2.7.0 | MIT | — |
-| [xlrd](http://www.python-excel.org/) | 2.0.2 | BSD License | — |
 | [xlsxwriter](https://github.com/jmcnamara/XlsxWriter) | 3.2.9 | BSD License | — |
 
 </details>

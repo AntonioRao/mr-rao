@@ -18,8 +18,10 @@ nostre mani.
 Se un difetto si riproduce solo con un dato vero, **si descrive la forma e si
 inventa un valore che le somigli**. I riconoscitori guardano la struttura, non
 la persona: un IBAN inventato che passa il mod-97 riproduce il difetto quanto
-quello vero. Gli esempi in `README.md` e nei test sono tutti costruiti così, e
-sono un buon punto di partenza.
+quello vero. Gli esempi in [`README.it.md`](README.it.md) e nei test sono tutti
+costruiti così, e sono un buon punto di partenza. (`README.md` è la versione
+inglese: nel repository il file senza suffisso è quello che GitHub mostra per
+primo, e in questo progetto è l'inglese.)
 
 Se ti accorgi che è già successo — tuo o di qualcun altro — **scrivilo
 subito** a antonio.andrea.rao@gmail.com invece di rispondere nel filo: si

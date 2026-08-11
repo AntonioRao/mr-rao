@@ -45,11 +45,28 @@ read. That is the limit measured further down this page, not a hypothesis.
 
 ## What gets replaced
 
+**Placeholders are numbered, and they are numbered by default.** Since 1.20.0
+every distinct value gets a number — `{{NAME_1}}`, `{{NAME_2}}` — and the same
+value repeated always gets the same one. Without numbers the redacted document
+loses its sense: *"{{NAME}} cited {{NAME}} before {{NAME}}"* cannot be read,
+and a language model cannot reason over it.
+
+In the table below the placeholders are written in their **base form**,
+without a number, because that is what identifies the type. In the real
+document they arrive with the suffix, unless "Number the placeholders" is
+unticked — then the output goes back to being identical to 1.19.
+
+The number is not a key: it holds **inside one document and nowhere else**.
+No number-to-value map exists, because none is ever built, and the same name
+in another document gets a different number. A number stable across documents
+would be a persistent identifier — that is, a new piece of personal data
+invented by us.
+
 | Type | Placeholder | How it is decided |
 |------|-------------|-------------------|
-| Email | `{{EMAIL}}` | Address shape, including obfuscated forms (`[at]`, `chiocciola`, `punto`) |
-| Web addresses | `{{URL}}` | `http`, `https`, `www.` — those only |
-| Phone numbers | `{{PHONE}}` | `+39` prefix, `3xx` mobiles, a context word (`cell`, `tel`, `fax`), or a landline with separators. The **slash** form (`011/7323929`) counts only with a contact word or an international prefix in front |
+| Email | `{{EMAIL}}` | Address shape, including obfuscated forms (`[at]`, `chiocciola`, `punto`) and the **spaced at sign** (`mario @ esempio.it`). For that last one the final part of the domain must be letters: without that constraint, `10 @ 4.50` on an invoice would become an address |
+| Web addresses | `{{URL}}` | An explicit scheme — `http`, `https`, `ftp`, `ftps` — or `www.`. A bare `name.it` in running text is not enough |
+| Phone numbers | `{{PHONE}}` | **Any** international prefix (`+39`, `+44`, `0033`: one to three digits after `+` or `00`), Italian `3xx` mobiles, a context word (`cell`, `tel`, `fax`), or a landline with separators. The **slash** form (`011/7323929`) counts only with a contact word or an international prefix in front |
 | Italian tax code | `{{CODICE_FISCALE}}` | 16-character structure. The **check character** does not reject, it flags |
 | | | Also recognises **omocodia** — digits replaced by letters when two people collide — but there the check character **must** compute |
 | | | Also recovers the OCR-mangled form, if the corrected candidate's check computes |
@@ -60,9 +77,11 @@ read. That is the limit measured further down this page, not a hypothesis.
 | Postal addresses | `{{ADDRESS}}` | Via, viale, piazza, corso, largo, contrada and others, including abbreviated (`V.le`, `P.zza`, `P.le`, `L.go`, `C.so`); street name in full or as an initial (`Via A. Volta`); with number, postcode and town |
 | Personal names | `{{NAME}}` | See below |
 | Keys and passwords | `{{SECRET}}` | Tokens, API keys, JWTs, private-key blocks, `password: ...` |
+| | | Also the **short codes**: PIN, PUK, CVV, CVC, security code, OTP, unlock code. Three to eight digits — above eight it is not a PIN any more, it is a case number — and the label is required, which is what makes them safe: those words have no other meaning in a document |
+| | | And the **recovery phrase** (`seed phrase`, `mnemonic phrase`): 12 to 24 words, the BIP-39 standard. It sits apart because it is the only secret made of space-separated words, and with the generic value — which stops at the first space — **one word out of twelve** got substituted, with the report saying "1 secret" and the phrase still usable |
 | Land registry references | `{{CATASTO}}` | **«Deeds and case files» pack, off by default.** Sheet **and** parcel together, sub-unit optional. The sheet alone is a page number |
 | Case and file numbers | `{{PRATICA}}` | **«Deeds and case files» pack, off by default.** Court docket (R.G.), protocol, deed register (repertorio), collection, chronological number. The label is required and **stays in the text**: the number goes, «Prot. n.» remains. Two digits at least, or a year beside it — «Protocollo n. 5» of a convention is not a case number. The register suffix (`/P`, `/CU`) stays too: it says which register, not which file |
-| Vehicle plates | `{{TARGA}}` | **«Deeds and case files» pack, off by default.** `AB 123 CD` in upper case, with or without separators; I, O, Q and U do not exist on Italian plates and are rejected. The moped form (`AB 12345`) needs the word «targa» in front |
+| Vehicle plates | `{{TARGA}}` | **«Deeds and case files» pack, off by default.** `AB 123 CD`, with or without separators. The constraint is not upper case but **consistency**: all upper or all lower, never mixed — `Ab 123 cD` is not a plate, it is a typo or something else. I, O, Q and U do not exist on Italian plates and are rejected. The moped form (`AB 12345`) needs «targa» or «targato» in front |
 | Identity documents | `{{DOC_ID}}` | Electronic ID card, driving licence, passport. **The document type must be written nearby**, see below |
 | Dates of birth | `{{DATE}}` | **Off by default.** Only with birth context beside it |
 | Amounts | `{{AMOUNT}}` | **Off by default.** Currency, thousands separator, or accounting context |
@@ -99,38 +118,113 @@ already has the **«always hide»** list, which removes them — no capability i
 lost, and that is what makes the choice not to offer substitution an honest
 one.
 
+### «Report instead of replace»: the third state, and it is not only about those two
+
+Age and sex are the case where that behaviour is **compulsory**. But since
+1.20.0 it can be asked for **twenty-six categories** — practically every one
+the engine recognises — and the choice is per category, not per family.
+
+The three combinations, and they are three different things:
+
+| switch | category in «report» | what happens |
+|---|---|---|
+| on | no | **substitutes** — the placeholder arrives |
+| on | yes | **finds it and leaves it where it was**, and says so in the report |
+| off | — | **does not look**, and leaves no trace |
+
+The middle row is the one that did not exist before, and it serves whoever
+needs to read the data: the amounts a model has to compare, an age in a
+medical record. The real value is not in the text, it is in the report —
+*"I left 3 amounts in the clear, on purpose"* is something a DPO can act on;
+silence is not. A recogniser that is **off** leaves no trace, and whoever
+re-reads has no way of knowing whether there was nothing in there or whether
+we looked the other way.
+
+The one category left out is **"your own terms"**, and that is a decision:
+that list is what the user explicitly asked to protect, and reporting it
+instead of substituting it would mean disobeying an explicit request.
+
+In the interface the count is **threefold**, and the three numbers answer
+three different questions:
+
+```
+🛡️ 12 redactions · ⚠️ 2 to review · 👁 3 in the clear
+```
+
+The last one is this section: what the engine found and left where it was, by
+the converting user's choice. Hovering over it lists the categories, with the
+names people read and not the ones the code uses to talk to itself. Adding it
+to the other two would give a total that means nothing, which is why they are
+three numbers and not one.
+
+In the document the same information travels with the frontmatter, in the
+`detected_not_replaced:` block — separate from `redactions:`. It is the only
+part of the report that stays attached to the file: whoever receives it in six
+months does not have the HTTP request.
+
 ### The Anglo pack
 
 Added in 1.8.0 and left out of this table until 1.11 — a gap that cannot
 recur today, because `scripts/check_docs.py` compares the placeholders the
-engine can emit with the ones written here and **fails** if it finds a
-single extra one.
+engine can emit with the ones written in **`PRIVACY.md`, the Italian page**,
+and fails if it finds a single extra one. That is worth saying plainly rather
+than leaving you to assume otherwise: the guard reads one file, and this page
+is not it. A placeholder missing *here* and present there passes the gate, so
+this table is kept in step by hand.
 
 | Type | Placeholder | How it is decided |
 |------|-------------|-------------------|
-| NHS number (UK) | `{{NHS_NUMBER}}` | **Mod-11**. A real arithmetic check: one wrong digit does not pass |
-| ABA routing number (US) | `{{ROUTING_NUMBER}}` | **3-7-1** weighted checksum *plus* the prefix ranges actually in use |
-| ABN (AU) | `{{ABN}}` | **Mod-89**, with 1 subtracted from the first digit |
-| TFN (AU) | `{{TFN}}` | Weighted **mod-11** |
-| SIN (CA) | `{{SIN}}` | **Luhn** |
-| Passport machine-readable zone | `{{MRZ}}` | **ICAO 9303** check digits — document, birth, expiry and composite |
+| NHS number (UK) | `{{NHS_NUMBER}}` | **Mod-11** *and* the word "NHS" beside it |
+| ABA routing number (US) | `{{ROUTING_NUMBER}}` | **3-7-1** weighted checksum, the prefix ranges actually in use, *and* a context word |
+| SIN (CA) | `{{SIN}}` | **Luhn** *and* a context word |
+| ABN (AU) | `{{ABN}}` | **Mod-89** (with 1 subtracted from the first digit) *and* the abbreviation beside it |
+| TFN (AU) | `{{TFN}}` | Weighted **mod-11** *and* the abbreviation beside it |
+| Passport machine-readable zone | `{{MRZ}}` | **ICAO 9303** check digit on the document number, the date of birth or the expiry date. **The only one that decides on its own** |
 | National Insurance number (UK) | `{{NINO}}` | **No checksum**: structure, plus the prefixes HMRC does not issue |
-| SSN (US) | `{{SSN}}` | **No checksum**: structure, plus the exclusions published by the SSA |
+| SSN (US) | `{{SSN}}` | **No checksum**: the hyphenated 3-2-4 form, plus the exclusions published by the SSA. Nine digits run together are left alone |
 | ITIN (US) | `{{ITIN}}` | **No checksum**: structure and IRS ranges |
-| UK postcode | `{{POSTCODE}}` | **No checksum**, like every postcode: structure only |
+| UK postcode | `{{POSTCODE}}` | **No checksum**, like every postcode: structure *and* a delivery word beside it, when it is not already inside a complete address |
+| Anglo street addresses | `{{ADDRESS}}` | The **house number** in front, at least one word in between, and a street type at the end (`Street`, `Road`, `Lane`, `Way`, …), with an optional UK postcode or US ZIP |
+| Anglo personal names | `{{NAME}}` | **No list at all**: only where the text declares this is a person — a title in front, an opening or closing formula, an email address beside it |
 
-The split between the two halves is the thing to read. Where there is an
-arithmetic check the recogniser **proves**; where there is not, it can only
-exclude what is plainly impossible — and on those four the risk of catching
-some unrelated code stays higher. It is the same reason Italian identity
+**The split worth reading is not the one between those with an arithmetic
+check and those without.** A checksum on its own is almost never enough: the
+NHS mod-11 lets through roughly one ten-digit sequence in nine, and alone it
+would redact invoice numbers. **Five of these six arithmetic recognisers
+substitute nothing without a context word nearby** — NHS, ABA routing, SIN,
+ABN and TFN. The validator cuts the noise, the context zeroes it.
+
+The only one that decides on its own is the **MRZ line**, and not because it
+is luckier: because its shape is unrepeatable. Capitals, digits and filler
+only, with at least one double `<` — no other line of text looks like that.
+It earns its keep precisely there, because an MRZ carries surname, given
+name, nationality, date of birth, sex and expiry all at once.
+
+One point about the MRZ, because it is the kind of detail that looks like a
+detail: **the composite check digit at the end of the line is not used**, on
+purpose. It is computed over **non-contiguous** pieces, and feeding it the
+whole line makes it fail every time. Three fields are checked — document
+number, date of birth, expiry — and one of them computing is enough.
+
+And where there is no arithmetic at all (NINO, SSN, ITIN) only the structure
+is left, plus the published exclusions: there the risk of catching some
+unrelated code is higher, and it is the same reason Italian identity
 documents demand context.
+
+**A word about an Italian number mistaken for an American one.**
+`Tel. 078-05-1120` has exactly the 3-2-4 shape of an SSN, and the Anglo pack
+is on by default: an Italian notary was seeing the office switchboard counted
+as an "SSN". The data disappeared anyway — the phone step runs afterwards and
+catches it — but **the report got the type wrong**, and a report that gets the
+type wrong is no use answering someone who asks *what* was in the file. Now a
+contact word in front makes the SSN recogniser leave that number alone.
 
 ### Why identity documents demand context
 
 It is the only recogniser that cannot lean on an arithmetic check, and that
 is worth saying openly. A driving licence number **has no check digit**: no
 arithmetic can tell `MI5512340V` apart from a case reference of the same
-shape. Three of the four options were bad:
+shape. There were three ways to go, and two of them were bad:
 
 - replacing on sight would gut half an administrative file — a formal record
   is made of case numbers, resolutions and tender codes with exactly that
@@ -153,21 +247,74 @@ mean to uncover passports.
 Across more than a hundred zero-truth documents the measured cost is
 **zero**: no wrong substitution, no extra suspect.
 
-## Personal names: several signals, all of them corroborated
+## Personal names: nine signals, all of them corroborated
 
 A list of names is never complete, and relying on it alone lets through
-every uncommon surname. So context rules count too, from the strongest
-signal to the weakest:
+every uncommon surname. So context rules count too. `_scrub_names` runs them
+in this order, from the strongest signal to the weakest:
 
 1. **A professional title in front** — Dott., Ing., Geom., Avv., Sig.
 2. **Role, colon, surname in capitals** — `Il Ministro: GIORGETTI`. This is
    how Italian public acts are signed.
-3. **A name next to an email address** — `Tizio Caio <t.caio@x.it>`. The most
+3. **A name before an email address** — `Tizio Caio <t.caio@x.it>`. The most
    frequent case in email.
-4. **A recognised first name** pulling in the word that follows it.
+4. **A name after an email address** — `t.caio@x.it (Tizio Caio)`.
+5. **A name next to a valid Italian tax code** — `Elicio Nazar CF
+   MNTCRL58D07H163B`. The window is deliberately narrow: between the name and
+   the code there is room for the label and nothing else, on the same line.
+6. **A declared role** — `il cliente Mario Rossi`. It demands **two** words.
+7. **A form field** — `Nome: Mario Rossi`, `COGNOME= …`. Here one word is
+   enough: the label leaves no doubt about what follows.
+8. **A closing formula** — `Cordiali saluti, Esposito`. It is the one place
+   where a surname on its own counts as evidence.
+9. **A first name and surname side by side**, both recognised in the lists.
+   How many hits are required — one or two — is decided by the prose/form
+   threshold, below.
 
-All of them require **corroboration**. There used to be a fifth that did
-not, and it was removed.
+The order is not decorative: the first eight are **context** rules, and they
+do not need the name to be in any list. The ninth is the only one leaning on
+the lists, which is why it comes last.
+
+There is then a tenth case that **never substitutes**: a single word that
+appears in the lists, with nothing around it, becomes a **suspect**. Below
+four letters it is not even looked at — "Re" and "Rao" are real Italian
+surnames, and on a blank Italian tax return they were being substituted.
+
+All of them require **corroboration**, from a list or from context. There used
+to be one that did not, and it was removed.
+
+### Prose or form: how many hits the ninth signal demands
+
+On the weakest signal the same rule points **the opposite way** depending on
+the document, and that is not an opinion. In a letter, two capitalised words
+of which one is in the lists are almost always a person; on a form they are
+almost always a field label — "Imposta Lorda", "Quadro RN".
+
+Measured: demanding two hits removes **2,739** wrong substitutions on blank
+administrative forms and costs **609** names across 1,500 real emails. There
+is no value that is right for both, so none is picked: the document is looked
+at instead.
+
+**The signal that decides lives in the PDF, not in the text.** The boxes on a
+form are vector lines and rectangles: they survive reading the file and die in
+the conversion, so that is where they are counted. The threshold is **0.5
+vector elements per 100 characters**, and it sits in the gap between two
+measured populations rather than next to either: the Italian Revenue Agency's
+instruction booklets — prose — sit at 0.2, that same agency's forms at 0.7,
+and US tax forms between 3.7 and 9.8.
+
+For other formats there is nothing to count: `.eml`, `.txt`, `.md`, `.rtf`,
+`.docx`, `.doc`, `.odt`, `.pptx` and `.ppt` are **prose**; `.xlsx`, `.xls`,
+`.csv`, `.json` and `.xml` are **forms**.
+
+On a scan the answer is **"unknown"**, and that is a genuine third state:
+counting vectors on an image would give zero, and zero would be read as
+"prose" — the right answer for the wrong reason. In that case caution is
+applied to the document, meaning a suspect, and not to recall: a false
+positive shows up on re-reading the output, a name left in the clear does not.
+
+The interface lets you override it by hand. The command line does not: there,
+what the program infers always wins.
 
 ### The signature on public acts
 
@@ -271,7 +418,10 @@ Documents we did not choose: that is the difference that counts.
 **Recall on regular forms: 100%.** Data of known value inserted into real
 paragraphs of the official gazette, verified clean before insertion: 520
 cases out of 520, no silent losses. Eight data types in three frames each,
-and names at all five levels of evidence.
+and names at **four** levels of evidence — title in front, signature, next to
+an email, first name plus surname — plus the **bare** case, which has no
+evidence at all and is there on purpose: it is what measures the limit
+declared further down, not a fifth level.
 
 **Recall on difficult forms: 73% redacted, 20% flagged, 6.7% silently
 lost.** It is the honest number, because that is how data actually arrives
@@ -323,10 +473,11 @@ Deliberately still at zero: the **bare VAT number**. Eleven digits with no
 `IT` prefix and no fiscal context nearby are indistinguishable from any
 other number.
 
-The same question turned on the **twenty Anglo recognisers** and on identity
-documents — NHS, National Insurance, SSN, ITIN, ABA routing, SIN, ABN, TFN,
-all six UK postcode formats, MRZ, BBAN, ID card, driving licence, passport —
-found nothing: `scripts/bench_varieta_en.py`, all at 100%.
+The same question turned on the **ten Anglo recognisers** — NHS, National
+Insurance, SSN, ITIN, ABA routing, SIN, ABN, TFN, all six UK postcode formats,
+MRZ — plus Italian identity documents and non-IBAN bank details, found
+nothing: `scripts/bench_varieta_en.py`, twenty types in all, every one at
+100%.
 
 On the **rest of the Italian pack** (`scripts/bench_varieta_it.py`,
 twenty-six forms, two hundred values each) three defects did come out, fixed
@@ -370,7 +521,7 @@ numbers are frozen together with a fingerprint of the file list, so pointing
 it at a different corpus is reported instead of looking like a regression.
 
 The corpus is not in the repository: it is tens of megabytes and it is not
-ours to redistribute. The test skips and says so, but the three tests that
+ours to redistribute. The test skips and says so, but the **four** tests that
 exercise the **mechanism** always run — a check that only runs on the
 developer's machine is not a check.
 
@@ -388,7 +539,8 @@ and two opposite situations.
 So, after substitution, a pass over the remaining text flags what resembles
 personal data without being enough to remove. They appear in the report as
 `suspects`, and in the interface next to the count: **"🛡️ 3 redactions · ⚠️
-2 to check"**.
+2 to review"**. If something was left in the clear on purpose, the third
+count — `👁 N in the clear`, explained above — appears beside them.
 
 Samples are masked (`RS••••••••••••2S`): enough to find them again in the
 document, not enough to read them.
@@ -424,10 +576,20 @@ leading characters must already be a letter.
 
 ## Report
 
-The API response includes `redaction: { total, counts }`, the interface
-shows the total, and the **"Privacy comparison"** panel shows the text
-before and after. That panel is the check that matters: it is where you see
-what was removed and, above all, what got through.
+The API response carries **three separate counts**, and keeping them separate
+is the point:
+
+| field | what it says |
+|---|---|
+| `counts`, `total` | what was **removed** |
+| `detected`, `detected_counts`, `detected_total` | what was found and **left on purpose** — age, sex, and the categories put in "report" |
+| `suspects`, `suspects_total` | what the engine **could not decide** |
+
+Adding them together would give a total that means nothing. The interface
+shows all three beside the result, and the **"Privacy comparison"** panel
+shows the text before and after. That panel is the check that matters: it is
+where you see what was removed and, above all, what got through — because a
+silent loss, by definition, appears in none of the three numbers.
 
 ## Declared limits
 
@@ -508,6 +670,42 @@ what was removed and, above all, what got through.
   context can still stay, or disappear when it should not. The heuristic
   that guessed without corroboration, which was the main source of errors,
   was **withdrawn in 1.13.0**.
+- **PDF→PDF redaction does not treat every page, and it declares that page by
+  page.** A PDF in and a PDF out is a separate path
+  (`mr_rao/redazione_pdf.py`), with limits of its own:
+  - **scans are refused**, and the refusal is per page, not per document. With
+    no extractable text there are no glyphs to remove: drawing black
+    rectangles over them would look like redaction and would not be it. A
+    scanned page tucked in among digital ones — the hand-signed attachment —
+    is the typical case, and it used to be counted among the pages treated. A
+    **blank** page, on the other hand, is not an alarm: it has nothing to
+    remove, and it stays silent;
+  - **pages that fall back are not redacted.** When the extracted text cannot
+    be found in the content stream, or a span cannot be traced to any glyph,
+    the page comes out **as it was**. Those pages appear in
+    `pagine_in_ripiego` with the reason beside them, and the panel shows them
+    **always**, even when there are none, in the suspects' colour — which
+    here means "your turn to look". Calling them redacted would be the worst
+    possible way to be wrong;
+  - the `'` and `"` text operators are declared out of scope.
+
+  **The PDF follows the same options as the Markdown, profile included** — and
+  since 1.24.0 the profile too. It did not before: the PDF routes built their
+  options without looking at the chosen profile, so the same page, with the
+  same boxes ticked, could produce a Markdown redacted one way and a PDF
+  redacted another. The difference showed up only by opening the two files
+  side by side, which is where nobody looks. The rule now lives in one place
+  (`_privacy_dalla_richiesta`), and it has a name of its own precisely so that
+  a new route cannot repeat the defect.
+
+  **Annotations and form fields, on the other hand, are in, since 1.24.0.**
+  They were not before, and the defect was a serious one: that text does not
+  live in the page's content stream, so it came out intact from a file named
+  `-redatto.pdf` — an Italian tax code still legible inside a document whose
+  name says otherwise. Along with the value, the field's stored appearance
+  (`/AP`) is discarded and `NeedAppearances` is turned on: without that, the
+  old name would still be drawn on screen, with the data removed only
+  underneath.
 - **The formats covered are Italian and Anglo.** Italian tax code, VAT
   number, IBAN and BBAN; NHS number, National Insurance number, SSN, ITIN,
   ABA routing number, Canadian SIN, Australian ABN and TFN, UK postcode,
@@ -521,4 +719,4 @@ what was removed and, above all, what got through.
 Eleven questions typical of someone who clones the repository and inspects
 the engine (with an AI's help, too), with answers aligned to the code:
 
-**→ [PRIVACY_FAQ.md](PRIVACY_FAQ.md)** *(Italian)*
+**→ [PRIVACY_FAQ.en.md](PRIVACY_FAQ.en.md)**

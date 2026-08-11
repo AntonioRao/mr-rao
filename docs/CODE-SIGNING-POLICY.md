@@ -41,8 +41,20 @@ next signed release, not after.
 1. **The change is on `main` and public.** Nothing is signed from a private
    branch or a working directory.
 2. **Continuous integration is green** on the exact commit being released.
-   That includes the full test suite and a six-step quality gate which also
-   fails when published documentation stops matching the code.
+   Two workflows run, and it is worth knowing which one checks what, because
+   they are not the same. `ci.yml` runs four steps — byte-compile, an import
+   of every module, a dependency health check, and the full test suite. The
+   **six-step quality gate** — the four above plus third-party licence
+   alignment and the check that fails when published documentation stops
+   matching the code — runs inside the release build itself
+   (`scripts/build_portable.bat` calls `scripts/quality_gate.bat`), which is
+   the workflow that produces the package that would be signed. The licence
+   step is left out of `ci.yml` deliberately, with the reason written in the
+   file: it compares the list against the versions installed on the
+   maintainer's machine, and a clean runner resolves different ones, so
+   there it would fail for the wrong reason. What matters for this policy is
+   that no package reaches the signing step without the six of them having
+   passed — but "CI is green" alone is a weaker statement than it looks.
 3. **The package is built on a clean GitHub-hosted runner**, never on a
    developer machine. This is not a formality: three releases once shipped
    Office libraries that were present only because they happened to be in

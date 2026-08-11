@@ -94,4 +94,10 @@ licenses/pystray/*      ← LGPL/GPL + NOTICE
 docs/LGPL_PYSTRAY.md    ← consigliato
 ```
 
-`scripts/build_portable.bat` copia `LICENSE`, `THIRD_PARTY.md` e `licenses\` nel pacchetto.
+I nomi qui sopra sono quelli del repository. **Nel pacchetto portable il primo
+si chiama `LICENSE.txt`**: `scripts/build_portable.bat` lo copia cambiandogli
+nome. Chi controlla una redistribuzione cerca il file, non il percorso, e va
+saputo prima di dichiararlo mancante. Gli altri conservano il nome.
+
+`scripts/build_portable.bat` copia `LICENSE` (come `LICENSE.txt`),
+`THIRD_PARTY.md`, l'intera `licenses\` e questo file nel pacchetto.

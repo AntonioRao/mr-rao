@@ -36,8 +36,10 @@ The two numbers are not the same thing:
   ruin the text it **did not remove it**.
 
 A "to check" greater than zero means something is still on the clipboard
-that is worth looking at before pasting. The notification is clickable and
-opens the before/after comparison in the program.
+that is worth looking at before pasting. The notification states the two
+numbers and stops there: it is **not clickable**, and there is no
+before/after comparison for text passed through the shortcut. That comparison
+lives in the interface, and it covers converted files.
 
 ## If the redaction removes something you needed
 
@@ -47,9 +49,15 @@ written to disk — it disappears when the program closes.
 
 ## How to switch it off
 
-From the program, or with the environment variable:
+With an environment variable, and **only** that: there is no switch in the
+interface.
 
     MR_RAO_SCORCIATOIA=0
+
+One variable for two things — whether it is on, and which combination —
+because they are the same question, and keeping them apart would allow the
+incoherent state "on, empty combination": a shortcut that does not respond
+without saying why.
 
 The shortcut is changed the same way, for example
 `MR_RAO_SCORCIATOIA=ctrl+alt+m` if Ctrl+Alt+R is already taken. If the

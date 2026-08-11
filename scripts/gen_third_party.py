@@ -19,8 +19,26 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "THIRD_PARTY.md"
 
 # Dipendenze dirette: come vengono usate nel prodotto.
+#
+# «Diretta» qui vuol dire **dichiarata da noi** in `requirements.txt` (o in
+# `requirements-build.txt` per pyinstaller), non «importante». La distinzione
+# e' quella che conta per chi legge: una dipendenza dichiarata la scegliamo
+# noi e la togliamo noi; una indiretta arriva perche' l'ha chiesta un'altra,
+# e puo' sparire il giorno in cui quella cambia idea.
+#
+# Questo elenco era gia' scivolato in tutte e due le direzioni: **magika**
+# stava fra le dirette pur arrivando da MarkItDown, e otto pacchetti
+# dichiarati in `requirements.txt` -- pywebview, pikepdf, pypdfium2, mammoth,
+# python-pptx, pandas, openpyxl, xlrd -- finivano fra gli «arrivano come
+# dipendenze delle precedenti», che di loro e' falso. Se si aggiunge o si
+# toglie una riga in `requirements.txt`, si passa di qui.
 RUOLI = {
     "markitdown": "Documenti Office/HTML/PDF → Markdown",
+    "mammoth": "Lettura dei .docx dentro MarkItDown",
+    "python-pptx": "Lettura dei .pptx dentro MarkItDown",
+    "pandas": "Lettura dei .xlsx e .xls dentro MarkItDown",
+    "openpyxl": "Lettura dei .xlsx",
+    "xlrd": "Lettura dei .xls",
     "rapidocr": "OCR offline (immagini e PDF scansionati), modelli PP-OCRv6 inclusi",
     "python-docx": "Esportazione del documento redatto in .docx",
     "onnxruntime": "Esecuzione dei modelli OCR",
@@ -29,9 +47,11 @@ RUOLI = {
     "beautifulsoup4": "Corpo HTML delle email → testo",
     "pdfplumber": "Estrazione testo e tabelle da PDF",
     "pdfminer.six": "Parsing PDF (usato da pdfplumber)",
+    "pypdfium2": "Redazione PDF→PDF: trova il riquadro di ogni carattere",
+    "pikepdf": "Redazione PDF→PDF: taglia il flusso di contenuto e le annotazioni",
     "pillow": "Immagini",
-    "magika": "Riconoscimento del tipo di file",
     "pystray": "Icona nella barra di sistema",
+    "pywebview": "Finestra dell'applicazione sul motore di rendering di sistema",
     "pyyaml": "Verifica del frontmatter nei test",
     "pytest": "Test (solo sviluppo)",
     "pyinstaller": "Build del pacchetto portable (solo sviluppo)",
@@ -116,6 +136,14 @@ def genera() -> str:
     dirette = [v for v in voci if v["chiave"] in RUOLI]
     indirette = [v for v in voci if v["chiave"] not in RUOLI]
     copyleft = [v for v in voci if v["copyleft"]]
+    # I pacchetti che nei metadati non dicono sotto quale licenza stanno. Si
+    # calcolano invece di essere elencati a mano: un elenco scritto qui
+    # direbbe il vero finche' nessuno aggiorna una dipendenza.
+    non_dichiarate = [v for v in voci if v["licenza"] == "non dichiarata"]
+    # Idem per MPL: la frase in fondo nominava il solo `certifi` mentre nel
+    # pacchetto ce n'erano tre.
+    mpl = [v for v in voci if "MPL" in v["licenza"].upper()
+           or "MOZILLA" in v["licenza"].upper()]
 
     r: list[str] = []
     a = r.append
@@ -127,12 +155,28 @@ def genera() -> str:
     a("Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze.")
     a("Le loro licenze restano integre e **prevalgono** sui rispettivi file.")
     a("")
-    a("Mr. Rao è distribuito sotto **[AGPL-3.0](LICENSE)**. Tutte le licenze qui")
+    a("Mr. Rao è distribuito sotto **[AGPL-3.0](LICENSE)**. Le licenze qui")
     a("elencate sono compatibili con l'AGPL-3.0: permissive (MIT, BSD, Apache-2.0,")
     a("PSF), copyleft di file (MPL-2.0, esplicitamente compatibile) e LGPL, che")
     a("l'AGPL può incorporare. La licenza di Mr. Rao **non** limita i diritti che")
     a("queste librerie concedono.")
     a("")
+    if non_dichiarate:
+        # La frase precedente diceva «tutte compatibili» mentre la tabella
+        # sotto scriveva «non dichiarata» su una riga: due affermazioni dello
+        # stesso file che si smentivano. Un pacchetto senza licenza nei
+        # metadati non e' incompatibile — e' **non verificabile da qui**, che
+        # e' una cosa diversa e va detta come tale.
+        elenco = ", ".join(f"`{v['nome']}`" for v in non_dichiarate)
+        verbo = "non dichiara" if len(non_dichiarate) == 1 else "non dichiarano"
+        riga_giu = "la riga" if len(non_dichiarate) == 1 else "le righe"
+        a("**Con un'eccezione, e riguarda cosa si può verificare, non la")
+        a(f"compatibilità.** {elenco} {verbo} nessuna licenza nei propri")
+        a(f"metadati, quindi {riga_giu} più in basso dice «non dichiarata» e questo")
+        a("generatore non ha modo di sapere di più: legge i metadati, non i")
+        a("repository. Chi ridistribuisce e ha bisogno della certezza la cerca")
+        a("nel sorgente del pacchetto, non in questa tabella.")
+        a("")
     a(f"Pacchetti nell'ambiente: **{len(voci)}** — di cui **{len(copyleft)}** con obblighi")
     a("oltre la semplice attribuzione (copyleft o eccezioni).")
     a("")
@@ -158,10 +202,12 @@ def genera() -> str:
     a("distribuire `MrRao.exe`, il cui bootloader deriva da PyInstaller.")
     a("Serve solo per costruire il pacchetto portable, non a runtime.")
     a("")
-    a("**MPL-2.0** (certifi) è copyleft *per file*: obbliga a rendere")
-    a("disponibile il sorgente dei soli file MPL eventualmente modificati.")
-    a("Mr. Rao non li modifica.")
-    a("")
+    if mpl:
+        nomi_mpl = ", ".join(v["nome"] for v in mpl)
+        a(f"**MPL-2.0** ({nomi_mpl}) è copyleft *per file*: obbliga a rendere")
+        a("disponibile il sorgente dei soli file MPL eventualmente modificati.")
+        a("Mr. Rao non li modifica.")
+        a("")
 
     a("## Dipendenze dirette")
     a("")

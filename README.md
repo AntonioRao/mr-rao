@@ -6,11 +6,11 @@
 **Export as `.md`, `.txt` or `.docx` — all three already redacted.**
 **All on your own machine, without sending anything anywhere.**
 
-[![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20165%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+[![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20169%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.23.0-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-1956%20passing-10b981)](tests/)
+[![Version](https://img.shields.io/badge/version-1.24.0-3b82f6)](docs/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-1981%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -99,6 +99,10 @@ No list of surnames is ever complete, and no list is enough on its own: "Chiesa"
 - **a name next to an email address** — `Tizio Caio <t.caio@x.it>`, by far the commonest case in mail;
 - **a first name and surname side by side**, both recognised.
 
+Those are the four that carry most of the weight; there are **nine** rules in
+all, and [PRIVACY.en.md](docs/PRIVACY.en.md) lists them in the order the engine
+runs them, from the strongest signal to the weakest.
+
 **It flags and leaves alone** when the evidence is weak: a single list hit, a lone word, a run of capitals with nothing else around it. The document stays intact and whoever checks it knows where to look.
 
 ### Letter or form: the same rule points the other way
@@ -173,7 +177,10 @@ The reverse holds too, and it is why the scan bench finds what it finds: **when 
 | 👁️ **Scans and photos** | Offline OCR on PNG, JPG, TIFF, WebP, BMP, GIF — and on scanned PDFs |
 | 📊 **PDF tables** | Rebuilt as Markdown tables instead of unravelling into loose lines |
 | 📧 **Email** | `.eml` files with the thread split message by message, attachments extractable |
-| 🛡️ **Personal data** | Names, postal addresses, phone numbers, emails, URLs, tax IDs, VAT numbers, IBANs, payment cards, API keys → replaced with placeholders |
+| 🛡️ **Personal data** | Names, postal addresses, phone numbers, emails, URLs, tax IDs, VAT numbers, IBANs, payment cards, API keys → replaced with numbered placeholders (`{{NAME_1}}`, `{{NAME_2}}`), so the redacted text still reads |
+| 👁 **Found and left on purpose** | **Age and sex** are recognised and **never removed** — they are quasi-identifiers, and whoever redacts a medical record or workforce statistics is asking for exactly those two. They are not left in silence: they go in the report, and in the result as a third count, `👁 N in the clear`. The same treatment can be asked for twenty-six other categories, one by one |
+| ⚖️ **"Deeds and case files" pack** | Land registry references, case and file numbers (docket, protocol, deed register) and vehicle plates. **Off by default**: for a notary the land registry reference is the most sensitive item on the page, for an office the protocol number is what lets the file be found again. Two audiences, both right |
+| 🪟 **An application window** | Not a browser tab: same interface, same local server, the system's own rendering engine — no browser is bundled. It is the default; if the system engine is missing, the browser opens as before, and `MR_RAO_FINESTRA=0` chooses the browser on purpose |
 | 🔍 **Verification** | A before/after view showing exactly what was removed |
 | ⌨️ **Clipboard shortcut** | Copy the text, press **Ctrl+Alt+R**, paste: what lands is already redacted — [how it works, and why it is not a keylogger](docs/SCORCIATOIA-APPUNTI.en.md) |
 | 📁 **Watched folder** | Drop files in one folder, the `.md` files appear in another |
@@ -231,9 +238,9 @@ Three packages of the same program, from the same build. They are **not equivale
 |---|---|---|
 | **[⬇️ Installer `.exe`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe)** | Double-click and done, with an entry under "Installed apps" to remove it | "Unknown publisher" — the package is **not signed** |
 | **[⬇️ Portable `.zip`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** | No installation: extract and run, from a USB stick too, with its data next to the program | A milder warning on the downloaded file |
-| **Microsoft Store** — *coming soon* | One click, and Windows handles the uninstall | **Nothing**: Microsoft signs it |
+| **[⬇️ Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC)** | One click; Windows handles updates and the uninstall, and there is no `.bat` to run | **Nothing**: the Store signs the package, so the "unknown publisher" warning does not appear at all |
 
-Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is ~165 MB, ~330 MB once installed.
+Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is **~169 MB**, ~348 MB once unpacked (measured on the 1.24.0 build; both figures in MB, not MiB — Windows Explorer will show 161 and 332). Most of it is the OCR and file-type models, which is the price of working offline.
 
 With the zip, installing means running `Installa Mr Rao.bat`. Either way you get the desktop shortcut, the Start menu entry and the "Apri con Mr. Rao" right-click action on any file, with a dedicated entry for the ten commonest formats — and it is **the same script** doing it (`mr_rao_shell.ps1`), so the two paths cannot drift apart. `Disinstalla Mr Rao.bat`, or the Windows uninstaller, removes all of it — your working folders stay where they are.
 
@@ -273,10 +280,10 @@ Published **on localhost only**: the app has no authentication, so exposing it t
 ## Real use cases
 
 **Law firm — an email thread to attach to a case file.**
-An `.eml` with twenty stacked replies becomes readable Markdown, one message at a time, with the attachments pulled out. The "legal email" profile strips names, addresses and contact details, so what's left can go to a consultant or an AI assistant without exposing the other parties.
+An `.eml` with twenty stacked replies becomes readable Markdown, one message at a time, with the attachments pulled out. The "legal email" profile strips names, addresses and contact details, **and on top of that amounts and dates of birth**, which the other profiles leave alone — so what's left can go to a consultant or an AI assistant without exposing the other parties.
 
 **Accountant — invoices and bookkeeping.**
-The default profile rebuilds the tables and hides tax ID, VAT number and IBAN **while leaving the amounts visible** — they're the reason you're reading the document in the first place. Figures are not personal data, and no profile touches them.
+The default profile rebuilds the tables and hides tax ID, VAT number and IBAN **while leaving the amounts visible** — they're the reason you're reading the document in the first place. Amount redaction is off by default and stays off in four profiles out of five. The exception is **"Legal email"**, which turns on both amounts and dates of birth: on a thread going to a consultant, a figure and a date are exactly what makes a person identifiable without naming them.
 
 **Anyone working with AI assistants.**
 The "LLM-ready" profile produces lean text, no technical headers, personal data already replaced. Copy, paste, stop worrying.
@@ -311,13 +318,16 @@ Not a slogan — something you can check:
 - **There is not a single outbound network call in the app's own code.** The only `urlopen` in the codebase points at `127.0.0.1`, and it exists to identify which process holds a busy port. One command proves it: `grep -rn "urlopen\|requests\." mr_rao/`
 - **The OCR models ship with the package.** No download on first run.
 - **Working folders never land in a synced directory.** On Windows, "Documents" often *is* the OneDrive folder: Mr. Rao detects that and falls back to a local folder, telling you why — so a tool that promises nothing leaves your machine does not quietly sync your documents to a company cloud.
-- **The local server defends itself.** `Host` header allow-list (against DNS rebinding) and rejection of cross-site requests (against CSRF), so no page open in your browser can drive Mr. Rao.
+- **The local server defends itself.** `Host` header allow-list against DNS rebinding — even when you choose to expose it on the network — and rejection of cross-site requests, with `Sec-Fetch-Site` first and `Origin` as a fallback: a page open in your browser cannot drive Mr. Rao, not even if it is served by another program on your own machine. [The detail, with the limits](SECURITY.en.md).
 
 ---
 
 ## Windows will say the publisher is unknown
 
-It will, and you deserve to know why.
+It will — for the `.exe` and the `.zip` — and you deserve to know why.
+**Installing [from the Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC)
+avoids it entirely**, because there the package is signed by Microsoft. The
+rest of this section is about the other two routes.
 
 **It has nothing to do with the price of the software.** The package is not
 signed with a code signing certificate — those cost a few hundred euros a
@@ -391,7 +401,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Six steps: compilation, importing every module one by one, dependency health, licence alignment, **1956 tests**, published-docs alignment.
+Six steps: compilation, importing every module one by one, dependency health, licence alignment, **1981 tests**, published-docs alignment.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 
@@ -415,7 +425,15 @@ The tests do not just cover the happy path. They cover the defects that cost the
 | `MR_RAO_MAX_OCR_PAGES` | `50` | Maximum OCR pages per PDF |
 | `MR_RAO_OCR_TIMEOUT` | `900` | Seconds a single OCR run may take (`0` = no limit) |
 | `MR_RAO_MAX_WORKERS` | `2` | Concurrent conversions; the rest queue |
+| `MR_RAO_MAX_JOBS` | `50` | How many finished jobs stay in memory (minimum 4) |
+| `MR_RAO_JOB_TTL` | `3600` | Seconds a finished job survives before being dropped |
+| `MR_RAO_OCR_DPI` | `250` | Resolution at which a PDF page is rasterised for OCR |
+| `MR_RAO_MAX_ATTACH_MB` | `15` | Size cap on a single attachment extracted from an `.eml` |
 | `MR_RAO_FOLDER_ROOT` | automatic | Where to create the working folders |
+| `MR_RAO_FINESTRA` | `1` | The application window. `0` **goes back to the browser**, which is also what happens on its own when the system rendering engine is missing |
+| `MR_RAO_TRAY` | `1` | The icon next to the clock. `0` removes it — and with it the "restore the original" menu entry for the clipboard shortcut |
+| `MR_RAO_OPEN_BROWSER` | `1` | Whether to open a browser on start. Only has an effect when the window is not being used |
+| `MR_RAO_SCORCIATOIA` | `ctrl+alt+r` | The clipboard shortcut: `0` switches it off, anything else is the key combination ([detail](docs/SCORCIATOIA-APPUNTI.en.md)) |
 | `MR_RAO_ALLOWED_HOSTS` | this machine's own addresses | Hosts accepted in the `Host` header |
 | `MR_RAO_SECRET` | random at each start | Signing key; nothing uses it today ([why](SECURITY.en.md#signing-key)) |
 

@@ -4,8 +4,18 @@
 
 La cartella `MrRao-Portable` (generata su un PC di build) include:
 
-- `app/MrRao.exe` + tutte le librerie (Flask, MarkItDown, RapidOCR, ONNX, BeautifulSoup, …)
+- `app/MrRao.exe` + tutte le librerie (Flask, MarkItDown, RapidOCR, ONNX, BeautifulSoup, pdfplumber, pikepdf, pypdfium2, …)
+- **pywebview** con il suo ponte .NET (`pythonnet`), che è ciò che apre la
+  finestra dell'applicazione. Il motore di rendering **non** è nel pacchetto:
+  si usa quello già installato nel sistema (WebView2 su Windows), quindi non
+  ci si porta dentro un browser. Se manca, si apre il browser vero
+- **due modelli `.onnx`**: RapidOCR (~30 MB, legge le scansioni) e **magika**
+  (~3 MB, riconosce il tipo dei file), che MarkItDown carica a ogni
+  conversione. Sono la ragione principale del peso del pacchetto, ed è il
+  prezzo del funzionare offline
 - template e static (logo, favicon, UI)
+- `LICENSE.txt`, `THIRD_PARTY.md`, l'intera cartella `licenses/` e
+  `docs/LGPL_PYSTRAY.md`
 - script di installazione / disinstallazione
 
 **Sul PC destinazione non servono:** Python, pip, git, venv, connessione per scaricare pacchetti.
@@ -16,8 +26,10 @@ La cartella `MrRao-Portable` (generata su un PC di build) include:
 scripts\build_portable.bat
 ```
 
-Output: `dist\MrRao-Portable\` (~330 MB) più i due archivi in `dist\`:
-`MrRao-Portable-<versione>.zip` e `MrRao-Portable.zip` (~165 MB l'uno).
+Output: `dist\MrRao-Portable\` (~348 MB) più i due archivi in `dist\`:
+`MrRao-Portable-<versione>.zip` e `MrRao-Portable.zip` (~169 MB l'uno,
+misurati sulla build 1.24.0). Sono **MB decimali**: Esplora file, che conta in
+MiB e li chiama MB, mostrerà 332 e 161 — la differenza è la scala, non i file.
 **Vanno allegati entrambi alla release**: GitHub serve
 `/releases/latest/download/NOME` solo se il nome non cambia fra le versioni,
 ed è quel percorso che alimenta i link di scaricamento diretto nei README.
@@ -47,9 +59,14 @@ L’installer:
 
 ## Uso
 
-- Doppio clic sull’icona → server locale + browser + tray
+- Doppio clic sull’icona → server locale + **finestra dell'applicazione** +
+  icona vicino all'orologio. La finestra si prova **per prima**; il browser è
+  il ripiego, non il contrario. Si torna al browser in due casi: se il motore
+  di rendering di sistema non c'è (`mr_rao.finestra.disponibile()` dice di
+  no), oppure se si è scelto `MR_RAO_FINESTRA=0`
 - Trascina file sull’exe / “Apri con” → conversione CLI in Markdown
-- UI: hotfolder, preset, diff privacy, confronto 2 file, allegati EML
+- UI: hotfolder, preset, diff privacy, confronto 2 file, allegati EML,
+  redazione di un PDF che resta un PDF
 
 ## Disinstallazione
 

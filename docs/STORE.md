@@ -4,6 +4,22 @@ Perché esiste questa strada: chi installa dallo Store **non vede l'avviso
 «editore sconosciuto»**, perché il pacchetto lo firma Microsoft dopo la
 certificazione. È l'unico modo gratuito per togliere quell'avviso.
 
+**La certificazione è passata il 2026-08-11 e l'app è pubblicata.** Questo
+documento non descrive più un piano: descrive una strada percorsa fino in
+fondo, e le istruzioni restano perché il prossimo aggiornamento riparte da
+lì.
+
+| | |
+|---|---|
+| Scheda pubblica | <https://apps.microsoft.com/detail/9N7SJ4W88KQC> |
+| Store ID | `9N7SJ4W88KQC` |
+| Collegamento dall'app Store di Windows | `ms-windows-store://pdp/?productid=9N7SJ4W88KQC` |
+
+I due indirizzi non sono intercambiabili: il primo si apre ovunque, il secondo
+solo su Windows con lo Store installato. Per questo nei README c'è **solo**
+quello web — un link che fuori da Windows non fa niente, su una pagina che
+esiste per farsi dare fiducia, è peggio di nessun link.
+
 L'altra opzione di Partner Center, «EXE or MSI app», sembrava più comoda —
 si pubblica l'installer che c'è già — ma pretende che sia **tu** a firmarlo
 Authenticode con un certificato a pagamento, e lo Store non lo firma al posto
@@ -13,7 +29,7 @@ tuo. Riporta al problema di partenza, quindi è esclusa.
 
 | | |
 |---|---|
-| Nome prenotato | **Mr. Rao** |
+| Nome | **Mr. Rao** — prenotato il 2026-08-09, pubblicato il 2026-08-11 |
 | Store ID | `9N7SJ4W88KQC` (pubblico: sta nell'indirizzo della scheda) |
 | Manifesto | [`packaging/AppxManifest.xml`](../packaging/AppxManifest.xml) |
 | Immagini del pacchetto | `packaging/Assets/` — 13 misure, versionate |
@@ -39,17 +55,24 @@ Partner Center, e non c'è modo di aggirarlo.
 
 ## Stato
 
-**Submission 1 inviata il 2026-08-09**, con la 1.11.0. Certification status:
-Submission ✓, Pre-processing ✓, poi Certification e Publishing. Microsoft
-dichiara «qualche ora, in certi casi fino a tre giorni lavorativi».
+**Submission 1 inviata il 2026-08-09, certificata e pubblicata il
+2026-08-11.** Portava la versione con cui era stata costruita, non l'ultima:
+è il primo aggiornamento a riallineare lo Store a `APP_VERSION`.
 
-> **Perché lo Store resta indietro rispetto a git.** Il repository intanto è
-> andato avanti (1.12.0), lo Store no: **non si tocca una submission in
-> certificazione**. Sostituire il pacchetto adesso significa ricominciare la
-> coda da capo, e in cambio di niente. La regola è: si aspetta la **prima
-> pubblicazione**, poi si allinea la build dello Store a dove è arrivato
-> GitHub in quel momento — con una submission nuova, che è la strada normale
-> per gli aggiornamenti.
+> **Perché lo Store è rimasto indietro rispetto a git, e perché andava bene
+> così.** Mentre la submission era in certificazione il repository ha
+> continuato ad avanzare. **Non si tocca una submission in certificazione**:
+> sostituire il pacchetto vuol dire ricominciare la coda da capo, in cambio di
+> niente. La regola applicata è stata: si aspetta la prima pubblicazione, poi
+> si allinea la build dello Store a dove è arrivato GitHub — con una
+> submission nuova, che è la strada normale per gli aggiornamenti e quella
+> descritta nella Parte 2.
+
+> **Cosa cambia adesso che la scheda è viva.** L'indirizzo
+> <https://apps.microsoft.com/detail/9N7SJ4W88KQC> rispondeva `410 Gone`
+> finché la certificazione non è finita, ed era il motivo per cui non stava
+> nei README: un pulsante morto proprio sulla strada della fiducia, premuto
+> dalla persona più diffidente. Adesso risponde, e il link ci sta.
 
 ---
 
@@ -74,7 +97,10 @@ pacchetto si costruisce in camera pulita, si firma con Sigstore e resta
 allegato all'esecuzione: si scarica l'artefatto `MrRao-Portable`, che
 contiene `MrRao-<versione>.msix`.
 
-Nome del file da caricare: **`MrRao-1.11.0.msix`**, circa 170 MB.
+Nome del file da caricare: **`MrRao-<versione>.msix`**, circa 170 MB. Il nome
+lo compone `scripts/make_msix.py` da `APP_VERSION`, quindi cambia a ogni
+release: non c'è un nome fisso da cercare, si guarda cosa c'è dentro
+l'artefatto.
 
 ## 1. Pricing and availability
 
@@ -150,7 +176,7 @@ Esito atteso: **PEGI 3 / ESRB Everyone**.
 
 ## 4. Packages
 
-Si carica `MrRao-1.11.0.msix`. Device family: **Desktop**.
+Si carica `MrRao-<versione>.msix`. Device family: **Desktop**.
 
 Il pacchetto non è firmato da noi ed è corretto così: la firma la mette
 Microsoft dopo la certificazione.
@@ -334,14 +360,17 @@ pubblicata.
 
 # Parte 2 — L'automazione degli aggiornamenti
 
-Serve solo dalla **seconda** pubblicazione in poi: la prima resta manuale
-comunque, perché l'automazione aggiorna e non inserisce.
+Serve dalla **seconda** pubblicazione in poi: la prima è stata manuale — e lo
+sarebbe rimasta comunque, perché l'automazione aggiorna e non inserisce. **La
+prima è avvenuta il 2026-08-11**, quindi da adesso questa parte è la strada
+normale.
 
 **Configurata il 2026-08-09, mai ancora eseguita.** I quattro segreti ci
 sono e la registrazione ha il suo ruolo, ma la catena non è stata provata
-dal vivo: la prima volta che si scriverà `si` in `pubblica_store` sarà anche
-la prima volta che quel percorso gira davvero. Va lanciata guardando
-l'esecuzione, non a fine giornata.
+dal vivo: il primo `si` scritto in `pubblica_store` sarà anche la prima volta
+che quel percorso gira davvero. Va lanciata guardando l'esecuzione, non a fine
+giornata — e adesso è il momento in cui succederà, perché il presupposto che
+la bloccava (un'app già pubblicata da aggiornare) è stato tolto di mezzo.
 
 Si accende scrivendo `si` nel campo `pubblica_store` quando si lancia il
 workflow. Finché i quattro segreti non ci sono, il workflow si ferma subito

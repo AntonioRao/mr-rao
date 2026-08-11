@@ -34,7 +34,14 @@ browser dell'utente. Attacchi distinti, controlli distinti:
 | **Vicini di porta** — un'altra pagina su `127.0.0.1`, porta diversa: per `Origin` è lo stesso hostname | `Sec-Fetch-Site: same-site` rifiutato |
 | **Effetti collaterali da GET** — `<img src="http://127.0.0.1:5000/...">` su una pagina qualsiasi | Le GET sono in sola lettura: nessuna crea file o cartelle |
 | **Clickjacking** — l'app incorniciata in un'altra pagina per far cliccare «attiva monitoraggio» | `Content-Security-Policy: frame-ancestors 'none'` |
+| **Immagini caricate da fuori** — un `<img>` che uscirebbe dalla macchina, e con lui la promessa «non esce niente» | `img-src 'self' data: blob:` nella stessa CSP: le sole immagini ammesse stanno in `/static` o sono roba dell'utente già in memoria |
+| **Tipo indovinato dal browser** — una risposta interpretata come qualcosa che non è | `X-Content-Type-Options: nosniff` |
+| **Indirizzo locale che esce nel `Referer`** — l'URL di una pagina locale finito nei log di un sito terzo | `Referrer-Policy: no-referrer` |
 | **Occupazione di un worker** — una scansione lunghissima che tiene impegnato l'OCR | Tetto di pagine, di tempo (`MR_RAO_OCR_TIMEOUT`) e di dimensione dell'invio |
+
+Le tre intestazioni escono su **ogni** risposta ([`mr_rao/app_factory.py`](mr_rao/app_factory.py)),
+non solo sulla pagina: una difesa che vale per l'HTML e non per il JSON copre
+il punto in cui nessuno attacca.
 
 Perché **due** controlli anti-CSRF e non uno: il controllo su `Origin` è
 condizionato alla presenza dell'header, e una navigazione da `<form>`

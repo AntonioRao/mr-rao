@@ -38,6 +38,8 @@ Shortcut ──► clipboard ──► same privacy engine ──► clipboard
 
 | Module | Responsibility |
 |--------|----------------|
+| `app.py` | Entry point of the local server. It tries the application window **first** and falls back to the browser; it starts the tray, the watcher and the busy-port check |
+| `console_win.py` | It sits at the root and not in `mr_rao/` on purpose: it attaches the Windows console **before** any other module prints. The executable is built with no console, so a double-click opens no black window; without this attach, `MrRao.exe convert` would print nothing and look like it had done nothing |
 | `config.py` | Brand, paths (frozen/dev), limits, env |
 | `mr_rao/app_factory.py` | Flask factory, Host/CSRF security middleware |
 | `mr_rao/routes.py` | HTTP API + templates |
@@ -68,11 +70,19 @@ stable name, its pack, the switch that turns it on, and a priority.
 `apply_privacy_filter` is a loop: a step runs if its pack is among the
 chosen ones **and** its switch is on.
 
-**The packs** (`CORE`, `IT`, `EN`) separate what holds everywhere from what
-holds in one country only. The core cannot be switched off: an IBAN passes
-mod-97 in every SEPA country, a card passes Luhn everywhere. They stack —
-the Italian firm with an English contract is the real use case — and are
-selectable from the interface, from JSON and from the command line.
+**There are four packs** (`CORE`, `IT`, `EN`, `ATTI`), and they do not all
+answer the same question. The first three separate what holds everywhere from
+what holds in one country only: the core cannot be switched off — an IBAN
+passes mod-97 in every SEPA country, a card passes Luhn everywhere — and the
+two national ones stack, because the Italian firm with an English contract is
+the real use case. `ATTI` instead says **for which trade**: land registry
+references, case numbers and vehicle plates are data a notary wants removed
+and a purchasing office wants kept, which is why it is **off by default**.
+
+Where they are chosen is not the same for all of them: `CORE`, `IT` and `EN`
+are selectable from the interface, from JSON and from the command line
+(`--no-pack-it`, `--no-pack-en`). **`ATTI` only from the interface and from
+JSON**: the command line has no option that turns it on.
 
 **Priority belongs to the data type, not to the pack.** Italian tax code
 (it) and SSN (en) run together, before phone numbers: that is what stops a
@@ -93,10 +103,17 @@ not in the engine. On scans it stays `None`, because counting vectors on an
 image would give zero and zero would be read as "prose": the right answer
 for the wrong reason.
 
-**Names work by levels of evidence.** A professional title, a role before a
-colon (`Il Ministro: GIORGETTI`), a signature, an email address alongside →
-substitution. Weak corroboration → **suspect**, not substitution: the
-document stays readable and whoever checks knows where to look.
+**Names work by levels of evidence.** `_scrub_names` runs **nine** rules in
+order, from the strongest signal to the weakest: a professional title in
+front; a role, a colon and a surname in capitals (`Il Ministro: GIORGETTI`);
+a name before an email address; a name after one; a name next to a valid
+Italian tax code; a declared role (`il cliente Mario Rossi`); a form field
+(`Nome: Mario Rossi`); a closing formula (`Cordiali saluti, Esposito`); an
+adjacent pair recognised in the lists. The first eight substitute; the ninth
+substitutes only with as many hits as the prose/form threshold demands. A
+single listed word with nothing around it becomes a **suspect** and not a
+substitution: the document stays readable and whoever checks knows where to
+look.
 
 ## Conversion flow
 

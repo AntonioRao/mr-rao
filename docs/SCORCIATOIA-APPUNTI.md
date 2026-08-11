@@ -36,8 +36,10 @@ I due numeri non sono la stessa cosa:
   e per non rovinare il testo **non l'ha tolto**.
 
 Un «da controllare» maggiore di zero significa che negli appunti è rimasto
-qualcosa che vale la pena guardare prima di incollare. La notifica è
-cliccabile e apre il confronto prima/dopo nel programma.
+qualcosa che vale la pena guardare prima di incollare. La notifica dice i due
+numeri e finisce lì: **non è cliccabile**, e non esiste un confronto
+prima/dopo per il testo passato dalla scorciatoia. Il confronto sta
+nell'interfaccia, e riguarda i file convertiti.
 
 ## Se la redazione toglie qualcosa che serviva
 
@@ -47,9 +49,15 @@ scritto su disco — sparisce quando il programma si chiude.
 
 ## Come si spegne
 
-Dal programma, oppure con la variabile d'ambiente:
+Con una variabile d'ambiente, e **solo** con quella: nell'interfaccia non c'è
+un interruttore.
 
     MR_RAO_SCORCIATOIA=0
+
+Una variabile sola per due cose — se è accesa e quale combinazione — perché
+sono la stessa domanda, e tenerle separate permetterebbe lo stato incoerente
+«accesa, combinazione vuota»: una scorciatoia che non risponde senza dire
+perché.
 
 La combinazione si cambia allo stesso modo, per esempio
 `MR_RAO_SCORCIATOIA=ctrl+alt+m` se Ctrl+Alt+R è già occupata da altro. Se

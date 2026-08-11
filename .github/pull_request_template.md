@@ -6,6 +6,11 @@ dice «non l'ho mai letta».
 
 This template is in Italian and English. The Italian text of CONTRIBUTING.md
 is the authoritative one for the licensing terms.
+
+I link a CONTRIBUTING sono **assoluti** e non relativi. GitHub non risolve
+`../CONTRIBUTING.md` quando rende questo file dentro una pull request: il
+percorso e' giusto rispetto al repository, ma chi legge riceve un 404 --
+cioe' la casella chiede di accettare termini che il link non fa leggere.
 -->
 
 ## Cosa cambia / What changes
@@ -30,7 +35,7 @@ code? A test that does not fail on the defect proves nothing.
 
 ## Termini / Terms
 
-- [ ] **Ho letto [CONTRIBUTING.md](../CONTRIBUTING.md) e accetto i termini di
+- [ ] **Ho letto [CONTRIBUTING.md](https://github.com/AntonioRao/mr-rao/blob/main/CONTRIBUTING.md) e accetto i termini di
       licenza descritti nella sezione «La licenza».** In particolare:
       il contributo esce sotto **AGPL-3.0**; concedo ad Antonio Andrea Rao il
       diritto non esclusivo, perpetuo, irrevocabile, gratuito e trasferibile
@@ -39,7 +44,7 @@ code? A test that does not fail on the defect proves nothing.
       che il contributo è mio o che ho il diritto di cederlo, e che non
       contiene codice preso da un progetto con licenza incompatibile.
 
-      *I have read [CONTRIBUTING.md](../CONTRIBUTING.md) and I accept the
+      *I have read [CONTRIBUTING.en.md](https://github.com/AntonioRao/mr-rao/blob/main/CONTRIBUTING.en.md) and I accept the
       licensing terms in the section "The licence", including the grant to
       relicense under different terms in separate and even proprietary
       products, the patent grant, and the statement that the contribution is

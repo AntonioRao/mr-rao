@@ -36,7 +36,12 @@ Vedi allegato
 
 ## Dipendenza correlata
 
-BeautifulSoup usa un parser; di default `html.parser` (stdlib, zero extra). Non serve `lxml` per Mr. Rao.
+BeautifulSoup usa un parser; qui gira quello predefinito, `html.parser` della
+libreria standard. **`lxml` c'è lo stesso** — arriva con `python-docx`, sta
+nell'ambiente ed è dentro il pacchetto portable — ma BeautifulSoup non lo usa:
+non gli viene mai chiesto. La differenza conta per chi legge `THIRD_PARTY.md`
+e trova `lxml` in elenco: è una dipendenza reale del progetto, non del corpo
+HTML delle email.
 
 ## Installazione manuale
 
