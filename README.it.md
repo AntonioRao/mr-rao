@@ -178,6 +178,7 @@ Vale anche il rovescio, ed è la ragione per cui il banco delle scansioni trova 
 | ⌨️ **Scorciatoia sugli appunti** | Copi il testo, premi **Ctrl+Alt+R**, incolli: quello che arriva è già redatto — [come funziona, e perché non è un keylogger](docs/SCORCIATOIA-APPUNTI.md) |
 | 📁 **Cartella automatica** | Butti i file in una cartella, i `.md` compaiono nell'altra |
 | 📝 **Esportazione** | Markdown `.md`, testo semplice `.txt` e **documento Word `.docx`** — per gli atti che devono restare documenti |
+| 📕 **PDF redatto che resta un PDF** | Un PDF entra, un PDF esce: **selezionabile, ricercabile, dello stesso peso**. I dati non sono coperti da rettangoli neri — sono **tolti dal flusso di contenuto**, e un rettangolo nero si rimuove in un minuto mentre questo no. Con l'**anteprima prima/dopo** della stessa pagina, affiancate |
 | ⌨️ **Riga di comando** | `convert`, `watch`, `health` — anche dall'eseguibile portable |
 
 

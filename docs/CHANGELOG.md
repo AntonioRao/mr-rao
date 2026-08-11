@@ -1,6 +1,58 @@
 # Changelog
 
-## 1.23.0 — Il pacchetto «atti e pratiche», e due dati che si trovano e non si tolgono
+## 1.23.0 — Un PDF redatto che resta un PDF, una finestra sua, e il pacchetto «atti e pratiche»
+
+### Un PDF entra, un PDF redatto esce
+
+Fino a ieri un PDF entrava e ne usciva del Markdown. Chi deve archiviare o
+depositare un atto vuole indietro **il documento** — e la strada ovvia,
+rasterizzare le pagine e disegnarci sopra dei rettangoli, è la peggiore di
+tutte: pesa ventidue volte tanto, rende il documento inutilizzabile, e quei
+rettangoli **si tolgono in un minuto** perché il testo resta sotto.
+
+Qui si tolgono i byte dei glifi dal flusso di contenuto e ci si mette il
+segnaposto. Il PDF che esce è **ancora un PDF di testo** — selezionabile,
+ricercabile — pesa uguale, e il dato non c'è più nel file.
+
+**Misurato su 61 documenti veri, 1400 pagine: 985 valori da togliere, 985
+tolti.** Tre pagine su 1400 non trattate, peso medio 0,94x, cinquanta secondi.
+La verifica porta un numero che il modulo non calcola — il totale dichiarato
+dal motore — perché altrimenti userebbe la stessa funzione con cui taglia e
+uscirebbe verde senza guardare niente.
+
+Dall'interfaccia: il pulsante compare **solo** se il documento di partenza è un
+PDF, e apre l'**anteprima prima/dopo della stessa pagina, affiancate**.
+Affiancate e non alternate: la domanda di chi guarda non è «com'è adesso» ma
+«cosa è cambiato». Ogni segnaposto ha il suo **rettangolo verde scuro**, che è
+ciò che rende la differenza leggibile a colpo d'occhio.
+
+Tre cose che il pannello dice e che non sono decorazione: quante sostituzioni,
+**quali pagine non sono state trattate** (sempre, anche quando sono zero: una
+pagina finita nel ripiego **non è stata redatta**), e il rifiuto esplicito
+delle **scansioni** — un PDF senza testo non ha glifi da togliere, e
+disegnarci sopra dei rettangoli sembrerebbe una redazione senza esserlo.
+
+Il PDF di partenza resta nella memoria del browser e le due chiamate lo
+rispediscono: il server non conserva niente fra l'una e l'altra.
+
+### Una finestra sua, invece di una scheda del browser
+
+Stessa interfaccia, stesso server locale, ma senza barra degli indirizzi né
+schede attorno — e nella barra delle applicazioni compare un'applicazione, non
+una scheda fra le altre venti. Sotto c'è il motore di rendering già presente
+nel sistema, quindi non ci si porta dentro un browser.
+
+**La croce nasconde, non chiude**: Mr. Rao vive nella barra di sistema, e se la
+finestra si portasse via il programma chi la chiude per sbaglio perderebbe il
+sorvegliante delle cartelle e la scorciatoia sugli appunti. Si riapre dal menu
+dell'icona, e si esce da lì.
+
+E **niente finestra nera al doppio click**: il pacchetto è costruito senza
+console, che si aggancia da sola solo quando c'è un comando da eseguire. Le
+due cose vanno insieme — senza l'aggancio, `MrRao.exe convert file.pdf`
+funzionerebbe *senza stampare niente*, che è il modo peggiore di rompersi.
+
+### Il pacchetto «atti e pratiche»: catastali, numeri di pratica, targhe
 
 ### Una divergenza vera, e hanno ragione tutti e due
 

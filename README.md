@@ -178,6 +178,7 @@ The reverse holds too, and it is why the scan bench finds what it finds: **when 
 | ⌨️ **Clipboard shortcut** | Copy the text, press **Ctrl+Alt+R**, paste: what lands is already redacted — [how it works, and why it is not a keylogger](docs/SCORCIATOIA-APPUNTI.en.md) |
 | 📁 **Watched folder** | Drop files in one folder, the `.md` files appear in another |
 | 📝 **Export** | Markdown `.md`, plain text `.txt` and a **Word document `.docx`** — for records that have to stay documents |
+| 📕 **A redacted PDF that stays a PDF** | A PDF goes in, a PDF comes out: **selectable, searchable, the same size**. The data is not covered by black boxes — it is **removed from the content stream**, and a black box comes off in a minute while this does not. With a **before/after preview** of the same page, side by side |
 | ⌨️ **Command line** | `convert`, `watch`, `health` — also from the portable executable |
 
 ---
