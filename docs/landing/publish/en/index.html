@@ -398,7 +398,12 @@
   /* Label on top, band below -- not across the middle: a band through the
      centre would cover the words «Microsoft Store», which is the one thing
      that button has to say. */
+  /* L'altezza minima sta sul pulsante, non sulla griglia: in alto, nel
+     blocco d'apertura, i pulsanti sono piu' bassi e la fascia diagonale
+     finirebbe sopra la scritta «Microsoft Store». */
+  .hero-actions .btn { min-height: 3.2rem; }
   .btn-soon {
+    min-height: 3.2rem;
     position: relative;
     overflow: hidden;
     border: 1px dashed var(--line);
@@ -816,9 +821,13 @@
         No network calls. Arithmetic, not promises.
       </p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">
+        <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">
+          ↓ Installer .exe
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">
           ↓ Portable Windows
         </a>
+        <span class="btn btn-soon" aria-disabled="true"><span class="btn-soon-label">Microsoft Store</span><span class="btn-soon-band">coming soon</span></span>
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">Read the code</a>
       </div>
       <div class="meta-row">
