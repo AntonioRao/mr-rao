@@ -299,6 +299,40 @@ Each file can carry a header with its origin, date, engine used and **how many r
 
 ---
 
+## Mr. Rao Plus — the last metre
+
+Mr. Rao works on documents, **before**. But the place where data actually
+leaks today is the message box of an AI chat: you type fast, you paste half an
+email, you press Enter.
+
+**[Mr. Rao Plus](docs/MR-RAO-PLUS.md)** is a browser extension that works
+there. It looks at what you are about to send to ChatGPT, Claude, Copilot,
+Gemini, Grok, DeepSeek or Perplexity, and if there is an IBAN, a tax code, a
+payment card or a person's name in it, it **takes the datum out of the box
+before the message leaves**:
+
+```
+Bonifico su IT60X0542811101000000123456   →   Bonifico su {{IBAN_1}}
+```
+
+The first send never goes through, not even when the fix worked: you read what
+changed, then press again. Same engine as Mr. Rao, ported to TypeScript and
+checked case by case against the original.
+
+| | |
+|---|---|
+| **Microsoft Edge** | [store listing](https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead) |
+| **Google Chrome** | coming soon — the listing is still a draft |
+| Licence | **commercial**, not AGPL. Mr. Rao itself stays AGPL-3.0 |
+
+One permission (`storage`), no host permissions, no network call — not even to
+us — and the package is deliberately **not minified**, so you can check that
+yourself. The declared limits, including the one that matters most today
+(**attachments are not inspected**), are written out in
+**[docs/MR-RAO-PLUS.md](docs/MR-RAO-PLUS.md)**.
+
+---
+
 ## What it does NOT do
 
 Better said upfront:

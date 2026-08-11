@@ -302,6 +302,40 @@ Ogni file può portare in cima una scheda con origine, data, motore usato e **qu
 
 ---
 
+## Mr. Rao Plus — l'ultimo metro
+
+Mr. Rao lavora sui documenti, **prima**. Ma il punto in cui i dati escono
+davvero, oggi, è la casella di una chat con l'intelligenza artificiale: si
+scrive in fretta, si incolla mezza email, si preme Invio.
+
+**[Mr. Rao Plus](docs/MR-RAO-PLUS.md)** è un'estensione per il browser che
+lavora lì. Guarda quello che stai per mandare a ChatGPT, Claude, Copilot,
+Gemini, Grok, DeepSeek o Perplexity, e se dentro c'è un IBAN, un codice
+fiscale, una carta o un nome di persona, **lo toglie dalla casella prima che
+il messaggio parta**:
+
+```
+Bonifico su IT60X0542811101000000123456   →   Bonifico su {{IBAN_1}}
+```
+
+Il primo invio non parte mai, nemmeno quando la correzione riesce: prima leggi
+cosa è cambiato, poi premi di nuovo. Stesso motore di Mr. Rao, portato in
+TypeScript e verificato caso per caso contro l'originale.
+
+| | |
+|---|---|
+| **Microsoft Edge** | [scheda sullo store](https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead) |
+| **Google Chrome** | in arrivo — la scheda è ancora in bozza |
+| Licenza | **commerciale**, non AGPL. Mr. Rao resta AGPL-3.0 |
+
+Un permesso solo (`storage`), nessun permesso verso host, nessuna chiamata di
+rete — nemmeno verso di noi — e il pacchetto **non è offuscato** apposta, così
+puoi verificarlo da solo. I limiti dichiarati, compreso quello che oggi pesa
+di più (**gli allegati non vengono ispezionati**), stanno per esteso in
+**[docs/MR-RAO-PLUS.md](docs/MR-RAO-PLUS.md)**.
+
+---
+
 ## Cosa NON fa
 
 Meglio dirlo subito:

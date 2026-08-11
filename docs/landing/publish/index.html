@@ -387,6 +387,16 @@
     margin: 0;
   }
   .dl-note.warn { color: var(--amber); }
+  .plus-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.3rem; }
+  .plus-actions .btn { min-height: 3.2rem; }
+  /* Il pulsante di Chrome non è un pulsante: la scheda è ancora in bozza, e
+     un link che non porta da nessuna parte è peggio di un link assente. */
+  .btn-soon { opacity: 0.62; pointer-events: none; cursor: default; }
+  .soon {
+    display: inline-block; margin-left: 0.55rem; padding: 0.05rem 0.5rem;
+    border-radius: 999px; background: var(--amber); color: #10141a;
+    font-size: 0.68em; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  }
   /* Qui c'era il pulsante «in arrivo» dello Store: uno <span> e non un <a>,
      perche' finche' la certificazione non era passata non doveva esistere un
      link morto da cliccare. La certificazione e' passata l'11 agosto 2026, e
@@ -983,6 +993,41 @@
     </div>
   </section>
 
+  <section class="block" id="plus">
+    <p class="sec-label">// 07 · l'ultimo metro</p>
+    <h2>E quando il dato lo scrivi tu, dentro la chat?</h2>
+    <p class="intro">
+      Mr. Rao lavora sui documenti, <strong>prima</strong>. Ma il punto in cui i dati escono davvero,
+      oggi, è la casella di una chat con l'intelligenza artificiale — dove si scrive in fretta e si preme Invio.
+    </p>
+    <p>
+      <strong>Mr. Rao Plus</strong> è un'estensione per il browser che lavora lì: guarda quello che stai per
+      mandare a ChatGPT, Claude, Copilot, Gemini, Grok, DeepSeek o Perplexity, e se dentro c'è un IBAN,
+      un codice fiscale, una carta o un nome di persona, <strong class="hl">lo toglie dalla casella prima
+      che il messaggio parta</strong>. Il primo invio non parte mai, nemmeno quando la correzione riesce:
+      prima leggi cosa è cambiato, poi premi di nuovo.
+    </p>
+    <p>
+      Stesso motore di Mr. Rao, stessa promessa: tutto in locale, nessuna chiamata di rete —
+      nemmeno verso di noi — e un permesso solo, per ricordare le tue impostazioni.
+    </p>
+    <div class="plus-actions">
+      <a class="btn btn-primary" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">
+        Microsoft Edge
+      </a>
+      <span class="btn btn-ghost btn-soon" aria-disabled="true">
+        Google Chrome <span class="soon">in arrivo</span>
+      </span>
+      <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/blob/main/docs/MR-RAO-PLUS.md" target="_blank" rel="noopener noreferrer">
+        Come funziona, per esteso
+      </a>
+    </div>
+    <p class="dl-note">
+      Gli allegati non vengono ispezionati: l'estensione lavora sul testo che scrivi. È scritto anche
+      nella scheda dello store — un limite dichiarato vale più di una promessa larga.
+    </p>
+  </section>
+
   <section class="finale">
     <h2>Scarica. Estrai. Resta offline.</h2>
     <p>
@@ -1010,7 +1055,7 @@
   </section>
 
   <section class="block" id="contatto">
-    <p class="sec-label">// 07 · canale diretto</p>
+    <p class="sec-label">// 08 · canale diretto</p>
     <h2>Segnalazioni, idee, pezzi che non tornano.</h2>
     <p class="intro">
       Scritto e mantenuto da Antonio Andrea Rao. Scrivimi una mail o su LinkedIn:

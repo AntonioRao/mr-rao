@@ -1,0 +1,128 @@
+/* Foglio esterno e non un blocco `<style>` nella pagina, per un motivo che
+   non e' estetico: la CSP del sito ammette gli inline **per impronta**, e le
+   impronte le calcola `_rebuild.py` sulle due sole landing. Un terzo blocco
+   inline qui verrebbe bloccato dal browser e la pagina uscirebbe senza
+   stile, online, senza che niente lo dica. `style-src 'self'` invece un
+   foglio dello stesso dominio lo ammette. */
+
+:root {
+  --bg: #050705;
+  --panel: #0a100c;
+  --line: #1a2e22;
+  --phosphor: #3dff9a;
+  --fog: #8fa898;
+  --white: #e8f5ec;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --sans: "Instrument Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-600-normal.woff2") format("woff2");
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--sans);
+  line-height: 1.65;
+  padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 5vw, 2rem) 5rem;
+}
+
+main { max-width: 46rem; margin: 0 auto; }
+
+.occhiello {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--phosphor);
+  margin-bottom: 0.75rem;
+}
+
+h1 {
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  line-height: 1.2;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--phosphor);
+  margin: 2.5rem 0 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+p, li { color: var(--white); margin-bottom: 0.9rem; }
+p.sommario { color: var(--fog); }
+
+ul { padding-left: 1.2rem; }
+li { margin-bottom: 0.5rem; }
+
+strong { font-weight: 600; color: var(--phosphor); }
+
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: var(--white);
+}
+
+/* La tabella deve poter scorrere per conto suo: su un telefono una riga
+   lunga farebbe scorrere in orizzontale tutta la pagina. */
+.tabella { overflow-x: auto; margin-bottom: 1.5rem; }
+
+table { border-collapse: collapse; width: 100%; min-width: 30rem; }
+
+th, td {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font-size: 0.94rem;
+}
+
+th {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fog);
+  font-weight: 400;
+}
+
+a { color: var(--phosphor); }
+
+footer {
+  margin-top: 3.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--fog);
+}

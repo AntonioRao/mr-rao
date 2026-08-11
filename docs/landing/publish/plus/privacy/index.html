@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mr. Rao Plus — Informativa sulla privacy</title>
+<meta name="description" content="Cosa fa Mr. Rao Plus con i tuoi dati: niente esce dal tuo dispositivo, e accanto a ogni affermazione c'è il modo per verificarla." />
+<!-- L'impronta nell'indirizzo non e' un vezzo: /assets/* e' servito con
+     Cache-Control: max-age=604800 (vedi _headers), quindi l'indirizzo nudo
+     resta in cache — al bordo Cloudflare e nel browser — per una settimana
+     anche dopo che il file e' cambiato. Le landing usano la stessa
+     convenzione, generata da _rebuild.py: primi 10 esadecimali dello
+     sha256 del file. Se cambi la favicon, ricalcola anche qui. -->
+<link rel="icon" href="/assets/favicon.svg?v=354c7fcf8b" type="image/svg+xml" />
+<link rel="alternate icon" href="/assets/favicon.ico?v=780f2c412d" sizes="16x16 32x32 48x48" />
+<link rel="canonical" href="https://rao.valor-cyber.com/plus/privacy/" />
+<link rel="alternate" hreflang="it" href="https://rao.valor-cyber.com/plus/privacy/" />
+<link rel="alternate" hreflang="en" href="https://rao.valor-cyber.com/plus/privacy/en/" />
+<link rel="alternate" hreflang="x-default" href="https://rao.valor-cyber.com/plus/privacy/en/" />
+<link rel="stylesheet" href="stile.css" />
+</head>
+<body>
+<main>
+  <p class="occhiello">Mr. Rao Plus · informativa sulla privacy · <a href="en/">English</a></p>
+  <h1>Cosa fa Mr. Rao Plus con i tuoi dati</h1>
+  <p class="sommario">
+    Niente esce dal tuo dispositivo. Sotto c'è il dettaglio, e accanto a ogni
+    affermazione il modo per <strong>verificarla tu</strong>, senza fidarti di
+    questa pagina.
+  </p>
+
+  <h2>Cosa legge</h2>
+  <div class="tabella">
+    <table>
+      <thead>
+        <tr><th>cosa</th><th>quando</th><th>dove va a finire</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Il corpo delle richieste che i siti di chat coperti mandano</td><td>a ogni invio</td><td>in memoria, per il tempo del controllo</td></tr>
+        <tr><td>Gli allegati testuali che carichi lì</td><td>a ogni invio</td><td>idem</td></tr>
+        <tr><td>Le tue impostazioni e la tua chiave di licenza</td><td>all'avvio</td><td><code>chrome.storage.sync</code> del tuo browser</td></tr>
+        <tr><td>La data in cui hai installato l'estensione</td><td>una volta sola, all'installazione</td><td>idem</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Il contenuto delle conversazioni <strong>non viene salvato da nessuna
+    parte</strong>: non su disco, non in <code>chrome.storage</code>, non in un
+    registro. Vive il tempo di essere guardato e poi non esiste più.
+  </p>
+  <p>
+    La data di installazione è un numero e la versione con cui sei arrivato,
+    niente altro. Resta sul tuo browser come tutto il resto: nessuno la riceve,
+    e viene scritta <strong>una volta sola</strong> — un aggiornamento non la
+    tocca.
+  </p>
+  <p>
+    Nemmeno la finestra di blocco mostra i dati per intero: il campione è
+    mascherato dal motore — <code>Ma•••••••••chi</code>, non il nome — perché
+    serve a ritrovare il dato nel messaggio, non a rileggerlo da sopra la
+    spalla di chi ha lo schermo condiviso in una riunione.
+  </p>
+
+  <h2>Cosa manda fuori</h2>
+  <p>
+    Niente. <strong>Nessuna chiamata di rete, mai</strong>: né per verificare
+    la licenza, né per contare le installazioni, né per segnalare errori.
+  </p>
+
+  <h2>Come lo verifichi tu</h2>
+  <div class="tabella">
+    <table>
+      <thead>
+        <tr><th>affermazione</th><th>come la controlli</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Non manda niente a nessuno</td><td>Il manifesto <strong>non contiene</strong> <code>host_permissions</code>. Leggilo: <code>chrome://extensions</code> → Dettagli, oppure apri <code>manifest.json</code> nella cartella del pacchetto</td></tr>
+        <tr><td>Non manda niente a nessuno (di nuovo)</td><td>Apri gli strumenti per sviluppatori su una delle chat coperte, scheda Rete, e guarda mentre scrivi</td></tr>
+        <tr><td>Le conversazioni non finiscono su disco</td><td><code>chrome://extensions</code> → Dettagli → «Ispeziona viste: service worker» → console → <code>chrome.storage.sync.get(null)</code>. Ci trovi tre cose e nient'altro: le impostazioni, la licenza e la data di installazione</td></tr>
+        <tr><td>Non serve una licenza per essere protetti</td><td><code>Ed25519</code> compare <strong>solo</strong> in <code>opzioni.js</code>. Nei due fasci che girano sulle chat — <code>principale.js</code> e <code>isolato.js</code> — non c'è: nessuna licenza può interrompere la protezione</td></tr>
+        <tr><td>E quando servirà, non telefonerà a casa</td><td>È una firma verificata con una chiave pubblica incorporata. Cerca <code>fetch</code> o <code>http://</code> in <code>opzioni.js</code>: non ci sono. I fasci non sono minimizzati apposta</td></tr>
+        <tr><td>Il controllo c'è davvero</td><td>Scrivi in una chat un IBAN inventato che superi il mod-97 e prova a mandarlo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>I permessi che chiede, e perché</h2>
+  <ul>
+    <li><code>storage</code> — per ricordare le tue impostazioni, la licenza e la data di installazione. Nient'altro.</li>
+    <li>I siti elencati in <code>content_scripts</code> — per poter guardare quello che mandi <strong>a loro</strong>. Non c'è <code>&lt;all_urls&gt;</code>: su ogni altro sito l'estensione non esiste.</li>
+  </ul>
+  <p>Non chiede <code>tabs</code>, non chiede <code>webRequest</code>, non chiede la cronologia.</p>
+
+  <h2>Il ruolo delle parti</h2>
+  <p>
+    Chi usa Mr. Rao Plus resta titolare o responsabile del trattamento dei dati
+    che tratta. L'autore del prodotto non riceve, non vede e non conserva nulla,
+    e non assume perciò alcun ruolo ai sensi del Regolamento (UE) 2016/679.
+  </p>
+
+  <h2>Contatti</h2>
+  <p>
+    Per domande su questa informativa, o su qualunque cosa ci sia scritta:
+    <a href="mailto:antonio.andrea.rao@gmail.com">antonio.andrea.rao@gmail.com</a>
+    oppure <a href="https://www.linkedin.com/in/antoniorao/" rel="noopener">LinkedIn</a>.
+  </p>
+
+  <footer>
+    Ultimo aggiornamento: 11 agosto 2026 · <a href="/">Mr. Rao</a>
+  </footer>
+</main>
+</body>
+</html>

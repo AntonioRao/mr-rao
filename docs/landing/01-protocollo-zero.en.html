@@ -392,6 +392,16 @@
     margin: 0;
   }
   .dl-note.warn { color: var(--amber); }
+  .plus-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.3rem; }
+  .plus-actions .btn { min-height: 3.2rem; }
+  /* Il pulsante di Chrome non è un pulsante: la scheda è ancora in bozza, e
+     un link che non porta da nessuna parte è peggio di un link assente. */
+  .btn-soon { opacity: 0.62; pointer-events: none; cursor: default; }
+  .soon {
+    display: inline-block; margin-left: 0.55rem; padding: 0.05rem 0.5rem;
+    border-radius: 999px; background: var(--amber); color: #10141a;
+    font-size: 0.68em; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  }
   /* There used to be a «coming soon» Store button here: a <span> and not an
      <a>, because until certification passed there was to be no dead link to
      click. Certification passed on 11 August 2026, and that button is now a
@@ -955,6 +965,41 @@
     </div>
   </section>
 
+  <section class="block" id="plus">
+    <p class="sec-label">// 06 · the last metre</p>
+    <h2>And when it is you typing the data, inside the chat?</h2>
+    <p class="intro">
+      Mr. Rao works on documents, <strong>before</strong>. But the place where data actually leaks today
+      is the message box of an AI chat — where people type fast and press Enter.
+    </p>
+    <p>
+      <strong>Mr. Rao Plus</strong> is a browser extension that works there: it looks at what you are about
+      to send to ChatGPT, Claude, Copilot, Gemini, Grok, DeepSeek or Perplexity, and if there is an IBAN,
+      a tax code, a payment card or a person's name in it, <strong class="hl">it takes the datum out of the
+      box before the message leaves</strong>. The first send never goes through, not even when the fix
+      worked: you read what changed, then press again.
+    </p>
+    <p>
+      Same engine as Mr. Rao, same promise: everything local, no network call — not even to us — and a
+      single permission, to remember your settings.
+    </p>
+    <div class="plus-actions">
+      <a class="btn btn-primary" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">
+        Microsoft Edge
+      </a>
+      <span class="btn btn-ghost btn-soon" aria-disabled="true">
+        Google Chrome <span class="soon">coming soon</span>
+      </span>
+      <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/blob/main/docs/MR-RAO-PLUS.md" target="_blank" rel="noopener noreferrer">
+        How it works, in full
+      </a>
+    </div>
+    <p class="dl-note">
+      Attachments are not inspected: the extension works on the text you type. It says so on the store
+      listing too — a declared limit is worth more than a wide promise.
+    </p>
+  </section>
+
   <section class="finale">
     <h2>Download. Extract. Stay offline.</h2>
     <p>
@@ -983,7 +1028,7 @@
   </section>
 
   <section class="block" id="contact">
-    <p class="sec-label">// 06 · direct line</p>
+    <p class="sec-label">// 07 · direct line</p>
     <h2>Reports, ideas, pieces that do not add up.</h2>
     <p class="intro">
       Written and maintained by Antonio Andrea Rao. Send an email or reach me on LinkedIn:
