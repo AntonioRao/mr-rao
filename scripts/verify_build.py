@@ -266,6 +266,13 @@ def main(argv: list[str]) -> int:
         "MR_RAO_PORT": str(porta),
         "MR_RAO_TRAY": "0",
         "MR_RAO_OPEN_BROWSER": "0",
+        # **E la finestra spenta.** Senza, ogni verifica apriva una finestra
+        # sullo schermo di chi costruisce, e — peggio — ne lasciava dietro il
+        # processo: al build successivo la cartella `dist` risultava occupata,
+        # la copia falliva a meta', e il pacchetto veniva respinto per un
+        # motivo che non c'entrava niente con il pacchetto. Qui serve il
+        # server, non l'interfaccia.
+        "MR_RAO_FINESTRA": "0",
     }
     print(f"avvio  {exe.name} sulla porta {porta}")
     proc = subprocess.Popen(
