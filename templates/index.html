@@ -240,11 +240,15 @@
                     <details id="segnala-panel" class="field">
                         <summary data-tip="{{ t('tip_segnala') }}">{{ t('gruppo_segnala') }}</summary>
                         <span class="field-hint">{{ t('hint_segnala') }}</span>
-                        {% for c in categorie %}
+                        {# `nome` e non `c`: la casella mostra il nome della
+                           categoria, non l'identificatore con cui il codice
+                           parla a se stesso. `value` resta l'identificatore,
+                           perche' e' quello che il motore riceve. #}
+                        {% for c, nome in categorie %}
                         <label class="opt">
                             <input type="checkbox" class="privacy-segnala" value="{{ c }}"
                                    id="privacy-segnala-{{ c }}">
-                            <span class="opt-text"><span class="opt-title">{{ c }}</span></span>
+                            <span class="opt-text"><span class="opt-title">{{ nome }}</span></span>
                         </label>
                         {% endfor %}
                     </details>

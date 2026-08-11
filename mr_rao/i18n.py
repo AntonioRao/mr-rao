@@ -405,9 +405,17 @@ TESTI: dict[str, dict[str, str]] = {
     # Riscritto: quali codici vengano cercati dipende dai pacchetti accesi
     # sopra. L'elenco italiano da solo sarebbe incompleto in inglese.
     "tip_fiscal": {
+        # L'elenco dei codici esteri c'era solo in inglese. Questo
+        # interruttore ne governa **quattordici** su ventiquattro
+        # categorie: chi lo spegneva pensando di togliere quattro cose ne
+        # toglieva quattordici, e la descrizione non gliel'aveva detto.
         "it": "Gli IBAN sono verificati col calcolo di controllo e le carte di "
               "pagamento con quello di Luhn, così un codice a caso non viene "
-              "scambiato per un conto corrente.",
+              "scambiato per un conto corrente. Quali codici si cercano "
+              "dipende dai pacchetti qui sopra: codice fiscale, partita IVA e "
+              "coordinate ABI/CAB da quello italiano; SSN, ITIN, NINO, numero "
+              "NHS, SIN, routing bancario, ABN, TFN e la riga a lettura "
+              "automatica dei passaporti da quello inglese.",
         "en": "IBANs are checked with their check digits and payment cards with "
               "the Luhn calculation, so a stray code is not mistaken for an "
               "account. Which codes are looked for depends on the packs above: "
@@ -418,8 +426,10 @@ TESTI: dict[str, dict[str, str]] = {
         "it": "Codici fiscali e bancari", "en": "Tax and bank codes",
     },
     "opt_fiscal_desc": {
-        "it": "Codice fiscale, P.IVA, IBAN, carte",
-        "en": "Codice fiscale, VAT no., IBAN, cards",
+        # «e i codici esteri» non è un dettaglio: senza, la riga elenca
+        # quattro categorie su quattordici e sembra completa.
+        "it": "Codice fiscale, P.IVA, IBAN, carte e i codici esteri",
+        "en": "Codice fiscale, VAT no., IBAN, cards and the foreign codes",
     },
     "tip_secrets": {
         "it": "Chiavi API, token, password scritte accanto alla loro etichetta e "
@@ -1391,7 +1401,71 @@ TESTI: dict[str, dict[str, str]] = {
     "watch_msg_errore": {
         "it": "errore durante il monitoraggio", "en": "error while watching",
     },
+
+    # -- i nomi delle categorie, per il pannello «rilevato ma non sostituito»
+    #
+    # Le ventiquattro caselle mostravano l'**identificatore grezzo**: chi le
+    # leggeva trovava `bban`, `mrz`, `itin`, `routing_number`, `tfn`. Sono i
+    # nomi che il codice usa per parlare a se stesso, non a chi decide cosa
+    # lasciare in chiaro in un documento.
+    #
+    # Quindici categorie non avevano un'etichetta perche' stanno tutte sotto
+    # un interruttore solo (`fiscal`): fino a quando la scelta era «tutti o
+    # nessuno» nessuno aveva avuto bisogno di nominarle una per una.
+    #
+    # Dove un'etichetta esiste gia' (`opt_emails_titolo` e le altre otto) si
+    # riusa quella: due nomi diversi per la stessa cosa, nella stessa
+    # pagina, sono un modo di confondere piu' economico di non tradurre.
+    "cat_codice_fiscale": {"it": "Codice fiscale", "en": "Codice fiscale"},
+    "cat_partita_iva": {"it": "Partita IVA", "en": "VAT number"},
+    "cat_iban": {"it": "IBAN", "en": "IBAN"},
+    "cat_bban": {"it": "Coordinate ABI/CAB", "en": "ABI/CAB bank details"},
+    "cat_cards": {"it": "Carte di pagamento", "en": "Payment cards"},
+    "cat_mrz": {
+        "it": "Riga a lettura automatica dei passaporti",
+        "en": "Passport machine-readable zone",
+    },
+    "cat_ssn": {"it": "SSN (Stati Uniti)", "en": "SSN (United States)"},
+    "cat_itin": {"it": "ITIN (Stati Uniti)", "en": "ITIN (United States)"},
+    "cat_nino": {
+        "it": "National Insurance number (Regno Unito)",
+        "en": "National Insurance number (UK)",
+    },
+    "cat_nhs_number": {
+        "it": "Numero NHS (Regno Unito)", "en": "NHS number (UK)",
+    },
+    "cat_sin": {"it": "SIN (Canada)", "en": "SIN (Canada)"},
+    "cat_routing_number": {
+        "it": "Routing bancario ABA (Stati Uniti)",
+        "en": "ABA routing number (United States)",
+    },
+    "cat_abn": {"it": "ABN (Australia)", "en": "ABN (Australia)"},
+    "cat_tfn": {"it": "TFN (Australia)", "en": "TFN (Australia)"},
+    "cat_termini": {"it": "Termini protetti", "en": "Protected terms"},
 }
+
+#: Le categorie che nel pannello «rilevato ma non sostituito» non hanno
+#: senso.
+#:
+#: `termini` non e' un dato riconosciuto dal motore: e' la lista di parole
+#: che **l'utente stesso** ha chiesto di proteggere. Chiedere di segnalarle
+#: invece di sostituirle vuol dire chiedere al programma di disobbedire a
+#: una richiesta esplicita, e non c'e' un caso in cui serva: chi non vuole
+#: che una parola sia sostituita non la mette nell'elenco.
+CATEGORIE_NON_SEGNALABILI = frozenset({"termini"})
+
+
+def etichetta_categoria(categoria: str, lingua: str = LINGUA_PREDEFINITA) -> str:
+    """Il nome leggibile di una categoria.
+
+    Preferisce l'etichetta dell'interruttore, quando esiste: `emails` si
+    chiama «Email» in due punti della stessa pagina, e chiamarla in due modi
+    diversi costerebbe piu' confusione di quanta ne tolga.
+    """
+    for chiave in (f"opt_{categoria}_titolo", f"cat_{categoria}"):
+        if chiave in TESTI:
+            return TESTI[chiave].get(lingua, TESTI[chiave][LINGUA_PREDEFINITA])
+    return categoria
 
 
 def t(chiave: str, lingua: str = LINGUA_PREDEFINITA, **campi) -> str:

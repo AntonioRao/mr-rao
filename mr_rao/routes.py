@@ -225,7 +225,7 @@ def _validate_filename(
 
 @bp.route("/")
 def index():
-    from mr_rao.i18n import TESTI
+    from mr_rao.i18n import CATEGORIE_NON_SEGNALABILI, TESTI, etichetta_categoria
 
     # La stessa funzione che decide la lingua delle risposte JSON e del
     # testo dentro i documenti: se qui si scegliesse diversamente, si
@@ -252,7 +252,22 @@ def index():
             # arrivano dal motore, non da un elenco copiato nel template:
             # una categoria nuova compare nel pannello il giorno che nasce,
             # invece di restare irraggiungibile dall'interfaccia in silenzio.
-            categorie=CATEGORIE,
+            #
+            # Coppie `(identificatore, nome leggibile)`: il primo e' quello
+            # che il motore riceve, il secondo quello che l'utente legge.
+            # Prima il pannello mostrava `bban`, `mrz`, `routing_number` --
+            # i nomi con cui il codice parla a se stesso.
+            #
+            # `termini` resta fuori: non e' un dato riconosciuto dal motore,
+            # e' la lista di parole che l'utente **stesso** ha chiesto di
+            # proteggere, e chiedere di segnalarle invece di sostituirle
+            # vuol dire chiedere al programma di disobbedire a una richiesta
+            # esplicita.
+            categorie=[
+                (c, etichetta_categoria(c, lingua))
+                for c in CATEGORIE
+                if c not in CATEGORIE_NON_SEGNALABILI
+            ],
         )
     )
     if request.args.get("lang"):

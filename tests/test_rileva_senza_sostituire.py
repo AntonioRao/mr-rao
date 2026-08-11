@@ -261,6 +261,14 @@ def test_arriva_dal_json_dell_api():
     assert opzioni.segnala == ("iban",)
 
 
+def _pagina() -> str:
+    from mr_rao.app_factory import create_app
+
+    app = create_app()
+    app.config['TESTING'] = True
+    return app.test_client().get('/', base_url='http://127.0.0.1:5000').get_data(as_text=True)
+
+
 def test_la_pagina_mostra_una_casella_per_ogni_categoria():
     """Il motore le accetta tutte, l'interfaccia deve offrirle tutte.
 
@@ -269,15 +277,56 @@ def test_la_pagina_mostra_una_casella_per_ogni_categoria():
     e' cio' che impedisce di tornare all'elenco copiato senza accorgersene —
     una voce che manca nel pannello non e' visibile da nessuna parte, e chi
     la cerca conclude che la funzione non ce l'ha.
-    """
-    from mr_rao.app_factory import create_app
 
-    app = create_app()
-    app.config["TESTING"] = True
-    pagina = app.test_client().get("/", base_url="http://127.0.0.1:5000").get_data(as_text=True)
+    **Le esclusioni sono dichiarate, non implicite.** `termini` non e' un
+    dato riconosciuto dal motore: e' la lista di parole che l'utente stesso
+    ha chiesto di proteggere, e chiedere di segnalarle invece di
+    sostituirle vuol dire chiedere al programma di disobbedire. Sta in
+    `CATEGORIE_NON_SEGNALABILI`, e il test pretende che quell'insieme resti
+    piccolo: un'esclusione per volta si argomenta, venti sarebbero il modo
+    di far sparire il pannello senza che nessuno se ne accorga.
+    """
+    from mr_rao.i18n import CATEGORIE_NON_SEGNALABILI
+
+    pagina = _pagina()
     assert 'id="segnala-panel"' in pagina
     for c in CATEGORIE:
-        assert f'id="privacy-segnala-{c}"' in pagina, c
+        atteso = c not in CATEGORIE_NON_SEGNALABILI
+        c_e = f'id="privacy-segnala-{c}"' in pagina
+        assert c_e is atteso, (
+            f"{c}: nel pannello={c_e}, atteso={atteso}. Se l'esclusione e' "
+            "voluta va dichiarata in CATEGORIE_NON_SEGNALABILI, col perche'."
+        )
+    assert len(CATEGORIE_NON_SEGNALABILI) <= 2, sorted(CATEGORIE_NON_SEGNALABILI)
+
+
+def test_le_caselle_hanno_un_nome_leggibile():
+    """`bban`, `mrz`, `routing_number` sono i nomi con cui il codice parla a
+    se stesso.
+
+    Il pannello li mostrava cosi'. Non e' un difetto che rompe qualcosa: e'
+    un pannello che chiede una decisione a chi non ha gli elementi per
+    prenderla — che in un programma sulla riservatezza e' peggio di un
+    errore, perche' non si vede.
+
+    Guarda **tutt'e due** le lingue: un'etichetta tradotta a meta' si nota
+    solo cambiando lingua, cioe' quasi mai.
+    """
+    from mr_rao.i18n import CATEGORIE_NON_SEGNALABILI, etichetta_categoria
+
+    pagina = _pagina()
+    grezzi = []
+    for c in CATEGORIE:
+        if c in CATEGORIE_NON_SEGNALABILI:
+            continue
+        assert etichetta_categoria(c, "it") != c, (
+            f"{c} non ha un'etichetta italiana: aggiungi `cat_{c}` in i18n"
+        )
+        assert etichetta_categoria(c, "en") != c, f"{c} non ha l'etichetta inglese"
+        # `>opt-title">bban<` sarebbe l'identificatore stampato tale e quale.
+        if f'"opt-title">{c}<' in pagina:
+            grezzi.append(c)
+    assert not grezzi, f"nel pannello compaiono ancora gli identificatori: {grezzi}"
 
 
 def test_ogni_categoria_e_accettata():
