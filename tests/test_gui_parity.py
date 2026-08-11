@@ -190,6 +190,54 @@ def test_spegnere_un_pacchetto_conta_anche_col_profilo(client):
     assert "{{SSN" not in spento, spento[-200:]
 
 
+def test_eta_e_sesso_arrivano_fino_allo_schermo():
+    """Il terzo conto: trovato, lasciato dov'era, **e detto**.
+
+    Età e sesso non si tolgono mai, per scelta. La frase che regge quella
+    scelta è «lasciate in chiaro 3 età, apposta»: se il programma le trova e
+    non lo dice, la scelta diventa indistinguibile dal non averle viste.
+
+    Il server le mandava da sempre in `detected_counts`. La pagina non le
+    leggeva: zero occorrenze di `detected` in tutto `app.js`. È la stessa
+    forma degli altri difetti di questo file — un pezzo di motore che
+    dall'interfaccia non esiste — solo che qui mancava l'ultimo tratto.
+
+    Due metà, perché ha due modi di rompersi: il server smette di mandarle,
+    oppure la pagina smette di leggerle.
+    """
+    from pathlib import Path
+
+    app = create_app()
+    app.config["TESTING"] = True
+    cliente = app.test_client()
+
+    # Etichette esplicite: i due riconoscitori le pretendono apposta — «45»
+    # da solo è un numero, ed è la ragione per cui non producono rumore.
+    testo = "Paziente. Età: 45. Sesso: M.".encode()
+    campi = {"file": (io.BytesIO(testo), "cartella.txt")}
+    r = cliente.post("/api/convert/sync", data=campi,
+                     content_type="multipart/form-data",
+                     base_url=BASE, headers={"Origin": BASE})
+    rapporto = (r.get_json() or {}).get("redaction") or {}
+    conti = rapporto.get("detected_counts") or {}
+    assert conti.get("eta") == 1, rapporto
+    assert conti.get("genere") == 1, rapporto
+    assert "45" in (r.get_json() or {}).get("markdown", ""), "non si tolgono mai"
+
+    js = (Path(__file__).resolve().parents[1] / "static" / "js" / "app.js") \
+        .read_text(encoding="utf-8")
+    assert "detected_counts" in js, "il server lo manda e la pagina non lo legge"
+    assert "detected_total" in js, "il server lo manda e la pagina non lo legge"
+
+    # E i nomi leggibili devono esserci per ogni categoria che può comparire
+    # lì dentro, altrimenti nel riquadro si legge `eta` e `genere` — cioè il
+    # codice che parla a se stesso.
+    from mr_rao.i18n import TESTI
+
+    for categoria in ("eta", "genere"):
+        assert f"cat_{categoria}" in TESTI, categoria
+
+
 def test_lo_stile_conta_anche_col_profilo():
     """«Lettera o modulo» cambia il segno di diverse regole.
 

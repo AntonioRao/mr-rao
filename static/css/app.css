@@ -1005,6 +1005,14 @@ textarea:focus,
   font-weight: 700;
 }
 
+/* «Trovato e lasciato dov'era, apposta». Non ha il peso dei sospetti --
+   niente grassetto, niente alone sul riquadro -- perche' non chiede di fare
+   niente: informa. Il ciano lo tiene distinto tanto dal verde del lavoro
+   finito quanto dall'ambra di cio' che va guardato. */
+.badge-rilevati {
+  color: var(--cyan);
+}
+
 .badge.ha-sospetti {
   background: rgba(240, 180, 41, 0.1);
   color: var(--text-2);

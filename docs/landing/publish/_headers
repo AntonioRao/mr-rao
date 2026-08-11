@@ -12,7 +12,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-OpCOmX4n5HoySPGEs5bvT8DVv82GJBjdwhTv2flhtYQ=' 'sha256-6aZvgQjbfSZ4rk6yVU+NWFNC9f63iTrGQd5+IRf+FMQ='; style-src 'self' 'sha256-yRgfC1uxC0ZcR93R7lqEuxMNh1y+/0c0U1AgBR1LVUU=' 'sha256-4jE5s/hjHi+vOa8iHkgWeNug2J2FJy9SO9KjGtszIzk='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-OpCOmX4n5HoySPGEs5bvT8DVv82GJBjdwhTv2flhtYQ=' 'sha256-6aZvgQjbfSZ4rk6yVU+NWFNC9f63iTrGQd5+IRf+FMQ='; style-src 'self' 'sha256-5/yEX1snMnZT4W6CyfQalETr6nKA1Zp+btOrVju0XcU=' 'sha256-szeabu5rttK2ib2IZwyfdW406sSER+6GuM+F6ITso1k='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable

@@ -3166,6 +3166,22 @@ def _scrub_en_ssn(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
     """
     def _sub(m: re.Match) -> str:
         raw = m.group(1)
+        # `Tel. 078-05-1120` e `Fax: 090-12-3456` sono numeri italiani, non
+        # SSN: la forma 3-2-4 e' identica, e l'unica cosa che separa i due
+        # casi e' l'etichetta che li precede. Senza questa riga un notaio
+        # italiano -- che il pacchetto inglese ce l'ha acceso di serie -- si
+        # vedeva contare come «SSN» il centralino dello studio. Il dato
+        # spariva comunque, ma il rapporto diceva il falso sulla tipologia, e
+        # un rapporto che sbaglia il tipo non serve a rispondere a chi chiede
+        # *cosa* c'era nel file.
+        #
+        # Qui si lascia stare, non si sostituisce: il passo dei telefoni gira
+        # dopo e quel numero lo prende lo stesso. Non e' una speranza, e' la
+        # riga che regge la correzione — se smettesse di prenderlo, il numero
+        # resterebbe in chiaro. Provato nei due versi in
+        # `tests/test_ssn_non_e_un_telefono.py`.
+        if _RE_PHONE_CTX.search(_context_before(m.string, m.start(), 40)):
+            return raw
         if itin_ok(raw):
             return report.segnaposto("itin", "{{ITIN}}", raw)
         if ssn_ok(raw):

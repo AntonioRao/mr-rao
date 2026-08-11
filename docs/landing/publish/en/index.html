@@ -392,45 +392,13 @@
     margin: 0;
   }
   .dl-note.warn { color: var(--amber); }
-  /* The Store button is here already but leads nowhere until certification
-     passes: it is a <span>, not an <a>, so there is no dead link to
-     click. */
-  /* Label on top, band below -- not across the middle: a band through the
-     centre would cover the words «Microsoft Store», which is the one thing
-     that button has to say. */
-  /* L'altezza minima sta sul pulsante, non sulla griglia: in alto, nel
-     blocco d'apertura, i pulsanti sono piu' bassi e la fascia diagonale
-     finirebbe sopra la scritta «Microsoft Store». */
+  /* There used to be a «coming soon» Store button here: a <span> and not an
+     <a>, because until certification passed there was to be no dead link to
+     click. Certification passed on 11 August 2026, and that button is now a
+     link like any other -- in fact the primary one: it is the only route
+     that does not raise Windows' unknown-publisher warning, which is
+     precisely the moment a privacy tool loses the person installing it. */
   .hero-actions .btn { min-height: 3.2rem; }
-  .btn-soon {
-    min-height: 3.2rem;
-    position: relative;
-    overflow: hidden;
-    border: 1px dashed var(--line);
-    color: var(--fog);
-    background: rgba(10,16,12,0.4);
-    cursor: default;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 0;
-    padding-top: 0.7rem;
-  }
-  .btn-soon-label { position: relative; z-index: 1; }
-  .btn-soon-band {
-    position: absolute;
-    left: -18%;
-    right: -18%;
-    bottom: 0.3rem;
-    transform: rotate(-7deg);
-    padding: 0.2rem 0;
-    text-align: center;
-    font-size: 9px;
-    letter-spacing: 0.22em;
-    color: var(--phosphor);
-    background: rgba(61,255,154,0.16);
-    border-top: 1px solid rgba(61,255,154,0.45);
-    border-bottom: 1px solid rgba(61,255,154,0.45);
-  }
   .meta-row {
     margin-top: 2.5rem;
     display: flex;
@@ -807,7 +775,7 @@
           <img class="wm-logo" src="/assets/logo.svg?v=bdb291803a" alt="" width="512" height="512" />
           <span>Mr<span class="dot">.</span>Rao</span>
         </span>
-        <span class="ver">offline by design · v1.23.0</span>
+        <span class="ver">offline by design · v1.24.0</span>
       </p>
       <h1>
         <span class="line-reveal"><span>The contract</span></span>
@@ -821,13 +789,15 @@
         No network calls. Arithmetic, not promises.
       </p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">
+          Microsoft Store
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">
           ↓ Installer .exe
         </a>
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">
           ↓ Portable Windows
         </a>
-        <span class="btn btn-soon" aria-disabled="true"><span class="btn-soon-label">Microsoft Store</span><span class="btn-soon-band">coming soon</span></span>
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">Read the code</a>
       </div>
       <div class="meta-row">
@@ -994,7 +964,11 @@
     </p>
     <div class="dl-grid">
       <div class="dl-card">
-        <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">↓ Installer .exe</a>
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">Microsoft Store</a>
+        <p class="dl-note">One click, no warning: the Store signs the package, and updates arrive on their own.</p>
+      </div>
+      <div class="dl-card">
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">↓ Installer .exe</a>
         <p class="dl-note warn">Double-click and done. Windows will say “unknown publisher”: the package is not signed.</p>
       </div>
       <div class="dl-card">
@@ -1002,12 +976,8 @@
         <p class="dl-note">No installation. Runs from a USB stick, with its data next to the program.</p>
       </div>
       <div class="dl-card">
-        <span class="btn btn-soon" aria-disabled="true"><span class="btn-soon-label">Microsoft Store</span><span class="btn-soon-band">coming soon</span></span>
-        <p class="dl-note">One click and no warning: Microsoft signs it. In certification.</p>
-      </div>
-      <div class="dl-card">
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">↗ GitHub</a>
-        <p class="dl-note">The code, the 1956 tests, and a provenance attestation for every file.</p>
+        <p class="dl-note">The code, the 1981 tests, and a provenance attestation for every file.</p>
       </div>
     </div>
   </section>

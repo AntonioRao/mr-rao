@@ -815,6 +815,15 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         esito.pagine = len(pdf.pages)
         for numero, pagina in enumerate(pdf.pages):
             testo_estratto = per_pagina[numero] if numero < len(per_pagina) else ""
+
+            # Prima del flusso, perche' non dipende dal flusso: una pagina
+            # senza una riga di testo puo' avere un campo modulo pieno.
+            esito.valori_da_togliere += _redigi_annotazioni(pdf, pagina, opzioni)
+
+            if not testo_estratto.strip() and _pagina_e_una_scansione(pagina):
+                _ripiego(esito, numero, "nessun testo estraibile: pagina scansionata")
+                continue
+
             tratti_estratti = intervalli_da_togliere(testo_estratto, opzioni)
             valori = [(testo_estratto[a:b], s) for a, b, s in tratti_estratti]
             if not valori:
@@ -934,6 +943,115 @@ def _ripiego(esito: EsitoRedazione, pagina: int, motivo: str) -> None:
     esito.motivi_ripiego.append(motivo)
 
 
+#: Le chiavi di testo di un'annotazione. `/Contents` e' la nota che si apre
+#: cliccandola, `/RC` la sua versione formattata, `/V` il valore di un campo
+#: modulo. Sono **stringhe**, non flussi di contenuto: non passano dalla
+#: chirurgia dei glifi, ed e' il motivo per cui restavano intere.
+_CHIAVI_TESTO_ANNOTAZIONE = ("/Contents", "/RC", "/V")
+
+
+def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
+    """Toglie i dati dalle annotazioni e dai campi modulo di una pagina.
+
+    Il testo di una nota gialla e il valore di un campo compilato **non
+    stanno nel flusso della pagina**: stanno in stringhe appese
+    all'annotazione. La chirurgia sui glifi non li vedeva, il conteggio non
+    li contava, e il file usciva chiamandosi `-redatto.pdf` con dentro un
+    codice fiscale leggibile in chiaro aprendo il PDF con un editor di testo.
+
+    Era un limite dichiarato — nel docstring di questo modulo. Finche' la
+    redazione si faceva da riga di comando poteva bastare; da quando c'e' un
+    pulsante nell'interfaccia non basta piu', perche' li' l'unica frase che
+    si legge e' «Tutte le pagine sono state trattate».
+
+    Due mosse, e la seconda e' quella che rende vera la prima:
+
+    1. la stringa si redige come qualunque altro testo;
+    2. **l'aspetto memorizzato si butta via.** Un campo modulo porta con se'
+       un disegno gia' pronto di come si vede (`/AP`): cambiare il valore
+       senza toccarlo lascerebbe sullo schermo il nome di prima, con il
+       valore nuovo nascosto sotto. Tolto quello, chi apre il file lo
+       ridisegna dal valore redatto — e i lettori che non lo ridisegnano
+       mostrano un campo vuoto, che e' l'errore dalla parte giusta.
+    """
+    annotazioni = pagina.get("/Annots")
+    if annotazioni is None or not isinstance(annotazioni, pikepdf.Array):
+        return 0
+
+    tolti = 0
+    rigenerare = False
+    for annotazione in annotazioni:
+        # Un PDF malformato puo' avere qualunque cosa qui dentro. Si salta
+        # invece di fermarsi: una voce storta non deve far uscire il
+        # documento **non** redatto, che sarebbe l'errore dalla parte
+        # sbagliata.
+        if not isinstance(annotazione, pikepdf.Dictionary):
+            continue
+
+        # Il valore puo' stare sul campo padre invece che sul widget: sono lo
+        # stesso dato scritto in due posti, e guardarne uno solo vuol dire
+        # ripulire quello sbagliato.
+        oggetti = [annotazione]
+        genitore = annotazione.get("/Parent")
+        if isinstance(genitore, pikepdf.Dictionary):
+            oggetti.append(genitore)
+
+        toccata = False
+        for oggetto in oggetti:
+            for chiave in _CHIAVI_TESTO_ANNOTAZIONE:
+                valore = oggetto.get(chiave)
+                if valore is None or not isinstance(valore, pikepdf.String):
+                    continue
+                testo = str(valore)
+                if not testo.strip():
+                    continue
+                redatto, rapporto = apply_privacy_filter(testo, opzioni)
+                if rapporto.total == 0:
+                    continue
+                oggetto[chiave] = pikepdf.String(redatto)
+                tolti += rapporto.total
+                toccata = True
+
+        if toccata:
+            if "/AP" in annotazione:
+                del annotazione["/AP"]
+            rigenerare = True
+
+    if rigenerare:
+        modulo = pdf.Root.get("/AcroForm")
+        if modulo is not None:
+            modulo["/NeedAppearances"] = True
+    return tolti
+
+
+def _pagina_e_una_scansione(pagina) -> bool:
+    """Pagina senza testo: e' una scansione o e' bianca?
+
+    La differenza conta, perche' le due meritano risposte opposte. Una pagina
+    bianca non ha niente da togliere e va bene cosi'. Una pagina scansionata
+    dentro un documento digitale **non e' stata redatta**, e finora usciva
+    contata fra quelle trattate: stessa strada nel codice, `continue`.
+
+    Il rifiuto esplicito delle scansioni guardava il documento intero, quindi
+    scattava solo se *tutte* le pagine erano immagini. Una scansione infilata
+    in mezzo a pagine digitali — il caso di ogni allegato firmato a mano —
+    non lo faceva scattare.
+
+    Si distinguono per la presenza di un'immagine, che e' il motivo per cui
+    non c'e' testo.
+    """
+    risorse = pagina.get("/Resources")
+    if risorse is None:
+        return False
+    xobject = risorse.get("/XObject")
+    if xobject is None:
+        return False
+    return any(
+        oggetto.get("/Subtype") == pikepdf.Name("/Image")
+        for oggetto in xobject.values()
+    )
+
+
 def valore_ancora_presente(valore: str, testo: str) -> bool:
     """Il valore compare ancora, **come parola intera**?
 
@@ -949,6 +1067,33 @@ def valore_ancora_presente(valore: str, testo: str) -> bool:
         return False
     modello = r"(?<!\w)" + r"\s*".join(re.escape(c) for c in caratteri) + r"(?!\w)"
     return re.search(modello, testo) is not None
+
+
+def _annotazioni_per_pagina(sorgente: Path) -> list[str]:
+    """Il testo delle note e dei campi modulo, una riga per pagina.
+
+    Gemello di `testo_per_pagina` per la meta' del documento che non sta nel
+    flusso. Se il file non si apre torna righe vuote invece di sollevare: la
+    verifica deve poter dire «non ho trovato niente», non morire.
+    """
+    try:
+        with pikepdf.open(str(sorgente)) as pdf:
+            righe = []
+            for pagina in pdf.pages:
+                annotazioni = pagina.get("/Annots")
+                pezzi: list[str] = []
+                if isinstance(annotazioni, pikepdf.Array):
+                    for annotazione in annotazioni:
+                        if not isinstance(annotazione, pikepdf.Dictionary):
+                            continue
+                        for chiave in _CHIAVI_TESTO_ANNOTAZIONE:
+                            valore = annotazione.get(chiave)
+                            if isinstance(valore, pikepdf.String):
+                                pezzi.append(str(valore))
+                righe.append("\n".join(pezzi))
+            return righe
+    except Exception:
+        return []
 
 
 def verifica_redazione(sorgente: Path, destinazione: Path,
@@ -976,8 +1121,23 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
     meta', uscendo verde senza guardare niente.
     """
     opzioni = opzioni or PrivacyOptions()
-    prima = testo_per_pagina(sorgente)
-    dopo = testo_per_pagina(destinazione)
+    # Il testo della pagina **e** quello delle annotazioni, che sta altrove e
+    # per questo era invisibile: `testo_per_pagina` legge il flusso, e una
+    # verifica che guarda solo li' non puo' dire di no su una nota o su un
+    # campo modulo. E' la classe di difetto che questa riga esiste per far
+    # fallire, non per far passare.
+    #
+    # Non `zip`: `zip` si ferma alla lista piu' corta, quindi se le
+    # annotazioni non si leggessero la verifica si ridurrebbe a zero pagine
+    # e uscirebbe verde senza aver guardato niente.
+    def _unite(percorso: Path) -> list[str]:
+        flusso = testo_per_pagina(percorso)
+        note = _annotazioni_per_pagina(percorso)
+        return [t + "\n" + (note[i] if i < len(note) else "")
+                for i, t in enumerate(flusso)]
+
+    prima = _unite(sorgente)
+    dopo = _unite(destinazione)
 
     dichiarati = individuati = 0
     rimasti: list[str] = []

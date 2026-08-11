@@ -1,5 +1,132 @@
 # Changelog
 
+## 1.24.0 — Il testo che non stava nel flusso, e tre volte «il dato spariva ma il rapporto mentiva»
+
+Nessuna funzione nuova. Sei difetti, e cinque sono della stessa famiglia: il
+programma faceva la cosa giusta e **raccontava un'altra cosa**. In un
+programma sulla riservatezza è una famiglia che conta, perché chi consegna un
+documento consegna anche quel racconto.
+
+### Il PDF redatto conteneva ancora i dati delle note e dei campi modulo
+
+Il testo di una nota gialla e il valore di un campo compilato **non stanno nel
+flusso della pagina**: stanno in stringhe appese all'annotazione. La chirurgia
+sui glifi — che era tutto quello che il modulo faceva — non ci arrivava. Il
+file usciva chiamandosi `-redatto.pdf` con dentro un codice fiscale
+**leggibile aprendolo con un editor di testo**, e il pannello diceva «Tutte le
+pagine sono state trattate».
+
+Era un limite dichiarato nel modulo, e finché la redazione si faceva da riga di
+comando poteva bastare. Da quando c'è un pulsante nell'interfaccia non basta
+più: lì l'unica frase che si legge è quella.
+
+Ora la stringa si redige, e insieme si butta via **il disegno già pronto di
+come il campo si vede** (`/AP`). È la metà che rende vera l'altra: il dato è
+nel file due volte, e ripulirne una sola produce un documento che sembra
+redatto e non lo è — la forma peggiore, perché passa qualunque controllo fatto
+sul valore. I lettori che non ridisegnano il campo mostrano un campo vuoto, che
+è l'errore dalla parte giusta.
+
+Un modulo che non contiene dati personali non viene toccato: senza quella
+condizione, ogni documento compilato sarebbe uscito visivamente vuoto anche
+quando non c'era niente da nascondere.
+
+### Una scansione in mezzo a pagine digitali usciva contata fra quelle trattate
+
+Il rifiuto delle scansioni guardava il **documento**, non la pagina: scattava
+solo se *tutte* le pagine erano immagini. Un PDF digitale con dentro un
+allegato firmato a mano — cioè l'atto normale — prendeva la stessa strada di
+una pagina senza niente da togliere.
+
+Adesso quella pagina finisce dichiarata fra le non trattate, col motivo scritto.
+Una pagina **bianca** invece resta silenziosa: chiamarla «non trattata» sarebbe
+vero alla lettera e falso nel senso, e un allarme che si impara a ignorare è
+peggio di nessun allarme.
+
+### Le lettere in Word erano trattate come moduli
+
+`.docx` e `.doc` non erano nell'elenco delle estensioni che sono prosa per
+definizione, e chi resta fuori da quell'elenco si comporta come un modulo:
+pretende **due riscontri invece di uno** prima di sostituire un nome. Cioè nomi
+lasciati in chiaro nel formato in cui si scrivono le lettere.
+
+Misurato sul corpus: **sei casi perdevano un nome** solo per essere arrivati in
+`.docx` invece che in `.txt`, con dentro lo stesso identico testo. Che fosse una
+dimenticanza e non una scelta lo diceva l'elenco stesso — `.rtf` c'era, `.pptx`
+c'era, `.md` c'era.
+
+### Un numero di telefono italiano veniva contato come SSN americano
+
+`Tel. 078-05-1120` è un numero di Oristano e ha la stessa forma 3-2-4 di un
+SSN. Il pacchetto inglese è acceso di serie, quindi il caso capitava sulla carta
+intestata di chiunque, con le impostazioni di serie: il numero spariva —
+riservatezza mai in gioco — ma il rapporto lo contava fra gli SSN.
+
+L'unica cosa che distingue i due casi è l'etichetta davanti, e adesso il
+riconoscitore la guarda: il candidato resta a chi viene dopo, e il passo dei
+telefoni se lo prende. Senza quel passaggio di mano il numero resterebbe in
+chiaro, che è molto peggio del difetto di partenza — e sono due test in due
+versi opposti a tenerlo fermo.
+
+Con il pacchetto inglese **spento** `SSN 078-05-1120` continua a diventare
+`{{PHONE}}`, ed è giusto così: è il nome più preciso che si possa dare con i
+riconoscitori che l'utente ha lasciato accesi, e l'alternativa sarebbe lasciarlo
+in chiaro.
+
+### L'esportazione in PDF ignorava il profilo scelto
+
+Le rotte del PDF leggevano il modulo con una funzione che il profilo non lo
+guarda. Chi convertiva con «Nessuna privacy» vedeva il Markdown intatto sullo
+schermo e scaricava un PDF redatto: due risposte diverse alla stessa domanda,
+nella stessa schermata, senza niente che lo dicesse.
+
+Il verso era quello prudente — redigeva **di più**, non di meno — quindi non ha
+mai perso un dato. Resta che il file consegnato non era quello visto. Ora la
+regola sta in un posto solo, e una rotta nuova non può sbagliarla per
+distrazione.
+
+### Età e sesso: trovati, lasciati apposta, e finalmente **detti**
+
+Non si tolgono mai, per scelta: chi lavora su una cartella clinica o su una
+statistica del personale sta chiedendo proprio quei due dati. La frase che
+regge quella scelta è «lasciate in chiaro 3 età, apposta» — e il programma le
+trovava, le scriveva nel frontmatter, e sullo schermo non lo diceva.
+
+Nel riquadro del risultato compare adesso un terzo conto, `👁 N in chiaro`,
+accanto alle redazioni e ai sospetti. In ciano e non in ambra: l'ambra chiede
+attenzione, e chiederla per un esito voluto insegna a ignorarla anche quando
+serve. Il suggerimento elenca le categorie coi nomi leggibili, non con gli
+identificatori del motore.
+
+Lo stesso conto serve al terzo stato «segnala invece di sostituire», che aveva
+lo stesso problema.
+
+### E una guardia, perché il sito non vada online bianco
+
+Le due pagine pubblicate hanno stile e codice scritti dentro la pagina, ammessi
+dalla CSP **per impronta**: basta cambiare uno spazio nel sorgente senza
+rilanciare il rigeneratore e il browser blocca tutto. Nessun errore, nessun
+log, e nessuno se ne accorge finché non ci passa qualcuno.
+
+Il rigeneratore era scritto con cura; il buco era che nessuno lo obbligava a
+girare. Adesso un test lo rilancia su una copia e pretende che non cambi
+niente — così coprendo in un colpo i tre modi di sbagliare, che sono tre e non
+uno: sorgente modificato e rigeneratore mai lanciato, pagina pubblicata
+modificata a mano, impronte rimaste indietro. Un test che si limitasse a
+ricalcolare gli hash dai file pubblicati direbbe «tutto a posto» in tutti e
+tre i casi.
+
+### E i documenti
+
+Un giro completo su tutta la documentazione ha trovato affermazioni diventate
+false col tempo: una pagina che prometteva a chi legge in inglese una
+protezione che il motore non dà più, un profilo offerto dall'interfaccia e
+tolto dodici release fa, funzioni descritte come esistenti che non esistono, e
+funzioni che esistono e nessuno descriveva. Il dettaglio sta nei documenti
+stessi.
+
+---
+
 ## 1.23.0 — Un PDF redatto che resta un PDF, una finestra sua, e il pacchetto «atti e pratiche»
 
 ### Un PDF entra, un PDF redatto esce

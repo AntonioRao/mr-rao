@@ -33,6 +33,21 @@
     return testo;
   }
 
+  /** Il nome leggibile di una categoria del motore.
+   *
+   * La chiave si compone qui e non dentro la chiamata, di proposito:
+   * componendola nell'argomento, il controllo statico delle chiavi in
+   * `tests/test_i18n.py` ci legge dentro il prefisso e chiede una stringa
+   * che non esiste. Che le chiavi vere ci siano tutte lo
+   * tengono fermo due test dal lato Python — uno per le categorie che si
+   * sostituiscono, uno per le due che si segnalano soltanto — che e' il
+   * posto giusto per controllarlo: li' l'elenco delle categorie e' quello
+   * del motore, non quello che la pagina si ricorda. */
+  function nomeCategoria(k) {
+    const chiave = "cat_" + k;
+    return t(chiave);
+  }
+
   /** Singolare e plurale, come `plurale()` in mr_rao/i18n.py.
    *  «1 redazioni» e' sbagliato in italiano quanto «1 redactions» in
    *  inglese, e la pagina lo scriveva in tre punti diversi. */
@@ -406,7 +421,13 @@
     if (els.redactionBadge) {
       const total = redaction && redaction.total ? redaction.total : 0;
       const sospetti = (redaction && redaction.suspects) || [];
-      if (total > 0 || sospetti.length > 0) {
+      // Il terzo conto. Il server lo manda da sempre (`detected_counts`), la
+      // pagina non lo leggeva: eta' e sesso venivano trovati, scritti nel
+      // frontmatter, e chi guardava lo schermo non lo sapeva. Una funzione
+      // che dalla pagina non si vede, per chi usa il programma non esiste.
+      const rilevati = (redaction && redaction.detected_counts) || {};
+      const nRilevati = (redaction && redaction.detected_total) || 0;
+      if (total > 0 || sospetti.length > 0 || nRilevati > 0) {
         els.redactionBadge.style.display = "inline-flex";
         // «1 redazioni» e «1 redactions» erano sbagliati entrambi: il numero
         // lo sceglie l'utente caricando il file, e capita spesso che sia 1.
@@ -426,12 +447,36 @@
           parte.textContent = " · ⚠️ " + plurale("sospetti", sospetti.length);
           els.redactionBadge.append(parte);
         }
+        if (nRilevati) {
+          // Non ambra: qui non c'e' niente da fare, e' una scelta gia'
+          // presa. L'ambra chiede attenzione, e chiederla per un esito
+          // voluto insegna a ignorarla anche quando serve.
+          const parte = document.createElement("span");
+          parte.className = "badge-rilevati";
+          parte.textContent = " · 👁 " + plurale("rilevati", nRilevati);
+          els.redactionBadge.append(parte);
+        }
         // I sospetti sono il motivo per cui questo riquadro esiste: "3
         // redazioni" da solo non distingue un documento pulito da un
         // documento che il riconoscitore non ha saputo leggere.
-        els.redactionBadge.title = sospetti.length
-          ? sospetti.map((s) => `${s.sample} — ${s.why}`).join("\n")
-          : JSON.stringify(redaction.counts || {});
+        const righe = [];
+        if (sospetti.length) {
+          righe.push(sospetti.map((s) => `${s.sample} — ${s.why}`).join("\n"));
+        } else if (total > 0) {
+          righe.push(JSON.stringify(redaction.counts || {}));
+        }
+        if (nRilevati) {
+          // I nomi leggibili, non gli identificatori del motore: chi legge
+          // «eta» e «genere» sta leggendo il codice che parla a se stesso.
+          righe.push(
+            t("rilevati_titolo") +
+              "\n" +
+              Object.keys(rilevati)
+                .map((k) => `  ${nomeCategoria(k)} × ${rilevati[k]}`)
+                .join("\n")
+          );
+        }
+        els.redactionBadge.title = righe.join("\n\n");
       } else {
         els.redactionBadge.style.display = "none";
       }

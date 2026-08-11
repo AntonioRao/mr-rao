@@ -292,7 +292,19 @@ def _frontmatter(
 
 # Estensioni che sono prosa per definizione: una mail, una lettera, una
 # presentazione. Non serve stimare niente.
-_ESTENSIONI_PROSA = frozenset({".eml", ".msg", ".txt", ".md", ".rtf", ".pptx", ".ppt"})
+#
+# `.docx` e `.doc` mancavano, ed erano l'omissione piu' cara dell'elenco: e'
+# il formato in cui si scrivono le lettere, cioe' il documento tipico di chi
+# usa questo programma. Chi non e' elencato qui finisce a `None`, e `None` si
+# comporta come «modulo»: pretende due riscontri invece di uno prima di
+# sostituire un nome. Misurato sul corpus, **sei casi perdevano un nome** solo
+# per essere arrivati in `.docx` invece che in `.txt`, con dentro lo stesso
+# identico testo. Che fosse una dimenticanza e non una scelta lo diceva
+# l'elenco stesso: `.rtf` c'era, `.pptx` c'era, `.md` c'era.
+_ESTENSIONI_PROSA = frozenset({
+    ".eml", ".msg", ".txt", ".md", ".rtf", ".pptx", ".ppt",
+    ".docx", ".doc", ".odt",
+})
 # Estensioni che sono quasi sempre tabelle e celle: la stima non si applica.
 _ESTENSIONI_MODULO = frozenset({".xlsx", ".xls", ".csv", ".json", ".xml"})
 

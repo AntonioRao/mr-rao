@@ -107,6 +107,16 @@ TESTI: dict[str, dict[str, str]] = {
     "redazioni_molte": {"it": "{n} redazioni", "en": "{n} redactions"},
     "sospetti_uno": {"it": "{n} da controllare", "en": "{n} to review"},
     "sospetti_molti": {"it": "{n} da controllare", "en": "{n} to review"},
+    # Il terzo conto: cio' che il motore ha trovato e ha lasciato dov'era,
+    # per scelta. Senza una riga che lo dica, «lasciate in chiaro 3 eta',
+    # apposta» resta un'informazione che il programma ha e non consegna --
+    # ed e' esattamente la frase che giustifica quella scelta.
+    "rilevati_uno": {"it": "{n} in chiaro", "en": "{n} in the clear"},
+    "rilevati_molti": {"it": "{n} in chiaro", "en": "{n} in the clear"},
+    "rilevati_titolo": {
+        "it": "Trovati e lasciati nel documento, apposta:",
+        "en": "Found and left in the document, on purpose:",
+    },
     # -- errori --------------------------------------------------------
     "err_nessun_file": {"it": "Nessun file selezionato", "en": "No file selected"},
     "err_file_vuoto": {"it": "File vuoto", "en": "Empty file"},
@@ -236,18 +246,17 @@ TESTI: dict[str, dict[str, str]] = {
               "individual settings under \"Advanced options\".",
     },
     "tip_profilo_scelte": {
-        "it": "<b>Predefinito</b> — buono per quasi tutto.<br>"
-              "<b>Email legali</b> — massima protezione dei dati personali, "
-              "testo pulito.<br>"
-              "<b>Fatture</b> — tiene le tabelle e lascia visibili gli importi.<br>"
+        "it": "<b>Predefinito</b> — buono per quasi tutto: tiene le tabelle e "
+              "lascia visibili gli importi.<br>"
+              "<b>Email legali</b> — massima protezione dei dati personali: "
+              "toglie anche importi e date, testo pulito.<br>"
               "<b>Solo OCR</b> — per scansioni e foto di documenti.<br>"
               "<b>Pronto per LLM</b> — testo da incollare in un assistente AI.<br>"
               "<b>Nessuna redazione</b> — testo integrale, niente sostituzioni.",
-        "en": "<b>Default</b> — good for almost everything.<br>"
-              "<b>Legal email</b> — strongest protection of personal data, "
-              "cleaned-up text.<br>"
-              "<b>Invoices</b> — keeps the tables and leaves the figures "
-              "visible.<br>"
+        "en": "<b>Default</b> — good for almost everything: keeps the tables "
+              "and leaves the figures visible.<br>"
+              "<b>Legal email</b> — strongest protection of personal data: "
+              "amounts and dates go too, cleaned-up text.<br>"
               "<b>OCR only</b> — for scans and photographs of documents.<br>"
               "<b>LLM-ready</b> — text to paste into an AI assistant.<br>"
               "<b>No redaction</b> — the whole text, nothing replaced.",

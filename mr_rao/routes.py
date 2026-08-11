@@ -141,6 +141,26 @@ def _merge_privacy(form, profile: dict) -> PrivacyOptions:
     )
 
 
+def _privacy_dalla_richiesta(form) -> PrivacyOptions:
+    """Le opzioni privacy di *questa* richiesta, profilo compreso.
+
+    Esiste perche' la regola stava scritta due volte e la seconda copia era
+    incompleta: le rotte del PDF chiamavano `options_from_form`, che il
+    profilo non lo guarda. Risultato: la stessa pagina, con le stesse
+    caselle, rediggeva il Markdown in un modo e il PDF in un altro — e la
+    differenza si vedeva solo aprendo i due file uno accanto all'altro.
+
+    Ora la regola sta in un posto solo. Una rotta nuova che chiama questa
+    non puo' sbagliarla; una che chiama `options_from_form` a mano ripete
+    lo stesso difetto, ed e' il motivo per cui questa funzione ha un nome
+    invece di essere due righe copiate.
+    """
+    profile_id = form.get("profile") or form.get("preset")
+    if profile_id and profile_id in PROFILES:
+        return _merge_privacy(form, PROFILES[profile_id])
+    return options_from_form(form)
+
+
 def lingua_richiesta(esplicita: str | None = None) -> str:
     """La lingua di *questa* richiesta.
 
@@ -185,7 +205,7 @@ def _parse_options_from_request() -> ConvertOptions:
                 opts.engine = eng
             if form.get("language"):
                 opts.language = form.get("language", opts.language)
-            opts.privacy = _merge_privacy(form, PROFILES[profile_id])
+            opts.privacy = _privacy_dalla_richiesta(form)
             for attr, key in (
                 ("include_tables", "include_tables"),
                 ("include_frontmatter", "include_frontmatter"),
@@ -201,7 +221,7 @@ def _parse_options_from_request() -> ConvertOptions:
     engine = form.get("engine", "auto")
     if engine == "paddleocr":
         engine = "rapidocr"
-    privacy = options_from_form(form)
+    privacy = _privacy_dalla_richiesta(form)
     return ConvertOptions(
         engine=engine,
         language=form.get("language", "it"),
@@ -712,7 +732,7 @@ def _redigi_pdf_caricato(lingua: str):
 
     from mr_rao.redazione_pdf import redigi_pdf
 
-    opzioni = options_from_form(request.form)
+    opzioni = _privacy_dalla_richiesta(request.form)
     with tempfile.TemporaryDirectory() as cartella:
         dentro = Path(cartella) / "dentro.pdf"
         fuori = Path(cartella) / "fuori.pdf"

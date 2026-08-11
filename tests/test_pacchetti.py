@@ -380,6 +380,14 @@ def test_il_convertitore_deduce_il_tipo_dal_file():
     assert _e_prosa(Path("x.eml"), ".eml", "markitdown") is True
     assert _e_prosa(Path("x.txt"), ".txt", "markitdown") is True
     assert _e_prosa(Path("x.xlsx"), ".xlsx", "markitdown") is False
+    # Word era fuori dall'elenco, e chi e' fuori si comporta come un modulo:
+    # due riscontri invece di uno prima di sostituire un nome. Cioe' nomi
+    # lasciati in chiaro nel formato in cui si scrivono le lettere. Questo
+    # test non c'era, ed e' il motivo per cui la dimenticanza e' durata.
+    for estensione in (".docx", ".doc", ".odt", ".rtf", ".pptx", ".md"):
+        assert _e_prosa(Path("x" + estensione), estensione, "markitdown") is True, (
+            estensione
+        )
     # Su una scansione i vettori non ci sono: contarli darebbe zero, e zero
     # verrebbe letto come «prosa» -- giusto per il motivo sbagliato.
     assert _e_prosa(Path("x.pdf"), ".pdf", "rapidocr_pdf_fallback") is None

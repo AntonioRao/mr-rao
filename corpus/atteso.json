@@ -1,8 +1,8 @@
 {
   "motore": {
-    "app": "1.23.0",
+    "app": "1.24.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "264d2cf25ac2cc7b1529fb22f969f1af18853b1f872bcb72d97c10ed3480bd17",
+      "mr_rao/privacy.py": "3e1845407d1ccd420d3727f4b68317f1852e2a0bba436e95c20dc90674e13a05",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "0033199e1c52d120eab386b5d59d8b9f584c24b42fc02084b6926608c07e31d9"
     }
@@ -1825,6 +1825,52 @@
       "report": {
         "counts": {},
         "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "en-ssn-05": {
+      "gruppo": "ssn",
+      "uscita": "Tel. {{PHONE_1}} per informazioni.",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "en-ssn-06": {
+      "gruppo": "ssn",
+      "uscita": "Fax: {{PHONE_1}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "en-ssn-07": {
+      "gruppo": "ssn",
+      "uscita": "Tel. {{PHONE_1}} e poi SSN {{SSN_1}}",
+      "report": {
+        "counts": {
+          "ssn": 1,
+          "phones": 1
+        },
+        "total": 2,
         "suspects": [],
         "suspects_total": 0,
         "detected": [],

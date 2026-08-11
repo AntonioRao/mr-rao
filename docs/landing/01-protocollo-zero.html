@@ -387,45 +387,14 @@
     margin: 0;
   }
   .dl-note.warn { color: var(--amber); }
-  /* Il pulsante dello Store c'e' gia' ma non porta da nessuna parte finche'
-     la certificazione non passa: e' uno <span>, non un <a>, cosi' non
-     esiste un link morto da cliccare. */
-  /* L'etichetta sta in alto e la fascia sotto, non al centro: una fascia
-     che passa per il mezzo del pulsante coprirebbe proprio la parola
-     «Microsoft Store», cioe' la sola cosa che quel pulsante deve dire. */
-  /* L'altezza minima sta sul pulsante, non sulla griglia: in alto, nel
-     blocco d'apertura, i pulsanti sono piu' bassi e la fascia diagonale
-     finirebbe sopra la scritta «Microsoft Store». */
+  /* Qui c'era il pulsante «in arrivo» dello Store: uno <span> e non un <a>,
+     perche' finche' la certificazione non era passata non doveva esistere un
+     link morto da cliccare. La certificazione e' passata l'11 agosto 2026, e
+     adesso quel pulsante e' un link come gli altri -- anzi, e' quello
+     principale: e' l'unica strada che non fa comparire l'avviso di Windows
+     sull'editore sconosciuto, ed e' esattamente il momento in cui un
+     programma sulla riservatezza perde la persona che lo sta installando. */
   .hero-actions .btn { min-height: 3.2rem; }
-  .btn-soon {
-    min-height: 3.2rem;
-    position: relative;
-    overflow: hidden;
-    border: 1px dashed var(--line);
-    color: var(--fog);
-    background: rgba(10,16,12,0.4);
-    cursor: default;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 0;
-    padding-top: 0.7rem;
-  }
-  .btn-soon-label { position: relative; z-index: 1; }
-  .btn-soon-band {
-    position: absolute;
-    left: -18%;
-    right: -18%;
-    bottom: 0.3rem;
-    transform: rotate(-7deg);
-    padding: 0.2rem 0;
-    text-align: center;
-    font-size: 9px;
-    letter-spacing: 0.22em;
-    color: var(--phosphor);
-    background: rgba(61,255,154,0.16);
-    border-top: 1px solid rgba(61,255,154,0.45);
-    border-bottom: 1px solid rgba(61,255,154,0.45);
-  }
   .meta-row {
     margin-top: 2.5rem;
     display: flex;
@@ -811,7 +780,7 @@
           <img class="wm-logo" src="../../static/img/logo.svg" alt="" width="512" height="512" />
           <span>Mr<span class="dot">.</span>Rao</span>
         </span>
-        <span class="ver">offline by design · v1.23.0</span>
+        <span class="ver">offline by design · v1.24.0</span>
       </p>
       <h1>
         <span class="line-reveal"><span>Il contratto</span></span>
@@ -825,13 +794,15 @@
         Zero chiamate di rete. Validatori aritmetici, non promesse.
       </p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">
+          Microsoft Store
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">
           ↓ Installer .exe
         </a>
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">
           ↓ Portable Windows
         </a>
-        <span class="btn btn-soon" aria-disabled="true"><span class="btn-soon-label">Microsoft Store</span><span class="btn-soon-band">in arrivo</span></span>
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">Ispeziona il codice</a>
       </div>
       <div class="meta-row">
@@ -1020,7 +991,11 @@
     </p>
     <div class="dl-grid">
       <div class="dl-card">
-        <a class="btn btn-primary" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">↓ Installer .exe</a>
+        <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">Microsoft Store</a>
+        <p class="dl-note">Un clic, nessun avviso: il pacchetto lo firma lo Store, e gli aggiornamenti arrivano da soli.</p>
+      </div>
+      <div class="dl-card">
+        <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe">↓ Installer .exe</a>
         <p class="dl-note warn">Doppio clic e installato. Windows dirà «editore sconosciuto»: il pacchetto non è firmato.</p>
       </div>
       <div class="dl-card">
@@ -1028,12 +1003,8 @@
         <p class="dl-note">Nessuna installazione. Va anche su chiavetta, con i dati accanto al programma.</p>
       </div>
       <div class="dl-card">
-        <span class="btn btn-soon" aria-disabled="true"><span class="btn-soon-label">Microsoft Store</span><span class="btn-soon-band">in arrivo</span></span>
-        <p class="dl-note">Un clic e nessun avviso: lo firma Microsoft. In certificazione.</p>
-      </div>
-      <div class="dl-card">
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">↗ GitHub</a>
-        <p class="dl-note">Il codice, i 1956 test e le attestazioni di provenienza di ogni file.</p>
+        <p class="dl-note">Il codice, i 1981 test e le attestazioni di provenienza di ogni file.</p>
       </div>
     </div>
   </section>

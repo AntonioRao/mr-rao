@@ -223,6 +223,53 @@ def test_le_opzioni_della_pagina_valgono_anche_qui(client, tmp_path):
     )
 
 
+def test_anche_il_profilo_vale_qui(client, tmp_path):
+    """Il difetto gemello di quello che ha reso decorative le caselle.
+
+    L'interfaccia manda **sempre** un profilo, e queste rotte lo buttavano
+    via: leggevano il modulo con `options_from_form`, che il profilo non lo
+    guarda. Chi convertiva con «Nessuna privacy» vedeva il Markdown intatto
+    sullo schermo e scaricava un PDF redatto — due risposte diverse alla
+    stessa domanda, nella stessa schermata, senza niente che lo dicesse.
+
+    Il verso è quello prudente (redigeva **di più**, non di meno), quindi non
+    ha mai perso un dato. Resta che il file consegnato non era quello visto.
+    """
+    r = client.post("/api/export/pdf", base_url=BASE, data={
+        "file": (io.BytesIO(_pdf(["Scrivimi a mario.rossi@example.it grazie."])), "a.pdf"),
+        "profile": "no_privacy",
+    }, content_type="multipart/form-data")
+
+    assert r.status_code == 200, r.data[:300]
+    uscita = tmp_path / "uscita.pdf"
+    uscita.write_bytes(r.data)
+    testo = "\n".join(_testo_per_pagina(uscita))
+    assert "mario.rossi@example.it" in testo, (
+        "il profilo diceva «nessuna privacy» e il PDF è stato redatto lo stesso"
+    )
+
+
+def test_col_profilo_le_caselle_continuano_a_comandare(client, tmp_path):
+    """E il verso opposto: il profilo non deve diventare l'ultima parola.
+
+    Senza questa metà, la correzione potrebbe essere «leggi il profilo e
+    ignora il modulo» — cioè lo stesso difetto girato dall'altra parte, con
+    le caselle del pannello di nuovo decorative.
+    """
+    r = client.post("/api/export/pdf", base_url=BASE, data={
+        "file": (io.BytesIO(_pdf(["Vista la nota prot. n. 26597 del 19 ottobre."])), "a.pdf"),
+        "profile": "default",
+        "privacy_pack_atti": "true",
+    }, content_type="multipart/form-data")
+
+    assert r.status_code == 200, r.data[:300]
+    uscita = tmp_path / "uscita.pdf"
+    uscita.write_bytes(r.data)
+    testo = "\n".join(_testo_per_pagina(uscita))
+    assert "26597" not in testo, testo
+    assert "PRATICA" in testo, testo
+
+
 # ------------------------------------------------ ed è raggiungibile dall'interfaccia
 
 
