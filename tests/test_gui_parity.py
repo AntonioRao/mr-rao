@@ -134,8 +134,86 @@ def test_ogni_casella_viene_spedita_dal_frontend():
 
     from mr_rao.privacy import FIELD_DEFAULTS
 
-    js = Path("static/js/app.js").read_text(encoding="utf-8")
+    # Il percorso parte da **questo file**, non dalla cartella corrente: con
+    # `Path("static/...")` il test si rompeva lanciando pytest da altrove, e
+    # un test che dipende da dove lo lanci, prima o poi lo lanci da altrove.
+    js = (Path(__file__).resolve().parents[1] / "static" / "js" / "app.js") \
+        .read_text(encoding="utf-8")
     inizio = js.index("const PRIVACY_FIELDS")
     elenco = js[inizio : js.index("]", inizio)]
     mancanti = [k for k in FIELD_DEFAULTS if f'"{k}"' not in elenco]
     assert not mancanti, f"riconoscitori non spediti dalla pagina: {mancanti}"
+
+
+# ------------------------------------------------------------------------
+# I pacchetti e lo stile: la meta' che questo file **non** guardava
+# ------------------------------------------------------------------------
+#
+# Il pannello aveva le sue caselle, il motore i suoi campi, e qui si
+# controllava che si corrispondessero — ma solo per i riconoscitori di
+# `FIELD_DEFAULTS`. Pacchetti e stile viaggiano su un'altra strada, e quella
+# non la guardava nessuno: nel ramo che l'interfaccia percorre **sempre**
+# (manda sempre un profilo) venivano buttati via, e le caselle erano
+# decorative — si accendeva «Atti e pratiche» e il protocollo restava in
+# chiaro, si spegneva l'inglese e l'SSN spariva lo stesso.
+#
+# L'ha trovato un audit esterno. Queste righe esistono perche' non ricapiti.
+
+TESTO_DI_PROVA = b"Vista la nota prot. n. 26597 del 19 ottobre. SSN 123-45-6789."
+
+
+def _converti(client, **campi) -> str:
+    import io
+
+    dati = {"file": (io.BytesIO(TESTO_DI_PROVA), "prova.txt"), **campi}
+    risposta = client.post("/api/convert/sync", base_url=BASE, data=dati,
+                           content_type="multipart/form-data")
+    assert risposta.status_code == 200, risposta.data[:200]
+    return (risposta.get_json() or {}).get("markdown") or ""
+
+
+def test_il_pacchetto_atti_conta_anche_col_profilo(client):
+    """**Il difetto, nel verso in cui fa perdere un dato.**"""
+    acceso = _converti(client, profile="default", privacy_pack_atti="true")
+    assert "{{PRATICA" in acceso, acceso[-200:]
+
+    spento = _converti(client, profile="default", privacy_pack_atti="false")
+    assert "26597" in spento, "col pacchetto spento il protocollo deve restare"
+
+
+def test_spegnere_un_pacchetto_conta_anche_col_profilo(client):
+    """E nel verso opposto: una casella che non spegne e' una leva finta."""
+    acceso = _converti(client, profile="default", privacy_pack_en="true")
+    assert "{{SSN" in acceso, acceso[-200:]
+
+    spento = _converti(client, profile="default", privacy_pack_en="false")
+    assert "{{SSN" not in spento, spento[-200:]
+
+
+def test_lo_stile_conta_anche_col_profilo():
+    """«Lettera o modulo» cambia il segno di diverse regole.
+
+    Buttarla via nel ramo col profilo vuol dire che la stessa pagina, con la
+    stessa impostazione, redige in due modi diversi a seconda di come e'
+    arrivata la richiesta.
+    """
+    from flask import Flask, request
+
+    from mr_rao.privacy import prosa_da
+    from mr_rao.routes import _merge_privacy
+
+    assert prosa_da("prosa") is True
+    assert prosa_da("modulo") is False
+    assert prosa_da("") is None, "vuoto vuol dire «non lo so», non «e' un modulo»"
+
+    app = Flask(__name__)
+    with app.test_request_context(
+            "/", method="POST",
+            data={"profile": "default", "privacy_filter": "true",
+                  "privacy_stile": "prosa"}):
+        assert _merge_privacy(request.form, {}).prosa is True
+    with app.test_request_context(
+            "/", method="POST",
+            data={"profile": "default", "privacy_filter": "true",
+                  "privacy_stile": "modulo"}):
+        assert _merge_privacy(request.form, {}).prosa is False

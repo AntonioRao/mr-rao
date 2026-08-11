@@ -32,9 +32,11 @@ from mr_rao.privacy import (
     CATEGORIE,
     FIELD_DEFAULTS,
     PrivacyOptions,
+    _pacchetti_da,
     segnala_da_form,
     no_redaction,
     options_from_form,
+    prosa_da,
     termini_da,
 )
 from mr_rao.profiles import (
@@ -93,6 +95,24 @@ def _merge_privacy(form, profile: dict) -> PrivacyOptions:
     # partire: la base tornano a essere i valori predefiniti del motore.
     base = privacy_flags(profile) if profile.get("privacy_filter") else dict(FIELD_DEFAULTS)
     return PrivacyOptions(
+        # **I pacchetti e lo stile si leggono qui, e per mesi non e' stato
+        # cosi'.** Non stanno nei profili — un profilo dice *come* convertire,
+        # i pacchetti dicono *di quale Paese* sono i dati e lo stile dice se e'
+        # una lettera o un modulo — ma questo e' il ramo che l'interfaccia
+        # percorre **sempre**, perche' manda sempre un profilo.
+        #
+        # Dimenticandoli qui, le caselle erano decorative: si spegneva il
+        # pacchetto inglese e l'SSN spariva lo stesso, si accendeva «Atti e
+        # pratiche» e il numero di protocollo restava in chiaro. Provato da
+        # un audit esterno e riprodotto: e' esattamente il difetto per cui
+        # esiste `tests/test_gui_parity.py`, che pero' non guardava questi due.
+        pacchetti=_pacchetti_da(
+            lambda chiave, predefinito: (
+                _truthy(form.get(chiave), predefinito)
+                if chiave in form else predefinito
+            )
+        ),
+        prosa=prosa_da(form.get("privacy_stile")),
         # Le due liste dello studio non stanno nei profili: sono di chi
         # converte, non del preset. Vanno pero' lette **qui**, perche'
         # l'interfaccia manda sempre un profilo e questo e' il ramo che

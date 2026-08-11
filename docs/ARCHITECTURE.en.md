@@ -49,7 +49,7 @@ Shortcut ──► clipboard ──► same privacy engine ──► clipboard
 | `mr_rao/i18n.py` | Both languages in a single dictionary, shared by server, templates and JavaScript. The interface language does **not** choose the recognisers |
 | `mr_rao/privacy.py` | The engine: recogniser sequence, packs, suspects, OCR recovery |
 | `mr_rao/finestra.py` | An application window instead of a browser tab: same interface, same server, the system's own rendering engine. The close button **hides** it — the program stays in the tray. If it cannot open, it falls back to the browser |
-| `mr_rao/redazione_pdf.py` | Redacting a PDF **without rasterising it**: removes the glyph bytes from the content stream and puts the placeholder there, in a standard font. The document that comes out is still selectable and weighs the same. Not reachable from the interface yet: see the backlog |
+| `mr_rao/redazione_pdf.py` | Redacting a PDF **without rasterising it**: removes the glyph bytes from the content stream and puts the placeholder there, in a standard font. The document that comes out is still selectable and weighs the same. Reachable from the interface: a «See the preview» button on the result, before/after pages side by side, a green box on every placeholder |
 | `mr_rao/it_names.py` | Italian vocabularies: first names, surnames, capitalised common words |
 | `mr_rao/en_formats.py` | Anglo validators (NHS, NINO, SSN, ITIN, ABA, SIN, ABN, TFN, MRZ) with their test vectors beside them |
 | `mr_rao/user_folders.py` | Working folders, detection of synchronised folders |

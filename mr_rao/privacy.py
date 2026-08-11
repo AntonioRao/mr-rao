@@ -3840,7 +3840,12 @@ PACK_FIELD_DEFAULTS: dict[str, bool] = {
 
 
 def _pacchetti_da(flag) -> tuple[str, ...]:
-    """Costruisce la tupla dei pacchetti a partire da due booleani."""
+    """Costruisce la tupla dei pacchetti dai loro interruttori.
+
+    Sono **tre** — italiano, anglosassone, atti — e la docstring diceva «due»
+    da quando il terzo e' arrivato: un commento che conta male e' il primo
+    posto in cui si smette di credere ai commenti.
+    """
     scelti = [p for p, d in PACK_FIELD_DEFAULTS.items() if flag("privacy_pack_" + p, d)]
     return (CORE, *scelti)
 
