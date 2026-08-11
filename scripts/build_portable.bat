@@ -104,6 +104,14 @@ REM I `--hidden-import` di `webview`: pywebview sceglie il backend a runtime,
 REM quindi PyInstaller non lo vede seguendo gli import. Senza quelle righe il
 REM pacchetto esce con la finestra che «non e' disponibile» e ripiega sul
 REM browser **in silenzio** -- il difetto peggiore, perche' sembra una scelta.
+REM
+REM E `--exclude-module tkinter`, che va **insieme** a quel collect-all: fra i
+REM backend di pywebview ce n'e' uno in tkinter, che noi non usiamo (su Windows
+REM si passa da WinForms e WebView2). Tirandolo dentro si porta un hook di
+REM avvio che pretende una cartella `_tcl_data` accanto all'eseguibile, e se
+REM quella cartella non arriva -- basta una copia incompleta -- il programma
+REM muore all'avvio con un popup di errore invece di partire. Dieci megabyte
+REM di zavorra e un punto di rottura in piu', per un backend che non si usa.
 pyinstaller --noconfirm --clean --onedir --noconsole --name MrRao ^
   --icon "static\img\mr-rao.ico" ^
   --add-data "templates;templates" ^
@@ -125,6 +133,8 @@ pyinstaller --noconfirm --clean --onedir --noconsole --name MrRao ^
   --hidden-import=webview.platforms.edgechromium ^
   --hidden-import=clr ^
   --collect-all webview ^
+  --exclude-module tkinter ^
+  --exclude-module _tkinter ^
   --hidden-import=bs4 ^
   --hidden-import=rapidocr ^
   --hidden-import=docx ^
@@ -153,7 +163,26 @@ set "OUT=dist\MrRao-Portable"
 if exist "%OUT%" rmdir /s /q "%OUT%"
 mkdir "%OUT%"
 mkdir "%OUT%\app"
+REM **La copia va controllata, e prima non lo era.**
+REM
+REM Se una copia di Mr. Rao e' ancora in esecuzione da questa cartella --
+REM capita: la si e' appena provata -- xcopy fallisce su decine di file con
+REM «Accesso negato» e prosegue. Il pacchetto usciva a meta', e il difetto si
+REM presentava molto piu' avanti come «il processo e' morto prima di
+REM rispondere»: novanta secondi di attesa e un messaggio che non nomina la
+REM causa. E' successo due volte.
 xcopy /E /I /Y "dist\MrRao\*" "%OUT%\app\" >nul
+if errorlevel 1 (
+    echo.
+    echo COPIA FALLITA: non tutti i file sono arrivati in %OUT%\app
+    echo Di solito e' una copia di MrRao.exe ancora in esecuzione da li'.
+    echo   Get-Process MrRao ^| Select Id, Path
+    exit /b 1
+)
+if not exist "%OUT%\app\_internal" (
+    echo ERRORE: manca %OUT%\app\_internal — la copia non e' completa
+    exit /b 1
+)
 copy /Y "static\img\mr-rao.ico" "%OUT%\mr-rao.ico" >nul
 copy /Y "scripts\portable_install.bat" "%OUT%\Installa Mr Rao.bat" >nul
 copy /Y "scripts\portable_uninstall.bat" "%OUT%\Disinstalla Mr Rao.bat" >nul
