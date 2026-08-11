@@ -2838,6 +2838,286 @@
         "detected_counts": {},
         "detected_total": 0
       }
+    },
+    "negativi-on-form": {
+      "gruppo": "negativi",
+      "uscita": "Less depreciation reported on Form 1125-A and elsewhere on the return.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-on-quadro": {
+      "gruppo": "negativi",
+      "uscita": "Importo da riportare nel calcolo incluso on Quadro K, righe 1 e 2.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "nomi-on-col-punto": {
+      "gruppo": "nomi",
+      "uscita": "On. {{NAME_1}} ha presentato la mozione in aula.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-at-dominio": {
+      "gruppo": "negativi",
+      "uscita": "The withholding estimator is available at IRS.gov for everyone.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "email-at-nudo-offuscato": {
+      "gruppo": "email",
+      "uscita": "Scrivimi a {{EMAIL_1}} quando puoi.",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-civico-nudo": {
+      "gruppo": "negativi",
+      "uscita": "Household employee wages not reported on line 43 Court Ordered Payments.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "indirizzi_en-nome-strada": {
+      "gruppo": "indirizzi_en",
+      "uscita": "The office is at {{ADDRESS_1}}",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "nomi-cf-accanto": {
+      "gruppo": "nomi",
+      "uscita": "Contratto di assunzione tra Beta Consulting S.p.A. e {{NAME_1}} CF {{CODICE_FISCALE_1}} del 2023.",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [
+          {
+            "kind": "codice_fiscale",
+            "sample": "RS••••••••••••1Z",
+            "why": "sostituito, ma il carattere di controllo non torna: il documento potrebbe contenere altri dati storpiati"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "nomi-cf-etichetta-estesa": {
+      "gruppo": "nomi",
+      "uscita": "Il sottoscritto {{NAME_1}}, codice fiscale {{CODICE_FISCALE_1}}, dichiara quanto segue.",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [
+          {
+            "kind": "codice_fiscale",
+            "sample": "RS••••••••••••1Z",
+            "why": "sostituito, ma il carattere di controllo non torna: il documento potrebbe contenere altri dati storpiati"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-cf-ragione-sociale": {
+      "gruppo": "negativi",
+      "uscita": "Comune di Pontremoli CF {{CODICE_FISCALE_1}}, ufficio tributi.",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [
+          {
+            "kind": "codice_fiscale",
+            "sample": "RS••••••••••••1Z",
+            "why": "sostituito, ma il carattere di controllo non torna: il documento potrebbe contenere altri dati storpiati"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-cf-parola-sola": {
+      "gruppo": "negativi",
+      "uscita": "Riepilogo CF {{CODICE_FISCALE_1}}",
+      "report": {
+        "counts": {
+          "codice_fiscale": 1
+        },
+        "total": 1,
+        "suspects": [
+          {
+            "kind": "codice_fiscale",
+            "sample": "RS••••••••••••1Z",
+            "why": "sostituito, ma il carattere di controllo non torna: il documento potrebbe contenere altri dati storpiati"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "nomi-ruolo-cliente": {
+      "gruppo": "nomi",
+      "uscita": "Il cliente {{NAME_1}} chiede l'invio dei documenti entro venerdi.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "nomi-ruolo-paziente": {
+      "gruppo": "nomi",
+      "uscita": "Il paziente {{NAME_1}} e ricoverato dal 12 marzo.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "nomi-campo-nome": {
+      "gruppo": "nomi",
+      "uscita": "ID= 4471; NOME= {{NAME_1}}; STATO= aperto",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-ruolo-spa": {
+      "gruppo": "negativi",
+      "uscita": "Il cliente Beta Consulting S.p.A. ha versato l'acconto.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-ruolo-ltd": {
+      "gruppo": "negativi",
+      "uscita": "Il cliente Delta Systems Ltd ha firmato il rinnovo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-ruolo-ente": {
+      "gruppo": "negativi",
+      "uscita": "Il conduttore Fondazione Verdi paga il canone trimestrale.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-ruolo-senza-nome": {
+      "gruppo": "negativi",
+      "uscita": "Il cliente ha chiesto una copia del contratto.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
     }
   }
 }
