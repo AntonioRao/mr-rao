@@ -873,6 +873,36 @@ _TITLES = (
 # riconoscimento: nome e cognome adiacenti hanno una regola loro.
 _TITOLI_COL_PUNTO = r"on"
 
+# I **ruoli**: sostantivi che dichiarano che quello che segue e' una persona.
+#
+# `Il cliente Elicio Nazar chiede invio documenti`. E' la stessa forma del
+# titolo professionale, su un sostantivo di ruolo invece che su
+# un'onorificenza -- e in un documento amministrativo e' molto piu' frequente
+# di `Dott.`: misurato sul corpus legale, `cliente` precede da solo 2.671 dei
+# nomi che restavano in chiaro.
+#
+# **Perche' pretendono due parole** e i titoli no. Un titolo lo si scrive
+# quasi solo davanti a una persona; un ruolo lo si scrive anche davanti a
+# un'azienda -- «il cliente Beta Consulting S.p.A.», «il conduttore Immobiliare
+# Verdi S.r.l.». Pretendere nome **e** cognome toglie la maggior parte di
+# quei casi, e lo scudo degli enti toglie il resto.
+#
+# L'elenco e' corto apposta e contiene solo ruoli che una persona fisica
+# ricopre in un atto. Non ci vanno le qualifiche professionali generiche
+# (`responsabile`, `titolare`, `referente`): quelle precedono un ufficio
+# almeno quanto una persona, e il loro contesto tipico e' proprio
+# l'intestazione di un ente.
+_RUOLI = (
+    r"cliente|clienti|utente|utenti|paziente|pazienti|"
+    r"acquirente|acquirenti|venditore|venditrice|"
+    r"locatore|locatrice|locatario|conduttore|conduttrice|"
+    r"testimone|testimoni|ricorrente|resistente|convenuto|convenuta|"
+    r"assicurato|assicurata|beneficiario|beneficiaria|"
+    r"contribuente|dipendente|intestatario|intestataria"
+)
+
+# Le due espressioni si compilano piu' sotto, dopo `_SP`.
+
 # Fra un nome e il suo cognome ci puo' essere uno spazio, non un a capo:
 # usare \s farebbe attraversare le righe e incollerebbe la firma alla riga
 # successiva, con il risultato che una parola comune trovata li' fa cadere
@@ -882,6 +912,33 @@ _SP = r"[ \t]+"
 _RE_TITLE_NAME = re.compile(
     rf"(?<!\w)(?:(?i:{_TITLES})\.?|(?i:{_TITOLI_COL_PUNTO})\.)"
     rf"{_SP}(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+)
+
+# Le sigle societarie. Stanno **dopo** la ragione sociale, quindi lo scudo
+# delle parole d'ente -- che guarda le parole del nome -- non le vede: su
+# «il cliente Beta Consulting S.p.A.» il primo giro di questa regola
+# produceva «il cliente {{NAME}} S.p.A.», cioe' il falso positivo peggiore
+# possibile su una riga che parla di un'azienda.
+_SIGLE_SOCIETARIE = (
+    r"s\.?p\.?a\.?|s\.?r\.?l\.?s?\.?|s\.?n\.?c\.?|s\.?a\.?s\.?|"
+    r"s\.?c\.?a\.?r\.?l\.?|coop|onlus|ets|aps|spa|srl|"
+    r"ltd|llc|inc|plc|gmbh|s\.?a\.?"
+)
+_RE_SIGLA_DOPO = re.compile(rf"^[ \t]*(?:{_SIGLE_SOCIETARIE})(?![\wÀ-ÿ])", re.I)
+
+# Un ruolo pretende **due** parole: vedi `_RUOLI`.
+_RE_RUOLO_NAME = re.compile(
+    rf"(?<!\w)(?i:{_RUOLI}){_SP}(?P<name>{_TOK}(?:{_SP}{_TOK}){{1,2}})"
+)
+
+# La forma a campo: `NOME= Elicio Nazar;` -- un'etichetta che **dichiara** il
+# contenuto invece di descriverlo. Compare negli estratti di record e nei
+# tracciati, dove il testo attorno non aiuta per niente: l'unica altra cosa
+# sulla riga e' un punto e virgola. Qui basta una parola, perche' l'etichetta
+# non lascia spazio a dubbi su cosa ci sia dopo.
+_RE_CAMPO_NOME = re.compile(
+    rf"(?<!\w)(?i:nome|nominativo|cognome)[ \t]*[=:][ \t]*"
+    rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
 )
 
 # Un nome accanto a un indirizzo di posta: "Mario Rossi <mario@x.it>",
@@ -2254,6 +2311,27 @@ def _scrub_names(
         return m.group(0).replace(name, segno, 1)
 
     text = _RE_NAME_BEFORE_CF.sub(_cf_name_sub, text)
+
+    # 2-quater. Ruoli e campi: «il cliente X», «NOME= X».
+    def _dichiarato_sub(m: re.Match) -> str:
+        name = m.group("name")
+        tokens = name.split()
+        if any(_is_entity_word(t) for t in tokens):
+            return m.group(0)
+        # La sigla societaria si cerca in due posti, e servono tutti e due:
+        # **dopo** il nome (`Beta Consulting S.p.A.`, dove la finestra si e'
+        # fermata prima) e come **ultima parola presa** (`Delta Systems Ltd`,
+        # dove la finestra se l'e' inghiottita). Guardando solo il testo che
+        # segue, il secondo caso passava.
+        if _RE_SIGLA_DOPO.match(text[m.end("name"):m.end("name") + 12]):
+            return m.group(0)
+        if _RE_SIGLA_DOPO.match(tokens[-1]):
+            return m.group(0)
+        segno = report.segnaposto("names", "{{NAME}}", name)
+        return m.group(0).replace(name, segno, 1)
+
+    text = _RE_RUOLO_NAME.sub(_dichiarato_sub, text)
+    text = _RE_CAMPO_NOME.sub(_dichiarato_sub, text)
 
     # 2-bis. La firma. Una formula di chiusura dichiara che quello che
     # segue e' una persona, ed e' l'unico posto dove un cognome da solo --

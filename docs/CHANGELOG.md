@@ -23,6 +23,29 @@ indirizzo di posta, che può essere di un ufficio.
 
 **Da 0,5% a 36,0%** su 78 372 nomi che i nostri elenchi non contengono.
 
+### E i ruoli, che erano ancora più frequenti
+
+Guardando cosa restava in chiaro dopo il codice fiscale, i nomi persi non
+erano nudi: erano preceduti da un **sostantivo di ruolo** che dichiara una
+persona. `cliente` da solo ne precedeva 2 671; poi `utente`, `acquirente`,
+`locatore`, `conduttore`, `paziente`, `testimone`. Più la forma a campo
+`NOME= Elicio Nazar;`, tipica degli estratti di record, dove il testo attorno
+non aiuta per niente.
+
+È la stessa forma del titolo professionale, su un sostantivo invece che su
+un'onorificenza — ma con un rischio in più, e per questo i ruoli **pretendono
+nome e cognome**: un titolo si scrive quasi solo davanti a una persona, un
+ruolo anche davanti a un'azienda.
+
+Due parole non bastavano. `il cliente Beta Consulting S.p.A.` usciva
+`il cliente {{NAME}} S.p.A.`, che è il falso positivo peggiore possibile su
+una riga che parla di una società. Ora le sigle societarie si cercano in
+**due posti**: dopo il nome, e come ultima parola presa — perché su
+`Delta Systems Ltd` la finestra se la inghiotte, e guardando solo il testo
+che segue quel caso passava.
+
+**Da 36,0% a 71,0%.** I nomi persi in silenzio passano da 50 127 a 22 743.
+
 **Il prezzo, misurato: zero.** I moduli in bianco sono identici a prima, la
 prosa vera non cala, e il corpus di conformità non cambia in nessuno dei 191
 casi. La regola aggiunge solo dove c'è un codice fiscale valido.

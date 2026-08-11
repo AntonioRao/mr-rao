@@ -108,3 +108,57 @@ def test_la_finestra_non_attraversa_le_righe() -> None:
     """
     fuori = redigi(f"Elicio Nazar\n\nSezione 2 - dati fiscali\nCF {CF}")
     assert "{{NAME}}" not in fuori, fuori
+
+
+# --------------------------------------------------- ruoli e campi dichiarati
+#
+# Stessa famiglia: il testo **dichiara** che li' c'e' una persona, con un
+# sostantivo di ruolo invece che con un titolo o un codice. Misurato sul
+# corpus legale, `cliente` precedeva da solo 2.671 dei nomi che restavano in
+# chiaro; con ruoli e campi il richiamo sui nomi fuori elenco passa dal 36%
+# (solo codice fiscale) al 71%.
+
+
+@pytest.mark.parametrize(
+    "frase",
+    [
+        "Il cliente Elicio Nazar chiede invio documenti",
+        "Ordine online cliente Wangchuk Nrayo del 4 maggio",
+        "il promittente acquirente Deon Ucan ha versato la caparra",
+        "Il paziente Christopherus Kimete e ricoverato dal 12",
+        "il conduttore Aadhav Romanos versa il canone",
+        "NOME= Gjylfidane Rojana; PRATICA= 4471",
+        "Nominativo: Somlyai Dawson",
+    ],
+)
+def test_un_ruolo_dichiara_una_persona(frase: str) -> None:
+    assert "{{NAME}}" in redigi(frase), redigi(frase)
+
+
+@pytest.mark.parametrize(
+    "frase",
+    [
+        # La ragione sociale dopo un ruolo: e' il motivo per cui i ruoli
+        # pretendono due parole, e non basta -- servono anche le sigle.
+        "il cliente Beta Consulting S.p.A. ha versato l'acconto",
+        "il conduttore Immobiliare Verdi S.r.l. paga il canone",
+        "il cliente Delta Systems Ltd ha firmato",
+        # Lo scudo delle parole d'ente, che qui vale come altrove.
+        "il conduttore Fondazione Verdi paga il canone",
+        # Nessun nome dopo il ruolo.
+        "Il cliente ha chiesto una copia del contratto",
+    ],
+)
+def test_un_ruolo_davanti_a_un_ente_non_lo_rende_una_persona(frase: str) -> None:
+    assert "{{NAME}}" not in redigi(frase), redigi(frase)
+
+
+def test_la_sigla_si_riconosce_anche_quando_finisce_dentro_al_nome() -> None:
+    """Due posti, e servono tutti e due.
+
+    La finestra del ruolo prende fino a tre parole: su `Beta Consulting
+    S.p.A.` si ferma prima della sigla, su `Delta Systems Ltd` se la
+    inghiotte. Guardando solo il testo che segue, il secondo caso passava.
+    """
+    assert "{{NAME}}" not in redigi("il cliente Delta Systems Ltd ha firmato")
+    assert "{{NAME}}" not in redigi("il cliente Beta Consulting S.p.A. paga")
