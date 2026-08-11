@@ -85,7 +85,21 @@ echo [4/7] PyInstaller onedir...
 if exist "dist\MrRao" rmdir /s /q "dist\MrRao"
 if exist "build\MrRao" rmdir /s /q "build\MrRao"
 
-pyinstaller --noconfirm --clean --onedir --console --name MrRao ^
+REM `--noconsole`: niente finestra nera al doppio click.
+REM
+REM ATTENZIONE: la trappola sta qui e NON in MrRao.spec. Quel file non e'
+REM tracciato (.gitignore, riga `*.spec`) ed e' rigenerato da PyInstaller a
+REM ogni build proprio da questa riga di comando. Correggere `console=True`
+REM li' dentro sembra risolvere e non cambia niente: al build successivo il
+REM file viene riscritto da qui. Il punto unico e' questo flag, e la CI lancia
+REM questo stesso .bat.
+REM
+REM Da solo `--noconsole` romperebbe la riga di comando: senza console
+REM allegata `sys.stdout` diventa `None`, e `MrRao.exe convert file.pdf`
+REM funzionerebbe senza stampare niente -- il modo peggiore di rompersi. La
+REM console si aggancia quando serve, in `console_win.py`, chiamato come prima
+REM riga di app.py. **Le due cose vanno insieme.**
+pyinstaller --noconfirm --clean --onedir --noconsole --name MrRao ^
   --icon "static\img\mr-rao.ico" ^
   --add-data "templates;templates" ^
   --add-data "static;static" ^

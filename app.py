@@ -17,12 +17,22 @@ with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from __future__ import annotations
 
-import sys
-import threading
-import webbrowser
+# **Questo import viene prima degli altri, e non e' disordine.** L'eseguibile
+# e' costruito senza console (`console=False` in `MrRao.spec`), quindi al
+# doppio click non compare nessuna finestra nera. Ma quando c'e' un comando da
+# eseguire la console del terminale che ci ha lanciati va agganciata **prima**
+# che qualunque altro modulo stampi o configuri un handler di logging: quelle
+# righe finirebbero nel vuoto, e il comando sembrerebbe non aver fatto niente.
+import console_win  # noqa: E402
 
-import config
-from mr_rao import create_app
+console_win.aggancia()
+
+import sys  # noqa: E402
+import threading  # noqa: E402
+import webbrowser  # noqa: E402
+
+import config  # noqa: E402
+from mr_rao import create_app  # noqa: E402
 
 app = create_app()
 
@@ -71,12 +81,18 @@ def _decidi_porta():
 
 if __name__ == "__main__":
     # CLI first (portable exe: convert / watch / health / dropped files)
-    if len(sys.argv) > 1 and sys.argv[1] in ("convert", "watch", "health", "--help", "-h"):
+    # La condizione e' **la stessa** che ha deciso se agganciare la console:
+    # se qui si scrivesse `len(sys.argv) > 1` a mano, un domani qualcuno
+    # potrebbe cambiarne una sola, e si otterrebbe o una finestra nera per un
+    # avvio che non stampa niente, o un comando che stampa senza console --
+    # cioe' muto.
+    if console_win.serve_console() and sys.argv[1] in (
+            "convert", "watch", "health", "--help", "-h"):
         from mr_rao.cli import main as cli_main
 
         raise SystemExit(cli_main(sys.argv[1:]))
 
-    if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    if console_win.serve_console() and not sys.argv[1].startswith("-"):
         from mr_rao.cli import main as cli_main
 
         raise SystemExit(cli_main(["convert", *sys.argv[1:]]))

@@ -86,8 +86,10 @@ conversione fallita lascia una traccia su file**, che puoi leggere dopo:
 %LOCALAPPDATA%\Mr Rao\ultimo-errore.txt
 ```
 
-Il percorso viene stampato sulla console insieme all'errore, e lo ripete
-`mr-rao health` anche quando il file non c'è. In quella cartella non arriva
+Il percorso viene stampato insieme all'errore, e lo ripete `mr-rao health`
+anche quando il file non c'è. Nel portable la console si aggancia da sola
+quando c'è un comando da eseguire — al doppio click, che non stampa niente,
+non compare nessuna finestra. In quella cartella non arriva
 mai OneDrive: è la stessa cartella locale che Mr. Rao usa quando «Documenti»
 risulta sincronizzata. Non sta accanto all'eseguibile portable apposta —
 da lì seguirebbe il programma dentro i backup e dentro lo zip che passi a un

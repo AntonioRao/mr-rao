@@ -16,7 +16,19 @@ _LGPL_NOTICE_SHOWN = False
 
 
 def _print_lgpl_notice() -> None:
-    """LGPL requires appropriate notices when distributing; we also print at runtime."""
+    """LGPL requires appropriate notices when distributing.
+
+    **The obligation is discharged by the files that ship with the package** —
+    `LICENSE.txt`, `THIRD_PARTY.md`, `licenses/pystray/` and
+    `docs/LGPL_PYSTRAY.md`, all copied into the portable folder by
+    `scripts/build_portable.bat`. This line is an extra, not the discharge.
+
+    And since the executable is built without a console, on a plain double
+    click there is nowhere for it to go: `print()` is a silent no-op there,
+    and the line only shows when the program was started from a terminal.
+    Saying so matters — a comment claiming a notice is printed at runtime,
+    when it is not, would be read as this function satisfying the obligation.
+    """
     global _LGPL_NOTICE_SHOWN
     if _LGPL_NOTICE_SHOWN:
         return

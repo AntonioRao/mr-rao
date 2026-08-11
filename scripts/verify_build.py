@@ -164,6 +164,50 @@ def post_multipart(url: str, campi: dict[str, str], nome: str, contenuto: bytes)
         return json.loads(r.read().decode("utf-8"))
 
 
+def cli_muta(exe: Path) -> bool:
+    """L'eseguibile parla ancora quando lo si lancia da un terminale?
+
+    **E' la guardia che tiene insieme le due meta' del cambio.** Il pacchetto
+    e' costruito senza console, cosi' il doppio click non apre nessuna finestra
+    nera; ma quella scelta, da sola, rende `sys.stdout` `None` e trasforma
+    `MrRao.exe health` in un comando che funziona **senza dire niente**. Non
+    solleva, non fallisce, non lascia traccia: e' il modo peggiore di
+    rompersi, e nessuno degli altri controlli qui dentro se ne accorgerebbe.
+
+    Il controllo e' l'unico che possa dirlo: si lancia con un argomento, si
+    legge cio' che arriva, e se non arriva niente il pacchetto viene respinto.
+
+    Perche' `health` e non `--help`: perche' esercita anche l'aggancio *prima*
+    che il resto del programma parta, che e' il punto fragile.
+    """
+    print("controllo che la riga di comando non sia diventata muta...")
+    try:
+        esito = subprocess.run(
+            [str(exe), "health"],
+            cwd=str(exe.parent),
+            capture_output=True,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        print("FALLITO  'MrRao.exe health' non e' tornato entro 120 s",
+              file=sys.stderr)
+        return True
+
+    uscita = (esito.stdout or b"") + (esito.stderr or b"")
+    testo = uscita.decode("utf-8", "replace").strip()
+    if not testo:
+        print(
+            "FALLITO  'MrRao.exe health' non ha stampato NIENTE.\n"
+            "         Il pacchetto e' costruito senza console (--noconsole in\n"
+            "         build_portable.bat) e l'aggancio in console_win.py non\n"
+            "         ha funzionato: la riga di comando e' muta.",
+            file=sys.stderr,
+        )
+        return True
+    print(f"  OK     la CLI parla: {testo.splitlines()[0][:70]!r}")
+    return False
+
+
 def main(argv: list[str]) -> int:
     exe = Path(argv[1] if len(argv) > 1 else "dist/MrRao-Portable/app/MrRao.exe").resolve()
     if not exe.is_file():
@@ -278,6 +322,9 @@ def main(argv: list[str]) -> int:
             print(f"  OK     icona identica al repository: {ico_repo.stat().st_size:,} B")
         else:
             print(f"FALLITO  icona assente nel pacchetto: {ico_pacchetto}", file=sys.stderr)
+            return 1
+
+        if cli_muta(exe):
             return 1
 
         print("VERIFICA SUPERATA")
