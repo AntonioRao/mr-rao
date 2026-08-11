@@ -92,6 +92,22 @@ class Finestra:
             import webview
         except Exception:
             return False
+
+        # **I download vanno permessi esplicitamente, e senza questa riga non
+        # succede niente.**
+        #
+        # pywebview registra un gestore su `DownloadStarting` che, con
+        # `ALLOW_DOWNLOADS` a `False` — il valore di serie — fa `Cancel = True`.
+        # Il risultato e' il difetto peggiore che ci sia: si preme «Scarica il
+        # PDF redatto», la pagina non dice niente, non compare nessun errore, e
+        # il file non esiste da nessuna parte. Sembra riuscito.
+        #
+        # E' una cosa che la finestra ha portato con se': nel browser i
+        # download funzionavano. Con il permesso, WebView2 apre un «salva con
+        # nome» — che per un documento redatto e' meglio della cartella
+        # Download, perche' chi lo salva decide dove finisce.
+        webview.settings["ALLOW_DOWNLOADS"] = True
+
         try:
             self._finestra = webview.create_window(
                 self.titolo,

@@ -296,6 +296,123 @@ def test_la_verifica_porta_un_numero_che_non_calcola_lei(tmp_path):
     assert esito["sopravvissuti"] == 0, esito["esempi"]
 
 
+def _pdf_con_spazio_colore(percorso, righe: list[str]):
+    """Come `_pdf_con_righe`, ma il colore si imposta con `cs`+`scn`.
+
+    E' come lo scrivono i produttori veri — una Gazzetta Ufficiale lo fa — e
+    senza questa variante il test del colore **non puo' fallire**: su un file
+    che il colore lo imposta con `rg` non c'e' nessuno spazio colore da
+    dimenticare.
+    """
+    pdf = pikepdf.Pdf.new()
+    font = pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Font"), Subtype=pikepdf.Name("/Type1"),
+        BaseFont=pikepdf.Name("/Helvetica"),
+        Encoding=pikepdf.Name("/WinAnsiEncoding")))
+    comandi = ["/DeviceGray cs", "0 scn", "BT", "/F1 12 Tf"]
+    y = 760
+    for riga in righe:
+        comandi.append(f"1 0 0 1 60 {y} Tm ({riga}) Tj")
+        y -= 30
+    comandi.append("ET")
+    pdf.pages.append(pikepdf.Page(pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Page"),
+        MediaBox=pikepdf.Array([0, 0, 595, 842]),
+        Resources=pikepdf.Dictionary(Font=pikepdf.Dictionary(F1=font)),
+        Contents=pdf.make_stream("\n".join(comandi).encode("latin-1"))))))
+    pdf.save(str(percorso))
+    pdf.close()
+    return percorso
+
+
+def _pixel_scuri(percorso, dall_alto: float, all_alto: float) -> int:
+    """Quanti pixel scuri in una fascia orizzontale della prima pagina."""
+    documento = pdfium.PdfDocument(str(percorso))
+    try:
+        immagine = documento[0].render(scale=1.5).to_pil().convert("L")
+    finally:
+        documento.close()
+    larghezza, altezza = immagine.size
+    fascia = immagine.crop((0, int(altezza * dall_alto), larghezza,
+                            int(altezza * all_alto)))
+    return sum(1 for p in fascia.getdata() if p < 128)
+
+
+def test_il_testo_dopo_il_segnaposto_si_vede_ancora(tmp_path):
+    """**Il difetto piu' brutto uscito da questa funzione, e si vede solo qui.**
+
+    Il segnaposto si scrive in bianco perche' dietro ci va un rettangolo verde
+    scuro, e il colore di prima va rimesso subito dopo. Rimetterlo vuol dire
+    ricordarsi anche lo **spazio colore**: `scn` prende il significato da li',
+    e riemettere `0 scn` dopo un `1 1 1 rg` — che nel frattempo ha portato lo
+    spazio a DeviceRGB — vuol dire un'altra cosa.
+
+    Su una Gazzetta il risultato era mezza pagina **bianca su bianco**: il
+    testo c'era ancora, si estraeva, si copiava, e non si vedeva. Nessun
+    controllo sul testo puo' accorgersene — per questo qui si contano i pixel.
+    """
+    dentro = _pdf_con_spazio_colore(tmp_path / "dentro.pdf", [
+        "Il cliente Mario Rossi ha firmato.",
+        "Questa riga viene dopo e deve restare visibile.",
+        "E anche questa, piu' sotto.",
+    ])
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori)
+
+    prima = _pixel_scuri(dentro, 0.10, 0.18)
+    dopo = _pixel_scuri(fuori, 0.10, 0.18)
+    assert prima > 200, "il documento di prova non ha testo dove il test guarda"
+    assert dopo > prima * 0.6, (
+        f"il testo sotto il segnaposto e' quasi sparito: {prima} pixel scuri "
+        f"prima, {dopo} dopo. Probabile colore non rimesso."
+    )
+
+
+def test_il_rettangolo_non_si_mangia_il_resto_della_pagina(tmp_path):
+    """**Il difetto piu' brutto che sia uscito da questa funzione.**
+
+    Il segnaposto si scrive in bianco, perche' dietro ci va un rettangolo
+    verde scuro. Il colore di prima va rimesso subito dopo — e rimetterlo
+    voleva dire ricordarsi anche lo **spazio colore**: `scn` prende il suo
+    significato da li', e riemettere `1 scn` dopo un `1 1 1 rg` — che nel
+    frattempo ha portato lo spazio a DeviceRGB — vuol dire un'altra cosa.
+
+    Su una Gazzetta il risultato era mezza pagina **bianca su bianco**: il
+    testo c'era ancora, si copiava, e non si vedeva. Nessun controllo sui
+    conteggi se ne sarebbe accorto, perche' non manca niente: e' invisibile.
+    """
+    dentro = _pdf_con_righe(tmp_path / "dentro.pdf", [
+        "Il cliente Mario Rossi ha firmato il contratto.",
+        "Questa riga viene dopo e non deve sparire.",
+        "E nemmeno questa, che viene dopo ancora.",
+    ])
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori)
+
+    prima, dopo = _testo(dentro), _testo(fuori)
+    assert "Questa riga viene dopo e non deve sparire." in dopo
+    assert "E nemmeno questa" in dopo
+    # Il testo non si accorcia oltre la lunghezza del valore tolto.
+    assert len(dopo) > len(prima) * 0.9, (len(prima), len(dopo))
+
+
+def test_il_segnaposto_resta_al_suo_posto_nella_riga(tmp_path):
+    """Il testo redatto deve **leggersi**, ed e' meta' del prodotto.
+
+    Disegnando l'etichetta in coda al flusso — che è la strada più semplice —
+    il documento resta bello e il testo copiato esce con tutte le etichette
+    ammucchiate in fondo alla pagina. Qui si pretende che stiano nella frase.
+    """
+    dentro = _pdf_con_righe(tmp_path / "dentro.pdf", [
+        "Il cliente Mario Rossi ha firmato oggi.",
+    ])
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori)
+
+    dopo = " ".join(_testo(fuori).split())
+    assert re.search(r"cliente\s+\{\{NAME_1\}\}\s+ha firmato", dopo), dopo
+
+
 def test_il_cmap_tounicode_legge_le_due_forme_vere():
     flusso = b"""
     begincmap

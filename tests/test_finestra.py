@@ -48,6 +48,29 @@ def test_senza_la_libreria_si_ripiega(monkeypatch: pytest.MonkeyPatch) -> None:
     assert finestra.Finestra("http://127.0.0.1:1").prepara() is False
 
 
+def test_i_download_sono_permessi() -> None:
+    """**Il difetto che questa riga esiste per non far tornare.**
+
+    pywebview annulla i download di serie (`ALLOW_DOWNLOADS` a `False`, e il
+    suo gestore fa `Cancel = True`). Nella finestra si premeva «Scarica il PDF
+    redatto» e non succedeva niente: nessun errore, nessun file, e l'aria di
+    aver funzionato. Nel browser funzionava — se l'e' portato dietro la
+    finestra.
+
+    Il test prepara una finestra vera e guarda l'impostazione **dopo**: una
+    riga scritta nel posto sbagliato non avrebbe effetto, e leggerla dal
+    sorgente non se ne accorgerebbe.
+    """
+    webview = pytest.importorskip("webview")
+    vetro = finestra.Finestra("http://127.0.0.1:1")
+    if not vetro.prepara():
+        pytest.skip("qui non si puo' costruire una finestra")
+    try:
+        assert webview.settings["ALLOW_DOWNLOADS"] is True
+    finally:
+        vetro.chiudi()
+
+
 def test_una_finestra_mai_preparata_non_solleva() -> None:
     """I comandi del menu esistono prima della finestra.
 

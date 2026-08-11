@@ -108,6 +108,24 @@ IGNOTI = "�￾"
 #: tagliare in mezzo a un'altra parola e' peggio che non tagliare.
 MINIMO_CERCABILE = 3
 
+#: Il colore del rettangolo, in RGB da 0 a 1. Verde scuro: si vede a colpo
+#: d'occhio su una pagina bianca, e sopra ci sta il bianco con un contrasto
+#: che si legge anche stampato in scala di grigi.
+COLORE_RETTANGOLO = (0.043, 0.243, 0.157)
+
+#: Quanto il rettangolo deborda dal riquadro del valore, in punti. Senza, le
+#: lettere alte e i discendenti toccano il bordo e sembra un errore di stampa.
+MARGINE_RETTANGOLO = 1.2
+
+#: Larghezza media di un carattere dell'Helvetica, in frazioni di corpo. Serve
+#: solo a decidere se l'etichetta ci sta: e' una stima, e sbaglia dalla parte
+#: giusta -- se e' un po' larga il rettangolo esce un po' generoso.
+LARGHEZZA_MEDIA_CARATTERE = 0.52
+
+#: Corpo minimo e massimo dell'etichetta. Sotto il minimo non si legge; sopra
+#: il massimo un segnaposto in mezzo a un testo piccolo grida piu' del testo.
+CORPO_MIN, CORPO_MAX = 5.0, 10.5
+
 
 @dataclass
 class Glifo:
@@ -127,6 +145,11 @@ class Emissione:
     glifi: list[Glifo]
     risorsa_font: str
     corpo: float
+    #: L'ultimo colore di riempimento visto prima di questo pezzo, come
+    #: (operandi, operatore). Serve a **rimetterlo** dopo il segnaposto, che
+    #: viene scritto in bianco: senza, il resto della riga proseguirebbe
+    #: bianco su bianco, e sparirebbe del testo che non doveva sparire.
+    colore: tuple | None = None
 
 
 @dataclass
@@ -335,13 +358,32 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
     risorsa = ""
     corpo = 0.0
     ultima_y = None
+    colore = None
+    spazio_colore = None
     cache: dict[str, Font] = {}
 
     for i, istruzione in enumerate(contenitore.istruzioni):
         operandi = istruzione.operands
         op = str(istruzione.operator).encode("latin-1")
 
-        if op == b"Tf" and len(operandi) >= 2:
+        if op == b"cs":
+            # **Lo spazio colore va ricordato insieme al colore**, e non e' un
+            # dettaglio: `scn` prende il suo significato dallo spazio corrente.
+            # Rimettendo `1 scn` dopo un `1 1 1 rg` — che nel frattempo ha
+            # portato lo spazio a DeviceRGB — quel `1` vuol dire un'altra cosa,
+            # e su una Gazzetta il risultato era **mezza pagina bianca su
+            # bianco**: il testo c'era ancora e non si vedeva piu'.
+            spazio_colore = list(operandi)
+
+        elif op in (b"g", b"rg", b"k", b"sc", b"scn"):
+            # Il colore corrente si ricorda per poterlo rimettere dopo il
+            # segnaposto, che va scritto in bianco. Rimetterne uno a caso —
+            # nero, per dire — farebbe cambiare colore al resto della riga in
+            # ogni documento che non sia nero su bianco.
+            colore = (list(operandi), str(istruzione.operator),
+                      spazio_colore if op in (b"sc", b"scn") else None)
+
+        elif op == b"Tf" and len(operandi) >= 2:
             risorsa = str(operandi[0])
             try:
                 corpo = float(operandi[1])
@@ -369,7 +411,7 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
                         sum(len(p) for p in pezzi),
                         [Glifo(k * passo, passo, c)
                          for k, c in enumerate(caratteri_glifo)],
-                        risorsa, corpo))
+                        risorsa, corpo, colore))
                     pezzi.extend(caratteri_glifo)
                 elif isinstance(operando, (int, float)) and operando < -SOGLIA_SPAZIO:
                     # **Lo spazio fra due parole spesso non e' un carattere**:
@@ -587,11 +629,23 @@ def _riscrivi(contenitore: _Contenitore, per_istruzione: dict,
                     nuove.append(_istruzione(accumulatore, "TJ"))
                     accumulatore = []
                 if segnaposto:
+                    # **Bianco**, perche' dietro ci finisce un rettangolo
+                    # verde scuro. Il colore di prima si rimette subito dopo:
+                    # senza, il resto della riga proseguirebbe bianco su
+                    # bianco e sparirebbe del testo che non doveva sparire.
                     nuove.append(_istruzione(
                         [pikepdf.Name(standard), corpo], "Tf"))
+                    nuove.append(_istruzione([1, 1, 1], "rg"))
                     nuove.append(_istruzione(
                         [pikepdf.String(
                             segnaposto.encode("latin-1", "replace"))], "Tj"))
+                    if emissione.colore is not None:
+                        operandi_colore, operatore_colore, spazio = emissione.colore
+                        if spazio is not None:
+                            nuove.append(_istruzione(spazio, "cs"))
+                        nuove.append(_istruzione(operandi_colore, operatore_colore))
+                    else:
+                        nuove.append(_istruzione([0], "g"))
                     nuove.append(_istruzione(
                         [pikepdf.Name(risorsa_originale), corpo], "Tf"))
                     inseriti += 1
@@ -606,6 +660,114 @@ def _riscrivi(contenitore: _Contenitore, per_istruzione: dict,
     contenitore.istruzioni = nuove
     contenitore.modificato = True
     return rimossi, inseriti
+
+
+def riquadri_dei_valori(pagina_pdfium, tratti) -> list[tuple[float, float, float, float, str]]:
+    """Dove sta ogni valore sulla pagina, **prima** di toglierlo.
+
+    Si misura sull'originale e non sul risultato, ed e' l'unico ordine che
+    funziona: dopo il taglio quei caratteri non ci sono piu', e non c'e' niente
+    da misurare. Tutto il resto della pagina non si muove — si tolgono glifi,
+    non si ricompone niente — quindi il riquadro misurato prima e' valido dopo.
+
+    Le coordinate sono in **spazio pagina**, quelle che pdfium restituisce
+    tenendo gia' conto di ogni trasformazione: e' la ragione per cui il
+    rettangolo si puo' disegnare in fondo al flusso senza rifare i conti delle
+    matrici.
+    """
+    testo = pagina_pdfium.get_textpage()
+    fuori = []
+    try:
+        totale = testo.count_chars()
+        for inizio, fine, etichetta in tratti:
+            sinistra = basso = None
+            destra = alto = None
+            for k in range(inizio, min(fine, totale)):
+                try:
+                    l, b, r, t = testo.get_charbox(k)
+                except Exception:
+                    continue
+                if l == r or b == t:
+                    continue  # carattere senza area: spazio o a capo
+                sinistra = l if sinistra is None else min(sinistra, l)
+                basso = b if basso is None else min(basso, b)
+                destra = r if destra is None else max(destra, r)
+                alto = t if alto is None else max(alto, t)
+            if sinistra is None:
+                continue
+            # **Un valore a cavallo di due righe darebbe un rettangolo alto
+            # quanto le due**, coprendo il testo in mezzo. Si riconosce
+            # dall'altezza: piu' del doppio della larghezza di un carattere
+            # medio vuol dire che ha scavalcato una riga.
+            if (alto - basso) > 3.2 * (destra - sinistra) / max(1, fine - inizio):
+                continue
+            fuori.append((sinistra, basso, destra, alto, etichetta))
+    finally:
+        testo.close()
+    return fuori
+
+
+def _rettangoli(riquadri) -> bytes:
+    """Solo i rettangoli, da mettere **in testa** al flusso della pagina.
+
+    In testa, quindi **dietro** al testo: il segnaposto e' gia' nel flusso,
+    scritto in bianco, e qui gli si mette il fondo sotto. E' l'ordine che
+    permette di avere tutto insieme -- il rettangolo colorato, il segnaposto
+    leggibile, e il testo che si copia **nell'ordine giusto**, perche' il
+    segnaposto sta al suo posto nella riga e non in fondo alla pagina.
+
+    Le coordinate sono in spazio pagina e i rettangoli si disegnano prima di
+    qualunque `cm`, quindi valgono cosi' come sono.
+    """
+    r, v, b = COLORE_RETTANGOLO
+    pezzi = []
+    for sinistra, basso, destra, alto in riquadri:
+        x = sinistra - MARGINE_RETTANGOLO
+        y = basso - MARGINE_RETTANGOLO
+        larghezza = (destra - sinistra) + 2 * MARGINE_RETTANGOLO
+        altezza = (alto - basso) + 2 * MARGINE_RETTANGOLO
+        pezzi.append(
+            f"q {r:.3f} {v:.3f} {b:.3f} rg "
+            f"{x:.2f} {y:.2f} {larghezza:.2f} {altezza:.2f} re f Q\n"
+        )
+    return "".join(pezzi).encode("latin-1", "replace")
+
+
+def riquadri_dei_segnaposto(pagina_pdfium) -> list[tuple[float, float, float, float]]:
+    """Dove sono finiti i segnaposto sulla pagina gia' redatta.
+
+    Si misura **dopo** il taglio e non prima, ed e' l'unico ordine che
+    funziona: il segnaposto e' piu' lungo del valore che ha sostituito, quindi
+    occupa un posto diverso: un rettangolo disegnato sulle coordinate del
+    valore originale finirebbe accanto, non sotto.
+    """
+    testo = pagina_pdfium.get_textpage()
+    fuori = []
+    try:
+        contenuto = testo.get_text_range()
+        for m in re.finditer(r"\{\{[A-Z_]+(?:_\d+)?\}\}", contenuto):
+            sinistra = basso = destra = alto = None
+            for k in range(m.start(), m.end()):
+                try:
+                    l, b, r_, t = testo.get_charbox(k)
+                except Exception:
+                    continue
+                if l == r_ or b == t:
+                    continue
+                sinistra = l if sinistra is None else min(sinistra, l)
+                basso = b if basso is None else min(basso, b)
+                destra = r_ if destra is None else max(destra, r_)
+                alto = t if alto is None else max(alto, t)
+            if sinistra is None:
+                continue
+            # Un segnaposto spezzato su due righe darebbe un rettangolo alto
+            # quanto le due, coprendo cio' che sta in mezzo.
+            if (alto - basso) > 2.5 * (destra - sinistra) / max(1, m.end() - m.start()) * 2:
+                continue
+            fuori.append((sinistra, basso, destra, alto))
+    finally:
+        testo.close()
+    return fuori
 
 
 def _aggiungi_font_standard(pagina) -> str:
@@ -687,6 +849,11 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                               if inizio <= emissione.inizio + k < fine]
                     if not indici:
                         continue
+                    # **Il segnaposto non si infila piu' nel flusso.** Lo si
+                    # disegna dopo, a coordinate assolute, sopra un rettangolo:
+                    # cosi' la riga non si ricompone (era il prezzo dichiarato
+                    # della prima versione), e il segnaposto compare **una**
+                    # volta sola quando si copia il testo.
                     lavori.setdefault(emissione.contenitore, {}) \
                           .setdefault(emissione.istruzione, {}) \
                           .setdefault(emissione.elemento, []) \
@@ -712,13 +879,54 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                 grezzo = pikepdf.unparse_content_stream(contenitore.istruzioni)
                 if "/Contents" in contenitore.oggetto:
                     contenitore.oggetto.Contents = pdf.make_stream(grezzo)
-                else:
+                else:  # noqa: RET505
                     contenitore.oggetto.write(grezzo)
 
         pdf.save(str(destinazione))
     finally:
         pdf.close()
+
+    _dipingi_rettangoli(destinazione)
     return esito
+
+
+def _dipingi_rettangoli(documento: Path) -> None:
+    """Il secondo passaggio: il fondo colorato sotto i segnaposto.
+
+    **Deve venire dopo il taglio, e in un file gia' scritto.** Il segnaposto e'
+    piu' lungo del valore che ha sostituito, quindi occupa un posto diverso:
+    un rettangolo disegnato sulle coordinate del valore originale finirebbe
+    accanto, non sotto. Le coordinate giuste esistono solo quando il documento
+    redatto esiste.
+
+    Se qualcosa va storto **non si tocca il file**: il documento redatto e' gia'
+    valido e completo, e il fondo colorato e' una comodita' per chi lo legge.
+    Perderlo e' un peccato; consegnare un file rotto no.
+    """
+    try:
+        letto = pdfium.PdfDocument(str(documento))
+        per_pagina = []
+        try:
+            for pagina in letto:
+                per_pagina.append(riquadri_dei_segnaposto(pagina))
+        finally:
+            letto.close()
+        if not any(per_pagina):
+            return
+
+        pdf = pikepdf.open(str(documento), allow_overwriting_input=True)
+        try:
+            for numero, pagina in enumerate(pdf.pages):
+                if numero < len(per_pagina) and per_pagina[numero]:
+                    # `prepend=True`: **dietro** al testo. In coda finirebbe
+                    # sopra, e coprirebbe il segnaposto che deve incorniciare.
+                    pagina.contents_add(_rettangoli(per_pagina[numero]),
+                                        prepend=True)
+            pdf.save(str(documento))
+        finally:
+            pdf.close()
+    except Exception:
+        return
 
 
 def _ripiego(esito: EsitoRedazione, pagina: int, motivo: str) -> None:
