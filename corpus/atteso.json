@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.22.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "5174bf2f2b8e43ab3eb30af8f5ece57c7c29df1e4f35f1a2bf9e5e872c879b0a",
+      "mr_rao/privacy.py": "c93c3f0f29d3a320b9ddfac15184b958340a49496121d323a1a9c715e3a09fc2",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "0033199e1c52d120eab386b5d59d8b9f584c24b42fc02084b6926608c07e31d9"
     }
@@ -3112,6 +3112,66 @@
       "report": {
         "counts": {},
         "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "indirizzi-provincia-par": {
+      "gruppo": "indirizzi",
+      "uscita": "Residente in {{ADDRESS_1}}, scala B.",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "indirizzi-provincia-nuda": {
+      "gruppo": "indirizzi",
+      "uscita": "Domicilio: {{ADDRESS_1}}.",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-sigla-non-provincia": {
+      "gruppo": "negativi",
+      "uscita": "{{ADDRESS_1}} IL GIORNO 5 si presenta il tecnico.",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "negativi-sigla-nazione": {
+      "gruppo": "negativi",
+      "uscita": "{{ADDRESS_1}} IT ha una sede operativa.",
+      "report": {
+        "counts": {
+          "addresses": 1
+        },
+        "total": 1,
         "suspects": [],
         "suspects_total": 0,
         "detected": [],

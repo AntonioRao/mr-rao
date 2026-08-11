@@ -837,7 +837,33 @@ _RE_ADDRESS = re.compile(
     # modo in cui «Via Verdi 12, 40100 Bologna \n\n Allegato A» si portava
     # via la «A» dell'allegato.
     rf"(?P<cap>{_H}*[,\-–]?{_H}*(?:\r?\n{_H}*)?\d{{5}}{_H}+{_TOK}"
-    rf"(?:{_H}+{_TOK})?)?"
+    rf"(?:{_H}+{_TOK})?"
+    # La sigla della provincia, che chiude l'indirizzo: `(MI)`, ` RM`.
+    #
+    # Restava fuori, e usciva `{{ADDRESS}} (MI)`. Non e' un dato che
+    # identifica da solo, ma su un indirizzo e' l'ultimo pezzo in chiaro di
+    # una cosa che il documento presenta come un blocco unico -- e un
+    # blocco redatto a meta' e' quello che fa dubitare del resto.
+    #
+    # **Lo schema propone, l'elenco decide** (`_SIGLE_PROVINCIA`). Due
+    # lettere maiuscole dopo un comune non bastano: la prima versione di
+    # questa riga si mangiava la `IT` di «Milano IT», e domani si sarebbe
+    # mangiata «Milano IL GIORNO 5». Le province italiane sono un insieme
+    # chiuso di 107 sigle, quindi qui non c'e' niente da indovinare.
+    rf"(?:{_H}*\({_H}*(?P<prov_par>[A-Z]{{2}}){_H}*\)"
+    rf"|{_H}+(?P<prov>[A-Z]{{2}})(?![\w]))?"
+    rf")?"
+)
+
+#: Le sigle automobilistiche delle province italiane. Insieme chiuso, quindi
+#: **si decide invece di indovinare**: e' lo stesso criterio del mod-97 per
+#: gli IBAN, applicato a un elenco invece che a un conto.
+_SIGLE_PROVINCIA = frozenset(
+    "AG AL AN AO AP AQ AR AT AV BA BG BI BL BN BO BR BS BT BZ CA CB CE CH CL "
+    "CN CO CR CS CT CZ EN FC FE FG FI FM FR GE GO GR IM IS KR LC LE LI LO LT "
+    "LU MB MC ME MI MN MO MS MT NA NO NU OR PA PC PD PE PG PI PN PO PR PT PU "
+    "PV PZ RA RC RE RG RI RM RN RO SA SI SO SP SR SS SU SV TA TE TN TO TP TR "
+    "TS TV UD VA VB VC VE VI VR VT VV".split()
 )
 
 
@@ -2221,7 +2247,27 @@ def _scrub_addresses(text: str, report: RedactionReport) -> str:
         # scrive un indirizzo per farci arrivare qualcuno scrive il numero.
         if not re.search(r"[a-zà-öø-ÿ]", corpo) and not m.group("civ"):
             return m.group(0)
-        return report.segnaposto("addresses", "{{ADDRESS}}", m.group(0))
+
+        # La sigla di provincia: lo schema l'ha proposta, qui si decide.
+        #
+        # Se non e' una provincia vera **torna al testo**, invece di far
+        # fallire tutta la corrispondenza: l'indirizzo resta riconosciuto e
+        # le due lettere restano dov'erano. Su «Via Roma 12, 20121 Milano IL
+        # GIORNO 5» si redige l'indirizzo e «IL GIORNO 5» non si tocca.
+        preso = m.group(0)
+        sigla = m.group("prov")
+        if sigla and sigla not in _SIGLE_PROVINCIA:
+            # Solo la forma senza parentesi puo' pescare una parola: `(XX)`
+            # sta fra parentesi e non e' una parola della frase.
+            preso = preso[: m.start("prov") - m.start(0)].rstrip()
+            coda = m.group(0)[len(preso):]
+            return report.segnaposto("addresses", "{{ADDRESS}}", preso) + coda
+        if m.group("prov_par") and m.group("prov_par") not in _SIGLE_PROVINCIA:
+            preso = preso[: m.start("prov_par") - m.start(0)].rstrip().rstrip("(").rstrip()
+            coda = m.group(0)[len(preso):]
+            return report.segnaposto("addresses", "{{ADDRESS}}", preso) + coda
+
+        return report.segnaposto("addresses", "{{ADDRESS}}", preso)
 
     return _RE_ADDRESS.sub(_sub, text)
 
