@@ -169,7 +169,28 @@ def pagine_locali() -> list[Path]:
         text=True,
         check=True,
     ).stdout.split()
-    return [RADICE / p for p in uscita]
+    # Il `*` di un pathspec git attraversa le barre, quindi quei due modelli
+    # prendono anche cio' che sta piu' in fondo -- comprese le pagine della
+    # privacy dell'estensione, entrate qui dentro il giorno in cui sono state
+    # tracciate.
+    #
+    # Vanno escluse, e non per comodita': questo controllo confronta la
+    # versione dichiarata dalla pagina con `APP_VERSION`, e quelle pagine una
+    # versione non ce l'hanno ne' la devono avere -- parlano dell'estensione,
+    # che ha un numero suo. Il risultato erano due righe «cieco» a ogni
+    # esecuzione, cioe' un controllo che non puo' diventare verde: si impara a
+    # saltarlo, e il giorno che diventa cieco per un motivo vero non lo legge
+    # piu' nessuno.
+    pagine = [RADICE / p for p in uscita if "/plus/" not in p]
+    # L'esclusione non deve poter mangiare la landing: se un giorno il filtro
+    # diventasse troppo largo, meglio fermarsi che controllare niente e
+    # stampare tutto verde. Provato allargandolo a `/publish/`: si ferma.
+    if len(pagine) < 2:
+        raise SystemExit(
+            f"pagine da controllare: {len(pagine)}. L'elenco si e' svuotato: "
+            "il filtro o il pathspec non prendono piu' le pagine vere."
+        )
+    return pagine
 
 
 def indirizzi_pubblicati(pagine: Iterable[Path] | None = None) -> list[str]:
