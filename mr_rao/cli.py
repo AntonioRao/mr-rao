@@ -485,6 +485,16 @@ def cmd_health(_args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"beautifulsoup4: FAIL ({e})")
 
+    # La finestra dell'applicazione. Si dice **sempre**, anche quando c'e':
+    # il ripiego sul browser e' silenzioso di proposito — su una macchina
+    # senza il motore di rendering di sistema il programma deve funzionare lo
+    # stesso — ma la stessa qualita' lo rende invisibile in un pacchetto mal
+    # costruito, dove sembrerebbe una scelta. Questa riga e' cio' che permette
+    # a `scripts/verify_build.py` di respingerlo.
+    from mr_rao.finestra import disponibile as _finestra_disponibile
+
+    print("finestra: ok" if _finestra_disponibile() else "finestra: assente")
+
     # Il percorso della traccia si stampa **sempre**, anche quando il file
     # non c'e'. Una traccia che l'utente non sa dove cercare non e' una
     # traccia: e quando serve davvero la finestra si e' gia' chiusa, quindi

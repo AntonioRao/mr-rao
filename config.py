@@ -145,6 +145,16 @@ SECRET_KEY = os.environ.get("MR_RAO_SECRET") or secrets.token_hex(32)
 USE_TRAY = os.environ.get("MR_RAO_TRAY", "1").strip() not in ("0", "false", "no")
 OPEN_BROWSER = os.environ.get("MR_RAO_OPEN_BROWSER", "1").strip() not in ("0", "false", "no")
 
+# Una finestra dell'applicazione invece di una scheda del browser. Stessa
+# interfaccia e stesso server locale: cambia il contorno, e cambia cosa si
+# vede nella barra delle applicazioni.
+#
+# Acceso di serie, ma **non e' una promessa**: se il motore di rendering di
+# sistema non c'e', `mr_rao.finestra.disponibile()` dice di no e si apre il
+# browser come sempre. Metterlo a `0` sceglie il browser anche dove la finestra
+# si potrebbe aprire.
+USA_FINESTRA = os.environ.get("MR_RAO_FINESTRA", "1").strip() not in ("0", "false", "no")
+
 # La scorciatoia che redige gli appunti sul posto: `0` la spegne, qualunque
 # altra cosa e' la combinazione. **Una** variabile per due cose, perche' sono
 # la stessa domanda -- «quale combinazione, o nessuna» -- e tenerle separate

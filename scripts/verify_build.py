@@ -208,6 +208,51 @@ def cli_muta(exe: Path) -> bool:
     return False
 
 
+def finestra_assente(exe: Path) -> bool:
+    """Il pacchetto sa aprire la finestra dell'applicazione?
+
+    **Il ripiego sul browser e' progettato per essere silenzioso**, ed e'
+    giusto che lo sia per l'utente: su una macchina senza il motore di
+    rendering di sistema il programma deve funzionare lo stesso. Ma la stessa
+    qualita' lo rende invisibile in un pacchetto **mal costruito**: pywebview
+    sceglie il backend a runtime, quindi se i suoi moduli non sono stati
+    inclusi il pacchetto esce, funziona, apre il browser, e sembra una scelta.
+
+    Qui si chiede all'eseguibile di dirlo, invece di dedurlo dalla dimensione
+    del pacchetto o dalla presenza di un file.
+    """
+    print("controllo che la finestra dell'applicazione sia dentro il pacchetto...")
+    try:
+        esito = subprocess.run(
+            [str(exe), "health"],
+            cwd=str(exe.parent),
+            capture_output=True,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        print("FALLITO  'MrRao.exe health' non e' tornato entro 120 s", file=sys.stderr)
+        return True
+
+    testo = ((esito.stdout or b"") + (esito.stderr or b"")).decode("utf-8", "replace")
+    if "finestra: ok" in testo:
+        print("  OK     la finestra e' disponibile")
+        return False
+    if "finestra: assente" in testo:
+        print(
+            "FALLITO  il pacchetto non sa aprire la finestra dell'applicazione.\n"
+            "         Mancano i --hidden-import di webview in build_portable.bat:\n"
+            "         il pacchetto ripiegherebbe sul browser in silenzio.",
+            file=sys.stderr,
+        )
+        return True
+    print(
+        "FALLITO  'health' non dice niente sulla finestra: il controllo non sta\n"
+        "         guardando piu' quello che credeva.",
+        file=sys.stderr,
+    )
+    return True
+
+
 def main(argv: list[str]) -> int:
     exe = Path(argv[1] if len(argv) > 1 else "dist/MrRao-Portable/app/MrRao.exe").resolve()
     if not exe.is_file():
@@ -325,6 +370,9 @@ def main(argv: list[str]) -> int:
             return 1
 
         if cli_muta(exe):
+            return 1
+
+        if finestra_assente(exe):
             return 1
 
         print("VERIFICA SUPERATA")

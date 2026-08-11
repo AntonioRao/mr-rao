@@ -124,6 +124,38 @@ if __name__ == "__main__":
     )
     server.start()
 
+    # La finestra dell'applicazione, quando si puo'. Stessa interfaccia e
+    # stesso server: cambia il contorno.
+    #
+    # **Prende il thread principale**, quindi l'icona nella barra parte
+    # staccata: il ciclo degli eventi e' uno solo e non si blocca due volte.
+    # Se la finestra non si puo' aprire si torna al browser, che e' il
+    # comportamento di sempre -- e lo si sa **prima** di provarci, cosi'
+    # l'utente non resta davanti a niente.
+    if config.USA_FINESTRA:
+        from mr_rao import finestra as _finestra
+
+        if _finestra.disponibile():
+            vetro = _finestra.Finestra(url)
+            if vetro.prepara():
+                icona = None
+                if config.USE_TRAY:
+                    try:
+                        from mr_rao.tray import run_tray
+
+                        icona = run_tray(
+                            url, vetro.chiudi, apri_ui=vetro.mostra, staccato=True
+                        )
+                    except Exception as e:
+                        _safe_print(f"Tray non disponibile ({e}).")
+                if vetro.esegui():
+                    if icona is not None:
+                        icona.stop()
+                    raise SystemExit(0)
+                # La finestra non e' partita: si prosegue col browser.
+                if icona is not None:
+                    icona.stop()
+
     if config.OPEN_BROWSER:
         threading.Timer(1.2, lambda: webbrowser.open(url)).start()
 

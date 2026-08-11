@@ -99,6 +99,11 @@ REM allegata `sys.stdout` diventa `None`, e `MrRao.exe convert file.pdf`
 REM funzionerebbe senza stampare niente -- il modo peggiore di rompersi. La
 REM console si aggancia quando serve, in `console_win.py`, chiamato come prima
 REM riga di app.py. **Le due cose vanno insieme.**
+REM
+REM I `--hidden-import` di `webview`: pywebview sceglie il backend a runtime,
+REM quindi PyInstaller non lo vede seguendo gli import. Senza quelle righe il
+REM pacchetto esce con la finestra che «non e' disponibile» e ripiega sul
+REM browser **in silenzio** -- il difetto peggiore, perche' sembra una scelta.
 pyinstaller --noconfirm --clean --onedir --noconsole --name MrRao ^
   --icon "static\img\mr-rao.ico" ^
   --add-data "templates;templates" ^
@@ -113,7 +118,13 @@ pyinstaller --noconfirm --clean --onedir --noconsole --name MrRao ^
   --hidden-import=mr_rao.watch_service ^
   --hidden-import=mr_rao.jobs ^
   --hidden-import=mr_rao.tray ^
+  --hidden-import=mr_rao.finestra ^
   --hidden-import=mr_rao.cli ^
+  --hidden-import=webview ^
+  --hidden-import=webview.platforms.winforms ^
+  --hidden-import=webview.platforms.edgechromium ^
+  --hidden-import=clr ^
+  --collect-all webview ^
   --hidden-import=bs4 ^
   --hidden-import=rapidocr ^
   --hidden-import=docx ^

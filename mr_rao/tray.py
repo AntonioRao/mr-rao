@@ -58,18 +58,37 @@ def _load_icon_image():
     return Image.new("RGBA", (64, 64), (59, 130, 246, 255))
 
 
-def run_tray(url: str, on_quit) -> None:
-    """Block on tray loop (call from main thread on Windows)."""
+def run_tray(url: str, on_quit, apri_ui=None, staccato: bool = False):
+    """Il ciclo dell'icona nella barra di sistema.
+
+    `staccato=False` blocca il thread chiamante, ed e' il comportamento di
+    sempre. Con `staccato=True` l'icona parte e **restituisce il controllo**:
+    serve quando il thread principale lo prende qualcun altro — la finestra
+    dell'applicazione — perche' il ciclo degli eventi e' uno solo e non si puo'
+    bloccare due volte. Non e' un espediente: `run_detached()` esiste in
+    pystray proprio «per integrarlo con altre librerie che richiedono un
+    mainloop».
+
+    `apri_ui` e' cosa fa la voce «Apri». Senza, si apre il browser come prima;
+    con la finestra, la si rimette in primo piano — e non si apre una scheda
+    accanto a una finestra che c'era gia'.
+
+    Restituisce l'icona quando e' staccata, cosi' chi chiama puo' fermarla;
+    `None` quando ha bloccato (a quel punto e' gia' finita).
+    """
     try:
         import pystray
         from pystray import MenuItem as Item
     except ImportError:
         print("pystray non installato — tray disabilitato. pip install pystray")
-        return
+        return None
 
     _print_lgpl_notice()
 
     def open_ui(icon=None, item=None):
+        if apri_ui is not None:
+            apri_ui()
+            return
         webbrowser.open(url)
 
     def open_watch_hint(icon=None, item=None):
@@ -122,7 +141,12 @@ def run_tray(url: str, on_quit) -> None:
             quando_fallisce=lambda m: print(f"[{config.APP_NAME}] scorciatoia: {m}"),
         )
 
+    if staccato:
+        icon.run_detached()
+        return icon
+
     icon.run()
+    return None
 
 
 def start_tray_thread(url: str, on_quit) -> threading.Thread | None:

@@ -53,6 +53,17 @@ python-docx>=1.1.0
 beautifulsoup4>=4.12.0
 # System tray (optional but recommended)
 pystray>=0.19.5
+# Una finestra dell'applicazione invece di una scheda del browser: stessa
+# interfaccia, stesso server locale, ma senza barra degli indirizzi ne' schede
+# attorno. Usa il motore di rendering **gia' presente nel sistema** (WebView2
+# su Windows), quindi non ci si porta dentro un browser.
+#
+# BSD-3-Clause. Su Windows tira dentro `pythonnet` (MIT) per parlare con
+# WinForms: e' la dipendenza piu' pesante che si aggiunge, e va saputo.
+#
+# **Non e' obbligatoria**: se manca, o se il motore di sistema non c'e',
+# `mr_rao.finestra.disponibile()` dice di no e si apre il browser come sempre.
+pywebview>=5.0
 # Tests
 pytest>=8.0.0
 # usato dai test per verificare che il frontmatter sia YAML valido
