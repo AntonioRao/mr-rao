@@ -162,3 +162,5 @@ Nothing is trained on any of it: the Mr. Rao engine is deterministic and has
 no weights. These corpora only measure — and the limits of each are written
 in the docstring of its script, because a corpus used for the wrong thing
 gives numbers that look solid and are not.
+
+

@@ -48,6 +48,7 @@ Scorciatoia ──► appunti ──► stesso motore privacy ──► appunti
 | `mr_rao/docx_export.py` | Markdown redatto → `.docx`. **Rigenera** il documento invece di coprire l'originale: sotto un rettangolo nero il testo resterebbe |
 | `mr_rao/i18n.py` | Le due lingue in un dizionario solo, condiviso fra server, template e JavaScript. La lingua dell'interfaccia **non** sceglie i riconoscitori |
 | `mr_rao/privacy.py` | Motore: sequenza dei riconoscitori, pacchetti, sospetti, recupero OCR |
+| `mr_rao/redazione_pdf.py` | Redazione di un PDF **senza rasterizzarlo**: toglie i byte dei glifi dal flusso di contenuto e ci mette il segnaposto, con un font standard. Il documento che esce è ancora selezionabile e pesa uguale. Non è raggiungibile dall'interfaccia: vedi il backlog |
 | `mr_rao/it_names.py` | Vocabolari italiani: nomi, cognomi, parole comuni maiuscole |
 | `mr_rao/en_formats.py` | Validatori anglosassoni (NHS, NINO, SSN, ITIN, ABA, SIN, ABN, TFN, MRZ) con i vettori di prova accanto |
 | `mr_rao/user_folders.py` | Cartelle di lavoro, rilevamento cartelle sincronizzate |
