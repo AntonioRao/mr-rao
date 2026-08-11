@@ -341,10 +341,40 @@
                             data-tip="{{ t('tip_scarica_txt') }}">{{ t('scarica_txt') }}</button>
                     <button type="button" class="btn" id="download-docx-btn"
                             data-tip="{{ t('tip_scarica_docx') }}">{{ t('scarica_docx') }}</button>
+                    <button type="button" class="btn" id="pdf-anteprima-btn" style="display:none"
+                            data-tip="{{ t('tip_pdf') }}">{{ t('pdf_anteprima') }}</button>
                     <button type="button" class="btn btn-primary" id="download-btn" draggable="true"
                             data-tip="{{ t('tip_scarica_md') }}">{{ t('scarica_md') }}</button>
                 </div>
             </div>
+
+            <!-- Il PDF redatto. Compare solo quando il documento di partenza e'
+                 un PDF: un pannello che non si puo' usare e' rumore. -->
+            <section class="pdf-pannello" id="pdf-pannello" hidden>
+                <header class="pdf-testa">
+                    <span class="pdf-titolo">{{ t('pdf_titolo') }}</span>
+                    <span class="pdf-esito" id="pdf-esito"></span>
+                    <button type="button" class="btn btn-primary" id="pdf-scarica-btn">{{ t('pdf_scarica') }}</button>
+                </header>
+                <p class="pdf-avviso" id="pdf-avviso" hidden></p>
+                <div class="pdf-confronto">
+                    <figure class="pdf-lato">
+                        <figcaption class="pdf-etichetta pdf-etichetta-prima">{{ t('pdf_prima') }}</figcaption>
+                        <img id="pdf-img-prima" alt="{{ t('pdf_prima') }}">
+                    </figure>
+                    <figure class="pdf-lato">
+                        <figcaption class="pdf-etichetta pdf-etichetta-dopo">{{ t('pdf_dopo') }}</figcaption>
+                        <img id="pdf-img-dopo" alt="{{ t('pdf_dopo') }}">
+                    </figure>
+                </div>
+                <nav class="pdf-pagine">
+                    <button type="button" class="btn pdf-freccia" id="pdf-prec"
+                            aria-label="{{ t('pdf_precedente') }}">&#8592;</button>
+                    <span class="pdf-contatore" id="pdf-contatore"></span>
+                    <button type="button" class="btn pdf-freccia" id="pdf-succ"
+                            aria-label="{{ t('pdf_successiva') }}">&#8594;</button>
+                </nav>
+            </section>
             <div class="tabs">
                 <button type="button" class="tab active" id="tab-raw"
                         data-tip="{{ t('tip_scheda_testo') }}">{{ t('scheda_testo') }}</button>

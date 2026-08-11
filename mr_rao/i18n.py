@@ -110,6 +110,63 @@ TESTI: dict[str, dict[str, str]] = {
     # -- errori --------------------------------------------------------
     "err_nessun_file": {"it": "Nessun file selezionato", "en": "No file selected"},
     "err_file_vuoto": {"it": "File vuoto", "en": "Empty file"},
+
+    # -- il PDF redatto ---------------------------------------------------
+    "err_pdf_solo_pdf": {
+        "it": "Il PDF redatto si può fare solo da un PDF.",
+        "en": "A redacted PDF can only be made from a PDF.",
+    },
+    "err_pdf_scansione": {
+        "it": "Questo PDF è una scansione: non contiene testo, quindi non c'è "
+              "nessun glifo da togliere. Disegnarci sopra dei rettangoli "
+              "sembrerebbe una redazione e non lo sarebbe. Converti il "
+              "documento con l'OCR acceso e usa il Markdown o il .docx.",
+        "en": "This PDF is a scan: it holds no text, so there are no glyphs to "
+              "remove. Drawing boxes over it would look like redaction and "
+              "would not be. Convert it with OCR on and use the Markdown or "
+              "the .docx instead.",
+    },
+    "err_pdf_fallita": {
+        "it": "La redazione del PDF non è riuscita. Il documento originale non "
+              "è stato toccato.",
+        "en": "Redacting the PDF failed. The original document was not touched.",
+    },
+    "pdf_titolo": {"it": "PDF redatto", "en": "Redacted PDF"},
+    "pdf_prima": {"it": "Prima", "en": "Before"},
+    "pdf_dopo": {"it": "Dopo", "en": "After"},
+    "pdf_anteprima": {"it": "Vedi l'anteprima", "en": "See the preview"},
+    "pdf_scarica": {"it": "Scarica il PDF redatto", "en": "Download redacted PDF"},
+    "pdf_pagina": {"it": "Pagina {n} di {tot}", "en": "Page {n} of {tot}"},
+    "pdf_precedente": {"it": "Pagina precedente", "en": "Previous page"},
+    "pdf_successiva": {"it": "Pagina successiva", "en": "Next page"},
+    "pdf_in_corso": {"it": "Sto redigendo il PDF…", "en": "Redacting the PDF…"},
+    "pdf_esito": {
+        "it": "{n} dati tolti dal documento",
+        "en": "{n} items removed from the document",
+    },
+    "pdf_non_trattate": {
+        "it": "⚠ {n} pagine non sono state redatte: {elenco}. Su quelle pagine "
+              "i dati sono rimasti. Controllale prima di consegnare il file.",
+        "en": "⚠ {n} pages were not redacted: {elenco}. On those pages the data "
+              "is still there. Check them before handing the file over.",
+    },
+    "pdf_tutte_trattate": {
+        "it": "Tutte le pagine sono state trattate.",
+        "en": "Every page was processed.",
+    },
+    "tip_pdf": {
+        "it": "Il documento che esce è **ancora un PDF di testo** — "
+              "selezionabile, ricercabile, dello stesso peso. I dati non sono "
+              "coperti da rettangoli neri: **sono tolti dal file**, e un "
+              "rettangolo nero si rimuove in un minuto mentre questo no. "
+              "Le scansioni non si possono trattare così, e Mr. Rao lo dice "
+              "invece di fingere.",
+        "en": "What comes out is **still a text PDF** — selectable, "
+              "searchable, the same size. The data is not covered by black "
+              "boxes: it is **removed from the file**, and a black box comes "
+              "off in a minute while this does not. Scans cannot be handled "
+              "this way, and Mr. Rao says so instead of pretending.",
+    },
     "err_troppo_grande": {"it": "File troppo grande", "en": "File too large"},
     "err_job_assente": {"it": "Job non trovato", "en": "Job not found"},
     "err_conversione": {

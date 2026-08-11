@@ -666,6 +666,144 @@ def export_docx():
     )
 
 
+#: Quanto grande esce un'anteprima. Due immagini per pagina viaggiano dentro un
+#: JSON: a scala 1.4 una pagina A4 sta sotto i 200 KB e si legge; a scala 2 ne
+#: pesa il doppio e non si legge meglio dentro un riquadro largo mezzo schermo.
+_SCALA_ANTEPRIMA = 1.4
+
+
+def _redigi_pdf_caricato(lingua: str):
+    """Legge il PDF dalla richiesta e lo redige. Ritorna (bytes, esito, errore)."""
+    if "file" not in request.files:
+        return None, None, (t("err_nessun_file_richiesta", lingua), 400)
+    file = request.files["file"]
+    if not file.filename:
+        return None, None, (t("err_nessun_file", lingua), 400)
+    if Path(file.filename).suffix.lower() != ".pdf":
+        return None, None, (t("err_pdf_solo_pdf", lingua), 400)
+
+    dati = file.read()
+    if not dati:
+        return None, None, (t("err_file_vuoto", lingua), 400)
+    if len(dati) > current_app.config["MAX_CONTENT_LENGTH"]:
+        return None, None, (t("err_troppo_grande", lingua), 400)
+
+    import tempfile
+
+    from mr_rao.redazione_pdf import redigi_pdf
+
+    opzioni = options_from_form(request.form)
+    with tempfile.TemporaryDirectory() as cartella:
+        dentro = Path(cartella) / "dentro.pdf"
+        fuori = Path(cartella) / "fuori.pdf"
+        dentro.write_bytes(dati)
+        try:
+            esito = redigi_pdf(dentro, fuori, opzioni)
+        except Exception:
+            current_app.logger.exception("redazione pdf")
+            return None, None, (t("err_pdf_fallita", lingua), 500)
+        if esito.scansione:
+            return None, esito, (t("err_pdf_scansione", lingua), 422)
+        if not fuori.exists():
+            return None, esito, (t("err_pdf_fallita", lingua), 500)
+        return fuori.read_bytes(), esito, None
+
+
+def _pagina_in_png(dati: bytes, numero: int) -> str:
+    """Una pagina come PNG in base64, pronta per un `src`."""
+    import base64
+
+    import pypdfium2 as pdfium
+
+    documento = pdfium.PdfDocument(io.BytesIO(dati))
+    try:
+        numero = max(0, min(numero, len(documento) - 1))
+        immagine = documento[numero].render(scale=_SCALA_ANTEPRIMA).to_pil()
+    finally:
+        documento.close()
+    buffer = io.BytesIO()
+    immagine.convert("RGB").save(buffer, format="PNG", optimize=True)
+    return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
+
+
+@bp.route("/api/pdf/anteprima", methods=["POST"])
+def anteprima_pdf():
+    """Prima e dopo, la stessa pagina, come immagini.
+
+    **L'anteprima non e' un vezzo.** Chi redige un atto da depositare deve
+    poter vedere cosa e' sparito prima di consegnarlo, e deve poterlo vedere
+    *sulla pagina*: un numero che dice «14 sostituzioni» non fa distinguere il
+    nome tolto dal nome che era gia' li'.
+
+    Si rendono immagini invece di mostrare il PDF in un riquadro perche' e'
+    l'unica cosa che funziona uguale ovunque — dentro la finestra
+    dell'applicazione, in Edge, in Firefox — senza dipendere da un lettore PDF
+    incorporato che c'e' o non c'e'.
+    """
+    lingua = lingua_richiesta(request.form.get("lang"))
+    dati_originali = b""
+    if "file" in request.files:
+        dati_originali = request.files["file"].read()
+        request.files["file"].stream.seek(0)
+
+    redatto, esito, errore = _redigi_pdf_caricato(lingua)
+    if errore:
+        messaggio, codice = errore
+        return jsonify({"error": messaggio}), codice
+
+    try:
+        numero = int(request.form.get("pagina") or 0)
+    except ValueError:
+        numero = 0
+
+    return jsonify({
+        "pagine": esito.pagine,
+        "pagina": numero,
+        "sostituzioni": esito.segnaposto_inseriti,
+        # **Le pagine non trattate si dicono sempre**, anche quando sono zero:
+        # una pagina finita nel ripiego NON e' stata redatta, e presentarla
+        # come tale sarebbe il modo peggiore di sbagliare.
+        "pagine_non_trattate": sorted(esito.pagine_in_ripiego),
+        "prima": _pagina_in_png(dati_originali, numero),
+        "dopo": _pagina_in_png(redatto, numero),
+    })
+
+
+@bp.route("/api/export/pdf", methods=["POST"])
+def export_pdf():
+    """Il PDF redatto da scaricare.
+
+    Non copre i dati con dei rettangoli: **toglie i glifi dal flusso di
+    contenuto**. Il documento che esce e' ancora un PDF di testo, selezionabile
+    e ricercabile, pesa quanto quello di partenza, e il dato non c'e' piu' nel
+    file — non e' nascosto sotto qualcosa.
+    """
+    lingua = lingua_richiesta(request.form.get("lang"))
+    nome_originale = ""
+    if "file" in request.files:
+        nome_originale = request.files["file"].filename or ""
+
+    redatto, esito, errore = _redigi_pdf_caricato(lingua)
+    if errore:
+        messaggio, codice = errore
+        return jsonify({"error": messaggio}), codice
+
+    nome = Path(str(nome_originale or "documento")).stem
+    nome = re.sub(r"[^\w \-.]", "", nome)[:80].strip() or "documento"
+    risposta = send_file(
+        io.BytesIO(redatto),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"{nome}-redatto.pdf",
+    )
+    # I conti viaggiano nelle intestazioni: il corpo e' il file, e chi scarica
+    # deve poter sapere quante pagine non sono state trattate senza aprirlo.
+    risposta.headers["X-MrRao-Sostituzioni"] = str(esito.segnaposto_inseriti)
+    risposta.headers["X-MrRao-Pagine-Non-Trattate"] = ",".join(
+        str(p) for p in sorted(esito.pagine_in_ripiego))
+    return risposta
+
+
 @bp.route("/api/jobs/<job_id>", methods=["GET"])
 def job_status(job_id: str):
     job = job_store.get(job_id)

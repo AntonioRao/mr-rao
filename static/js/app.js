@@ -112,6 +112,16 @@
     downloadBtn: $("download-btn"),
     downloadTxtBtn: $("download-txt-btn"),
     downloadDocxBtn: $("download-docx-btn"),
+    pdfAnteprimaBtn: $("pdf-anteprima-btn"),
+    pdfPannello: $("pdf-pannello"),
+    pdfEsito: $("pdf-esito"),
+    pdfAvviso: $("pdf-avviso"),
+    pdfImgPrima: $("pdf-img-prima"),
+    pdfImgDopo: $("pdf-img-dopo"),
+    pdfContatore: $("pdf-contatore"),
+    pdfPrec: $("pdf-prec"),
+    pdfSucc: $("pdf-succ"),
+    pdfScaricaBtn: $("pdf-scarica-btn"),
     toast: $("toast"),
     toastMsg: $("toast-msg"),
     toastIcon: $("toast-icon"),
@@ -155,6 +165,14 @@
   let currentMarkdown = "";
   let currentRaw = null;
   let currentFilename = "documento";
+  // Il PDF di partenza, tenuto **in memoria del browser** e mai altrove: le
+  // due chiamate della redazione lo rispediscono, e il server non conserva
+  // niente fra l'una e l'altra. E' la ragione per cui Mr. Rao non ha niente
+  // da farsi rubare, e non la si rompe per risparmiare un caricamento su
+  // 127.0.0.1.
+  let pdfDiPartenza = null;
+  let pdfPaginaCorrente = 0;
+  let pdfPagineTotali = 0;
   let currentJobId = null;
   let abortPoll = false;
   const history = [];
@@ -381,6 +399,7 @@
     renderDiff(currentRaw, currentMarkdown);
     renderAttachments(extra.attachments || []);
     els.resultCard.style.display = "flex";
+    mostraPulsantePdf();
     if (els.tabDiff) {
       els.tabDiff.style.display = currentRaw ? "inline-flex" : "none";
     }
@@ -609,6 +628,13 @@
     if (!files.length) return;
     if (!checkSize(files)) return;
 
+    // Il PDF redatto si fa da **un** PDF. Con piu' file, o con un file di
+    // altro tipo, il pulsante non deve nemmeno comparire: un comando che si
+    // puo' premere e non puo' funzionare e' peggio di un comando assente.
+    pdfDiPartenza =
+      files.length === 1 && /\.pdf$/i.test(files[0].name || "") ? files[0] : null;
+    chiudiPannelloPdf();
+
     const multi = files.length > 1;
     const compare = els.compareMode && els.compareMode.checked;
     const merge = (multi && els.mergeBatch && els.mergeBatch.checked) || compare;
@@ -827,6 +853,115 @@
     downloadBlob(currentMarkdown, currentFilename + ".md", "text/markdown;charset=utf-8");
     showToast(t("js_md_scaricato"));
   });
+
+  // ------------------------------------------------------- il PDF redatto
+  //
+  // Il documento che esce e' **ancora un PDF di testo**: i dati non sono
+  // coperti da rettangoli neri, sono tolti dal flusso di contenuto. Un
+  // rettangolo si rimuove in un minuto, questo no.
+
+  function chiudiPannelloPdf() {
+    if (!els.pdfPannello) return;
+    els.pdfPannello.hidden = true;
+    pdfPaginaCorrente = 0;
+    pdfPagineTotali = 0;
+  }
+
+  function mostraPulsantePdf() {
+    if (!els.pdfAnteprimaBtn) return;
+    els.pdfAnteprimaBtn.style.display = pdfDiPartenza ? "inline-flex" : "none";
+  }
+
+  async function chiediAnteprima(pagina) {
+    if (!pdfDiPartenza || !els.pdfPannello) return;
+    const fd = formPayload();
+    fd.append("file", pdfDiPartenza);
+    fd.append("pagina", String(pagina));
+
+    els.pdfAnteprimaBtn.disabled = true;
+    els.pdfPrec.disabled = true;
+    els.pdfSucc.disabled = true;
+    if (els.pdfContatore) els.pdfContatore.textContent = t("pdf_in_corso");
+    try {
+      const r = await fetch("/api/pdf/anteprima", { method: "POST", body: fd });
+      const dati = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        showToast(dati.error || t("err_pdf_fallita"), "error");
+        chiudiPannelloPdf();
+        return;
+      }
+      pdfPaginaCorrente = dati.pagina || 0;
+      pdfPagineTotali = dati.pagine || 1;
+      els.pdfImgPrima.src = dati.prima;
+      els.pdfImgDopo.src = dati.dopo;
+      els.pdfEsito.textContent = t("pdf_esito").replace("{n}", dati.sostituzioni);
+
+      // **Le pagine non trattate si dicono sempre.** Una pagina finita nel
+      // ripiego non e' stata redatta, e chi consegna quel file deve saperlo
+      // prima, non scoprirlo dopo.
+      const fuori = dati.pagine_non_trattate || [];
+      if (fuori.length) {
+        els.pdfAvviso.textContent = t("pdf_non_trattate")
+          .replace("{n}", fuori.length)
+          .replace("{elenco}", fuori.map((p) => p + 1).join(", "));
+        els.pdfAvviso.hidden = false;
+      } else {
+        els.pdfAvviso.hidden = true;
+      }
+
+      els.pdfContatore.textContent = t("pdf_pagina")
+        .replace("{n}", pdfPaginaCorrente + 1)
+        .replace("{tot}", pdfPagineTotali);
+      els.pdfPannello.hidden = false;
+      els.pdfPannello.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (e) {
+      showToast(t("err_pdf_fallita"), "error");
+      chiudiPannelloPdf();
+    } finally {
+      els.pdfAnteprimaBtn.disabled = false;
+      els.pdfPrec.disabled = pdfPaginaCorrente <= 0;
+      els.pdfSucc.disabled = pdfPaginaCorrente >= pdfPagineTotali - 1;
+    }
+  }
+
+  if (els.pdfAnteprimaBtn) {
+    els.pdfAnteprimaBtn.addEventListener("click", () => chiediAnteprima(0));
+  }
+  if (els.pdfPrec) {
+    els.pdfPrec.addEventListener("click", () => chiediAnteprima(pdfPaginaCorrente - 1));
+  }
+  if (els.pdfSucc) {
+    els.pdfSucc.addEventListener("click", () => chiediAnteprima(pdfPaginaCorrente + 1));
+  }
+
+  if (els.pdfScaricaBtn) {
+    els.pdfScaricaBtn.addEventListener("click", async () => {
+      if (!pdfDiPartenza) return;
+      const fd = formPayload();
+      fd.append("file", pdfDiPartenza);
+      els.pdfScaricaBtn.disabled = true;
+      try {
+        const r = await fetch("/api/export/pdf", { method: "POST", body: fd });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          showToast(err.error || t("err_pdf_fallita"), "error");
+          return;
+        }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement("a"), {
+          href: url,
+          download: currentFilename + "-redatto.pdf",
+        });
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } finally {
+        els.pdfScaricaBtn.disabled = false;
+      }
+    });
+  }
 
   if (els.downloadDocxBtn) {
     els.downloadDocxBtn.addEventListener("click", async () => {

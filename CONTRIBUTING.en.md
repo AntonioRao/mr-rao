@@ -86,7 +86,7 @@ what is missing *(Italian)*. Particularly welcome:
   document that renders badly, the case belongs there. One non-negotiable
   rule: **it must never emit a remote `<img>`**, because that would be a
   network call originating from the very document being redacted.
-- **Tests.** There are 1940 tests and they are never enough. (The number is
+- **Tests.** There are 1949 tests and they are never enough. (The number is
   written before the word "tests" on purpose: that is how
   `scripts/check_docs.py` finds it. Written the other way round it stayed
   stuck at 161 for twenty releases.)
