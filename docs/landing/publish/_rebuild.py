@@ -40,6 +40,9 @@ PAGINE = (
         "index.html",
         (
             ("../../static/img/logo.svg", "assets/logo.svg"),
+            ("../../static/img/logo-chrome.svg", "assets/logo-chrome.svg"),
+            ("../../static/img/logo-edge.svg", "assets/logo-edge.svg"),
+            ("../../static/img/logo-firefox.svg", "assets/logo-firefox.svg"),
             ("../../static/img/favicon.svg", "assets/favicon.svg"),
             ("../../static/img/favicon.ico", "assets/favicon.ico"),
             ('href="01-protocollo-zero.en.html"', 'href="/en/"'),
@@ -50,6 +53,9 @@ PAGINE = (
         "en/index.html",
         (
             ("../../static/img/logo.svg", "/assets/logo.svg"),
+            ("../../static/img/logo-chrome.svg", "/assets/logo-chrome.svg"),
+            ("../../static/img/logo-edge.svg", "/assets/logo-edge.svg"),
+            ("../../static/img/logo-firefox.svg", "/assets/logo-firefox.svg"),
             ("../../static/img/favicon.svg", "/assets/favicon.svg"),
             ("../../static/img/favicon.ico", "/assets/favicon.ico"),
             ('url("fonts/', 'url("/fonts/'),
@@ -137,7 +143,14 @@ for nome_sorgente, uscita, riscritture in PAGINE:
             raise SystemExit(f"{nome_sorgente}: non trovo '{prima}' da riscrivere")
         html = html.replace(prima, dopo)
 
-    for nome in ("logo.svg", "favicon.svg", "favicon.ico"):
+    for nome in (
+        "logo.svg",
+        "logo-chrome.svg",
+        "logo-edge.svg",
+        "logo-firefox.svg",
+        "favicon.svg",
+        "favicon.ico",
+    ):
         percorso = root / "assets" / nome
         if not percorso.exists():
             continue

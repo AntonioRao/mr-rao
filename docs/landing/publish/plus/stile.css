@@ -97,12 +97,20 @@ a:hover { filter: brightness(1.12); }
 }
 .nav .links { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
 .nav .cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   color: var(--bg);
   background: var(--phosphor);
   padding: 0.45rem 0.9rem;
   font-weight: 600;
   text-decoration: none;
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.nav .cta img.browser {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
 }
 
 main { max-width: 48rem; margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 2rem) 5rem; }
@@ -140,6 +148,7 @@ main { max-width: 48rem; margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 2rem) 5r
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   min-height: 2.9rem;
   padding: 0.55rem 1.1rem;
   font-family: var(--mono);
@@ -155,6 +164,12 @@ main { max-width: 48rem; margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 2rem) 5r
   border: 1px solid var(--phosphor-dim);
   color: var(--phosphor);
   background: transparent;
+}
+.btn img.browser {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  display: block;
 }
 .btn-soon { opacity: 0.55; cursor: default; }
 .soon {

@@ -366,6 +366,12 @@
     background: rgba(10,16,12,0.6);
   }
   .btn-ghost:hover { border-color: var(--phosphor-dim); color: var(--phosphor); }
+  .btn img.browser {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex: none;
+    display: block;
+  }
   /* I quattro modi di prendere Mr. Rao. Non sono equivalenti, e la griglia
      non deve far finta che lo siano: sotto ogni pulsante c'e' una riga che
      dice cosa cambia davvero, cioe' se Windows mostrera' l'avviso. Quattro
@@ -1017,12 +1023,15 @@
     </p>
     <div class="plus-actions">
       <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek" target="_blank" rel="noopener noreferrer">
+        <img class="browser" src="../../static/img/logo-chrome.svg" width="20" height="20" alt="" />
         Google Chrome
       </a>
       <a class="btn btn-ghost" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">
+        <img class="browser" src="../../static/img/logo-edge.svg" width="20" height="20" alt="" />
         Microsoft Edge
       </a>
       <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4954977/mr_rao_plus-0.1.25.zip" target="_blank" rel="noopener noreferrer">
+        <img class="browser" src="../../static/img/logo-firefox.svg" width="20" height="20" alt="" />
         Firefox
       </a>
       <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/blob/main/docs/MR-RAO-PLUS.md" target="_blank" rel="noopener noreferrer">
