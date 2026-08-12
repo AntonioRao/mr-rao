@@ -163,7 +163,12 @@ USA_FINESTRA = os.environ.get("MR_RAO_FINESTRA", "1").strip() not in ("0", "fals
 # Guida, e disinnesco della somiglianza con un keylogger:
 # docs/SCORCIATOIA-APPUNTI.md
 _SCORCIATOIA = os.environ.get("MR_RAO_SCORCIATOIA", "ctrl+alt+r").strip()
-SCORCIATOIA_ATTIVA = _SCORCIATOIA.lower() not in ("0", "false", "no", "")
+# ctypes.WinDLL: solo Windows. Fuori da win32 la scorciatoia non esiste
+# (un True qui fa cadere tray.py su AttributeError all'avvio).
+SCORCIATOIA_ATTIVA = (
+    sys.platform == "win32"
+    and _SCORCIATOIA.lower() not in ("0", "false", "no", "")
+)
 SCORCIATOIA = _SCORCIATOIA if SCORCIATOIA_ATTIVA else ""
 
 # Security — a local server is reachable by any page the user has open in the

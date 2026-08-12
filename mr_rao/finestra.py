@@ -66,7 +66,15 @@ def disponibile() -> bool:
         import webview  # noqa: F401
     except Exception:
         return False
-    return True
+    import sys
+
+    # Su Windows e macOS il backend c'è (WebView2 / Cocoa). Su Linux
+    # l'import da solo non basta: senza GTK/QT `guilib` resta vuoto e
+    # aprire la finestra fallisce dopo. Meglio dirlo prima.
+    if sys.platform in ("win32", "darwin"):
+        return True
+    gui = getattr(webview, "guilib", None)
+    return gui is not None
 
 
 class Finestra:

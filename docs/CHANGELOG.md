@@ -1,5 +1,17 @@
 # Changelog
 
+## Dopo la 1.24.0 — non ancora in una release desktop
+
+* **Mr. Rao Plus è sul Chrome Web Store.** Pulsante attivo su
+  rao.valor-cyber.com (IT/EN) e su `/plus/` (IT/EN). Link anche nei due
+  README e in `docs/MR-RAO-PLUS.md`.
+* **macOS arm64, senza i 99 USD.** `scripts/build_mac.sh` e il workflow
+  `.github/workflows/macos.yml` producono `MrRao-macos-arm64.zip` con
+  firma **ad-hoc**. Gatekeeper avvisa al primo avvio (tasto destro →
+  Apri). La scorciatoia appunti è spenta fuori da Windows, altrimenti
+  l’avvio cade su `ctypes.WinDLL`. Istruzioni: `docs/MACOS.md`.
+  Mac di riferimento: Air M1 2020, 8 GB, macOS Tahoe 26.5.2.
+
 ## 1.24.0 — Il testo che non stava nel flusso, e tre volte «il dato spariva ma il rapporto mentiva»
 
 Nessuna funzione nuova. Sei difetti, e cinque sono della stessa famiglia: il

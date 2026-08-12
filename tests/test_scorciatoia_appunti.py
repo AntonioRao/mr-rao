@@ -252,3 +252,21 @@ def test_non_si_usa_il_gancio_di_tastiera():
     ]
     assert not righe_di_codice, righe_di_codice
     assert "RegisterHotKey" in testo
+
+
+def test_fuori_da_windows_la_scorciatoia_non_parte():
+    """Su macOS/Linux `ctypes.WinDLL` non esiste: avviare la scorciatoia
+    deve tornare None, non cadere. È il vincolo del pacchetto Mac."""
+    import sys
+
+    from mr_rao.appunti import avvia_scorciatoia
+
+    if sys.platform == "win32":
+        import config
+
+        assert config.SCORCIATOIA_ATTIVA in (True, False)
+        return
+    import config
+
+    assert config.SCORCIATOIA_ATTIVA is False
+    assert avvia_scorciatoia("ctrl+alt+r", lambda: None) is None

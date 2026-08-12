@@ -20,6 +20,8 @@ La cartella `MrRao-Portable` (generata su un PC di build) include:
 
 **Sul PC destinazione non servono:** Python, pip, git, venv, connessione per scaricare pacchetti.
 
+macOS (Apple Silicon, firma ad-hoc, niente 99 USD): [MACOS.md](MACOS.md).
+
 ## Come generare il pacchetto (PC sviluppatore)
 
 ```bat

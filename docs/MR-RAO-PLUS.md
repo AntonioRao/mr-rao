@@ -11,8 +11,8 @@ un pezzo di email, si preme Invio. Fra il pensiero e il server non c'è niente.
 
 | | |
 |---|---|
+| **Google Chrome** | [scheda sullo store](https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek) |
 | **Microsoft Edge** | [scheda sullo store](https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead) |
-| **Google Chrome** | in arrivo — la scheda è in bozza |
 | Licenza | **commerciale**, non AGPL. Mr. Rao resta AGPL-3.0 |
 | Privacy | [rao.valor-cyber.com/plus/privacy](https://rao.valor-cyber.com/plus/privacy/) |
 

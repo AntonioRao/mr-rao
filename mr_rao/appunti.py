@@ -351,6 +351,12 @@ def avvia_scorciatoia(
     altrove: e' il motivo per cui questa funzione ha un thread proprio invece
     di appoggiarsi a quello del tray.
     """
+    import sys
+
+    if sys.platform != "win32":
+        if quando_fallisce:
+            quando_fallisce("la scorciatoia appunti esiste solo su Windows")
+        return None
     try:
         modificatori, codice, leggibile = analizza_combinazione(combinazione)
     except ValueError as e:
