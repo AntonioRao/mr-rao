@@ -297,7 +297,11 @@ def test_l_hook_ferma_davvero_un_commit(tmp_path):
     (repo / "scripts").mkdir(parents=True)
     (repo / ".githooks").mkdir()
     (repo / "mr_rao").mkdir()
-    shutil.copy2(HOOK, repo / ".githooks" / "pre-commit")
+    hook = repo / ".githooks" / "pre-commit"
+    shutil.copy2(HOOK, hook)
+    # Su Unix git ignora l'hook se non è eseguibile. copy2 da un checkout
+    # senza +x lascia 0644: il commit passerebbe e il test mentirebbe.
+    hook.chmod(hook.stat().st_mode | 0o111)
     (repo / "app.py").write_text("", encoding="utf-8")
     (repo / "config.py").write_text("", encoding="utf-8")
     (repo / "mr_rao" / "__init__.py").write_text("", encoding="utf-8")

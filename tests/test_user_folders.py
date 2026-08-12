@@ -83,7 +83,13 @@ def test_usa_documenti_quando_sono_locali(documenti_locali):
 
 def test_evita_il_cloud_e_ripiega_su_cartella_locale(documenti_in_onedrive):
     """Il punto centrale: l'app promette «zero cloud», quindi le cartelle di
-    lavoro non possono finire dentro OneDrive."""
+    lavoro non possono finire dentro OneDrive.
+
+    `USERPROFILE` e `Path.home()` su macOS non coincidono: un candidato in
+    più su `Path.home()/Documents` prendeva i Documenti del runner e il
+    test (scritto su Windows) diventava rosso senza che il prodotto
+    avesse trovato una cartella locale dell'utente.
+    """
     assert local_documents_dir() is None
     root, motivo = folders_root()
     assert is_cloud_synced(root) is False, f"radice ancora nel cloud: {root}"

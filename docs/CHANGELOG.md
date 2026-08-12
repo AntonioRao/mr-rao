@@ -11,6 +11,9 @@
   Apri). La scorciatoia appunti è spenta fuori da Windows, altrimenti
   l’avvio cade su `ctypes.WinDLL`. Istruzioni: `docs/MACOS.md`.
   Mac di riferimento: Air M1 2020, 8 GB, macOS Tahoe 26.5.2.
+  Prima run Actions rossa: azioni Node 20 (`@v4`/`@v5`), hook git senza
+  `+x` su Darwin, e `local_documents_dir()` che su macOS prendeva i
+  Documenti di `Path.home()` ignorando `USERPROFILE`.
 
 ## 1.24.0 — Il testo che non stava nel flusso, e tre volte «il dato spariva ma il rapporto mentiva»
 

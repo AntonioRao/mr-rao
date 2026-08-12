@@ -58,9 +58,18 @@ def is_cloud_synced(path: str | Path) -> bool:
 
 
 def local_documents_dir() -> Path | None:
-    """Documenti dell'utente, ma solo se NON è una cartella sincronizzata."""
-    home = Path(os.environ.get("USERPROFILE") or Path.home())
-    for candidate in (home / "Documents", home / "Documenti", Path.home() / "Documents"):
+    """Documenti dell'utente, ma solo se NON è una cartella sincronizzata.
+
+    Si guarda **una** home: `USERPROFILE` se c'è, altrimenti `HOME` /
+    `Path.home()`. Un terzo candidato su `Path.home()` mentre
+    `USERPROFILE` punta altrove (OneDrive redirezionato nei test, o un
+    profilo spostato) pescava i Documenti di *un altro* albero e li
+    trattava come locali. Su macOS `Path.home()` e `USERPROFILE` non
+    coincidono: è così che la suite, verde su Windows, è diventata rossa
+    sul runner Apple Silicon.
+    """
+    home = Path(os.environ.get("USERPROFILE") or os.environ.get("HOME") or Path.home())
+    for candidate in (home / "Documents", home / "Documenti"):
         if candidate.is_dir() and not is_cloud_synced(candidate):
             return candidate
     return None
