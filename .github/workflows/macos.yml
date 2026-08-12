@@ -64,6 +64,18 @@ jobs:
           MR_RAO_OPEN_BROWSER: "0"
           MR_RAO_SCORCIATOIA: "0"
         run: venv/bin/python scripts/verify_build.py "dist/MrRao.app/Contents/MacOS/MrRao"
+      # Stessa prova, ma dal file che si scarica: monta il .dmg e lancia
+      # l'eseguibile dal disco. Se hdiutil o il bundle dentro si rompono,
+      # il primo passo sopra resterebbe verde da solo.
+      - name: Il .dmg montato risponde in HTTP
+        env:
+          MR_RAO_TRAY: "0"
+          MR_RAO_FINESTRA: "0"
+          MR_RAO_OPEN_BROWSER: "0"
+          MR_RAO_SCORCIATOIA: "0"
+        run: |
+          chmod +x scripts/verify_dmg.sh
+          ./scripts/verify_dmg.sh dist/MrRao-macos-arm64.dmg venv/bin/python
       - uses: actions/attest-build-provenance@v3
         with:
           subject-path: dist/MrRao-macos-arm64.dmg

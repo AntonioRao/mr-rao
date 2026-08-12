@@ -49,7 +49,9 @@ chmod +x scripts/build_mac.sh
 ```
 
 Esce `dist/MrRao-macos-arm64.dmg` (disco con l’app e il collegamento ad
-Applicazioni). Niente zip da scompattare.
+Applicazioni). Niente zip da scompattare. La CI monta quel disco e rilancia
+`verify_build` sull’eseguibile *dentro* (`scripts/verify_dmg.sh`): si prova
+il file che si condivide, non solo l’`.app` prima di impacchettarlo.
 
 Da Windows / senza Mac: Actions → workflow **macOS** → Run workflow.
 Su un tag `v*` gira da solo. Il file da condividere è sulla release,
