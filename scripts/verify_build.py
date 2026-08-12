@@ -361,8 +361,15 @@ def main(argv: list[str]) -> int:
         # build da un percorso che sovrascriveva l'artwork rifinito a mano:
         # il collegamento sul Desktop funzionava, e mostrava l'icona
         # sbagliata. Nessuno se ne accorge guardando se il file c'e'.
-        ico_pacchetto = exe.parent.parent / "mr-rao.ico"
         ico_repo = Path(__file__).resolve().parent.parent / "static" / "img" / "mr-rao.ico"
+        # Portable Windows: <radice>/mr-rao.ico (exe in app/).
+        # .app macOS: Contents/Resources/mr-rao.ico (exe in Contents/MacOS/).
+        candidati_ico = (
+            exe.parent.parent / "mr-rao.ico",
+            exe.parent.parent / "Resources" / "mr-rao.ico",
+            exe.parent / "mr-rao.ico",
+        )
+        ico_pacchetto = next((p for p in candidati_ico if p.is_file()), candidati_ico[0])
         if ico_pacchetto.is_file() and ico_repo.is_file():
             if ico_pacchetto.read_bytes() != ico_repo.read_bytes():
                 print(

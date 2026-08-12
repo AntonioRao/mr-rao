@@ -87,6 +87,11 @@ if [[ ! -d "$APP" ]]; then
   exit 2
 fi
 
+# verify_build confronta byte-per-byte l'icona del repo. Su Windows sta
+# accanto a app/; nel .app va in Resources, prima della firma.
+mkdir -p "$APP/Contents/Resources"
+cp -f static/img/mr-rao.ico "$APP/Contents/Resources/mr-rao.ico"
+
 # Firma dall'interno verso l'esterno. Niente --deep (deprecato per firmare).
 # `-s -` = ad-hoc: gratis, basta al kernel Apple Silicon.
 find "$APP/Contents" \( -name "*.dylib" -o -name "*.so" \) \
