@@ -93,6 +93,22 @@ e i loro limiti sono scritti nella docstring di ciascuno script, perché un
 corpus usato per la cosa sbagliata dà numeri che sembrano solidi e non lo
 sono.
 
+## 7. Loghi dei browser sui pulsanti di installazione
+
+I file `static/img/logo-chrome.svg`, `logo-edge.svg` e `logo-firefox.svg`
+sono i marchi ufficiali, copiati da Wikimedia Commons, e **non** sono
+nostri:
+
+| File | Origine | Titolare |
+|---|---|---|
+| `logo-chrome.svg` | [Google Chrome icon (February 2022)](https://commons.wikimedia.org/wiki/File:Google_Chrome_icon_(February_2022).svg) | Google |
+| `logo-edge.svg` | [Microsoft Edge logo (2019)](https://commons.wikimedia.org/wiki/File:Microsoft_Edge_logo_(2019).svg) | Microsoft |
+| `logo-firefox.svg` | [Firefox logo, 2019](https://commons.wikimedia.org/wiki/File:Firefox_logo,_2019.svg) (MPL-2.0) | Mozilla |
+
+Stanno sui pulsanti che portano allo store di quel browser. Non
+indicano sponsorizzazione. Chi ridistribuisce il sito deve o tenere
+questi file con questa indicazione, o togliere i loghi.
+
 ---
 ---
 
@@ -162,5 +178,19 @@ Nothing is trained on any of it: the Mr. Rao engine is deterministic and has
 no weights. These corpora only measure — and the limits of each are written
 in the docstring of its script, because a corpus used for the wrong thing
 gives numbers that look solid and are not.
+
+**7. Browser logos on the install buttons.** `static/img/logo-chrome.svg`,
+`logo-edge.svg` and `logo-firefox.svg` are the official marks, copied from
+Wikimedia Commons, and they are **not ours**:
+
+| File | Source | Owner |
+|---|---|---|
+| `logo-chrome.svg` | [Google Chrome icon (February 2022)](https://commons.wikimedia.org/wiki/File:Google_Chrome_icon_(February_2022).svg) | Google |
+| `logo-edge.svg` | [Microsoft Edge logo (2019)](https://commons.wikimedia.org/wiki/File:Microsoft_Edge_logo_(2019).svg) | Microsoft |
+| `logo-firefox.svg` | [Firefox logo, 2019](https://commons.wikimedia.org/wiki/File:Firefox_logo,_2019.svg) (MPL-2.0) | Mozilla |
+
+They sit on the buttons that open that browser's store. They do not imply
+sponsorship. Anyone redistributing the site must either keep these files
+with this notice, or remove the logos.
 
 

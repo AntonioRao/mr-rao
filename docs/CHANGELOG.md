@@ -2,6 +2,12 @@
 
 ## Dopo la 1.24.0 — non ancora in una release desktop
 
+* **Loghi Chrome, Edge e Firefox sui pulsanti Plus.** Non quelli
+  disegnati a mano: i file ufficiali da Wikimedia Commons
+  (`Google_Chrome_icon_(February_2022).svg`,
+  `Microsoft_Edge_logo_(2019).svg`, `Firefox_logo,_2019.svg`). Marchi
+  di Google, Microsoft e Mozilla, usati solo per indicare lo store.
+  Attribuzione in `NOTICE.md`.
 * **Mr. Rao Plus è sul Chrome Web Store.** Pulsante attivo su
   rao.valor-cyber.com (IT/EN) e su `/plus/` (IT/EN). Link anche nei due
   README e in `docs/MR-RAO-PLUS.md`.
