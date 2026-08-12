@@ -6,7 +6,10 @@
 **In uscita `.md`, `.txt` o `.docx`: tutti e tre già anonimizzati.**
 **Tutto sul tuo computer, senza mandare niente a nessuno.**
 
-[![Scarica](https://img.shields.io/badge/⬇️%20scarica-Windows%20portable%20·%20169%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+[![Store](https://img.shields.io/badge/Microsoft%20Store-installa-0078d4?style=for-the-badge)](https://apps.microsoft.com/detail/9N7SJ4W88KQC)
+[![Installer](https://img.shields.io/badge/Windows-.exe-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe)
+[![Portable](https://img.shields.io/badge/Windows-portable%20.zip-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+[![Mac](https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Versione](https://img.shields.io/badge/versione-1.24.0-3b82f6)](docs/CHANGELOG.md)
@@ -16,9 +19,12 @@
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
 
 
-### [⬇️ Scarica per Windows — nessun Python richiesto](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+### Scarica — nessun Python richiesto
 
-*Estrai lo zip, doppio clic su `Installa Mr Rao.bat`. Fatto.*
+* [Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC) · [Installer Windows `.exe`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe) · [Portable Windows `.zip`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip) · [macOS Apple Silicon `.dmg`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)
+
+Sul Mac: apri il `.dmg`, trascina **Mr. Rao** in Applicazioni, poi tasto destro → Apri. I Mac Intel non sono coperti. Linux: ancora senza pacchetto (prossimo passo Ubuntu x86_64; nel frattempo clone + `pip install`).
+
 <sub>Lo scaricamento parte subito. [Tutte le versioni e le note di rilascio](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
 
 <sub>**Vuoi essere sicuro che sia il file giusto?** Il pacchetto è firmato con [Sigstore](https://www.sigstore.dev/): `gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao` dice se è uscito davvero da questo repository, da quale commit e da quale build. Nessuna chiave da procurarsi. Dettagli e limiti in [PORTABLE.md](docs/PORTABLE.md#verificare-il-pacchetto). Il pacchetto **non** è ancora firmato per Windows, quindi Windows continua a chiamare sconosciuto l'editore: è stata inviata una domanda di firma gratuita alla [SignPath Foundation](https://signpath.org/), e la [policy di firma del codice](docs/CODE-SIGNING-POLICY.md) dice cosa cambierà e cosa no quando verrà accolta.</sub>
@@ -242,6 +248,10 @@ Tre confezioni dello stesso programma, dalla stessa build. **Non sono equivalent
 | **[⬇️ Installer `.exe`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe)** | Doppio clic e installato, con la voce in «App installate» per toglierlo | «Editore sconosciuto» — il pacchetto **non è firmato** |
 | **[⬇️ Portable `.zip`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** | Nessuna installazione: si estrae e va, anche da chiavetta, coi dati accanto al programma | Un avviso sul file scaricato, più lieve |
 | **[⬇️ Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC)** | Un clic; aggiornamenti e disinstallazione li gestisce Windows, e non c'è nessun `.bat` da lanciare | **Niente**: il pacchetto lo firma lo Store, quindi l'avviso «editore sconosciuto» non compare affatto |
+
+### macOS (Apple Silicon)
+
+**[⬇️ Mr. Rao `.dmg`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)** — apri il disco, trascina l’app in Applicazioni. Primo avvio: tasto destro → Apri (firma ad-hoc, niente notarizzazione a 99 $). Dettagli in [MACOS.md](docs/MACOS.md).
 
 Non serve altro: Python, modelli OCR e dipendenze sono già dentro. Lo zip pesa **~169 MB**, ~348 MB una volta scompattato (misurati sulla build 1.24.0; sono MB, non MiB — Esplora file mostrerà 161 e 332). Quasi tutto il peso sono i modelli dell'OCR e del riconoscimento del tipo di file: è il prezzo del funzionare offline.
 

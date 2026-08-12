@@ -6,7 +6,10 @@
 **Export as `.md`, `.txt` or `.docx` — all three already redacted.**
 **All on your own machine, without sending anything anywhere.**
 
-[![Download](https://img.shields.io/badge/⬇️%20download-Windows%20portable%20·%20169%20MB-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+[![Store](https://img.shields.io/badge/Microsoft%20Store-installa-0078d4?style=for-the-badge)](https://apps.microsoft.com/detail/9N7SJ4W88KQC)
+[![Installer](https://img.shields.io/badge/Windows-.exe-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe)
+[![Portable](https://img.shields.io/badge/Windows-portable%20.zip-2ea44f?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+[![Mac](https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.24.0-3b82f6)](docs/CHANGELOG.md)
@@ -16,9 +19,12 @@
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
 
 
-### [⬇️ Download for Windows — no Python required](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)
+### Download — no Python required
 
-*Extract the zip, double-click `Installa Mr Rao.bat`. That's it.*
+* [Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC) · [Windows installer `.exe`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe) · [Windows portable `.zip`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip) · [macOS Apple Silicon `.dmg`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)
+
+On a Mac: open the `.dmg`, drag **Mr. Rao** to Applications, then right-click → Open. Intel Macs are not supported. Linux: not packaged yet (Ubuntu x86_64 is next; until then, clone and `pip install`).
+
 <sub>The download starts straight away. [All releases and release notes](https://github.com/AntonioRao/mr-rao/releases) · [changelog](docs/CHANGELOG.md)</sub>
 
 <sub>**Want to be sure it is the right file?** The package is signed with [Sigstore](https://www.sigstore.dev/): `gh attestation verify MrRao-Portable.zip --repo AntonioRao/mr-rao` tells you whether it really came out of this repository, from which commit and which build. No key to obtain. Details and limits in [PORTABLE.md](docs/PORTABLE.md#verificare-il-pacchetto). The package is **not** Windows code-signed yet, so Windows will still call the publisher unknown: an application for free code signing through the [SignPath Foundation](https://signpath.org/) has been submitted, and the [code signing policy](docs/CODE-SIGNING-POLICY.md) says what will and will not change when it is granted.</sub>
@@ -239,6 +245,10 @@ Three packages of the same program, from the same build. They are **not equivale
 | **[⬇️ Installer `.exe`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRaoSetup.exe)** | Double-click and done, with an entry under "Installed apps" to remove it | "Unknown publisher" — the package is **not signed** |
 | **[⬇️ Portable `.zip`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip)** | No installation: extract and run, from a USB stick too, with its data next to the program | A milder warning on the downloaded file |
 | **[⬇️ Microsoft Store](https://apps.microsoft.com/detail/9N7SJ4W88KQC)** | One click; Windows handles updates and the uninstall, and there is no `.bat` to run | **Nothing**: the Store signs the package, so the "unknown publisher" warning does not appear at all |
+
+### macOS (Apple Silicon)
+
+**[⬇️ Mr. Rao `.dmg`](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)** — open the disk, drag the app to Applications. First launch: right-click → Open (ad-hoc signature, no $99 notarization). Details in [MACOS.md](docs/MACOS.md).
 
 Nothing else needed: Python, the OCR models and every dependency are already inside. The zip is **~169 MB**, ~348 MB once unpacked (measured on the 1.24.0 build; both figures in MB, not MiB — Windows Explorer will show 161 and 332). Most of it is the OCR and file-type models, which is the price of working offline.
 

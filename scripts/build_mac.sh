@@ -14,7 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 APP="dist/MrRao.app"
-ZIP="dist/MrRao-macos-arm64.zip"
+DMG="dist/MrRao-macos-arm64.dmg"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "Questo script gira solo su macOS." >&2
@@ -99,11 +99,19 @@ find "$APP/Contents" \( -name "*.dylib" -o -name "*.so" \) \
 codesign --force --options runtime -s - "$APP"
 codesign --verify --strict --verbose=2 "$APP"
 
-# ditto, non zip: tiene symlink e bit di esecuzione.
-rm -f "$ZIP"
-ditto -c -k --keepParent "$APP" "$ZIP"
-( cd dist && shasum -a 256 MrRao-macos-arm64.zip > SHA256SUMS-macos.txt )
+# Disco: .app + scorciatoia Applicazioni. Si apre e si trascina, niente Estrai.
+# ditto (non cp -R) tiene symlink e bit di esecuzione del bundle.
+STAGING=dist/dmg
+rm -rf "$STAGING"
+mkdir -p "$STAGING"
+ditto "$APP" "$STAGING/Mr. Rao.app"
+ln -s /Applications "$STAGING/Applications"
+rm -f "$DMG"
+hdiutil create -volname "Mr. Rao" -srcfolder "$STAGING" -ov -format UDZO "$DMG"
+codesign --force --timestamp=none -s - "$DMG" || true
+( cd dist && shasum -a 256 MrRao-macos-arm64.dmg > SHA256SUMS-macos.txt )
 
 echo
-echo "ok: $ZIP"
-echo "Primo avvio: tasto destro sul .app → Apri. Vedi docs/MACOS.md."
+echo "ok: $DMG"
+echo "Apri il .dmg, trascina Mr. Rao in Applicazioni, poi tasto destro → Apri."
+echo "Vedi docs/MACOS.md."

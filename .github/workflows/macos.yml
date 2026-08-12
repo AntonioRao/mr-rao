@@ -1,4 +1,4 @@
-# Build macOS arm64 (.app + zip), firma ad-hoc gratuita.
+# Build macOS arm64 (.app in un .dmg), firma ad-hoc gratuita.
 # Non richiede Apple Developer Program. Gatekeeper avvisa al primo avvio.
 name: macOS
 
@@ -66,12 +66,12 @@ jobs:
         run: venv/bin/python scripts/verify_build.py "dist/MrRao.app/Contents/MacOS/MrRao"
       - uses: actions/attest-build-provenance@v3
         with:
-          subject-path: dist/MrRao-macos-arm64.zip
+          subject-path: dist/MrRao-macos-arm64.dmg
       - uses: actions/upload-artifact@v7
         with:
           name: MrRao-macos
           path: |
-            dist/MrRao-macos-arm64.zip
+            dist/MrRao-macos-arm64.dmg
             dist/SHA256SUMS-macos.txt
           retention-days: 14
           if-no-files-found: error

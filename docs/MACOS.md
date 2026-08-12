@@ -13,17 +13,23 @@ firma verificabile con Sigstore quando il file esce da GitHub Actions.
 
 | Cosa | Costo | Cosa vede chi apre il file |
 |---|---|---|
-| **Firma ad-hoc** (`codesign -s -`) | 0 | Il kernel Apple Silicon accetta il binario. Gatekeeper **avvisa** al primo avvio |
-| **Sigstore / GitHub Attestations** | 0 | `gh attestation verify` dice da quale commit è uscito |
-| Developer ID + notarizzazione | 99 USD/anno | Nessun avviso Gatekeeper |
+| **Firma ad-hoc** (`codesign -s -`) | 0 | Il kernel accetta il binario. Finder **non** mostra un nome: identità vuota. Gatekeeper avvisa |
+| **Sigstore / GitHub Attestations** | 0 | Come l’`.exe` Windows: `gh attestation verify` dice da quale commit è uscito. **Non** è quello che legge Gatekeeper |
+| Developer ID Apple + notarizzazione | 99 USD/anno | Unico modo per far comparire «Antonio Andrea Rao» in Finder e togliere l’avviso |
 
 Senza la firma ad-hoc un `.app` arm64 **non parte**: lo uccide il kernel,
 non Gatekeeper. Con la firma ad-hoc parte, dopo un gesto esplicito.
 
+Non si può scrivere il nome a mano nella firma ad-hoc: Apple accetta solo un
+certificato **Developer ID Application** emesso da loro. SignPath (la
+domanda già inviata) firma Authenticode per **Windows**, non sostituisce
+Apple su Mac. Inventare un’identità senza quel certificato sarebbe una
+firma falsa, peggio del vuoto.
+
 ## Primo avvio (Tahoe e dintorni)
 
-1. Scarica `MrRao-macos-arm64.zip`, apri l’archivio, trascina `MrRao.app`
-   in **Applicazioni** (o lascialo dove vuoi).
+1. Scarica `MrRao-macos-arm64.dmg`, aprilo, trascina **Mr. Rao** su
+   **Applicazioni**.
 2. **Non** fare doppio clic la prima volta: tasto destro → **Apri** → Apri.
 3. Se Tahoe lo blocca ancora: Impostazioni di Sistema → Privacy e
    sicurezza → **Apri comunque**.
@@ -42,15 +48,17 @@ chmod +x scripts/build_mac.sh
 ./scripts/build_mac.sh
 ```
 
-Esce `dist/MrRao-macos-arm64.zip`.
+Esce `dist/MrRao-macos-arm64.dmg` (disco con l’app e il collegamento ad
+Applicazioni). Niente zip da scompattare.
 
 Da Windows / senza Mac: Actions → workflow **macOS** → Run workflow.
-L’artefatto resta 14 giorni. Su un tag `v*` gira da solo.
+Su un tag `v*` gira da solo. Il file da condividere è sulla release,
+non l’artefatto Actions.
 
 Verificare la provenienza (dopo un upload da Actions):
 
 ```bash
-gh attestation verify MrRao-macos-arm64.zip --repo AntonioRao/mr-rao
+gh attestation verify MrRao-macos-arm64.dmg --repo AntonioRao/mr-rao
 ```
 
 ## Cosa non è in questo v1
