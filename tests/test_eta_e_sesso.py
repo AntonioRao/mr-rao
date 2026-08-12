@@ -99,6 +99,21 @@ def test_finiscono_nel_rapporto(frase: str, attesi: list[str]) -> None:
     assert sorted(trovati) == sorted(attesi), frase
 
 
+def test_anni_d_eta_prende_anche_eta_non_solo_l_apostrofo() -> None:
+    """Il gruppo deve coprire `et[àa]` dopo `d'` e dopo `di`.
+
+    Una prima stesura metteva `et[àa]` solo sul ramo `di`, quindi
+    `45 anni d'ETÀ` veniva contato come età fermandosi a `d'` — il
+    rapporto diceva sì, il campione no. I due motori devono
+    combaciare sul pezzo intero, non solo sul fatto che qualcosa
+    sia stato visto.
+    """
+    _, _, rapporto = passa("Un uomo di 45 anni d'ETÀ.")
+    campioni = [r["sample"] for r in rapporto.rilevati if r["kind"] == "eta"]
+    assert campioni, rapporto.rilevati
+    assert any(len(c) > len("45•••••d'") for c in campioni), campioni
+
+
 def test_il_rapporto_non_li_conta_fra_le_sostituzioni() -> None:
     """`counts` dice cosa è stato **tolto**. Contarli lì direbbe una cosa
     che non è successa, ed è il conto che l'utente legge per primo."""

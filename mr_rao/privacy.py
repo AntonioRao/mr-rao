@@ -2478,7 +2478,7 @@ def _scrub_targhe(text: str, report: RedactionReport) -> str:
 _RE_ETA = re.compile(
     r"(?<!\w)(?:"
     r"(?i:d'[^\S\r\n]*|di[^\S\r\n]+)anni[^\S\r\n]+(?P<a>\d{1,3})"
-    r"|(?P<b>\d{1,3})[^\S\r\n]+anni[^\S\r\n]+(?i:d'[^\S\r\n]*|di[^\S\r\n]+et[àa])"
+    r"|(?P<b>\d{1,3})[^\S\r\n]+anni[^\S\r\n]+(?i:(?:d'[^\S\r\n]*|di[^\S\r\n]+)et[àa])"
     r"|(?i:et[àa]'?)[^\S\r\n]*:?[^\S\r\n]+(?P<c>\d{1,3})"
     r"|(?P<d>\d{1,3})enne"
     r")(?!\d)"

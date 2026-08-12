@@ -25,6 +25,10 @@ conta:
 
 Nessun dato usciva. Il danno era il verbale che mentiva.
 
+`et[àa]` sta **dopo** sia `d'` sia `di`: una prima stesura lo metteva
+solo sul ramo `di`, e `45 anni d'ETÀ` veniva contato fermandosi
+all'apostrofo. I due motori devono combaciare sul pezzo intero.
+
 ### L'anteprima prima/dopo anche per i .docx
 
 Il PDF ce l'ha dalla 1.23.0: due pagine affiancate, si vede cosa è
