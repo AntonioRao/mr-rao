@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mr. Rao Plus — stop personal data before it hits an AI chat</title>
+<meta name="description" content="Browser extension: blocks IBAN, tax IDs and other personal data before they reach ChatGPT, Claude, Copilot, Gemini, Grok and more. Fully local." />
+<link rel="icon" href="/assets/favicon.svg?v=354c7fcf8b" type="image/svg+xml" />
+<link rel="alternate icon" href="/assets/favicon.ico?v=780f2c412d" sizes="16x16 32x32 48x48" />
+<link rel="canonical" href="https://rao.valor-cyber.com/plus/en/" />
+<link rel="alternate" hreflang="it" href="https://rao.valor-cyber.com/plus/" />
+<link rel="alternate" hreflang="en" href="https://rao.valor-cyber.com/plus/en/" />
+<link rel="alternate" hreflang="x-default" href="https://rao.valor-cyber.com/plus/en/" />
+<link rel="stylesheet" href="../stile.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/plus/en/">
+      <img src="/assets/logo.svg?v=bdb291803a" width="28" height="28" alt="" />
+      <span>Mr. Rao Plus</span>
+    </a>
+    <div class="links">
+      <a href="#how">How it works</a>
+      <a href="#faq">FAQ</a>
+      <a href="/plus/privacy/en/">Privacy</a>
+      <a href="/en/">Mr. Rao desktop</a>
+      <a class="cta" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">Install on Edge</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="kicker">// browser extension · fully local</p>
+      <h1>Stop personal data <em style="font-style:normal;color:var(--phosphor)">before</em> it reaches an AI chat.</h1>
+      <p class="lead">
+        <strong>Mr. Rao Plus</strong> watches what you are about to send to ChatGPT, Claude, Copilot, Gemini, Grok, DeepSeek or Perplexity.
+        If it finds an IBAN, tax ID, card number or name, it <strong>removes it from the box</strong> — or stops the send and explains.
+        No network calls to us. One permission: <code style="font-family:var(--mono);font-size:0.9em">storage</code>.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">Microsoft Edge</a>
+        <span class="btn btn-ghost btn-soon" aria-disabled="true">Google Chrome <span class="soon">soon</span></span>
+        <a class="btn btn-ghost" href="/plus/privacy/en/">Privacy notice</a>
+      </div>
+    </section>
+
+    <p class="sec-label">// 01 · not a clone</p>
+    <h2>Not Mr. Rao under another name.</h2>
+    <p class="muted">
+      <strong style="color:var(--white)">Mr. Rao</strong> (desktop) works on <em>documents</em>.
+      <strong style="color:var(--white)">Mr. Rao Plus</strong> works on the <em>chat box</em>: typed text, attachments you pick, outbound request bodies.
+      Same recognition engine, same author, two jobs.
+    </p>
+
+    <p class="sec-label" id="how">// 02 · how it decides</p>
+    <h2>Three outcomes, not a generic red light.</h2>
+    <div class="grid three">
+      <div class="card">
+        <h3>Stop</h3>
+        <p>IBAN, tax IDs, cards, emails, phones, names, secrets… The message does not leave until you fix it.</p>
+      </div>
+      <div class="card">
+        <h3>Warn</h3>
+        <p>Lower severity (e.g. links): it sends, and tells you. Configurable.</p>
+      </div>
+      <div class="card">
+        <h3>Could not look</h3>
+        <p>Opaque attachment, image-only PDF: never says “clean”. Blocks and says so.</p>
+      </div>
+    </div>
+
+    <p class="sec-label">// 03 · where it runs</p>
+    <h2>Only listed AI chats.</h2>
+    <p class="muted">No <code style="font-family:var(--mono)">&lt;all_urls&gt;</code>. Anywhere else the extension does not exist.</p>
+    <div class="siti">
+      <span>ChatGPT</span><span>Claude</span><span>Copilot</span><span>Gemini</span>
+      <span>Grok</span><span>DeepSeek</span><span>Perplexity</span>
+    </div>
+
+    <p class="sec-label" id="faq">// 04 · FAQ</p>
+    <h2>Questions that matter when you actually use it.</h2>
+    <div class="faq">
+      <details>
+        <summary>If I accept the edits and then type a tax ID, does it block again?</summary>
+        <div class="risposta">
+          <p><strong>Yes</strong> if you only corrected or closed with “Understood”: every send is checked from scratch. A new tax ID is blocked again.</p>
+          <p>There is no blanket “personal data is fine in this chat” permission.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What does “Send it anyway, once” do?</summary>
+        <div class="risposta">
+          <p>A <strong>one-shot override</strong>, same on the box and on the network (from 0.1.15):</p>
+          <ul>
+            <li>the <strong>next</strong> send that would block goes through <strong>once</strong>;</li>
+            <li>the override is <strong>consumed</strong>;</li>
+            <li>a clean message does not eat it;</li>
+            <li>the second dirty send is stopped again.</li>
+          </ul>
+          <p>It is not a two-minute window where protection is off.</p>
+        </div>
+      </details>
+      <details>
+        <summary>“This is not personal data”?</summary>
+        <div class="risposta">
+          <p>Adds <strong>that value</strong> to the “never touch” list. Only that value. Another tax ID or IBAN is still stopped. Permanent until you remove it in settings — and the UI says so.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Does Ctrl+Z undo redaction in the box?</summary>
+        <div class="risposta">
+          <p><strong>Often yes</strong> on contenteditable chats: rewrite uses insertText, which browsers put on the undo stack. If you restore and resend, protection checks again (unless a one-shot override is still unused).</p>
+        </div>
+      </details>
+      <details>
+        <summary>Are attachments checked?</summary>
+        <div class="risposta">
+          <p><strong>Yes</strong> (recent versions): when you pick a file, Plus tries extractable text. If it cannot (scan, image, audio) it does not say clean — third outcome and block. No OCR. No upload to our servers.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Does it send data to valor-cyber?</summary>
+        <div class="risposta">
+          <p><strong>No.</strong> No host_permissions to us. Offline licence verification when needed. See the <a href="/plus/privacy/en/">privacy notice</a>.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Same engine as desktop Mr. Rao?</summary>
+        <div class="risposta">
+          <p>Yes: TypeScript port of the same engine, with a conformity corpus vs the Python original. Plus adds browser hooks, the box, attachments and override — not a second invented recognizer.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Free? Paid later?</summary>
+        <div class="risposta">
+          <p>0.x is free without a key. If paid versions come: <strong>protection keeps working after expiry</strong>; only what the extension says changes. First-install date is already stored locally.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="limiti">
+      <h3>Declared limits</h3>
+      <ul>
+        <li>Automatic recognition errs both ways.</li>
+        <li>Names: mainly Italian lists; optional offline EN extra.</li>
+        <li>If a site changes host, an update is needed — the watchdog cannot watch a page it is not injected into.</li>
+      </ul>
+    </div>
+
+    <p class="sec-label">// 05 · install</p>
+    <h2>Install and stay offline.</h2>
+    <div class="actions">
+      <a class="btn btn-primary" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">Microsoft Edge</a>
+      <span class="btn btn-ghost btn-soon" aria-disabled="true">Chrome <span class="soon">soon</span></span>
+      <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/blob/main/docs/MR-RAO-PLUS.md" target="_blank" rel="noopener noreferrer">Longer docs</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span>© Antonio Andrea Rao · Mr. Rao Plus</span>
+    <span>
+      <a href="/en/">Desktop</a> ·
+      <a href="/plus/privacy/en/">Privacy</a> ·
+      <a href="/plus/">Italiano</a> ·
+      <a href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    </span>
+  </footer>
+</body>
+</html>

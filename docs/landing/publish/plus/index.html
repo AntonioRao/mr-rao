@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mr. Rao Plus — ferma i dati personali prima della chat AI</title>
+<meta name="description" content="Estensione browser: blocca IBAN, codice fiscale e altri dati personali prima che finiscano in ChatGPT, Claude, Copilot, Gemini, Grok e altre chat. Tutto in locale." />
+<link rel="icon" href="/assets/favicon.svg?v=354c7fcf8b" type="image/svg+xml" />
+<link rel="alternate icon" href="/assets/favicon.ico?v=780f2c412d" sizes="16x16 32x32 48x48" />
+<link rel="canonical" href="https://rao.valor-cyber.com/plus/" />
+<link rel="alternate" hreflang="it" href="https://rao.valor-cyber.com/plus/" />
+<link rel="alternate" hreflang="en" href="https://rao.valor-cyber.com/plus/en/" />
+<link rel="alternate" hreflang="x-default" href="https://rao.valor-cyber.com/plus/en/" />
+<link rel="stylesheet" href="stile.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/plus/">
+      <img src="/assets/logo.svg?v=bdb291803a" width="28" height="28" alt="" />
+      <span>Mr. Rao Plus</span>
+    </a>
+    <div class="links">
+      <a href="#come">Come funziona</a>
+      <a href="#faq">FAQ</a>
+      <a href="/plus/privacy/">Privacy</a>
+      <a href="/">Mr. Rao desktop</a>
+      <a class="cta" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">Installa su Edge</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="kicker">// estensione browser · tutto in locale</p>
+      <h1>Ferma i dati personali <em style="font-style:normal;color:var(--phosphor)">prima</em> che finiscano in una chat AI.</h1>
+      <p class="lead">
+        <strong>Mr. Rao Plus</strong> guarda quello che stai per mandare a ChatGPT, Claude, Copilot, Gemini, Grok, DeepSeek o Perplexity.
+        Se trova un IBAN, un codice fiscale, una carta o un nome, <strong>lo toglie dalla casella</strong> — o ferma l’invio e te lo spiega.
+        Nessuna chiamata di rete nostra. Un solo permesso: <code style="font-family:var(--mono);font-size:0.9em">storage</code>.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">Microsoft Edge</a>
+        <span class="btn btn-ghost btn-soon" aria-disabled="true">Google Chrome <span class="soon">in arrivo</span></span>
+        <a class="btn btn-ghost" href="/plus/privacy/">Informativa privacy</a>
+      </div>
+    </section>
+
+    <p class="sec-label">// 01 · differenza</p>
+    <h2>Non è Mr. Rao con un altro nome.</h2>
+    <p class="muted">
+      <strong style="color:var(--white)">Mr. Rao</strong> (desktop) lavora sui <em>documenti</em>: PDF, Word, email — prima che li usi.
+      <strong style="color:var(--white)">Mr. Rao Plus</strong> lavora sulla <em>casella di chat</em>: sul testo che digiti, sugli allegati che scegli, e sul corpo delle richieste in uscita.
+      Stesso motore di riconoscimento, stesso autore, due mestieri diversi.
+    </p>
+    <div class="grid two">
+      <div class="card">
+        <h3>Mr. Rao · desktop</h3>
+        <p>File → redazione → Markdown / DOCX già puliti. AGPL, offline, cartelle locali.</p>
+      </div>
+      <div class="card">
+        <h3>Mr. Rao Plus · estensione</h3>
+        <p>Invio chat → blocco o redazione in casella. Store Edge, solo <code>storage</code>, zero host_permissions.</p>
+      </div>
+    </div>
+
+    <p class="sec-label" id="come">// 02 · come decide</p>
+    <h2>Tre strade, non un semaforo generico.</h2>
+    <div class="grid three">
+      <div class="card">
+        <h3>Ferma</h3>
+        <p>IBAN, CF, carte, email, telefoni, nomi, credenziali… Il messaggio non parte finché non correggi.</p>
+      </div>
+      <div class="card">
+        <h3>Avvisa</h3>
+        <p>Cose meno gravi (es. link): parte, ma te lo dice. Configurabile.</p>
+      </div>
+      <div class="card">
+        <h3>Non ho potuto guardare</h3>
+        <p>Allegato opaco, scansione senza testo: non dice «pulito». Blocca e lo dichiara.</p>
+      </div>
+    </div>
+
+    <p class="sec-label">// 03 · dove lavora</p>
+    <h2>Solo le chat AI elencate.</h2>
+    <p class="muted">Niente <code style="font-family:var(--mono)">&lt;all_urls&gt;</code>. Su ogni altro sito l’estensione non esiste.</p>
+    <div class="siti">
+      <span>ChatGPT</span><span>Claude</span><span>Copilot</span><span>Gemini</span>
+      <span>Grok</span><span>DeepSeek</span><span>Perplexity</span>
+    </div>
+
+    <p class="sec-label" id="faq">// 04 · FAQ</p>
+    <h2>Domande che contano quando lo usi davvero.</h2>
+    <div class="faq">
+
+      <details>
+        <summary>Se accetto le modifiche e poi inserisco un codice fiscale, mi blocca di nuovo?</summary>
+        <div class="risposta">
+          <p><strong>Sì</strong>, se hai solo corretto o chiuso con «Ho capito»: ogni invio viene ricontrollato da zero. Un CF nuovo viene fermato di nuovo.</p>
+          <p>Non esiste un permesso generico del tipo «nella stessa chat i dati personali sono ok».</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Cosa fa «Mandalo lo stesso, una volta»?</summary>
+        <div class="risposta">
+          <p>Apre una <strong>deroga una tantum</strong>, uguale sulla casella e sulla rete (dalla 0.1.15):</p>
+          <ul>
+            <li>il <strong>prossimo</strong> invio che <em>bloccherebbe</em> passa <strong>una volta</strong>;</li>
+            <li>la deroga si <strong>consuma</strong>;</li>
+            <li>un messaggio <em>pulito</em> non la mangia;</li>
+            <li>il secondo invio con dati personali si ferma di nuovo.</li>
+          </ul>
+          <p>Non è una finestra di due minuti in cui la protezione si spegne.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>«Questo non è un dato» — cosa cambia?</summary>
+        <div class="risposta">
+          <p>Aggiunge <strong>quel valore</strong> alla lista «non toccare mai». Solo quello. Un altro CF o un altro IBAN vengono ancora fermati. È una decisione permanente finché non la togli dalle impostazioni — e te lo dice a schermo.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Ctrl+Z annulla la redazione nella casella?</summary>
+        <div class="risposta">
+          <p><strong>Spesso sì</strong> su caselle contenteditable (ChatGPT, Claude…): la riscrittura passa da un inserimento di testo che il browser mette nello stack undo. Non è un “undo” nostro: è quello del sito/browser.</p>
+          <p>Se ripristini i dati e reinvii, la protezione <strong>ricontrolla</strong> (salvo deroga una tantum attiva e non ancora consumata).</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Gli allegati vengono controllati?</summary>
+        <div class="risposta">
+          <p><strong>Sì</strong> (dalle versioni recenti): quando scegli un file (picker, trascinamento, incolla file), Plus prova a leggere il testo estraibile (CSV, TXT, PDF/DOCX con testo, …). Se non può (scansione, immagine, audio) <strong>non dice pulito</strong>: terzo esito e blocco.</p>
+          <p>Non fa OCR. Non manda il file a un server nostro.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Perché a volte compare «allegato» anche se non ne ho messo uno?</summary>
+        <div class="risposta">
+          <p>Era un difetto: alcuni siti mandano <code>File</code> vuoti o corpi di protocollo che venivano scambiati per allegati. Dalla <strong>0.1.13–0.1.14</strong> il cancello distingue allegati utente veri da telemetria e body di invio messaggio.</p>
+          <p>Se lo vedi ancora, aggiorna l’estensione e verifica la versione nelle opzioni.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Manda dati a valor-cyber o a qualcun altro?</summary>
+        <div class="risposta">
+          <p><strong>No.</strong> Nessun <code>host_permissions</code> verso di noi. La licenza (quando servirà) è firma offline. Puoi verificarlo: DevTools → Rete mentre usi la chat; e il manifest del pacchetto.</p>
+          <p>Dettaglio: <a href="/plus/privacy/">informativa privacy</a>.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>È lo stesso motore di Mr. Rao desktop?</summary>
+        <div class="risposta">
+          <p>Sì: port TypeScript dello stesso motore, con corpus di conformità rispetto all’originale Python. Plus aggiunge ganci browser, casella, allegati e la deroga — non un secondo riconoscimento inventato.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>È gratis? Diventerà a pagamento?</summary>
+        <div class="risposta">
+          <p>In fase 0.x l’uso è gratuito senza chiave. Eventuali versioni a pagamento manterranno la regola scritta: <strong>alla scadenza la protezione continua</strong>; cambia solo ciò che l’estensione dice. La data di prima installazione è già registrata localmente per chi c’era prima.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Cosa non fa (di proposito)?</summary>
+        <div class="risposta">
+          <ul>
+            <li>Non protege da un sito ostile che smonta i ganci (l’avversario è la disattenzione, non il sito).</li>
+            <li>Non fa OCR su PDF solo immagine.</li>
+            <li>Non sostituisce un CISO o una policy legale: è uno strumento, non una prova di conformità.</li>
+            <li>Non funziona su siti fuori dall’elenco (niente <code>all_urls</code>).</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="limiti">
+      <h3>Limiti dichiarati</h3>
+      <ul>
+        <li>Riconoscimento automatico: può sbagliare in entrambe le direzioni.</li>
+        <li>Nomi: elenchi principalmente italiani; opzione nomi EN extra offline.</li>
+        <li>Se un sito cambia host, serve un aggiornamento: la sentinella non può vegliare una pagina in cui non è iniettata.</li>
+      </ul>
+    </div>
+
+    <p class="sec-label">// 05 · installa</p>
+    <h2>Scarica e resta offline.</h2>
+    <p class="muted">Installa dallo store, apri una chat coperta, prova con un IBAN inventato che superi il mod-97.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer">Microsoft Edge</a>
+      <span class="btn btn-ghost btn-soon" aria-disabled="true">Chrome <span class="soon">in arrivo</span></span>
+      <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao/blob/main/docs/MR-RAO-PLUS.md" target="_blank" rel="noopener noreferrer">Documentazione estesa</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span>© Antonio Andrea Rao · Mr. Rao Plus</span>
+    <span>
+      <a href="/">Desktop</a> ·
+      <a href="/plus/privacy/">Privacy</a> ·
+      <a href="en/">English</a> ·
+      <a href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    </span>
+  </footer>
+</body>
+</html>
