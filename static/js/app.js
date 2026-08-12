@@ -128,6 +128,12 @@
     downloadTxtBtn: $("download-txt-btn"),
     downloadDocxBtn: $("download-docx-btn"),
     pdfAnteprimaBtn: $("pdf-anteprima-btn"),
+    docxAnteprimaBtn: $("docx-anteprima-btn"),
+    docxPannello: $("docx-pannello"),
+    docxEsito: $("docx-esito"),
+    docxAvviso: $("docx-avviso"),
+    docxHtmlPrima: $("docx-html-prima"),
+    docxHtmlDopo: $("docx-html-dopo"),
     pdfPannello: $("pdf-pannello"),
     pdfEsito: $("pdf-esito"),
     pdfAvviso: $("pdf-avviso"),
@@ -188,6 +194,7 @@
   let pdfDiPartenza = null;
   let pdfPaginaCorrente = 0;
   let pdfPagineTotali = 0;
+  let docxDiPartenza = null;
   let currentJobId = null;
   let abortPoll = false;
   const history = [];
@@ -415,6 +422,7 @@
     renderAttachments(extra.attachments || []);
     els.resultCard.style.display = "flex";
     mostraPulsantePdf();
+    mostraPulsanteDocx();
     if (els.tabDiff) {
       els.tabDiff.style.display = currentRaw ? "inline-flex" : "none";
     }
@@ -678,7 +686,10 @@
     // puo' premere e non puo' funzionare e' peggio di un comando assente.
     pdfDiPartenza =
       files.length === 1 && /\.pdf$/i.test(files[0].name || "") ? files[0] : null;
+    docxDiPartenza =
+      files.length === 1 && /\.docx$/i.test(files[0].name || "") ? files[0] : null;
     chiudiPannelloPdf();
+    chiudiPannelloDocx();
 
     const multi = files.length > 1;
     const compare = els.compareMode && els.compareMode.checked;
@@ -977,6 +988,51 @@
   }
   if (els.pdfSucc) {
     els.pdfSucc.addEventListener("click", () => chiediAnteprima(pdfPaginaCorrente + 1));
+  }
+
+  function chiudiPannelloDocx() {
+    if (!els.docxPannello) return;
+    els.docxPannello.hidden = true;
+    if (els.docxHtmlPrima) els.docxHtmlPrima.replaceChildren();
+    if (els.docxHtmlDopo) els.docxHtmlDopo.replaceChildren();
+  }
+
+  function mostraPulsanteDocx() {
+    if (!els.docxAnteprimaBtn) return;
+    els.docxAnteprimaBtn.style.display = docxDiPartenza ? "inline-flex" : "none";
+  }
+
+  async function chiediAnteprimaDocx() {
+    if (!docxDiPartenza || !els.docxPannello) return;
+    const fd = formPayload();
+    fd.append("file", docxDiPartenza);
+    els.docxAnteprimaBtn.disabled = true;
+    if (els.docxEsito) els.docxEsito.textContent = t("docx_in_corso");
+    try {
+      const r = await fetch("/api/docx/anteprima", { method: "POST", body: fd });
+      const dati = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        showToast(dati.error || t("err_docx_anteprima"), "error");
+        chiudiPannelloDocx();
+        return;
+      }
+      els.docxEsito.textContent = t("docx_esito").replace("{n}", dati.sostituzioni);
+      els.docxAvviso.textContent = dati.avviso || t("docx_non_impaginazione");
+      els.docxAvviso.hidden = false;
+      els.docxHtmlPrima.innerHTML = dati.prima || "";
+      els.docxHtmlDopo.innerHTML = dati.dopo || "";
+      els.docxPannello.hidden = false;
+      els.docxPannello.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (e) {
+      showToast(t("err_docx_anteprima"), "error");
+      chiudiPannelloDocx();
+    } finally {
+      els.docxAnteprimaBtn.disabled = false;
+    }
+  }
+
+  if (els.docxAnteprimaBtn) {
+    els.docxAnteprimaBtn.addEventListener("click", () => chiediAnteprimaDocx());
   }
 
   if (els.pdfScaricaBtn) {

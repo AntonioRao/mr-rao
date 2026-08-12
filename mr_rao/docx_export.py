@@ -221,6 +221,30 @@ def _e_speciale(riga: str) -> bool:
     )
 
 
+def html_da_docx(dati: bytes) -> str:
+    """Contenuto di un .docx come HTML. Non e' l'impaginazione.
+
+    Un .docx non ha pagine finche' qualcuno non lo impagina, e Word non
+    e' una dipendenza. mammoth e' gia' nel pacchetto -- e' quello che
+    MarkItDown usa per *leggere* i .docx -- e rende il contenuto, non
+    il foglio. L'anteprima prima/dopo lo dice a schermo: chi guarda
+    non deve concludere che il documento consegnato sara' cosi'.
+
+    Le immagini si omettono: il confronto e' sul testo, e un data-uri
+    da due megabyte nel JSON non aiuta a vedere un nome sparito.
+    """
+    import mammoth
+
+    def _niente(_image):
+        return []
+
+    risultato = mammoth.convert_to_html(io.BytesIO(dati), convert_image=_niente)
+    html = risultato.value or ""
+    html = re.sub(r"(?is)<script\b[^>]*>.*?</script>", "", html)
+    html = re.sub(r"""(?is)\son[a-z]+\s*=\s*(['"]).*?\1""", "", html)
+    return html
+
+
 def docx_disponibile() -> bool:
     """python-docx e' installato? Il portable lo ha, un venv scarno forse no."""
     try:

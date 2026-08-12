@@ -106,7 +106,8 @@ total that means nothing. «3 ages left in the clear, on purpose» is something
 a DPO can act on; silence is not.
 
 They are recognised only where **the context is a declaration**: `di anni 45`,
-`45 anni di età`, `età: 45`, `45enne`, `sesso: F`, `genere femminile`. A bare
+`45 anni di età`, `45 anni d'ETÀ`, `età: 45`, `Eta': 45`, `d' anni 78`,
+`45enne`, `sesso: F`, `sesso: f`, `genere femminile`. A bare
 `45 anni` is not looked at, and that is declared: it is nearly always a
 duration («after 45 years of service»), and taking it would fill every company
 report with flags.

@@ -107,7 +107,8 @@ niente. «Lasciate in chiaro 3 età, apposta» è un'informazione che un DPO pu�
 usare per decidere; il silenzio no.
 
 Si riconoscono solo dove **il contesto è una dichiarazione**: `di anni 45`,
-`45 anni di età`, `età: 45`, `45enne`, `sesso: F`, `genere femminile`. Il
+`45 anni di età`, `45 anni d'ETÀ`, `età: 45`, `Eta': 45`, `d' anni 78`,
+`45enne`, `sesso: F`, `sesso: f`, `genere femminile`. Il
 `45 anni` nudo non si guarda, ed è dichiarato: è quasi sempre una durata
 («dopo 45 anni di servizio»), e prenderlo riempirebbe di segnalazioni ogni
 relazione aziendale.

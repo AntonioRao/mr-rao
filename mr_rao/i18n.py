@@ -177,6 +177,41 @@ TESTI: dict[str, dict[str, str]] = {
               "off in a minute while this does not. Scans cannot be handled "
               "this way, and Mr. Rao says so instead of pretending.",
     },
+    "docx_anteprima": {"it": "Vedi il contenuto", "en": "See the content"},
+    "docx_titolo": {"it": "Contenuto del .docx", "en": ".docx content"},
+    "docx_in_corso": {
+        "it": "Sto confrontando il contenuto…",
+        "en": "Comparing the content…",
+    },
+    "docx_esito": {
+        "it": "{n} dati tolti dal contenuto",
+        "en": "{n} items removed from the content",
+    },
+    "docx_non_impaginazione": {
+        "it": "Questa è un'anteprima del contenuto, non dell'impaginazione. "
+              "Il documento che consegni non sarà così: Word non gira qui.",
+        "en": "This is a preview of the content, not of the layout. "
+              "The document you hand over will not look like this: Word "
+              "does not run here.",
+    },
+    "err_docx_solo_docx": {
+        "it": "L'anteprima del contenuto vale solo per i .docx.",
+        "en": "The content preview is only for .docx files.",
+    },
+    "err_docx_anteprima": {
+        "it": "Non sono riuscito a leggere il .docx per l'anteprima.",
+        "en": "Could not read the .docx for the preview.",
+    },
+    "tip_docx": {
+        "it": "Due colonne di contenuto, originale e redatto. Non sono "
+              "pagine: un .docx non ne ha finché qualcuno non lo impagina, "
+              "e Word non è una dipendenza. Serve a vedere **cosa è sparito**, "
+              "non come verrà stampato.",
+        "en": "Two columns of content, original and redacted. They are not "
+              "pages: a .docx has none until somebody lays it out, and Word "
+              "is not a dependency. It is there to see **what disappeared**, "
+              "not how it will print.",
+    },
     "err_troppo_grande": {"it": "File troppo grande", "en": "File too large"},
     "err_job_assente": {"it": "Job non trovato", "en": "Job not found"},
     "err_conversione": {

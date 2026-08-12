@@ -219,7 +219,7 @@ Two things end up there. **Age and sex**, which have no placeholder and will
 not get one: they are quasi-identifiers, and whoever passes the engine a
 medical record or workforce statistics is asking for precisely those two
 facts. They are recognised only where the context is a **declaration** —
-`di anni 45`, `età: 45`, `45enne`, `sesso: F` — and a bare `45 anni` is not
+`di anni 45`, `età: 45`, `Eta': 45`, `45enne`, `sesso: F`, `sesso: f` — and a bare `45 anni` is not
 looked at, because it is almost always a duration. And then every category
 put into **"report instead of replace"**, which since 1.20.0 means
 twenty-six of them.

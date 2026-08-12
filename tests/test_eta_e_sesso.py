@@ -84,6 +84,14 @@ def test_non_esiste_nessun_segnaposto_per_questi_due() -> None:
         ("sesso femminile", ["genere"]),
         ("Genere: F", ["genere"]),
         ("Paziente 78enne, sesso: F", ["eta", "genere"]),
+        # P8.2: quattro forme che i gruppi `(?i:…)` non coprivano.
+        # Il danno non e' un dato che esce: e' un rapporto che conta meno
+        # di quello che c'e'. «Ho lasciato in chiaro 3 eta'» vale solo
+        # se sono davvero tre.
+        ("Un uomo di 45 anni d'ETÀ", ["eta"]),
+        ("sesso: f", ["genere"]),
+        ("il ricorrente, d' anni 78, residente in Pisa", ["eta"]),
+        ("Eta': 45", ["eta"]),
     ],
 )
 def test_finiscono_nel_rapporto(frase: str, attesi: list[str]) -> None:

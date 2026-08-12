@@ -218,7 +218,7 @@ Ci finiscono due cose. **Età e sesso**, che non hanno un segnaposto e non ne
 avranno uno: sono quasi-identificatori, e chi passa al motore una cartella
 clinica o una statistica del personale sta chiedendo proprio quei due dati.
 Si riconoscono solo dove il contesto è una **dichiarazione** — `di anni 45`,
-`età: 45`, `45enne`, `sesso: F` — e il `45 anni` nudo non si guarda, perché è
+`età: 45`, `Eta': 45`, `45enne`, `sesso: F`, `sesso: f` — e il `45 anni` nudo non si guarda, perché è
 quasi sempre una durata. E poi tutte le categorie che si sono messe in
 **«segnala anziché sostituisci»**, che dalla 1.20.0 sono ventisei.
 

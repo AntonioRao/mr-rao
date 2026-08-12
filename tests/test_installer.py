@@ -269,6 +269,29 @@ def test_mancanti_sa_dire_di_no(tmp_path: Path) -> None:
     fuori = modulo.mancanti(vuota)
     assert "app\\MrRao.exe" in fuori or "app/MrRao.exe" in fuori, fuori
     assert "licenses/" in fuori
-    # E sul pacchetto vero, se c'e', non deve inventarsi mancanze.
-    if (RADICE / "dist" / "MrRao-Portable" / "app" / "MrRao.exe").is_file():
-        assert modulo.mancanti() == []
+
+
+def test_la_completezza_del_pacchetto_si_chiede_dopo_averlo_costruito() -> None:
+    """P8.3: il controllo e' giusto, il momento no.
+
+    `mancanti()` sul `dist/` vero stava nel quality gate, che `build_portable`
+    lancia **prima** di ricostruire la cartella. Un pacchetto a meta' --
+    copia interrotta, exe ancora aperto -- rendeva rosso il gate, e quindi
+    impediva la build che lo avrebbe rifatto. Il file si cancellava solo al
+    passo 4.
+
+    La domanda sul pacchetto finito appartiene a dopo la copia. Toglierla
+    dal gate senza metterla nel build sarebbe il modo di spedire un
+    pacchetto incompleto con un OK stampato sopra.
+    """
+    copione = (RADICE / "scripts" / "build_portable.bat").read_text(encoding="utf-8")
+    assert "quality_gate.bat" in copione
+    assert "make_installer.py --controlla" in copione
+    i_gate = copione.lower().find("quality_gate.bat")
+    i_copia = copione.lower().find("xcopy")
+    i_check = copione.find("make_installer.py --controlla")
+    assert i_gate != -1 and i_copia != -1 and i_check != -1
+    assert i_gate < i_copia < i_check, (
+        "il controllo di completezza deve stare dopo la copia, "
+        f"non prima (gate={i_gate}, copia={i_copia}, check={i_check})"
+    )

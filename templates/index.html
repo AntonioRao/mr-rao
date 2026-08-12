@@ -343,6 +343,8 @@
                             data-tip="{{ t('tip_scarica_docx') }}">{{ t('scarica_docx') }}</button>
                     <button type="button" class="btn" id="pdf-anteprima-btn" style="display:none"
                             data-tip="{{ t('tip_pdf') }}">{{ t('pdf_anteprima') }}</button>
+                    <button type="button" class="btn" id="docx-anteprima-btn" style="display:none"
+                            data-tip="{{ t('tip_docx') }}">{{ t('docx_anteprima') }}</button>
                     <button type="button" class="btn btn-primary" id="download-btn" draggable="true"
                             data-tip="{{ t('tip_scarica_md') }}">{{ t('scarica_md') }}</button>
                 </div>
@@ -374,6 +376,26 @@
                     <button type="button" class="btn pdf-freccia" id="pdf-succ"
                             aria-label="{{ t('pdf_successiva') }}">&#8594;</button>
                 </nav>
+            </section>
+
+            <!-- Contenuto di un .docx. Non sono pagine: un .docx non ne ha
+                 finche' qualcuno non lo impagina. Il pannello lo dice. -->
+            <section class="pdf-pannello" id="docx-pannello" hidden>
+                <header class="pdf-testa">
+                    <span class="pdf-titolo">{{ t('docx_titolo') }}</span>
+                    <span class="pdf-esito" id="docx-esito"></span>
+                </header>
+                <p class="pdf-avviso" id="docx-avviso"></p>
+                <div class="pdf-confronto">
+                    <figure class="pdf-lato">
+                        <figcaption class="pdf-etichetta pdf-etichetta-prima">{{ t('pdf_prima') }}</figcaption>
+                        <div class="docx-html" id="docx-html-prima"></div>
+                    </figure>
+                    <figure class="pdf-lato">
+                        <figcaption class="pdf-etichetta pdf-etichetta-dopo">{{ t('pdf_dopo') }}</figcaption>
+                        <div class="docx-html" id="docx-html-dopo"></div>
+                    </figure>
+                </div>
             </section>
             <div class="tabs">
                 <button type="button" class="tab active" id="tab-raw"

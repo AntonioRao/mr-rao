@@ -204,6 +204,14 @@ if exist "docs\LGPL_PYSTRAY.md" (
   copy /Y "docs\LGPL_PYSTRAY.md" "%OUT%\docs\LGPL_PYSTRAY.md" >nul
 )
 
+REM La completezza del pacchetto si chiede QUI, non nel quality gate.
+REM Il gate gira al passo 2, prima che questa cartella esista di nuovo:
+REM guardare dist\ li' rendeva rossa la build che avrebbe riparato
+REM proprio quella cartella. --controlla deve poter far fallire il
+REM build, altrimenti si spedisce un pacchetto a meta' con OK sopra.
+python scripts\make_installer.py --controlla
+if errorlevel 1 exit /b 1
+
 (
 echo @echo off
 echo cd /d "%%~dp0app"

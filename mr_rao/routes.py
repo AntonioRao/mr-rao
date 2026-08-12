@@ -25,7 +25,7 @@ from config import (
     MAX_WORKERS,
 )
 from mr_rao.converter import ConvertOptions, ConvertResult, convert_bytes, merge_markdowns
-from mr_rao.docx_export import docx_disponibile, markdown_to_docx
+from mr_rao.docx_export import docx_disponibile, html_da_docx, markdown_to_docx
 from mr_rao.i18n import LINGUA_PREDEFINITA, LINGUE, lingua_da, t
 from mr_rao.jobs import job_store
 from mr_rao.privacy import (
@@ -33,6 +33,7 @@ from mr_rao.privacy import (
     FIELD_DEFAULTS,
     PrivacyOptions,
     _pacchetti_da,
+    apply_privacy_filter,
     segnala_da_form,
     no_redaction,
     options_from_form,
@@ -842,6 +843,47 @@ def export_pdf():
     risposta.headers["X-MrRao-Pagine-Non-Trattate"] = ",".join(
         str(p) for p in sorted(esito.pagine_in_ripiego))
     return risposta
+
+
+@bp.route("/api/docx/anteprima", methods=["POST"])
+def anteprima_docx():
+    """Prima e dopo, il contenuto di un .docx, come HTML.
+
+    Un .docx non ha pagine: le ha quando Word (o LibreOffice) lo
+    impagina, e quelli non sono dipendenze. Quindi non immagini di
+    foglio affiancate, come per il PDF: due colonne di **contenuto**.
+    La risposta porta `avviso` proprio per dirlo -- senza quella riga
+    chi guarda conclude che il documento consegnato sara' cosi', e
+    non lo sara'.
+    """
+    lingua = lingua_richiesta(request.form.get("lang"))
+    if "file" not in request.files:
+        return jsonify({"error": t("err_nessun_file_richiesta", lingua)}), 400
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": t("err_nessun_file", lingua)}), 400
+    if Path(file.filename).suffix.lower() != ".docx":
+        return jsonify({"error": t("err_docx_solo_docx", lingua)}), 400
+    dati = file.read()
+    if not dati:
+        return jsonify({"error": t("err_file_vuoto", lingua)}), 400
+    if len(dati) > current_app.config["MAX_CONTENT_LENGTH"]:
+        return jsonify({"error": t("err_troppo_grande", lingua)}), 400
+
+    try:
+        prima = html_da_docx(dati)
+    except Exception:
+        current_app.logger.exception("anteprima docx")
+        return jsonify({"error": t("err_docx_anteprima", lingua)}), 500
+
+    opzioni = _privacy_dalla_richiesta(request.form)
+    dopo, rapporto = apply_privacy_filter(prima, opzioni)
+    return jsonify({
+        "prima": prima,
+        "dopo": dopo,
+        "sostituzioni": rapporto.total,
+        "avviso": t("docx_non_impaginazione", lingua),
+    })
 
 
 @bp.route("/api/jobs/<job_id>", methods=["GET"])

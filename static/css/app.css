@@ -2133,3 +2133,22 @@ input[data-tip] { cursor: pointer; }
 @media (max-width: 900px) {
   .pdf-confronto { grid-template-columns: 1fr; }
 }
+
+/* Stesso foglio bianco del PDF, ma e' HTML di contenuto: un .docx
+   non ha pagine. max-height + scorrimento, altrimenti una lettera
+   lunga spinge il resto della pagina fuori dallo schermo. */
+.docx-html {
+  max-height: 28rem;
+  overflow: auto;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.8);
+}
+
+.docx-html p { margin: 0 0 0.65em; }
+.docx-html p:last-child { margin-bottom: 0; }

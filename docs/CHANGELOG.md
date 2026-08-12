@@ -1,26 +1,58 @@
 # Changelog
 
-## Dopo la 1.24.0 — non ancora in una release desktop
+## 1.25.0 — Il rapporto che non vedeva l'età, e l'anteprima che un .docx non può avere come il PDF
 
-* **Loghi Chrome, Edge e Firefox sui pulsanti Plus.** Non quelli
-  disegnati a mano: i file ufficiali da Wikimedia Commons
-  (`Google_Chrome_icon_(February_2022).svg`,
-  `Microsoft_Edge_logo_(2019).svg`, `Firefox_logo,_2019.svg`). Marchi
-  di Google, Microsoft e Mozilla, usati solo per indicare lo store.
-  Attribuzione in `NOTICE.md`.
-* **Mr. Rao Plus è sul Chrome Web Store.** Pulsante attivo su
-  rao.valor-cyber.com (IT/EN) e su `/plus/` (IT/EN). Link anche nei due
-  README e in `docs/MR-RAO-PLUS.md`.
-* **macOS arm64, senza i 99 USD.** `scripts/build_mac.sh` e il workflow
-  `.github/workflows/macos.yml` producono `MrRao-macos-arm64.dmg` con
-  firma **ad-hoc** (identità vuota: su Mac il nome in Finder richiede i 99 $
-  Apple; Sigstore resta come sull’`.exe` Windows). Gatekeeper avvisa al primo avvio (tasto destro →
-  Apri). La scorciatoia appunti è spenta fuori da Windows, altrimenti
-  l’avvio cade su `ctypes.WinDLL`. Istruzioni: `docs/MACOS.md`.
-  Mac di riferimento: Air M1 2020, 8 GB, macOS Tahoe 26.5.2.
-  Prima run Actions rossa: azioni Node 20 (`@v4`/`@v5`), hook git senza
-  `+x` su Darwin, e `local_documents_dir()` che su macOS prendeva i
-  Documenti di `Path.home()` ignorando `USERPROFILE`.
+Tre cose. Nessuna è una funzione nuova nel senso di «adesso fa altro»:
+sono tre posti in cui il programma **non diceva** qualcosa che sapeva, o
+**non si poteva usare** da chi apre Word tutti i giorni, o **impediva
+la build che lo avrebbe riparato**.
+
+### Quattro forme di età e sesso non finivano nel rapporto
+
+Età e sesso non si tolgono, per scelta: restano nel testo e compaiono
+nel rapporto. «Ho lasciato in chiaro 3 età, apposta» vale solo se sono
+davvero tre. Quattro scritture vere non si vedevano, perché i gruppi
+`(?i:…)` coprivano metà della parola e lasciavano fuori il pezzo che
+conta:
+
+* `45 anni d'ETÀ` — `et[àa]` stava fuori dal gruppo, quindi le maiuscole
+  spegnevano il riconoscitore mentre `ETÀ 44` funzionava;
+* `sesso: f` — `[MF]` accettava solo la maiuscola;
+* `d' anni 78` — dopo l'apostrofo non c'era spazio, e «d'anni» attaccato
+  sì, «d' anni» no;
+* `Eta': 45` — apostrofo al posto dell'accento, come si scrive l'età in
+  un documento battuto senza tasti accentati.
+
+Nessun dato usciva. Il danno era il verbale che mentiva.
+
+### L'anteprima prima/dopo anche per i .docx
+
+Il PDF ce l'ha dalla 1.23.0: due pagine affiancate, si vede cosa è
+sparito. Per Word non c'era, e il `.docx` è il formato in cui si
+scrivono le lettere.
+
+La forma **non può essere la stessa**, e lo dice a schermo. Un PDF ha
+pagine perché qualcuno le ha impaginate; un `.docx` non le ha finché
+Word non gliele dà, e Word non è una dipendenza. Quindi due colonne di
+**contenuto** (mammoth, già nel pacchetto), e una riga che avverte:
+questa non è l'impaginazione, il documento che consegni non sarà così.
+Senza quella riga la funzione inganna.
+
+### Il cancello bloccava la build che lo avrebbe fatto passare
+
+`test_installer` guardava il pacchetto già presente in `dist/` **dentro
+il quality gate**, che `build_portable` lancia prima di ricostruire la
+cartella. Un pacchetto a metà — copia interrotta, exe ancora aperto —
+rendeva rosso il gate, e quindi impediva la build che lo avrebbe
+rifatto. Il controllo è rimasto, ed è ancora capace di far fallire il
+build: si fa **dopo** la copia, con `make_installer.py --controlla`.
+
+### Già nel ramo da dopo la 1.24.0, e entra in questa release
+
+* **macOS arm64**, `.dmg` con firma ad-hoc, senza i 99 USD Apple.
+  Gatekeeper avvisa al primo avvio. Istruzioni in `docs/MACOS.md`.
+* **Mr. Rao Plus** sui pulsanti della landing (Chrome, Edge, Firefox)
+  con i loghi ufficiali, non quelli disegnati a mano.
 
 ## 1.24.0 — Il testo che non stava nel flusso, e tre volte «il dato spariva ma il rapporto mentiva»
 

@@ -47,7 +47,7 @@ Shortcut ──► clipboard ──► same privacy engine ──► clipboard
 | `mr_rao/converter.py` | Single pipeline + frontmatter + merge + text fallback |
 | `mr_rao/eml_parser.py` | Email thread → Markdown + attachments |
 | `mr_rao/ocr_service.py` | OCR for images/PDFs + tables |
-| `mr_rao/docx_export.py` | Redacted Markdown → `.docx`. **Regenerates** the document instead of covering the original: under a black rectangle the text would still be there |
+| `mr_rao/docx_export.py` | Redacted Markdown → `.docx`. **Regenerates** the document instead of covering the original: under a black rectangle the text would still be there. Since 1.25.0 also the **content** preview of a source `.docx` (mammoth, not pages: Word is not a dependency) |
 | `mr_rao/i18n.py` | Both languages in a single dictionary, shared by server, templates and JavaScript. The interface language does **not** choose the recognisers |
 | `mr_rao/privacy.py` | The engine: recogniser sequence, packs, suspects, OCR recovery |
 | `mr_rao/finestra.py` | An application window instead of a browser tab: same interface, same server, the system's own rendering engine. The close button **hides** it — the program stays in the tray. If it cannot open, it falls back to the browser |

@@ -47,7 +47,7 @@ Scorciatoia ──► appunti ──► stesso motore privacy ──► appunti
 | `mr_rao/converter.py` | Pipeline unica + frontmatter + merge + fallback text |
 | `mr_rao/eml_parser.py` | Thread email → Markdown + allegati |
 | `mr_rao/ocr_service.py` | OCR immagini/PDF + tabelle |
-| `mr_rao/docx_export.py` | Markdown redatto → `.docx`. **Rigenera** il documento invece di coprire l'originale: sotto un rettangolo nero il testo resterebbe |
+| `mr_rao/docx_export.py` | Markdown redatto → `.docx`. **Rigenera** il documento invece di coprire l'originale: sotto un rettangolo nero il testo resterebbe. Dalla 1.25.0 anche l'anteprima **del contenuto** di un `.docx` di partenza (mammoth, non pagine: Word non è una dipendenza) |
 | `mr_rao/i18n.py` | Le due lingue in un dizionario solo, condiviso fra server, template e JavaScript. La lingua dell'interfaccia **non** sceglie i riconoscitori |
 | `mr_rao/privacy.py` | Motore: sequenza dei riconoscitori, pacchetti, sospetti, recupero OCR |
 | `mr_rao/finestra.py` | La finestra dell'applicazione al posto della scheda del browser: stessa interfaccia, stesso server, motore di rendering del sistema. La croce **nasconde** — il programma resta nella barra. Se non si può aprire, si torna al browser |

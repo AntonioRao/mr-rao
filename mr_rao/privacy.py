@@ -2470,11 +2470,16 @@ def _scrub_targhe(text: str, report: RedactionReport) -> str:
 # segnalazioni ogni relazione aziendale. Dichiarato: l'eta' scritta cosi' non
 # la vediamo, ed e' la scelta giusta finche' l'unico esito e' una riga di
 # rapporto.
+# I gruppi `(?i:…)` coprono **tutto** il pezzo che deve ignorare le
+# maiuscole. Lasciare `et[àa]` o `[MF]` fuori (come fino alla 1.24.0)
+# produceva quattro silenzi: `45 anni d'ETÀ`, `sesso: f`, `d' anni 78`,
+# `Eta': 45`. Nessun dato usciva — questi riconoscitori non sostituiscono
+# — ma il rapporto contava meno di quello che c'era.
 _RE_ETA = re.compile(
     r"(?<!\w)(?:"
-    r"(?i:d'|di[^\S\r\n]+)anni[^\S\r\n]+(?P<a>\d{1,3})"
-    r"|(?P<b>\d{1,3})[^\S\r\n]+anni[^\S\r\n]+(?i:d'|di[^\S\r\n]+)et[àa]"
-    r"|(?i:et[àa])[^\S\r\n]*:?[^\S\r\n]+(?P<c>\d{1,3})"
+    r"(?i:d'[^\S\r\n]*|di[^\S\r\n]+)anni[^\S\r\n]+(?P<a>\d{1,3})"
+    r"|(?P<b>\d{1,3})[^\S\r\n]+anni[^\S\r\n]+(?i:d'[^\S\r\n]*|di[^\S\r\n]+et[àa])"
+    r"|(?i:et[àa]'?)[^\S\r\n]*:?[^\S\r\n]+(?P<c>\d{1,3})"
     r"|(?P<d>\d{1,3})enne"
     r")(?!\d)"
 )
@@ -2483,7 +2488,7 @@ _RE_ETA = re.compile(
 # si guarda senza l'etichetta davanti: sarebbe una lettera qualsiasi.
 _RE_SESSO = re.compile(
     r"(?<!\w)(?i:sesso|genere)[^\S\r\n]*:?[^\S\r\n]*"
-    r"(?P<v>(?i:maschile|femminile|maschio|femmina)|[MF](?![\w]))"
+    r"(?P<v>(?i:maschile|femminile|maschio|femmina|[MF])(?![\w]))"
 )
 
 
