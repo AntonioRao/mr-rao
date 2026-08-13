@@ -365,12 +365,28 @@ sarebbe rimasta comunque, perché l'automazione aggiorna e non inserisce. **La
 prima è avvenuta il 2026-08-11**, quindi da adesso questa parte è la strada
 normale.
 
-**Configurata il 2026-08-09, mai ancora eseguita.** I quattro segreti ci
-sono e la registrazione ha il suo ruolo, ma la catena non è stata provata
-dal vivo: il primo `si` scritto in `pubblica_store` sarà anche la prima volta
-che quel percorso gira davvero. Va lanciata guardando l'esecuzione, non a fine
-giornata — e adesso è il momento in cui succederà, perché il presupposto che
-la bloccava (un'app già pubblicata da aggiornare) è stato tolto di mezzo.
+**Configurata il 2026-08-09, eseguita per la prima volta il 2026-08-13 —
+e si è fermata sull'autenticazione.** I quattro segreti ci sono (il passo
+che li conta è passato) e la registrazione ha il suo ruolo, ma `msstore
+reconfigure` risponde `Really failed to auth` dopo tre tentativi, e il
+lavoro si ferma **prima** di spedire: allo Store non è arrivato niente.
+
+Il valore di questo esito è che si è visto dove si rompe. La causa non è
+leggibile dal log — il CLI non dice *quale* delle quattro credenziali
+rifiuta — ma il sospetto principale è quello che questo stesso documento
+segnala poco più sotto: nel campo `AZURE_AD_APPLICATION_SECRET` va la
+colonna **Valore**, non «ID segreto», e il valore si vede **una volta
+sola**. Chi lo ricopia dopo trova solo l'ID, che ha una forma simile e
+non funziona.
+
+Da verificare in quest'ordine, dal più probabile al meno: il *Valore* del
+segreto client; che l'app in Partner Center sia sotto **Microsoft Entra
+applications** col ruolo *Developer*; il Seller ID preso da **Legal
+info**; l'ID tenant.
+
+Finché non è chiarito, **l'aggiornamento si carica a mano** da Partner
+Center: è la strada già collaudata, e l'MSIX esce comunque dalla stessa
+build (artefatto `MrRao-Portable` dell'esecuzione, che scade in 7 giorni).
 
 Si accende scrivendo `si` nel campo `pubblica_store` quando si lancia il
 workflow. Finché i quattro segreti non ci sono, il workflow si ferma subito
