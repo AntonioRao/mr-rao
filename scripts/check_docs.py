@@ -90,6 +90,24 @@ _RE_VERSIONE = re.compile(r"(?:versione|version)[-\s:]+(\d+\.\d+\.\d+)", re.I)
 # in cio' che esiste per accorgersi dei numeri letti male.
 _RE_CONTEGGIO = re.compile(
     r"(\d{3,5})(?:%20)?[\s-]*(?:test|tests|passing|passati)", re.I)
+
+# Lo stesso difetto e' tornato da un'altra porta: **il separatore delle
+# migliaia**. Una pagina che scrive `2&nbsp;001 test` — cioe' duemilauno
+# scritto bene — faceva leggere `001`, e il cancello si fermava dicendo che
+# il documento era disallineato mentre era l'unico scritto per esteso.
+#
+# Si normalizza prima di leggere, invece di togliere il separatore dalle
+# pagine: quel numero lo legge chi il repository non ce l'ha, e va scritto
+# per un umano. È il controllo che deve sapere leggere.
+_RE_SEPARATORE_MIGLIAIA = re.compile(
+    r"(?<=\d)(?:&nbsp;|&#160;|&#xa0;|[    .’'])(?=\d{3}\b)",
+    re.I,
+)
+
+
+def _unisci_cifre(testo: str) -> str:
+    """`2&nbsp;001` → `2001`, solo fra cifre e solo su gruppi di tre."""
+    return _RE_SEPARATORE_MIGLIAIA.sub("", testo)
 _RE_LINK = re.compile(r"\]\(([^)#:]+\.(?:md|py|txt|ico|png|yml|bat|ps1))[^)]*\)")
 _RE_VOCE_CHANGELOG = re.compile(r"^#{1,3}[ \t]*\[?v?(\d+\.\d+\.\d+)\]?", re.MULTILINE)
 
@@ -210,7 +228,7 @@ def conteggi_incoerenti(
 ) -> list[str]:
     problemi = []
     for nome, testo in (_fonti_md() if fonti is None else fonti):
-        for m in _RE_CONTEGGIO.finditer(testo):
+        for m in _RE_CONTEGGIO.finditer(_unisci_cifre(testo)):
             if m.group(1) != str(reale):
                 problemi.append(f"{nome}: dice {m.group(1)} test, ma sono {reale}")
     return problemi

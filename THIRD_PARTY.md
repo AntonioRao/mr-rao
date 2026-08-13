@@ -19,7 +19,7 @@ generatore non ha modo di sapere di più: legge i metadati, non i
 repository. Chi ridistribuisce e ha bisogno della certezza la cerca
 nel sorgente del pacchetto, non in questa tabella.
 
-Pacchetti nell'ambiente: **74** — di cui **6** con obblighi
+Pacchetti nell'ambiente: **73** — di cui **6** con obblighi
 oltre la semplice attribuzione (copyleft o eccezioni).
 
 ## Licenze con obblighi particolari
@@ -32,7 +32,7 @@ Sono elencate per prime perché sono quelle da controllare.
 |----------|----------|---------|---------------|
 | [certifi](https://github.com/certifi/python-certifi) | 2026.7.22 | Mozilla Public License 2.0 (MPL 2.0) | — |
 | [pikepdf](https://pikepdf.readthedocs.io/) | 10.11.0 | MPL-2.0 | — |
-| [pyinstaller](https://pyinstaller.org) | 6.21.0 | GNU General Public License v2 (GPLv2) | — |
+| [pyinstaller](https://pyinstaller.org) | 6.22.0 | GNU General Public License v2 (GPLv2) | — |
 | [pyinstaller-hooks-contrib](https://github.com/pyinstaller/pyinstaller-hooks-contrib) | 2026.6 | Apache Software License; GNU General Public License v2 (GPLv2) | — |
 | [pystray](https://github.com/moses-palmer/pystray) | 0.19.5 | GNU Lesser General Public License v3 (LGPLv3) | [`licenses/pystray/`](licenses/pystray/) |
 | [tqdm](https://tqdm.github.io) | 4.70.0 | MPL-2.0 AND MIT | — |
@@ -57,7 +57,7 @@ Mr. Rao non li modifica.
 |----------|----------|----------------|---------|---------------|
 | [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/bs4/download/) | 4.15.0 | Corpo HTML delle email → testo | MIT License | — |
 | [Flask](https://flask.palletsprojects.com/page/changes/) | 3.1.3 | Server web locale | BSD-3-Clause | — |
-| [mammoth](https://github.com/mwilliamson/python-mammoth) | 1.11.0 | Lettura dei .docx dentro MarkItDown | BSD License | — |
+| [mammoth](https://github.com/mwilliamson/python-mammoth) | 1.12.1 | Lettura dei .docx dentro MarkItDown | BSD License | — |
 | [markitdown](https://github.com/microsoft/markitdown#readme) | 0.1.7 | Documenti Office/HTML/PDF → Markdown | MIT | — |
 | [onnxruntime](https://onnxruntime.ai) | 1.28.0 | Esecuzione dei modelli OCR | MIT License | — |
 | [openpyxl](https://openpyxl.readthedocs.io) | 3.1.5 | Lettura dei .xlsx | MIT License | — |
@@ -66,8 +66,8 @@ Mr. Rao non li modifica.
 | [pdfplumber](https://github.com/jsvine/pdfplumber) | 0.11.10 | Estrazione testo e tabelle da PDF | MIT License | — |
 | [pikepdf](https://pikepdf.readthedocs.io/) | 10.11.0 | Redazione PDF→PDF: taglia il flusso di contenuto e le annotazioni | MPL-2.0 | — |
 | [pillow](https://pillow.readthedocs.io/en/stable/releasenotes/index.html) | 12.3.0 | Immagini | MIT-CMU | — |
-| [pyinstaller](https://pyinstaller.org) | 6.21.0 | Build del pacchetto portable (solo sviluppo) | GNU General Public License v2 (GPLv2) | — |
-| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.12.1 | Redazione PDF→PDF: trova il riquadro di ogni carattere | BSD-3-Clause, Apache-2.0, dependency licenses | — |
+| [pyinstaller](https://pyinstaller.org) | 6.22.0 | Build del pacchetto portable (solo sviluppo) | GNU General Public License v2 (GPLv2) | — |
+| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.13.0 | Redazione PDF→PDF: trova il riquadro di ogni carattere | BSD-3-Clause, Apache-2.0, dependency licenses | — |
 | [pystray](https://github.com/moses-palmer/pystray) | 0.19.5 | Icona nella barra di sistema | GNU Lesser General Public License v3 (LGPLv3) | [`licenses/pystray/`](licenses/pystray/) |
 | [pytest](https://docs.pytest.org/en/stable/changelog.html) | 9.1.1 | Test (solo sviluppo) | MIT | — |
 | [python-docx](https://github.com/python-openxml/python-docx/blob/master/HISTORY.rst) | 1.2.0 | Esportazione del documento redatto in .docx | MIT License | — |
@@ -83,7 +83,7 @@ Mr. Rao non li modifica.
 Arrivano come dipendenze delle precedenti. Sono elencate per intero perché
 l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 
-<details><summary>Elenco completo (52 pacchetti)</summary>
+<details><summary>Elenco completo (51 pacchetti)</summary>
 
 | Progetto | Versione | Licenza | Notice locale |
 |----------|----------|---------|---------------|
@@ -93,7 +93,7 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [bottle](http://bottlepy.org/) | 0.13.4 | MIT License | — |
 | [certifi](https://github.com/certifi/python-certifi) | 2026.7.22 | Mozilla Public License 2.0 (MPL 2.0) | — |
 | [cffi](https://cffi.readthedocs.io/) | 2.1.1 | MIT-0 | — |
-| [charset-normalizer](https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md) | 3.4.9 | MIT | — |
+| [charset-normalizer](https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md) | 3.5.0 | MIT | — |
 | [click](https://click.palletsprojects.com/page/changes/) | 8.4.2 | BSD-3-Clause | — |
 | [clr_loader](https://github.com/pythonnet/clr-loader) | 0.3.1 | non dichiarata | — |
 | [cobble](http://github.com/mwilliamson/python-cobble) | 0.1.4 | BSD License | — |
@@ -111,8 +111,7 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [magika](https://google.github.io/magika/) | 0.6.2 | Apache Software License | — |
 | [markdownify](http://github.com/matthewwithanm/python-markdownify) | 1.2.3 | MIT License | — |
 | [MarkupSafe](https://palletsprojects.com/donate) | 3.0.3 | BSD-3-Clause | — |
-| [numpy](https://numpy.org) | 2.5.1 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 | — |
-| [olefile](https://www.decalage.info/python/olefileio) | 0.47 | BSD License | — |
+| [numpy](https://numpy.org) | 2.5.2 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 | — |
 | [omegaconf](https://github.com/omry/omegaconf) | 2.3.1 | BSD License | — |
 | [opencv-python](https://github.com/opencv/opencv-python) | 5.0.0.93 | Apache Software License | — |
 | [packaging](https://packaging.pypa.io/) | 26.3 | Apache-2.0 OR BSD-2-Clause | — |
@@ -130,10 +129,10 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [pythonnet](https://pythonnet.github.io/) | 3.1.0 | MIT | — |
 | [pywin32-ctypes](https://github.com/enthought/pywin32-ctypes) | 0.2.3 | BSD-3-Clause | — |
 | [requests](https://requests.readthedocs.io) | 2.34.2 | Apache Software License | — |
-| [setuptools](https://github.com/pypa/setuptools) | 83.0.0 | MIT | — |
+| [setuptools](https://github.com/pypa/setuptools) | 84.0.0 | MIT | — |
 | [shapely](https://shapely.readthedocs.io/) | 2.1.2 | BSD License | — |
 | [six](https://github.com/benjaminp/six) | 1.17.0 | MIT License | — |
-| [soupsieve](https://github.com/facelessuser/soupsieve) | 2.9.1 | MIT | — |
+| [soupsieve](https://github.com/facelessuser/soupsieve) | 2.9.2 | MIT | — |
 | [tqdm](https://tqdm.github.io) | 4.70.0 | MPL-2.0 AND MIT | — |
 | [typing_extensions](https://github.com/python/typing_extensions/issues) | 4.16.0 | PSF-2.0 | — |
 | [tzdata](https://github.com/python/tzdata) | 2026.3 | Apache-2.0 | — |
