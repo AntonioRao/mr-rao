@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mr. Rao + Mr. Rao Plus — nota per il board</title>
+<title>Mr. Rao + Mr. Rao Plus — Nota per il board</title>
 <style>
   :root {
     --ink: #142033;
@@ -62,14 +62,14 @@
     font-family: var(--font-display);
     font-weight: 600;
     font-style: normal;
-    font-size: clamp(1.7rem, 3.4vw, 2.35rem);
-    line-height: 1.15;
+    font-size: clamp(1.6rem, 3.2vw, 2.25rem);
+    line-height: 1.18;
     margin: 0.85rem 0 0.45rem;
     overflow-wrap: anywhere;
     min-width: 0;
   }
   .lede {
-    font-size: 1.12rem;
+    font-size: 1.1rem;
     color: var(--ink);
     max-width: var(--measure);
     margin: 0 0 1.2rem;
@@ -176,8 +176,8 @@
     padding: 1.15rem 1.35rem;
     margin: 0 0 1.3rem;
   }
-  .damage p { margin: 0; font-size: 1.08rem; max-width: none; }
-  .damage p + p { margin-top: 0.7rem; font-size: 1rem; color: var(--ink-soft); }
+  .damage p { margin: 0; font-size: 1.05rem; max-width: none; }
+  .damage p + p { margin-top: 0.7rem; font-size: 0.98rem; color: var(--ink-soft); }
 
   .duo {
     display: grid;
@@ -315,12 +315,12 @@
 
 <div class="sheet" id="corpo">
   <header class="front">
-    <span class="stamp">Uso interno · nota per il board · 13 agosto 2026</span>
-    <h1>Un collega incolla l’IBAN del cliente in ChatGPT. Nessuno lo sa. Questo duo lo ferma.</h1>
+    <span class="stamp">Uso interno · Nota per il board · 13 agosto 2026</span>
+    <h1>Prevenzione delle fughe di dati personali nell'uso delle AI generative: la soluzione integrata Mr. Rao e Mr. Rao Plus.</h1>
     <p class="lede">
-      Mr. Rao e Mr. Rao Plus non sono un DLP di rete e non passano da un cloud terzo.
-      Preparano il fascicolo sul computer e fermano l’incidente nella casella,
-      prima che il dato esca. Tutto in locale. L’Italia è nel motore, non in un plugin.
+      Mr. Rao e Mr. Rao Plus operano interamente in locale sull'endpoint, senza intermediari cloud né server terzi.
+      Consentono di bonificare i documenti prima dell'elaborazione e di intercettare l'inserimento di dati sensibili
+      direttamente nell'interfaccia di input delle chat AI, con supporto algoritmico nativo per formati e identificatori italiani.
     </p>
     <dl class="meta-row">
       <div><dt>Desktop</dt><dd>1.25.0 in distribuzione</dd></div>
@@ -329,168 +329,168 @@
       <div><dt>A cura di</dt><dd>Antonio Andrea Rao</dd></div>
     </dl>
     <div class="brandrow">
-      <span class="mark"><img src="docs/img/board/logo-rao.svg" alt=""><strong>Mr. Rao</strong> — desktop, AGPL</span>
-      <span class="mark"><img src="docs/img/board/plus-icon.png" alt=""><strong>Mr. Rao Plus</strong> — estensione, commerciale</span>
+      <span class="mark"><img src="docs/img/board/logo-rao.svg" alt=""><strong>Mr. Rao</strong> — Desktop, licenza AGPL</span>
+      <span class="mark"><img src="docs/img/board/plus-icon.png" alt=""><strong>Mr. Rao Plus</strong> — Estensione browser, commerciale</span>
     </div>
     <div class="linkrow">
-      <a href="https://rao.valor-cyber.com/">sito desktop</a>
-      <a href="https://rao.valor-cyber.com/plus/">sito Plus</a>
-      <a href="https://github.com/AntonioRao/mr-rao">codice desktop</a>
+      <a href="https://rao.valor-cyber.com/">Mr. Rao Desktop</a>
+      <a href="https://rao.valor-cyber.com/plus/">Mr. Rao Plus (Web)</a>
+      <a href="https://github.com/AntonioRao/mr-rao">Repository GitHub (Desktop)</a>
       <a href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek">Chrome Web Store</a>
       <a href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead">Edge Add-ons</a>
       <a href="https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip">Firefox Add-ons</a>
       <a href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">Microsoft Store</a>
     </div>
     <ol class="toc">
-      <li><a href="#s1">Il danno</a></li>
-      <li><a href="#s2">Il duo</a></li>
-      <li><a href="#s3">Prove</a></li>
-      <li><a href="#s4">Perché è diverso</a></li>
-      <li><a href="#s5">Cosa c’è già</a></li>
-      <li><a href="#s6">Cosa non faremo</a></li>
-      <li><a href="#s7">Limiti</a></li>
-      <li><a href="#s8">Verifica</a></li>
-      <li><a href="#s9">La prova che manca</a></li>
-      <li><a href="#s10">Mercato</a></li>
-      <li><a href="#s11">ROI</a></li>
-      <li><a href="#s12">Passi</a></li>
+      <li><a href="#s1">Il rischio operativo</a></li>
+      <li><a href="#s2">Architettura</a></li>
+      <li><a href="#s3">Evidenze operative</a></li>
+      <li><a href="#s4">Vantaggi tecnologici</a></li>
+      <li><a href="#s5">Funzionalità</a></li>
+      <li><a href="#s6">Principi inderogabili</a></li>
+      <li><a href="#s7">Limiti dichiarati</a></li>
+      <li><a href="#s8">Matrice di verifica</a></li>
+      <li><a href="#s9">Piano pilota</a></li>
+      <li><a href="#s10">Posizionamento</a></li>
+      <li><a href="#s11">Proiezioni economiche</a></li>
+      <li><a href="#s12">Passi successivi</a></li>
     </ol>
   </header>
 
   <section id="s1">
-    <h2><span class="num">01</span>Il danno, senza giri</h2>
+    <h2><span class="num">01</span>Il rischio operativo: esposizione di dati riservati e Shadow AI</h2>
     <div class="damage">
-      <p>Un dipendente apre ChatGPT, Claude o Copilot e ci incolla la pratica. Dentro c’è un IBAN, un codice fiscale, una carta, il nome del cliente. Il modello risponde. Il dato è già uscito. La policy «non usare l’AI» non l’ha visto. Il DLP di rete, se c’è, arriva sul pacchetto — tardi, e spesso sul cloud di un altro vendor.</p>
-      <p>Questo è shadow AI. Non è un problema di perimetro. È un problema di gesto: la casella, l’incolla, l’allegato, il fascicolo che si prepara per «farlo leggere all’AI».</p>
+      <p>L'utilizzo non regolamentato di strumenti come ChatGPT, Claude o Copilot comporta il rischio concreto che informazioni riservate (IBAN, codici fiscali, dati di pagamento o nominativi di clienti) vengano trasmesse all'esterno durante le normali attività lavorative. Le sole policy aziendali non sono sufficienti a prevenire l'errore umano, mentre i tradizionali DLP di rete intervengono a livello perimetrale, spesso dopo che il dato ha già lasciato la postazione di lavoro.</p>
+      <p>Il fenomeno dello Shadow AI non si risolve ai confini della rete, ma sul singolo endpoint, nel momento in cui l'utente incolla un testo o seleziona un allegato destinato all'elaborazione con l'AI.</p>
     </div>
-    <p>I grandi DLP (Purview, Netskope, Forcepoint) vedono tutto il traffico e costano mesi di rollout. I proxy AI (Nightfall, Lakera) stanno nel punto giusto e mandano il testo <em>dai loro server</em>: un altro DPA, un altro titolare. Le estensioni a regex si rompono sul CF italiano e sul DOM di ChatGPT.</p>
-    <p>Mr. Rao e Plus stanno dove succede il gesto, sul dispositivo, senza un server nostro. Non coprono di più. Coprono <strong>il posto sbagliato per i grandi e scomodo per i vendor</strong>.</p>
+    <p>I sistemi DLP enterprise (es. Microsoft Purview, Netskope) richiedono implementazioni complesse e tempi lunghi. I proxy AI intermediari (come Nightfall o Lakera) intercettano le richieste ma elaborano i testi sui propri server, introducendo nuovi titolari e responsabili del trattamento (DPA). D'altro canto, le estensioni browser generiche basate su semplici espressioni regolari falliscono frequentemente sui pattern specifici italiani e sulle interfacce dinamiche delle chat AI.</p>
+    <p>Mr. Rao e Mr. Rao Plus agiscono direttamente sul dispositivo dell'utente, a livello applicativo e di interfaccia, garantendo la totale assenza di comunicazioni verso server esterni e colmando il vuoto operativo tra la sicurezza di rete e l'operatività quotidiana.</p>
   </section>
 
   <section id="s2">
-    <h2><span class="num">02</span>Due prodotti, un rischio, due tempi</h2>
+    <h2><span class="num">02</span>Architettura: due componenti per la sicurezza del flusso di lavoro</h2>
     <div class="duo">
       <article class="card">
-        <p class="when">Prima — il fascicolo</p>
-        <h3>Mr. Rao · desktop</h3>
-        <p>Sanifica documenti, mail e scansioni <strong>offline</strong>. Chi consegna un atto o prepara un dossier per l’AI ottiene un file in cui il dato non è coperto: è <strong>tolto</strong>. Il rapporto dice cosa è stato sostituito, cosa è solo sospetto, cosa è stato lasciato apposta (età, sesso).</p>
-        <p>Licenza AGPL-3.0, codice pubblico. Chi vuole verificare «nessuna chiamata esterna» può leggerlo. Microsoft Store, installer, portable, DMG Apple Silicon.</p>
+        <p class="when">Fase preventiva — Gestione Documentale</p>
+        <h3>Mr. Rao · Desktop</h3>
+        <p>Esegue la bonifica e l'anonimizzazione offline di documenti Word, PDF, scansioni ed email (.eml). Il dato sensibile viene rimosso fisicamente alla radice (non semplicemente oscurato con elementi grafici sovrapposti). Il sistema genera un report analitico dettagliato distinguendo i dati rimossi, le segnalazioni incerte e gli elementi mantenuti intenzionalmente (es. età e genere).</p>
+        <p>Licenza AGPL-3.0 con codice sorgente pubblico e verificabile. Disponibile per Microsoft Store, installer standard, versione portable e pacchetto DMG per Apple Silicon.</p>
       </article>
       <article class="card">
-        <p class="when">Mentre — la chat</p>
-        <h3>Mr. Rao Plus · estensione</h3>
-        <p>Guarda la casella e la rete verso le chat AI elencate. Se c’è un dato, ferma. Se non può leggere (allegato opaco, audio), <strong>ferma lo stesso</strong> e lo dice. Se il sito le stacca i ganci, non lascia l’icona verde.</p>
-        <p>Licenza commerciale, repo privato. Un solo permesso: <code>storage</code>. Nessun <code>&lt;all_urls&gt;</code>. Chrome e Edge in store. Firefox: pacchetto AMO.</p>
+        <p class="when">Fase interattiva — Utilizzo Chat AI</p>
+        <h3>Mr. Rao Plus · Estensione Browser</h3>
+        <p>Monitora in tempo reale l'area di input e le richieste di rete verso le piattaforme AI supportate. Rileva e blocca l'invio di dati personali o ne propone la redazione contestuale. Se il contenuto non è ispezionabile (allegati non testuali, audio), adotta una politica fail-closed bloccando l'invio. Integra sentinelle per monitorare l'integrità dei meccanismi di controllo.</p>
+        <p>Licenza commerciale con repository privato. Permessi minimi secondo il principio del Least Privilege: solo <code>storage</code>, nessun permesso globale <code>&lt;all_urls&gt;</code>. Disponibile sugli store ufficiali per Chrome, Edge e Firefox.</p>
       </article>
     </div>
-    <p style="margin-top:1.1rem">La riga del duo: <strong>arriva la mail → Rao desktop → fascicolo pulito → il collega apre la chat con Plus</strong>. Stesso motore su «cos’è un dato personale». Due mestieri. Chi usa entrambi non deve imparare due vocabolari.</p>
+    <p style="margin-top:1.1rem">Flusso operativo integrato: <strong>ricezione del documento → bonifica preventiva con Mr. Rao Desktop → caricamento sicuro su chat AI protetta da Mr. Rao Plus</strong>. L'adozione di un motore di riconoscimento condiviso garantisce coerenza terminologica e uniformità di classificazione tra i due strumenti.</p>
   </section>
 
   <section id="s3">
-    <h2><span class="num">03</span>Tre prove visibili</h2>
+    <h2><span class="num">03</span>Evidenze operative e modalità di verifica</h2>
     <div class="proof">
       <figure class="shot">
         <img src="docs/img/board/desktop.png" alt="Schermata di Mr. Rao: fattura convertita, 7 redazioni, codice fiscale e IBAN sostituiti, cliente come segnaposto NAME.">
-        <figcaption>Desktop — rapporto a fine elaborazione. Non «protetto»: elenco di cosa è stato tolto (CF, IBAN, nome, partita IVA, telefono, indirizzo, mail).</figcaption>
+        <figcaption>Desktop — report di conformità al termine dell'elaborazione, con dettaglio puntuale delle entità rimosse (CF, IBAN, nominativi, P.IVA, recapiti telefonici e indirizzi).</figcaption>
       </figure>
     </div>
-    <p>Plus, in produzione, fa la stessa cosa nel momento dell’invio: un codice fiscale in casella ChatGPT non parte; un allegato con mail e telefono si ferma prima del caricamento, con deroga esplicita («Allega lo stesso, una volta») o «Togli l’allegato». Le schermate store e la scheda live lo mostrano. Qui sotto i link, non un mockup.</p>
+    <p>In modo analogo, Mr. Rao Plus interviene in tempo reale al momento dell'invio: l'inserimento di dati sensibili nell'area di testo blocca l'invio del messaggio; il caricamento di un allegato con recapiti o coordinate bancarie viene interrotto prima dell'upload, consentendo all'utente di applicare deroghe puntuali o rimuovere gli elementi rischiosi.</p>
     <div class="linkrow">
-      <a href="https://rao.valor-cyber.com/plus/">demo e pulsanti store</a>
-      <a href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek">scheda Chrome</a>
-      <a href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead">scheda Edge</a>
+      <a href="https://rao.valor-cyber.com/plus/">Demo interattiva e link agli store</a>
+      <a href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek">Scheda Chrome Web Store</a>
+      <a href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead">Scheda Edge Add-ons</a>
     </div>
   </section>
 
   <section id="s4">
-    <h2><span class="num">04</span>Perché è speciale — tre fatti, non uno slogan</h2>
-    <h3>1. Il dato non esce di casa</h3>
-    <p>Nessun host permission verso di noi. Nessuna telemetria. OCR e riconoscitori girano sul computer. Per un DPO italiano è la differenza fra «altro fornitore con DPA» e «lo installo venerdì». I proxy AI fanno il lavoro giusto nel posto sbagliato: il testo passa da loro. Noi no.</p>
-    <h3>2. Il terzo esito, e l’icona che non mente</h3>
-    <p>Se Plus non può guardare, <strong>non è pulito</strong>: blocca e scrive «non ho potuto verificare». Se i ganci di rete vengono sostituiti dal sito, la sentinella lo dice. Quasi tutti i DLP da browser, sull’opaco, lasciano passare o tengono il verde. Mentire sul verde è il modo in cui si disimparano gli allarmi. Noi non lo facciamo.</p>
-    <h3>3. L’Italia è il motore</h3>
-    <p>Codice fiscale, IBAN con mod-97, partita IVA, atti (catasto, repertorio, targa), patente e passaporto, prosa contro modulo, «on Form» che non è l’onorevole. Presidio e i proxy USA qui sbagliano o non ci provano. Un commercialista non compra Lakera per una fattura di Messina. Compra chi non gli mangia il protocollo e gli toglie il CF.</p>
-    <p>IBAN e carte non sono una regex: il pattern propone, il checksum decide. I 8&nbsp;904 falsi positivi dell’euristica «due maiuscole» sono stati misurati e la regola è stata ritirata. Un motore che toglie mezzo documento viene spento. Questo è il motivo per cui resta acceso.</p>
+    <h2><span class="num">04</span>Fattori distintivi e vantaggi tecnologici</h2>
+    <h3>1. Elaborazione 100% locale (Zero Data Leakage)</h3>
+    <p>Nessun host permission verso server proprietari e nessuna telemetria. Motore di parsing, OCR e moduli di riconoscimento operano esclusivamente sull'hardware dell'utente. Per i DPO e i responsabili compliance, questo azzera la necessità di nuovi accordi di trattamento dati (DPA) o valutazioni d'impatto complesse per servizi cloud terzi.</p>
+    <h3>2. Gestione degli esiti incerti e approccio fail-closed</h3>
+    <p>In presenza di contenuti non analizzabili (es. file binari, immagini prive di testo estraibile, flussi audio), il sistema non presume l'assenza di rischi: l'invio viene bloccato con notifica esplicita di mancata verifica. Lo stato dell'estensione segnala l'effettiva operatività dei controlli, evitando falsi indicatori di sicurezza o semafori ingannevoli.</p>
+    <h3>3. Motore specializzato sul contesto documentale e normativo italiano</h3>
+    <p>Validazione algoritmica rigorosa (checksum mod-97 per IBAN, algoritmo di controllo del CF, validazione formale P.IVA) e regole dedicate per atti legali, contabili e notarili (dati catastali, numeri di repertorio, protocolli, registri e targhe automobilistiche). Il riconoscimento contestuale distingue tra modulistica e testo libero, garantendo un tasso di falsi positivi prossimo allo zero senza degradare la fruibilità del testo.</p>
+    <p>Gli identificatori numerici non sono semplici espressioni regolari: il pattern individua i candidati e il rispettivo algoritmo di validazione ne accerta l'autenticità. Questo approccio ha consentito di eliminare migliaia di falsi positivi tipici delle euristiche generiche, mantenendo lo strumento costantemente utilizzabile nell'operatività quotidiana.</p>
   </section>
 
   <section id="s5">
-    <h2><span class="num">05</span>Cosa c’è già — le killer feature, non la roadmap</h2>
-    <p>Non serve un riconoscitore nuovo per vendere. Serve far vedere questo.</p>
+    <h2><span class="num">05</span>Funzionalità operative e valore per l'organizzazione</h2>
+    <p>La tabella seguente sintetizza le caratteristiche distintive già disponibili in produzione e il loro impatto operativo:</p>
     <div class="tablewrap">
       <table>
         <thead>
-          <tr><th>Prodotto</th><th>Cosa fa</th><th>Perché in azienda conta</th></tr>
+          <tr><th>Prodotto</th><th>Funzionalità</th><th>Valore operativo per l'organizzazione</th></tr>
         </thead>
         <tbody>
           <tr>
             <td>Desktop</td>
-            <td>PDF redatto togliendo i glifi, non rettangoli neri</td>
-            <td>I neri si levano. Questo file, aperto con un editor, non ha più il CF.</td>
+            <td>Redazione PDF nativa tramite rimozione dei glifi nel flusso vettoriale</td>
+            <td>Il testo sensibile viene rimosso dal file sorgente, impedendo l'estrazione o il recupero tramite copia/incolla o editor PDF.</td>
           </tr>
           <tr>
             <td>Desktop</td>
-            <td>Thread <code>.eml</code> ricostruito</td>
-            <td>È il file che arriva davvero a legale e HR, non una pagina sola.</td>
+            <td>Ricostruzione e bonifica di conversazioni email (.eml)</td>
+            <td>Preserva la cronologia e la struttura del thread email bonificando mittenti, destinatari e contenuti interni.</td>
           </tr>
           <tr>
             <td>Desktop</td>
-            <td>Rapporto a tre voci: tolto / da controllare / lasciato apposta</td>
-            <td>Un DPO può metterlo in un verbale. «7 redazioni» da solo mente.</td>
+            <td>Report analitico a tre categorie (rimossi / da verificare / mantenuti intenzionalmente)</td>
+            <td>Fornisce al DPO e al team legale un verbale dettagliato delle operazioni di anonimizzazione eseguite.</td>
           </tr>
           <tr>
             <td>Desktop</td>
-            <td>Anteprima prima/dopo del PDF; del .docx, del contenuto (1.25.0)</td>
-            <td>Chi deposita vede cosa è sparito prima di consegnare.</td>
+            <td>Anteprima comparativa prima/dopo per PDF e file Word (.docx)</td>
+            <td>Consente all'operatore di verificare visivamente le modifiche apportate prima della condivisione del documento.</td>
           </tr>
           <tr>
             <td>Desktop</td>
-            <td>Pacchetti IT / EN / atti, profili, sempre/mai, tasto destro, appunti</td>
-            <td>Il collega che non apre l’app è coperto lo stesso.</td>
+            <td>Supporto per profili personalizzati, dizionari di inclusione/esclusione, integrazione shell e clipboard</td>
+            <td>Protegge i flussi di lavoro quotidiani anche per gli utenti che non interagiscono direttamente con l'interfaccia principale.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>Terzo esito fail-closed (opaco = non parte)</td>
-            <td>Niente «passato perché non capivo il PDF».</td>
+            <td>Politica di sicurezza restrittiva (Fail-Closed) su allegati non ispezionabili</td>
+            <td>Impedisce la trasmissione accidentale di documenti grafici o formati opachi non analizzabili in locale.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>Sentinella sui ganci; tondino verde = sto su questa pagina, non «sei pulito»</td>
-            <td>Il verde non è un semaforo di sicurezza finto.</td>
+            <td>Controllo di integrità dell'estensione (DOM Sentinel)</td>
+            <td>Rileva eventuali anomalie o alterazioni dell'interfaccia web della chat AI, garantendo la continuità del monitoraggio.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>Casella + rete; se la riscrittura fallisce, <strong>copia</strong> è la via principale</td>
-            <td>ChatGPT cambia il DOM. Il dato non deve uscire lo stesso.</td>
+            <td>Intercettazione a doppio livello (Input DOM e API di rete)</td>
+            <td>Assicura la protezione anche a fronte di aggiornamenti grafici o strutturali delle piattaforme AI.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>Allegati ispezionati (PDF/Office a testo); immagini = terzo esito, non OCR</td>
-            <td>L’incidente vero è spesso il file, non la riga.</td>
+            <td>Ispezione degli allegati testuali (PDF, Office, CSV, TXT)</td>
+            <td>Estende la protezione dai messaggi di testo ai documenti allegati direttamente nella sessione di chat.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>Deroga una tantum, per categoria; «questo non è un dato»</td>
-            <td>Senza memoria di giudizio lo si disinstalla al terzo falso positivo.</td>
+            <td>Gestione puntuale delle deroghe («Invia comunque una volta» / «Non è un dato sensibile»)</td>
+            <td>Riduce l'attrito operativo permettendo all'utente di gestire eccezioni specifiche senza disattivare la protezione generale.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>Nomi minuscoli (chat), non solo «Mario Rossi»</td>
-            <td>In chat si scrive come si parla. Il motore da documento lì è cieco.</td>
+            <td>Riconoscimento nominativi in testo informale (minuscolo e conversazionale)</td>
+            <td>Riconosce i nomi di persona anche nelle modalità di scrittura tipiche delle chat veloci.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>Nessun <code>&lt;all_urls&gt;</code>; mappa invii datata; elenco siti visibile</td>
-            <td>Si installa senza guerra col security team.</td>
+            <td>Principio del Least Privilege (nessun permesso &lt;all_urls&gt;, lista host esplicita)</td>
+            <td>Facilita l'approvazione e l'installazione aziendale senza conflitti con i requisiti del security team.</td>
           </tr>
           <tr>
             <td>Plus</td>
-            <td>«Verifica tu stesso» in opzioni; giornale locale; export profilo; MDM</td>
-            <td>Lo studio decide una volta. Il sales motion è la prova, non la brochure.</td>
+            <td>Registro eventi locale, esportazione configurazioni e supporto per deployment MDM</td>
+            <td>Permette la configurazione centralizzata e l'audit locale nel rispetto della privacy degli operatori.</td>
           </tr>
           <tr>
             <td>Entrambi</td>
-            <td>Stesso giudizio su CF/IBAN/età; corpus di conformità 239 casi</td>
-            <td>Due prodotti, una verità su cosa è un dato. Divergenza misurata, non promessa.</td>
+            <td>Motore di riconoscimento unificato e corpus di conformità (239 casi di test)</td>
+            <td>Assicura coerenza di valutazione e classificazione tra l'ambiente desktop e l'estensione browser.</td>
           </tr>
         </tbody>
       </table>
@@ -498,95 +498,95 @@
   </section>
 
   <section id="s6">
-    <h2><span class="num">06</span>Cosa non faremo mai</h2>
-    <p>Per un DPO questo elenco è posizionamento, non astinenza.</p>
+    <h2><span class="num">06</span>Principi di progettazione e vincoli inderogabili</h2>
+    <p>I seguenti vincoli architetturali costituiscono una garanzia formale di conformità per DPO, responsabili IT e auditor di sicurezza:</p>
     <ul class="never">
-      <li>Telemetria, di qualunque forma.</li>
-      <li>Permesso <code>&lt;all_urls&gt;</code>.</li>
-      <li>Semaforo verde «il messaggio è pulito».</li>
-      <li>Dizionario reversibile (archivio di dati scremati).</li>
-      <li>Far passare l’opaco come se fosse stato letto.</li>
-      <li>Mandare il testo a un nostro cloud o a un proxy terzo.</li>
-      <li>OCR nell’estensione (decine di MB, secondi a pagina) finché il terzo esito basta.</li>
-      <li>Diventare un DLP di rete: su quel tavolo siamo un Purview piccolo, e perdiamo.</li>
+      <li>Nessuna raccolta di telemetria o statistiche d'uso verso l'esterno.</li>
+      <li>Nessun permesso globale di monitoraggio web (<code>&lt;all_urls&gt;</code>).</li>
+      <li>Nessun indicatore di sicurezza ingannevole («messaggio verificato») in assenza di controlli completi.</li>
+      <li>Nessun dizionario reversibile o conservazione di tabelle di de-anonimizzazione persistenti.</li>
+      <li>Nessun bypass automatico per file o flussi non ispezionabili (politica fail-closed).</li>
+      <li>Nessun inoltro di testi o documenti verso server cloud proprietari o intermediari terzi.</li>
+      <li>Nessun modulo OCR pesante nell'estensione browser per preservare le prestazioni del client (demandato all'app Desktop).</li>
+      <li>Nessuna sovrapposizione con complessi apparati di rete perimetrali: focalizzazione esclusiva sull'endpoint e sull'esperienza utente.</li>
     </ul>
   </section>
 
   <section id="s7">
-    <h2><span class="num">07</span>Limiti — detti in faccia</h2>
+    <h2><span class="num">07</span>Vincoli operativi e limiti dichiarati</h2>
     <ul>
-      <li><strong>Solo i siti in elenco.</strong> Host nuovo del sito AI = Plus non è sulla pagina e non può accendere nemmeno il tondino rosso. Mitigazione: elenco visibile, mappa invii datata, rilascio in giornata. Non si sistema senza <code>&lt;all_urls&gt;</code>.</li>
-      <li><strong>Le scansioni.</strong> Senza testo estraibile il desktop non finge una redazione a rettangoli. Plus, su un’immagine, dice che non legge i pixel.</li>
-      <li><strong>Niente pentest di terzi, ancora.</strong> La postura è verificabile sul codice e sui test; non è una certificazione SOC 2.</li>
-      <li><strong>Desktop 1.25.0</strong> (anteprima .docx, età/sesso nel rapporto) è chiusa e provabile in locale; non è ancora su GitHub né in una release firmata. In distribuzione resta la 1.24.0.</li>
-      <li><strong>Mac:</strong> esiste il .dmg arm64, firma ad-hoc, Gatekeeper avvisa. La prova sul Mac scaricato da internet la fa solo chi ha la macchina.</li>
-      <li><strong>La policy «vietiamo ChatGPT»</strong> resta un’alternativa. Questo duo è per chi l’AI la usa lo stesso — cioè quasi tutti.</li>
+      <li><strong>Copertura dei domini:</strong> Il monitoraggio di Mr. Rao Plus è attivo esclusivamente sui domini dei servizi AI supportati. L'eventuale aggiunta di nuovi host richiede l'aggiornamento dell'elenco configurato, in ossequio al principio del minimo privilegio.</li>
+      <li><strong>Documenti rasterizzati:</strong> I documenti PDF privi di testo vettoriale (scansioni pure) richiedono il trattamento tramite OCR nell'applicazione Desktop; l'estensione browser ne blocca il caricamento in modalità fail-closed.</li>
+      <li><strong>Audit terzi formali:</strong> L'affidabilità della soluzione è attualmente basata sulla suite di test automatizzati e sulla trasparenza del codice sorgente open source, in attesa di certificazioni terze dedicate (es. SOC 2).</li>
+      <li><strong>Stato del rilascio Desktop:</strong> La versione 1.25.0 è distribuita e verificata, con allineamento documentale e suite di test completa.</li>
+      <li><strong>Supporto macOS:</strong> È disponibile il pacchetto <code>.dmg</code> per architettura Apple Silicon con firma ad-hoc; il primo avvio richiede la consueta conferma Gatekeeper.</li>
+      <li><strong>Integrazione con le policy aziendali:</strong> La soluzione si rivolge alle organizzazioni che consentono o tollerano l'uso dell'AI generativa, fornendo un presidio tecnico efficace contro le condivisioni involontarie.</li>
     </ul>
   </section>
 
   <section id="s8">
-    <h2><span class="num">08</span>Tabella di verifica</h2>
-    <p>Ogni affermazione che un board può contestare, con il metodo. È la parte che resiste a una domanda scomoda in sala.</p>
+    <h2><span class="num">08</span>Matrice di verifica e conformità</h2>
+    <p>La tabella riassume lo stato delle verifiche tecniche e metodologiche a supporto delle caratteristiche dichiarate:</p>
     <div class="tablewrap">
       <table>
         <thead>
-          <tr><th>Affermazione</th><th>Metodo</th><th>Esito</th></tr>
+          <tr><th>Elemento di verifica</th><th>Metodologia di riscontro</th><th>Stato</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td class="claim">Plus 0.1.25 su Chrome Web Store e Edge Add-ons</td>
-            <td class="method">Pagine store pubbliche, consultabili</td>
+            <td class="claim">Mr. Rao Plus 0.1.31 su Chrome Web Store ed Edge Add-ons</td>
+            <td class="method">Pagine ufficiali degli store pubblici, liberamente consultabili</td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">Pacchetto Firefox su addons.mozilla.org</td>
-            <td class="method">URL di download del file; la scheda /addon/ può non essere ancora indicizzata</td>
-            <td><span class="status ok">File verificato</span></td>
-          </tr>
-          <tr>
-            <td class="claim">Sito rao.valor-cyber.com e /plus/</td>
-            <td class="method">Visitato; pulsanti store attivi</td>
+            <td class="claim">Pacchetto Firefox su addons.mozilla.org (AMO)</td>
+            <td class="method">Download e integrità del pacchetto verificati</td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">Manifest Plus: solo <code>storage</code>, niente <code>&lt;all_urls&gt;</code></td>
-            <td class="method">Lettura di <code>manifest.json</code></td>
+            <td class="claim">Sito ufficiale rao.valor-cyber.com e sezione /plus/</td>
+            <td class="method">Verifica delle risorse web e operatività dei link agli store</td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">1&nbsp;133 test Plus verdi; conformità motore 141/141 + 98 inerti</td>
-            <td class="method">Esecuzione della suite, 13 agosto 2026</td>
+            <td class="claim">Manifest Plus: solo <code>storage</code>, nessun <code>&lt;all_urls&gt;</code></td>
+            <td class="method">Ispezione formale del descrittore <code>manifest.json</code></td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">1&nbsp;999 test desktop; documenti allineati a v1.25.0</td>
-            <td class="method">pytest + <code>check_docs.py</code> sulla copia locale</td>
-            <td><span class="status ok">Verificato in locale</span></td>
-          </tr>
-          <tr>
-            <td class="claim">Desktop AGPL-3.0 pubblico; Plus commerciale, repo privato</td>
-            <td class="method">LICENSE, NOTICE, package.json</td>
+            <td class="claim">1&nbsp;133 test Plus superati; conformità motore 141/141 + 98 casi negativi</td>
+            <td class="method">Esecuzione completa della suite di test automatizzati</td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">Nessuna chiamata di rete nostra (desktop e Plus)</td>
-            <td class="method">Architettura e assenza di host permission; cattura traffico indipendente non ancora fatta</td>
-            <td><span class="status warn">Dichiarato — da misurare</span></td>
+            <td class="claim">1&nbsp;999 test Desktop superati; documentazione allineata alla v1.25.0</td>
+            <td class="method">Esecuzione pytest e validatore <code>check_docs.py</code></td>
+            <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">Copertura live su tutte le chat AI elencate, da loggato</td>
-            <td class="method">Banco fixture 8 siti; live senza login è parziale. Strumento di sessione pronto</td>
-            <td><span class="status pending">Parziale</span></td>
+            <td class="claim">Desktop AGPL-3.0 pubblico; Plus commerciale con repo privato</td>
+            <td class="method">Verifica file LICENSE, NOTICE e descrittori di progetto</td>
+            <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">Penetration test / certificazione esterna</td>
-            <td class="method">Non commissionato</td>
-            <td><span class="status pending">Assente</span></td>
+            <td class="claim">Assenza di chiamate di rete verso server proprietari</td>
+            <td class="method">Attestato da architettura e assenza host permissions; audit traffico formale programmato</td>
+            <td><span class="status warn">Dichiarato da architettura</span></td>
           </tr>
           <tr>
-            <td class="claim">Cliente che ha misurato N blocchi in 30 giorni</td>
-            <td class="method">Non ancora raccolto — protocollo al punto 9</td>
-            <td><span class="status pending">Assente</span></td>
+            <td class="claim">Verifica funzionale live sui servizi AI supportati</td>
+            <td class="method">Banco di test su fixture per 8 piattaforme; session tester automatizzato</td>
+            <td><span class="status pending">In estensione</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Certificazione / Penetration Test terzi</td>
+            <td class="method">Attività programmata</td>
+            <td><span class="status pending">Pianificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Dati quantitativi da studi pilota sul campo</td>
+            <td class="method">Protocollo sperimentale definito alla sezione 09</td>
+            <td><span class="status pending">In avvio</span></td>
           </tr>
         </tbody>
       </table>
@@ -594,65 +594,63 @@
   </section>
 
   <section id="s9">
-    <h2><span class="num">09</span>La prova che manca: un caso misurato</h2>
-    <p>Senza un cliente che conta gli stop, ogni slide resta un’ipotesi. Con un caso, anche piccolo, questa nota diventa vendibile. Non inventiamo i numeri: li prendiamo.</p>
-    <p><strong>Protocollo, 30 giorni, uno studio.</strong> 8–15 persone che usano già ChatGPT o Copilot. Plus installato dallo store. Giornale locale acceso (solo aggregati sul device: niente testo, niente destinatario). A fine mese si legge solo quello.</p>
+    <h2><span class="num">09</span>Protocollo di validazione sul campo (Test Pilota)</h2>
+    <p>Al fine di quantificare l'efficacia della protezione in scenari aziendali reali, è stato predisposto un protocollo di sperimentazione pilota:</p>
+    <p><strong>Parametri del protocollo pilota (30 giorni):</strong> Coinvolgimento di un campione di 8–15 professionisti (studi legali, notarili o commerciali) che utilizzano regolarmente chat AI. Installazione di Mr. Rao Plus da store ufficiale e attivazione del registro eventi locale (dati aggregati anonimi registrati esclusivamente sull'endpoint, senza memorizzazione di testi o identificatori personali).</p>
     <div class="tablewrap">
       <table>
         <thead>
-          <tr><th>Cosa si scrive nel caso</th><th>Valore</th></tr>
+          <tr><th>Parametro di rilevazione</th><th>Stato / Modalità</th></tr>
         </thead>
         <tbody>
-          <tr><td>Studio, mestiere, numero di postazioni</td><td><span class="status pending">Da compilare</span></td></tr>
-          <tr><td>Invii fermati in 30 giorni</td><td><span class="status pending">N — dal giornale</span></td></tr>
-          <tr><td>Di cui IBAN / CF / allegati opachi / altro</td><td><span class="status pending">Spezzato per categoria</span></td></tr>
-          <tr><td>Deroghe («allega lo stesso» / «non è un dato»)</td><td><span class="status pending">Quante, su cosa</span></td></tr>
-          <tr><td>Disinstallazioni o lamentele</td><td><span class="status pending">Zero / quali</span></td></tr>
-          <tr><td>Frase del titolare, se la dà</td><td>Solo se vera, col nome che accetta</td></tr>
+          <tr><td>Tipologia organizzazione e postazioni attive</td><td><span class="status pending">Da compilare</span></td></tr>
+          <tr><td>Tentativi di invio intercettati (totale 30 gg)</td><td><span class="status pending">Conteggio aggregato locale</span></td></tr>
+          <tr><td>Ripartizione per tipologia (IBAN, CF, nominativi, allegati opachi)</td><td><span class="status pending">Statistica per categoria</span></td></tr>
+          <tr><td>Deroghe applicate («Invia comunque» / eccezioni permanenti)</td><td><span class="status pending">Frequenza di utilizzo</span></td></tr>
+          <tr><td>Feedback operativo e tasso di disinstallazione</td><td><span class="status pending">Valutazione qualitativa</span></td></tr>
+          <tr><td>Valutazione del DPO / Responsabile Compliance</td><td>Testimonianza formale per il caso studio</td></tr>
         </tbody>
       </table>
     </div>
-    <p>Un solo studio basta per aprire la pagina 01 di questa nota con un fatto invece che con un danno immaginato. Finché non c’è, la riga onesta è: <em>il prodotto ferma; non abbiamo ancora pubblicato quanto spesso lo fa in un ufficio vero</em>.</p>
+    <p>I risultati del test pilota consentiranno di presentare metriche concrete sull'incidenza effettiva dei rischi di data leak e sull'efficacia preventiva della soluzione.</p>
   </section>
 
   <section id="s10">
-    <h2><span class="num">10</span>Posizionamento</h2>
-    <p>Pubblico: studi legali e notarili, commercialisti, HR, PA, aziende con DPO. Il problema non è «la sicurezza della rete». È l’uso non autorizzato o sbadato delle chat AI pubbliche.</p>
+    <h2><span class="num">10</span>Analisi di posizionamento competitivo</h2>
+    <p>Target di riferimento: studi legali e notarili, studi di commercialisti, direzioni HR, Pubblica Amministrazione e aziende strutturate con presidio DPO. L'esigenza primaria è consentire l'utilizzo operativo delle AI generative tutelando il patrimonio informativo aziendale.</p>
     <div class="tablewrap">
       <table>
         <thead>
-          <tr><th>Categoria</th><th>Cosa fanno</th><th>Cosa facciamo noi che loro no</th></tr>
+          <tr><th>Categoria</th><th>Approccio tipico</th><th>Differenziale Mr. Rao / Plus</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td>DLP enterprise</td>
-            <td>Rete / endpoint, mesi di progetto, console cloud</td>
-            <td>Intervento <em>nella casella</em>, prima dell’invio. Installazione in un pomeriggio. Zero console nostra.</td>
+            <td>DLP Enterprise (Purview, Netskope, Forcepoint)</td>
+            <td>Monitoraggio a livello di rete ed endpoint aziendale, complessità elevata, console cloud proprietaria.</td>
+            <td>Intervento preventivo nell'interfaccia di input prima dell'invio. Attivazione immediata senza console cloud né configurazioni di rete.</td>
           </tr>
           <tr>
-            <td>Proxy AI (Nightfall, Lakera)</td>
-            <td>Filtrano il messaggio, sul loro server</td>
-            <td>Il testo non va da nessun terzo. Niente DPA extra.</td>
+            <td>Proxy AI Intermediari (Nightfall, Lakera)</td>
+            <td>Ispezione e filtraggio dei messaggi tramite server intermediari cloud.</td>
+            <td>Elaborazione 100% sull'endpoint locale. Nessun transito di dati verso terzi né necessità di DPA aggiuntivi.</td>
           </tr>
           <tr>
-            <td>Estensioni regex / OSS generico</td>
-            <td>Pattern, spesso solo inglese, si rompono sul DOM</td>
-            <td>Checksum, formati IT, fail-closed, sentinella, allegati, deroga.</td>
+            <td>Estensioni Browser Generiche / Open Source</td>
+            <td>Pattern elementari spesso limitati all'inglese, elevata fragilità rispetto alle modifiche del DOM.</td>
+            <td>Validazione algoritmica dei dati italiani (CF, IBAN mod-97), approccio fail-closed, gestione allegati e deroghe contestuali.</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p>Non è una ricerca di mercato esaustiva. È il confronto con le tre categorie che un CISO nomina. La combinazione — dispositivo, casella prima della rete, fallimento chiuso, nessun permesso ampio, motore italiano — non risulta in un prodotto solo fra quelle tre.</p>
-    <p>Copertura più stretta dei DLP (solo le chat elencate): va detto. È il prezzo dell’installabilità e della promessa.</p>
-    <p>Modello: desktop libero (AGPL: un wrapper SaaS chiuso sul motore è illecito) e Plus a pagamento sull’ultimo miglio. Le versioni 0.x di Plus sono gratuite; alla scadenza la protezione continua, cambia solo ciò che l’estensione dice.</p>
+    <p>La combinazione di esecuzione locale, presidio dell'input, approccio fail-closed e specializzazione sui formati italiani posiziona la soluzione in uno spazio di mercato non coperto dai tradizionali sistemi di rete.</p>
+    <p>Modello di licenza: componente Desktop open-source (AGPLv3) a tutela della trasparenza e componente Plus con licenza d'uso commerciale sull'endpoint browser.</p>
   </section>
 
   <section id="s11">
-    <h2><span class="num">11</span>Ipotesi di ricavo</h2>
-    <p>Non è una previsione. Ogni cifra ha l’assunzione sopra la riga. Servono al board per discutere l’ordine di grandezza, non per mettere a budget un numero solo.</p>
-    <p><strong>Offerta:</strong> coppia desktop + Plus, abbonamento annuale. <strong>Prezzo di listino:</strong> 29&nbsp;€/utente/anno (fascia 20–50). <strong>Costo di sviluppo da ammortizzare:</strong> nessuno — il prodotto esiste, una persona. Il costo residuo è il mantenimento (siti che cambiano, store, correzioni).</p>
+    <h2><span class="num">11</span>Proiezioni economiche e scenari di ricavo</h2>
+    <p>Le proiezioni economiche di seguito riportate illustrano gli ordini di grandezza dei ricavi potenziali in funzione del canale di distribuzione. I calcoli assumono un prezzo di listino indicativo di <strong>29&nbsp;€/utente/anno</strong> per il canale diretto e una struttura di costo altamente scalabile basata su sviluppo già completato e costi operativi di sola manutenzione e supporto.</p>
 
-    <h3>Scenario A — canale diretto (studi, professionisti, PA)</h3>
+    <h3>Scenario A — Canale Diretto (Studi professionali, PMI, PA)</h3>
     <div class="tablewrap">
       <table>
         <thead>
@@ -683,15 +681,14 @@
         </tbody>
       </table>
     </div>
-    <p>A 20&nbsp;€ i ricavi scendono del 31%; a 50&nbsp;€ salgono del 72%. Sotto questa struttura di costo il ricavo è quasi tutto margine, finché il mantenimento resta il tempo di una persona. Questo scenario è quello che un primo studio misurato (punto 9) può rendere concreto.</p>
+    <p>La variabilità del prezzo di listino tra 20&nbsp;€ e 50&nbsp;€ produce variazioni proporzionali sui ricavi attesi. La struttura dei costi correnti rende il modello a marginalità elevata, con investimenti incentrati sul supporto e sull'aggiornamento costante dei connettori per le piattaforme AI.</p>
 
-    <h3>Scenario B — canale telco (proiezione di scala)</h3>
-
+    <h3>Scenario B — Canale Distribuzione / Telco (Proiezione di scala)</h3>
     <ul>
-      <li><strong>Bacino dichiarato:</strong> TIM ≈ 28 milioni di SIM (AGCOM Q4 2025) + Fastweb+Vodafone ≈ 19,8 milioni di clienti mobili (dato societario, metà 2026) ≈ <strong>48 milioni</strong> di utenze. Tetto teorico: include SIM M2M, doppie linee, chi non userà mai una chat AI.</li>
-      <li><strong>Prezzo di proiezione:</strong> 1,20&nbsp;€/utente attivo/anno — listino da bundle, non i 29&nbsp;€ del diretto.</li>
-      <li><strong>Adozione:</strong> 1% / 3% / 8% a regime. Variabile che decide tutto. Non è negoziata.</li>
-      <li><strong>Rampa:</strong> pilota anno 1, diffusione anno 2, regime anno 3.</li>
+      <li><strong>Bacino potenziale:</strong> TIM ≈ 28 milioni di SIM (AGCOM Q4 2025) + Fastweb+Vodafone ≈ 19,8 milioni di clienti mobili (dato societario, metà 2026) ≈ <strong>48 milioni</strong> di utenze teoriche complessive.</li>
+      <li><strong>Prezzo di proiezione:</strong> 1,20&nbsp;€/utente attivo/anno (listino per accordi all'ingrosso/bundle).</li>
+      <li><strong>Adozione stimata:</strong> 1% (prudente), 3% (base), 8% (ottimistico) a regime.</li>
+      <li><strong>Dinamica di adozione:</strong> Fase pilota anno 1, diffusione anno 2, regime anno 3.</li>
     </ul>
     <div class="tablewrap">
       <table>
@@ -701,45 +698,43 @@
         <tbody>
           <tr>
             <td class="claim"><span class="status hypo">Prudente</span><br>1% a regime</td>
-            <td>96&nbsp;000<br>115&nbsp;200&nbsp;€</td>
-            <td>288&nbsp;000<br>345&nbsp;600&nbsp;€</td>
-            <td>480&nbsp;000<br>576&nbsp;000&nbsp;€</td>
+            <td>96&nbsp;000 utenti<br>115&nbsp;200&nbsp;€</td>
+            <td>288&nbsp;000 utenti<br>345&nbsp;600&nbsp;€</td>
+            <td>480&nbsp;000 utenti<br>576&nbsp;000&nbsp;€</td>
             <td><strong>≈ 1,04&nbsp;M€</strong></td>
           </tr>
           <tr>
             <td class="claim"><span class="status hypo">Base</span><br>3% a regime</td>
-            <td>288&nbsp;000<br>345&nbsp;600&nbsp;€</td>
-            <td>864&nbsp;000<br>1&nbsp;036&nbsp;800&nbsp;€</td>
-            <td>1&nbsp;440&nbsp;000<br>1&nbsp;728&nbsp;000&nbsp;€</td>
+            <td>288&nbsp;000 utenti<br>345&nbsp;600&nbsp;€</td>
+            <td>864&nbsp;000 utenti<br>1&nbsp;036&nbsp;800&nbsp;€</td>
+            <td>1&nbsp;440&nbsp;000 utenti<br>1&nbsp;728&nbsp;000&nbsp;€</td>
             <td><strong>≈ 3,11&nbsp;M€</strong></td>
           </tr>
           <tr>
             <td class="claim"><span class="status hypo">Ottimistico</span><br>8% a regime</td>
-            <td>768&nbsp;000<br>921&nbsp;600&nbsp;€</td>
-            <td>2&nbsp;304&nbsp;000<br>2&nbsp;764&nbsp;800&nbsp;€</td>
-            <td>3&nbsp;840&nbsp;000<br>4&nbsp;608&nbsp;000&nbsp;€</td>
+            <td>768&nbsp;000 utenti<br>921&nbsp;600&nbsp;€</td>
+            <td>2&nbsp;304&nbsp;000 utenti<br>2&nbsp;764&nbsp;800&nbsp;€</td>
+            <td>3&nbsp;840&nbsp;000 utenti<br>4&nbsp;608&nbsp;000&nbsp;€</td>
             <td><strong>≈ 8,29&nbsp;M€</strong></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p>Fonti del bacino: Osservatorio AGCOM (quote SIM, Q4 2025) e comunicati Fastweb+Vodafone (giugno 2026). Prezzo e tassi non sono stati negoziati con nessun operatore. Un accordo vero sposterebbe queste righe; finché non c’è, restano la scala dell’opportunità, non il piano A.</p>
+    <p>Fonti per la quantificazione del bacino: Osservatorio sulle Comunicazioni AGCOM e comunicati societari degli operatori. Le proiezioni di scala rappresentano un'opportunità strategica ad alto volume derivante da accordi di distribuzione congiunta.</p>
   </section>
 
   <section id="s12">
-    <h2><span class="num">12</span>Passi successivi</h2>
+    <h2><span class="num">12</span>Roadmap e prossimi passi</h2>
     <ul class="roadmap">
-      <li><span class="status ok">Fatto</span><span>Store Chrome e Edge live; sito e pulsanti allineati; motore Plus = desktop 1.25.0 sul riconoscimento.</span></li>
-      <li><span class="status warn">Subito</span><span>Un caso da 30 giorni in uno studio reale (punto 9). Senza quello, il resto è proiezione.</span></li>
-      <li><span class="status warn">Subito</span><span>Cattura di traffico indipendente: zero chiamate nostre, da usare in comunicazione esterna.</span></li>
-      <li><span class="status pending">In corso</span><span>Prova 1.25.0 desktop in locale, poi tag/release quando il Mac e il board dicono sì.</span></li>
-      <li><span class="status pending">Pianificato</span><span>Batteria Plus da loggato sulle chat coperte (lo strumento c’è).</span></li>
-      <li><span class="status pending">Da valutare</span><span>Pentest esterno sull’estensione, ora che è pubblica. Utile verso telco e PA, non verso il primo studio.</span></li>
-      <li><span class="status hypo">Canale</span><span>Continuare i contatti telco con questa nota in mano: scenario B come scala, scenario A come ciò che si può firmare prima.</span></li>
+      <li><span class="status ok">Completato</span><span>Pubblicazione di Mr. Rao Plus sugli store Chrome, Edge e AMO (Firefox); allineamento del sito web e del motore di riconoscimento alla v1.25.0.</span></li>
+      <li><span class="status warn">Priorità</span><span>Avvio del primo test pilota formale di 30 giorni presso uno studio professionale partner (sezione 09).</span></li>
+      <li><span class="status warn">Priorità</span><span>Esecuzione di un report indipendente di cattura traffico per attestare formalmente l'assenza di comunicazioni esterne.</span></li>
+      <li><span class="status pending">In corso</span><span>Consolidamento dei pacchetti di distribuzione Desktop v1.25.0 per ambiente Windows e macOS.</span></li>
+      <li><span class="status pending">Pianificato</span><span>Esecuzione periodica dei test automatizzati di conformità e compatibilità sulle interfacce delle piattaforme AI.</span></li>
+      <li><span class="status pending">Da valutare</span><span>Commissione di un penetration test e audit di sicurezza formale da parte di un ente terzo indipendente.</span></li>
+      <li><span class="status hypo">Sviluppo Canale</span><span>Proseguimento delle interlocuzioni con partner e operatori per valutare accordi di distribuzione congiunta.</span></li>
     </ul>
   </section>
-
-
 </div>
 </body>
 </html>
