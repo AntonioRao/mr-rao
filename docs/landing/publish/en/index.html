@@ -778,7 +778,9 @@
       <a href="#proof">Proof</a>
       <a href="#limits">Limits</a>
       <a href="#contact">Contact</a>
+      <a href="/impresa/">Impresa</a>
       <a href="/plus/en/" title="Browser extension for AI chats">Mr. Rao Plus</a>
+      <a href="/plus/privacy/en/">Privacy</a>
       <a class="lang" href="/" hreflang="it" lang="it" title="Leggi questa pagina in italiano">IT · Italiano</a>
       <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Download</a>
     </div>
@@ -936,6 +938,7 @@
       <tr><td>Interface</td><td>In English, picked up from your browser · the produced document follows the same language</td></tr>
       <tr><td>Local security</td><td>Host allow-list, CSRF Origin check, read-only GET, bound to 127.0.0.1</td></tr>
       <tr><td>Licence</td><td>AGPL-3.0 · the code can be read · nothing phones home</td></tr>
+      <tr><td>DLP role</td><td>Not network DLP. With Plus: DLP on the gesture — sanitise the file here, stop the paste in the listed AI chats. No third-party prompt proxy.</td></tr>
     </table>
   </section>
 
@@ -992,6 +995,8 @@
     <p>
       Same engine as Mr. Rao, same promise: everything local, no network call — not even to us — and a
       single permission, to remember your settings.
+      Together they are DLP for shadow AI: the desktop on the file, Plus on the last metre.
+      Not network DLP. DLP on the gesture — paste, attach, Enter.
     </p>
     <div class="plus-actions">
       <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek" target="_blank" rel="noopener noreferrer">
@@ -1002,7 +1007,7 @@
         <img class="browser" src="/assets/logo-edge.svg?v=228f22cc4b" width="20" height="20" alt="" />
         Microsoft Edge
       </a>
-      <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip" target="_blank" rel="noopener noreferrer">
+      <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4957328/mr_rao_plus-0.1.32.zip" target="_blank" rel="noopener noreferrer">
         <img class="browser" src="/assets/logo-firefox.svg?v=f31b10673f" width="20" height="20" alt="" />
         Firefox
       </a>
@@ -1097,29 +1102,41 @@
   const boot = document.getElementById("boot");
   let bootDone = false;
 
-  bootLines.forEach((row, i) => {
-    setTimeout(() => {
-      const el = document.createElement("div");
-      el.className = "line " + row.c;
-      el.textContent = "> " + row.t;
-      if (i === bootLines.length - 1) {
-        const cur = document.createElement("span");
-        cur.className = "cursor";
-        el.appendChild(cur);
-      }
-      log.appendChild(el);
-    }, row.d);
-  });
+  function giaVisto() {
+    if (location.hash && location.hash.length > 1) return true;
+    try { return sessionStorage.getItem("mr-rao-boot") === "1"; }
+    catch { return false; }
+  }
 
   function dismissBoot() {
     if (bootDone) return;
     bootDone = true;
     boot.classList.add("done");
+    try { sessionStorage.setItem("mr-rao-boot", "1"); } catch (_) {}
     startTerminal();
   }
-  setTimeout(dismissBoot, 2800);
-  window.addEventListener("keydown", dismissBoot, { once: true });
-  window.addEventListener("click", dismissBoot, { once: true });
+
+  if (giaVisto()) {
+    dismissBoot();
+  } else {
+    bootLines.forEach((row, i) => {
+      setTimeout(() => {
+        const el = document.createElement("div");
+        el.className = "line " + row.c;
+        el.textContent = "> " + row.t;
+        if (i === bootLines.length - 1) {
+          const cur = document.createElement("span");
+          cur.className = "cursor";
+          el.appendChild(cur);
+        }
+        log.appendChild(el);
+      }, row.d);
+    });
+    setTimeout(dismissBoot, 2800);
+    window.addEventListener("keydown", dismissBoot, { once: true });
+    window.addEventListener("click", dismissBoot, { once: true });
+  }
+  window.addEventListener("hashchange", dismissBoot);
 
   // Invented data in a real shape: the NHS number passes mod-11, the routing
   // number passes the 3-7-1 sum. A demo built on numbers that would not pass

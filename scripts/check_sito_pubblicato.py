@@ -176,12 +176,17 @@ def pagine_locali() -> list[Path]:
     #
     # Vanno escluse, e non per comodita': questo controllo confronta la
     # versione dichiarata dalla pagina con `APP_VERSION`, e quelle pagine una
-    # versione non ce l'hanno ne' la devono avere -- parlano dell'estensione,
-    # che ha un numero suo. Il risultato erano due righe «cieco» a ogni
-    # esecuzione, cioe' un controllo che non puo' diventare verde: si impara a
-    # saltarlo, e il giorno che diventa cieco per un motivo vero non lo legge
-    # piu' nessuno.
-    pagine = [RADICE / p for p in uscita if "/plus/" not in p]
+    # versione non ce l'hanno ne' la devono avere -- parlano dell'estensione
+    # o della nota commerciale (Plus + desktop), che non ripetono il numero
+    # del portable. Il risultato erano due righe «cieco» a ogni esecuzione,
+    # cioe' un controllo che non puo' diventare verde: si impara a saltarlo,
+    # e il giorno che diventa cieco per un motivo vero non lo legge piu'
+    # nessuno.
+    pagine = [
+        RADICE / p
+        for p in uscita
+        if "/plus/" not in p and "/impresa/" not in p
+    ]
     # L'esclusione non deve poter mangiare la landing: se un giorno il filtro
     # diventasse troppo largo, meglio fermarsi che controllare niente e
     # stampare tutto verde. Provato allargandolo a `/publish/`: si ferma.

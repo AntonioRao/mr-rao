@@ -1,0 +1,153 @@
+/* Menu di sito, identico alla landing principale.
+   Foglio a parte: la CSP ammette style-src 'self', non un terzo <style> inline. */
+
+.sito-nav {
+  --sito-bg: #050705;
+  --sito-phosphor: #3dff9a;
+  --sito-phosphor-dim: #1a8f55;
+  --sito-amber: #f0b429;
+  --sito-fog: #8fa898;
+  --sito-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem clamp(1rem, 4vw, 2.5rem);
+  background: linear-gradient(to bottom, rgba(5, 7, 5, 0.95), transparent);
+  font-family: var(--sito-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sito-fog);
+}
+
+.sito-nav a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sito-nav a:hover { color: #e8f5ec; }
+
+.sito-nav a:focus-visible {
+  outline: 2px solid var(--sito-phosphor);
+  outline-offset: 3px;
+}
+
+.sito-nav .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--sito-phosphor);
+  font-weight: 600;
+}
+
+.sito-nav .brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: block;
+  background: #0a100c;
+}
+
+.sito-nav .stamp {
+  border: 1px solid var(--sito-amber);
+  color: var(--sito-amber);
+  padding: 0.25rem 0.55rem;
+  font-weight: 600;
+}
+
+.sito-nav .links {
+  display: flex;
+  gap: 1.25rem 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+
+.sito-nav .links a {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.sito-nav .cta {
+  color: var(--sito-bg);
+  background: var(--sito-phosphor);
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.sito-nav .cta:hover { color: var(--sito-bg); filter: brightness(1.1); }
+
+.sito-nav .lang {
+  border: 1px solid var(--sito-phosphor-dim);
+  color: var(--sito-phosphor);
+  background: rgba(10, 16, 12, 0.6);
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.sito-nav .menu {
+  display: none;
+  border: 1px solid #1a2e22;
+  background: #0a100c;
+  color: #e8f5ec;
+  font-family: var(--sito-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.75rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.sito-nav .menu summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.sito-nav .menu summary::-webkit-details-marker { display: none; }
+
+.sito-nav .menu .panel {
+  display: none;
+}
+
+.sito-nav .menu[open] {
+  width: 100%;
+}
+
+.sito-nav .menu[open] .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 0.6rem;
+}
+
+.sito-nav .menu .panel a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--sito-fog);
+}
+
+/* Non sul body: overflow sul body + padding-top fa scendere
+   position:fixed rispetto alla home, dove il nav sta a top: 0. */
+body:has(.sito-nav) main,
+body:has(.sito-nav) .wrap {
+  padding-top: 4.5rem;
+}
+
+@media (max-width: 72rem) {
+  .sito-nav .links { display: none; }
+  .sito-nav .menu { display: block; }
+  .sito-nav .stamp { display: none; }
+}

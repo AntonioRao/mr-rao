@@ -12,21 +12,44 @@
 <link rel="alternate" hreflang="en" href="https://rao.valor-cyber.com/plus/en/" />
 <link rel="alternate" hreflang="x-default" href="https://rao.valor-cyber.com/plus/en/" />
 <link rel="stylesheet" href="stile.css" />
+<link rel="stylesheet" href="/sito-nav.css?v=3" />
 </head>
 <body>
-  <header class="nav">
-    <a class="brand" href="/plus/">
-      <img src="/assets/logo.svg?v=bdb291803a" width="28" height="28" alt="" />
-      <span>Mr. Rao Plus</span>
-    </a>
-    <div class="links">
-      <a href="#come">Come funziona</a>
-      <a href="#faq">FAQ</a>
+<nav class="sito-nav" aria-label="Sito Mr. Rao">
+  <a class="brand" href="/">
+    <img src="/assets/logo.svg?v=bdb291803a" alt="" width="28" height="28" />
+    MR.RAO // OFFLINE
+  </a>
+  <span class="stamp">NO CLOUD</span>
+  <div class="links">
+    <a href="/#motore">Motore</a>
+    <a href="/#banco">Prove</a>
+    <a href="/#perche">Perché</a>
+    <a href="/#limiti">Limiti</a>
+    <a href="/#contatto">Contatto</a>
+    <a href="/impresa/">Impresa</a>
+    <a href="/plus/">Mr. Rao Plus</a>
+    <a href="/plus/privacy/">Privacy</a>
+    <a class="lang" href="/plus/en/">EN · English</a>
+    <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Scarica</a>
+  </div>
+  <details class="menu">
+    <summary>Menu</summary>
+    <div class="panel">
+      <a href="/">Home</a>
+      <a href="/#motore">Motore</a>
+      <a href="/#banco">Prove</a>
+      <a href="/#perche">Perché</a>
+      <a href="/#limiti">Limiti</a>
+      <a href="/#contatto">Contatto</a>
+      <a href="/impresa/">Impresa</a>
+      <a href="/plus/">Mr. Rao Plus</a>
       <a href="/plus/privacy/">Privacy</a>
-      <a href="/">Mr. Rao desktop</a>
-      <a class="cta" href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-chrome.svg?v=2bb1a2c9b9" width="16" height="16" alt="" /> Installa su Chrome</a>
+      <a href="/plus/en/">EN · English</a>
+      <a href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Scarica</a>
     </div>
-  </header>
+  </details>
+</nav>
 
   <main>
     <section class="hero">
@@ -40,7 +63,7 @@
       <div class="actions">
         <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-chrome.svg?v=2bb1a2c9b9" width="20" height="20" alt="" /> Google Chrome</a>
         <a class="btn btn-ghost" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-edge.svg?v=228f22cc4b" width="20" height="20" alt="" /> Microsoft Edge</a>
-        <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-firefox.svg?v=f31b10673f" width="20" height="20" alt="" /> Firefox</a>
+        <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4957328/mr_rao_plus-0.1.32.zip" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-firefox.svg?v=f31b10673f" width="20" height="20" alt="" /> Firefox</a>
         <a class="btn btn-ghost" href="/plus/privacy/">Informativa privacy</a>
       </div>
     </section>
@@ -60,6 +83,25 @@
       <div class="card">
         <h3>Mr. Rao Plus · estensione</h3>
         <p>Invio chat → blocco o redazione in casella. Store Edge, solo <code>storage</code>, zero host_permissions.</p>
+      </div>
+    </div>
+
+    <p class="sec-label">// DLP</p>
+    <h2>Protezione prima che i dati finiscano in ChatGPT</h2>
+    <p class="muted">
+      Un dipendente incolla una pratica in ChatGPT. Il regolamento interno non lo ferma. Un antivirus o un DLP di rete, se c’è, vede il traffico troppo tardi — e spesso dopo che il testo è già uscito.
+      I filtri in cloud vedono il messaggio, ma il testo passa dai loro server. Plus sta nella casella e sul messaggio in uscita, sul computer.
+      Non sostituisce un DLP aziendale. Copre quello che quel DLP non vede: l’invio verso le chat AI.
+      Funziona solo sulle chat AI elencate. Fuori da quelle l’estensione non interviene.
+    </p>
+    <div class="grid two">
+      <div class="card">
+        <h3>Cosa non è</h3>
+        <p>Non è un DLP di rete. Non vede la posta, le chiavette, i servizi cloud. I vostri testi non passano da un nostro server. Non diventa un altro fornitore a cui affidare i dati.</p>
+      </div>
+      <div class="card">
+        <h3>Cosa è</h3>
+        <p>Controlla testo e allegati al momento dell’invio. Se non riesce a leggere un file, blocca e lo scrive. Se smette di funzionare sulla pagina, lo segnala.</p>
       </div>
     </div>
 
@@ -107,7 +149,7 @@
           <ul>
             <li>il <strong>prossimo</strong> invio che <em>bloccherebbe</em> passa <strong>una volta</strong>;</li>
             <li>la deroga si <strong>consuma</strong>;</li>
-            <li>un messaggio <em>pulito</em> non la mangia;</li>
+            <li>un messaggio senza dati personali non usa la deroga;</li>
             <li>il secondo invio con dati personali si ferma di nuovo.</li>
           </ul>
           <p>Non è una finestra di due minuti in cui la protezione si spegne.</p>
@@ -140,7 +182,7 @@
       <details>
         <summary>Perché a volte compare «allegato» anche se non ne ho messo uno?</summary>
         <div class="risposta">
-          <p>Era un difetto: alcuni siti mandano <code>File</code> vuoti o corpi di protocollo che venivano scambiati per allegati. Dalla <strong>0.1.13–0.1.14</strong> il cancello distingue allegati utente veri da telemetria e body di invio messaggio.</p>
+          <p>Era un difetto: alcuni siti mandano <code>File</code> vuoti o dati tecnici che venivano scambiati per allegati. Dalla <strong>0.1.13–0.1.14</strong> il controllo distingue i file che hai scelto tu dai dati tecnici del sito.</p>
           <p>Se lo vedi ancora, aggiorna l’estensione e verifica la versione nelle opzioni.</p>
         </div>
       </details>
@@ -171,7 +213,7 @@
         <summary>Cosa non fa (di proposito)?</summary>
         <div class="risposta">
           <ul>
-            <li>Non protege da un sito ostile che smonta i ganci (l’avversario è la disattenzione, non il sito).</li>
+            <li>Non protegge da un sito ostile che smonta i ganci (l’avversario è la disattenzione, non il sito).</li>
             <li>Non fa OCR su PDF solo immagine.</li>
             <li>Non sostituisce un CISO o una policy legale: è uno strumento, non una prova di conformità.</li>
             <li>Non funziona su siti fuori dall’elenco (niente <code>all_urls</code>).</li>
@@ -195,7 +237,7 @@
     <div class="actions">
       <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-chrome.svg?v=2bb1a2c9b9" width="20" height="20" alt="" /> Google Chrome</a>
       <a class="btn btn-ghost" href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-edge.svg?v=228f22cc4b" width="20" height="20" alt="" /> Microsoft Edge</a>
-      <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-firefox.svg?v=f31b10673f" width="20" height="20" alt="" /> Firefox</a>
+      <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4957328/mr_rao_plus-0.1.32.zip" target="_blank" rel="noopener noreferrer"><img class="browser" src="/assets/logo-firefox.svg?v=f31b10673f" width="20" height="20" alt="" /> Firefox</a>
       <a class="btn btn-ghost" href="/plus/privacy/">Privacy</a>
     </div>
   </main>
@@ -204,6 +246,7 @@
     <span>© Antonio Andrea Rao · Mr. Rao Plus</span>
     <span>
       <a href="/">Desktop</a> ·
+      <a href="/impresa/">Impresa</a> ·
       <a href="/plus/privacy/">Privacy</a> ·
       <a href="en/">English</a> ·
       <a href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">LinkedIn</a>

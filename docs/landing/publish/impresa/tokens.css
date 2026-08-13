@@ -1,0 +1,79 @@
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4
+ * Hallmark · genre: modern-minimal · macrostructure: Narrative Workflow
+ * tone: technical-austere · theme: Rao phosphor (site system, preserved)
+ * paper-band: dark · display-style: grotesk-sans · accent-hue: chromatic-other (green)
+ * enrichment: E5 hand-SVG architecture · nav: N1b · footer: Ft5
+ * H2 knobs: ratio=7/5 · right=diagram · divider=vertical-rule
+ * F4 knobs: numbering=1.0/2.0 · layout=vertical · connector=line
+ * F3 knobs: columns=3 · rules=groups · numbers=tabular
+ * audience: board / DPO / CISO · use: valutare la coppia desktop+Plus
+ * Previous nav: none (first run). This build: N1b, because the page has five destinations.
+ */
+
+:root {
+  /* Stessi valori di / e /plus/ — non una palette a parte. */
+  --bg: #050705;
+  --panel: #0a100c;
+  --line: #1a2e22;
+  --phosphor: #3dff9a;
+  --phosphor-dim: #1a8f55;
+  --amber: #f0b429;
+  --fog: #8fa898;
+  --white: #e8f5ec;
+
+  --color-paper: var(--bg);
+  --color-paper-2: var(--panel);
+  --color-paper-3: #0e1611;
+  --color-rule: var(--line);
+  --color-neutral: var(--fog);
+  --color-muted: var(--fog);
+  --color-ink: var(--white);
+  --color-accent: var(--phosphor);
+  --color-accent-ink: var(--bg);
+  --color-accent-dim: var(--phosphor-dim);
+  --color-warn: var(--amber);
+  --color-focus: var(--phosphor);
+
+  --font-display: "Instrument Sans", system-ui, sans-serif;
+  --font-body: "Instrument Sans", system-ui, sans-serif;
+  --font-outlier: "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
+
+  --text-xs: 0.64rem;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 1.9531rem;
+  --text-2xl: 2.4414rem;
+  --text-3xl: 3.0518rem;
+  --text-4xl: 3.8147rem;
+  --text-display: clamp(2.35rem, 4.2vw + 0.8rem, 4.1rem);
+  --text-display-s: clamp(1.85rem, 3vw + 0.6rem, 2.75rem);
+
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 9rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  --rule: 1px;
+  --radius: 6px;
+  --measure: 65ch;
+
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+}

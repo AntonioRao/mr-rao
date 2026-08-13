@@ -783,7 +783,9 @@
       <a href="#perche">Perché</a>
       <a href="#limiti">Limiti</a>
       <a href="#contatto">Contatto</a>
+      <a href="/impresa/">Impresa</a>
       <a href="/plus/" title="Estensione browser per le chat AI">Mr. Rao Plus</a>
+      <a href="/plus/privacy/">Privacy</a>
       <a class="lang" href="01-protocollo-zero.en.html" hreflang="en" lang="en" title="Read this page in English">EN · English</a>
       <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Scarica</a>
     </div>
@@ -791,7 +793,7 @@
 
   <header class="hero" id="top">
     <div class="hero-copy">
-      <p class="eyebrow">Protocollo zero · solo loopback</p>
+      <p class="eyebrow">Tutto in locale · nessuna connessione esterna</p>
       <p class="wordmark" aria-label="Mr. Rao">
         <span class="wm-row">
           <img class="wm-logo" src="../../static/img/logo.svg" alt="" width="512" height="512" />
@@ -851,7 +853,7 @@
     <p class="intro">
       Per far ragionare un modello su un contratto, quasi tutti gli strumenti
       ti chiedono di caricare il file. In quel momento nomi, IBAN e codici fiscali
-      finiscono “in giro”. Mr. Rao spezza la catena: converte e redige <em>qui</em>.
+      finiscono su un server di terzi. Mr. Rao spezza la catena: converte e redige <em>qui</em>.
     </p>
     <div class="threat">
       <div class="threat-box bad">
@@ -868,7 +870,7 @@
         contratto.pdf<br />
         → solo 127.0.0.1<br />
         → redazione + sospetti<br />
-        → Markdown · review umana<br />
+        → Markdown · rilettura<br />
         <span class="green">file: non ha mai lasciato il PC</span>
       </div>
     </div>
@@ -878,7 +880,7 @@
     <p class="sec-label">// 02 · motore</p>
     <h2>Il numero deve dimostrare di essere un IBAN.</h2>
     <p class="intro">
-      Pattern + validatore: il modello legge, non decide. Nessun punteggio, nessuna soglia,
+      Pattern + validatore: l’OCR legge il testo. Cosa sia un IBAN o un codice fiscale lo decidono regole e controlli numerici, non una rete neurale. Nessun punteggio, nessuna soglia,
       nessuna sorpresa tra due esecuzioni — lo stesso testo dà sempre lo stesso esito, e ogni sostituzione ha una regola.
     </p>
     <div class="grid-3">
@@ -940,12 +942,13 @@
       <tr><td>Cartella automatica</td><td>Da convertire → Convertiti, Markdown in uscita, default fuori da OneDrive/Dropbox</td></tr>
       <tr><td>Sicurezza locale</td><td>Host allow-list, anti-CSRF Origin, GET read-only, bind 127.0.0.1</td></tr>
       <tr><td>Licenza</td><td>AGPL-3.0 · codice ispezionabile · nessun telefono a casa</td></tr>
+      <tr><td>Con Plus</td><td>Pulisce il file sul PC e può fermare l’invio nelle chat AI elencate. Non è un DLP di rete e non manda i testi a un filtro in cloud.</td></tr>
     </table>
   </section>
 
   <section class="block" id="perche">
     <p class="sec-label">// 05 · perché Mr. Rao</p>
-    <h2>Quattro cose che gli altri non fanno.</h2>
+    <h2>Cinque cose che gli altri non fanno.</h2>
     <div class="forze">
       <div class="forza">
         <strong>Un ponte tra documenti grezzi e prompt per AI</strong>
@@ -954,7 +957,7 @@
       </div>
       <div class="forza">
         <strong>Parsing nativo dei thread email (.eml)</strong>
-        <p>La maggior parte dei tool vede una mail come un semplice file di testo. Mr. Rao ricostruisce la catena delle risposte, separa i messaggi precedenti e applica la redazione automatica su email, telefoni e nomi. Una killer feature per il settore legale ed HR.</p>
+        <p>La maggior parte dei tool vede una mail come un semplice file di testo. Mr. Rao ricostruisce la catena delle risposte, separa i messaggi precedenti e applica la redazione automatica su email, telefoni e nomi. Utile in studi legali e in HR, dove le mail sono il fascicolo.</p>
       </div>
       <div class="forza">
         <strong>Specializzazione sui formati italiani ed europei</strong>
@@ -963,6 +966,10 @@
       <div class="forza">
         <strong>Protezione attiva anti-cloud</strong>
         <p>Mr. Rao rileva se la cartella «Documenti» è sincronizzata con OneDrive, Dropbox o Google Drive e dirotta automaticamente lo spazio di lavoro su una cartella 100% locale non sincronizzata, garantendo che il file non esca mai dalla stanza.</p>
+      </div>
+      <div class="forza">
+        <strong>Ferma i dati in chat, non solo sulla rete</strong>
+        <p>Un DLP aziendale vede il traffico e arriva tardi sull’incolla in ChatGPT. Un filtro in cloud vede il messaggio, ma il testo passa dai loro server. Mr. Rao pulisce il file sul computer; Plus ferma l’invio nella casella. Usati insieme, coprono il caso tipico in ufficio: si pulisce il file e, se qualcuno incolla comunque un dato in chat, Plus ferma l’invio. Non sostituiscono un DLP di rete.</p>
       </div>
     </div>
   </section>
@@ -974,7 +981,7 @@
     <div class="limits">
       <div class="limit">
         <strong>NON è anonimizzazione GDPR forte</strong>
-        <p>È redazione assistita. Il contesto del documento resta. Serve review umana.</p>
+        <p>È redazione assistita. Il contesto del documento resta. Serve una rilettura.</p>
       </div>
       <div class="limit">
         <strong>Nomi: non infallibili</strong>
@@ -1020,6 +1027,7 @@
     <p>
       Stesso motore di Mr. Rao, stessa promessa: tutto in locale, nessuna chiamata di rete —
       nemmeno verso di noi — e un permesso solo, per ricordare le tue impostazioni.
+      Usati insieme, coprono il caso tipico in ufficio: si pulisce il file sul computer e, se qualcuno incolla comunque un dato in chat, Plus ferma l’invio. Non sostituiscono un DLP di rete.
     </p>
     <div class="plus-actions">
       <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek" target="_blank" rel="noopener noreferrer">
@@ -1030,7 +1038,7 @@
         <img class="browser" src="../../static/img/logo-edge.svg" width="20" height="20" alt="" />
         Microsoft Edge
       </a>
-      <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip" target="_blank" rel="noopener noreferrer">
+      <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4957328/mr_rao_plus-0.1.32.zip" target="_blank" rel="noopener noreferrer">
         <img class="browser" src="../../static/img/logo-firefox.svg" width="20" height="20" alt="" />
         Firefox
       </a>
@@ -1039,8 +1047,8 @@
       </a>
     </div>
     <p class="dl-note">
-      Gli allegati non vengono ispezionati: l'estensione lavora sul testo che scrivi. È scritto anche
-      nella scheda dello store — un limite dichiarato vale più di una promessa larga.
+      Gli allegati vengono controllati: se Plus non riesce a leggere il file (scansione, immagine, audio),
+      blocca l’invio e lo scrive. Non dice che è pulito.
     </p>
   </section>
 
@@ -1106,6 +1114,7 @@
     <div class="contact">
       <a href="mailto:antonio.andrea.rao@gmail.com">antonio.andrea.rao@gmail.com</a>
       <a href="https://www.linkedin.com/in/antoniorao/" target="_blank" rel="noopener noreferrer">LinkedIn · antoniorao</a>
+      <a href="/impresa/">Nota per il board</a>
       <a href="01-protocollo-zero.en.html" hreflang="en" lang="en">This page in English</a>
     </div>
   </footer>
@@ -1124,29 +1133,41 @@
   const boot = document.getElementById("boot");
   let bootDone = false;
 
-  bootLines.forEach((row, i) => {
-    setTimeout(() => {
-      const el = document.createElement("div");
-      el.className = "line " + row.c;
-      el.textContent = "> " + row.t;
-      if (i === bootLines.length - 1) {
-        const cur = document.createElement("span");
-        cur.className = "cursor";
-        el.appendChild(cur);
-      }
-      log.appendChild(el);
-    }, row.d);
-  });
+  function giaVisto() {
+    if (location.hash && location.hash.length > 1) return true;
+    try { return sessionStorage.getItem("mr-rao-boot") === "1"; }
+    catch { return false; }
+  }
 
   function dismissBoot() {
     if (bootDone) return;
     bootDone = true;
     boot.classList.add("done");
+    try { sessionStorage.setItem("mr-rao-boot", "1"); } catch (_) {}
     startTerminal();
   }
-  setTimeout(dismissBoot, 2800);
-  window.addEventListener("keydown", dismissBoot, { once: true });
-  window.addEventListener("click", dismissBoot, { once: true });
+
+  if (giaVisto()) {
+    dismissBoot();
+  } else {
+    bootLines.forEach((row, i) => {
+      setTimeout(() => {
+        const el = document.createElement("div");
+        el.className = "line " + row.c;
+        el.textContent = "> " + row.t;
+        if (i === bootLines.length - 1) {
+          const cur = document.createElement("span");
+          cur.className = "cursor";
+          el.appendChild(cur);
+        }
+        log.appendChild(el);
+      }, row.d);
+    });
+    setTimeout(dismissBoot, 2800);
+    window.addEventListener("keydown", dismissBoot, { once: true });
+    window.addEventListener("click", dismissBoot, { once: true });
+  }
+  window.addEventListener("hashchange", dismissBoot);
 
   const docLines = [
     { raw: "Da: mario.rossi@studio.it", redact: false },
