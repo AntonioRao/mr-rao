@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mr. Rao + Mr. Rao Plus — nota per il board</title>
+<style>
+  :root {
+    --ink: #142033;
+    --ink-soft: #5a6578;
+    --paper: #f4f2ec;
+    --paper-card: #fffcf7;
+    --rule: #d4d0c6;
+    --accent: #1a3d6e;
+    --accent-soft: #3d5f8f;
+    --ok: #1f6b45;
+    --ok-bg: #dceee3;
+    --warn: #8a5a12;
+    --warn-bg: #f3e6c8;
+    --pending: #5c6574;
+    --pending-bg: #e4e7ed;
+    --hypo: #1a3d6e;
+    --hypo-bg: #e4ebf5;
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --font-body: "Segoe UI", Charter, Calibri, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "Cascadia Mono", "Segoe UI Mono", Consolas, "Courier New", monospace;
+    --measure: 68ch;
+  }
+  html, body { overflow-x: clip; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16.5px;
+    line-height: 1.58;
+  }
+  .sheet {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 2.75rem 1.6rem 4.5rem;
+  }
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.28em 0.7em;
+    border-radius: 2px;
+  }
+  header.front {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-style: normal;
+    font-size: clamp(1.7rem, 3.4vw, 2.35rem);
+    line-height: 1.15;
+    margin: 0.85rem 0 0.45rem;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  .lede {
+    font-size: 1.12rem;
+    color: var(--ink);
+    max-width: var(--measure);
+    margin: 0 0 1.2rem;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .meta-row dt {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.66rem;
+    margin: 0 0 0.15rem;
+  }
+  .meta-row dd { margin: 0; color: var(--ink); }
+  .brandrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    margin: 1.15rem 0 1rem;
+  }
+  .brandrow .mark {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .brandrow .mark img {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex: none;
+  }
+  .brandrow .mark strong { color: var(--ink); font-weight: 600; }
+  .linkrow { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .linkrow a {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--rule);
+    background: var(--paper-card);
+    padding: 0.35em 0.7em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .linkrow a:hover, .linkrow a:focus-visible { border-color: var(--accent); }
+  .linkrow a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.9rem;
+    margin: 1.3rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  nav.skip { position: absolute; left: -999px; }
+  nav.skip:focus-within { position: static; padding: 0.5rem; }
+
+  section { margin: 2.4rem 0; }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-style: normal;
+    font-size: 1.35rem;
+    color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.45rem;
+    margin: 0 0 1rem;
+  }
+  h2 .num {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    margin-right: 0.5em;
+  }
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-style: normal;
+    font-size: 1.05rem;
+    color: var(--accent-soft);
+    margin: 1.4rem 0 0.5rem;
+  }
+  p { margin: 0 0 0.95rem; max-width: var(--measure); }
+  ul, ol { padding-left: 1.25rem; margin: 0 0 1rem; }
+  li { margin-bottom: 0.45rem; max-width: 64ch; }
+  strong { color: var(--ink); }
+
+  .damage {
+    background: var(--paper-card);
+    border-left: 4px solid var(--accent);
+    padding: 1.15rem 1.35rem;
+    margin: 0 0 1.3rem;
+  }
+  .damage p { margin: 0; font-size: 1.08rem; max-width: none; }
+  .damage p + p { margin-top: 0.7rem; font-size: 1rem; color: var(--ink-soft); }
+
+  .duo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .card {
+    background: var(--paper-card);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1.15rem 1.25rem;
+    min-width: 0;
+  }
+  .card h3 { margin-top: 0; }
+  .card p, .card li { max-width: none; }
+  .card .when {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.4rem;
+  }
+
+  .proof {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  figure.shot {
+    margin: 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #0b1220;
+  }
+  figure.shot img { display: block; width: 100%; height: auto; }
+  figure.shot figcaption {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    padding: 0.55rem 0.85rem;
+    background: var(--paper-card);
+  }
+
+  .note {
+    background: var(--paper-card);
+    border-left: 3px solid var(--accent);
+    padding: 0.95rem 1.2rem;
+    margin: 1.15rem 0;
+  }
+  .note p { margin: 0; max-width: none; }
+  .note p + p { margin-top: 0.55rem; }
+
+  .status {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.18em 0.5em;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .status.ok { background: var(--ok-bg); color: var(--ok); }
+  .status.warn { background: var(--warn-bg); color: var(--warn); }
+  .status.pending { background: var(--pending-bg); color: var(--pending); }
+  .status.hypo { background: var(--hypo-bg); color: var(--hypo); }
+
+  .tablewrap {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    margin: 0 0 1rem;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 540px; }
+  thead th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: var(--paper-card);
+    padding: 0.65rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.claim { max-width: 28ch; }
+  td.method { color: var(--ink-soft); }
+
+  .never { columns: 2; column-gap: 1.6rem; }
+  .never li { break-inside: avoid; }
+
+  .roadmap { list-style: none; padding: 0; margin: 0; }
+  .roadmap li {
+    display: flex;
+    gap: 0.8rem;
+    align-items: baseline;
+    border-bottom: 1px dashed var(--rule);
+    padding: 0.7rem 0;
+    max-width: none;
+  }
+  .roadmap li:last-child { border-bottom: none; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 700px) {
+    .duo, .never { grid-template-columns: 1fr; columns: 1; }
+    .sheet { padding: 1.6rem 1rem 3rem; }
+  }
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .sheet { max-width: none; padding: 0; }
+    .card, .note, figure.shot, .tablewrap { break-inside: avoid; }
+    .linkrow a { border: none; padding: 0; }
+    a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.7em; color: #555; }
+  }
+</style>
+</head>
+<body>
+<nav class="skip"><a href="#corpo">Vai al contenuto</a></nav>
+
+<div class="sheet" id="corpo">
+  <header class="front">
+    <span class="stamp">Uso interno · nota per il board · 13 agosto 2026</span>
+    <h1>Un collega incolla l’IBAN del cliente in ChatGPT. Nessuno lo sa. Questo duo lo ferma.</h1>
+    <p class="lede">
+      Mr. Rao e Mr. Rao Plus non sono un DLP di rete e non passano da un cloud terzo.
+      Preparano il fascicolo sul computer e fermano l’incidente nella casella,
+      prima che il dato esca. Tutto in locale. L’Italia è nel motore, non in un plugin.
+    </p>
+    <dl class="meta-row">
+      <div><dt>Desktop</dt><dd>1.25.0 in distribuzione</dd></div>
+      <div><dt>Plus</dt><dd>0.1.31 su Chrome e Edge · zip Firefox su AMO</dd></div>
+      <div><dt>Prove automatiche</dt><dd>1&nbsp;999 test desktop · 1&nbsp;133 Plus · conformità 141/141</dd></div>
+      <div><dt>A cura di</dt><dd>Antonio Andrea Rao</dd></div>
+    </dl>
+    <div class="brandrow">
+      <span class="mark"><img src="docs/img/board/logo-rao.svg" alt=""><strong>Mr. Rao</strong> — desktop, AGPL</span>
+      <span class="mark"><img src="docs/img/board/plus-icon.png" alt=""><strong>Mr. Rao Plus</strong> — estensione, commerciale</span>
+    </div>
+    <div class="linkrow">
+      <a href="https://rao.valor-cyber.com/">sito desktop</a>
+      <a href="https://rao.valor-cyber.com/plus/">sito Plus</a>
+      <a href="https://github.com/AntonioRao/mr-rao">codice desktop</a>
+      <a href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek">Chrome Web Store</a>
+      <a href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead">Edge Add-ons</a>
+      <a href="https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip">Firefox Add-ons</a>
+      <a href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">Microsoft Store</a>
+    </div>
+    <ol class="toc">
+      <li><a href="#s1">Il danno</a></li>
+      <li><a href="#s2">Il duo</a></li>
+      <li><a href="#s3">Prove</a></li>
+      <li><a href="#s4">Perché è diverso</a></li>
+      <li><a href="#s5">Cosa c’è già</a></li>
+      <li><a href="#s6">Cosa non faremo</a></li>
+      <li><a href="#s7">Limiti</a></li>
+      <li><a href="#s8">Verifica</a></li>
+      <li><a href="#s9">La prova che manca</a></li>
+      <li><a href="#s10">Mercato</a></li>
+      <li><a href="#s11">ROI</a></li>
+      <li><a href="#s12">Passi</a></li>
+    </ol>
+  </header>
+
+  <section id="s1">
+    <h2><span class="num">01</span>Il danno, senza giri</h2>
+    <div class="damage">
+      <p>Un dipendente apre ChatGPT, Claude o Copilot e ci incolla la pratica. Dentro c’è un IBAN, un codice fiscale, una carta, il nome del cliente. Il modello risponde. Il dato è già uscito. La policy «non usare l’AI» non l’ha visto. Il DLP di rete, se c’è, arriva sul pacchetto — tardi, e spesso sul cloud di un altro vendor.</p>
+      <p>Questo è shadow AI. Non è un problema di perimetro. È un problema di gesto: la casella, l’incolla, l’allegato, il fascicolo che si prepara per «farlo leggere all’AI».</p>
+    </div>
+    <p>I grandi DLP (Purview, Netskope, Forcepoint) vedono tutto il traffico e costano mesi di rollout. I proxy AI (Nightfall, Lakera) stanno nel punto giusto e mandano il testo <em>dai loro server</em>: un altro DPA, un altro titolare. Le estensioni a regex si rompono sul CF italiano e sul DOM di ChatGPT.</p>
+    <p>Mr. Rao e Plus stanno dove succede il gesto, sul dispositivo, senza un server nostro. Non coprono di più. Coprono <strong>il posto sbagliato per i grandi e scomodo per i vendor</strong>.</p>
+  </section>
+
+  <section id="s2">
+    <h2><span class="num">02</span>Due prodotti, un rischio, due tempi</h2>
+    <div class="duo">
+      <article class="card">
+        <p class="when">Prima — il fascicolo</p>
+        <h3>Mr. Rao · desktop</h3>
+        <p>Sanifica documenti, mail e scansioni <strong>offline</strong>. Chi consegna un atto o prepara un dossier per l’AI ottiene un file in cui il dato non è coperto: è <strong>tolto</strong>. Il rapporto dice cosa è stato sostituito, cosa è solo sospetto, cosa è stato lasciato apposta (età, sesso).</p>
+        <p>Licenza AGPL-3.0, codice pubblico. Chi vuole verificare «nessuna chiamata esterna» può leggerlo. Microsoft Store, installer, portable, DMG Apple Silicon.</p>
+      </article>
+      <article class="card">
+        <p class="when">Mentre — la chat</p>
+        <h3>Mr. Rao Plus · estensione</h3>
+        <p>Guarda la casella e la rete verso le chat AI elencate. Se c’è un dato, ferma. Se non può leggere (allegato opaco, audio), <strong>ferma lo stesso</strong> e lo dice. Se il sito le stacca i ganci, non lascia l’icona verde.</p>
+        <p>Licenza commerciale, repo privato. Un solo permesso: <code>storage</code>. Nessun <code>&lt;all_urls&gt;</code>. Chrome e Edge in store. Firefox: pacchetto AMO.</p>
+      </article>
+    </div>
+    <p style="margin-top:1.1rem">La riga del duo: <strong>arriva la mail → Rao desktop → fascicolo pulito → il collega apre la chat con Plus</strong>. Stesso motore su «cos’è un dato personale». Due mestieri. Chi usa entrambi non deve imparare due vocabolari.</p>
+  </section>
+
+  <section id="s3">
+    <h2><span class="num">03</span>Tre prove visibili</h2>
+    <div class="proof">
+      <figure class="shot">
+        <img src="docs/img/board/desktop.png" alt="Schermata di Mr. Rao: fattura convertita, 7 redazioni, codice fiscale e IBAN sostituiti, cliente come segnaposto NAME.">
+        <figcaption>Desktop — rapporto a fine elaborazione. Non «protetto»: elenco di cosa è stato tolto (CF, IBAN, nome, partita IVA, telefono, indirizzo, mail).</figcaption>
+      </figure>
+    </div>
+    <p>Plus, in produzione, fa la stessa cosa nel momento dell’invio: un codice fiscale in casella ChatGPT non parte; un allegato con mail e telefono si ferma prima del caricamento, con deroga esplicita («Allega lo stesso, una volta») o «Togli l’allegato». Le schermate store e la scheda live lo mostrano. Qui sotto i link, non un mockup.</p>
+    <div class="linkrow">
+      <a href="https://rao.valor-cyber.com/plus/">demo e pulsanti store</a>
+      <a href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek">scheda Chrome</a>
+      <a href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead">scheda Edge</a>
+    </div>
+  </section>
+
+  <section id="s4">
+    <h2><span class="num">04</span>Perché è speciale — tre fatti, non uno slogan</h2>
+    <h3>1. Il dato non esce di casa</h3>
+    <p>Nessun host permission verso di noi. Nessuna telemetria. OCR e riconoscitori girano sul computer. Per un DPO italiano è la differenza fra «altro fornitore con DPA» e «lo installo venerdì». I proxy AI fanno il lavoro giusto nel posto sbagliato: il testo passa da loro. Noi no.</p>
+    <h3>2. Il terzo esito, e l’icona che non mente</h3>
+    <p>Se Plus non può guardare, <strong>non è pulito</strong>: blocca e scrive «non ho potuto verificare». Se i ganci di rete vengono sostituiti dal sito, la sentinella lo dice. Quasi tutti i DLP da browser, sull’opaco, lasciano passare o tengono il verde. Mentire sul verde è il modo in cui si disimparano gli allarmi. Noi non lo facciamo.</p>
+    <h3>3. L’Italia è il motore</h3>
+    <p>Codice fiscale, IBAN con mod-97, partita IVA, atti (catasto, repertorio, targa), patente e passaporto, prosa contro modulo, «on Form» che non è l’onorevole. Presidio e i proxy USA qui sbagliano o non ci provano. Un commercialista non compra Lakera per una fattura di Messina. Compra chi non gli mangia il protocollo e gli toglie il CF.</p>
+    <p>IBAN e carte non sono una regex: il pattern propone, il checksum decide. I 8&nbsp;904 falsi positivi dell’euristica «due maiuscole» sono stati misurati e la regola è stata ritirata. Un motore che toglie mezzo documento viene spento. Questo è il motivo per cui resta acceso.</p>
+  </section>
+
+  <section id="s5">
+    <h2><span class="num">05</span>Cosa c’è già — le killer feature, non la roadmap</h2>
+    <p>Non serve un riconoscitore nuovo per vendere. Serve far vedere questo.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Prodotto</th><th>Cosa fa</th><th>Perché in azienda conta</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Desktop</td>
+            <td>PDF redatto togliendo i glifi, non rettangoli neri</td>
+            <td>I neri si levano. Questo file, aperto con un editor, non ha più il CF.</td>
+          </tr>
+          <tr>
+            <td>Desktop</td>
+            <td>Thread <code>.eml</code> ricostruito</td>
+            <td>È il file che arriva davvero a legale e HR, non una pagina sola.</td>
+          </tr>
+          <tr>
+            <td>Desktop</td>
+            <td>Rapporto a tre voci: tolto / da controllare / lasciato apposta</td>
+            <td>Un DPO può metterlo in un verbale. «7 redazioni» da solo mente.</td>
+          </tr>
+          <tr>
+            <td>Desktop</td>
+            <td>Anteprima prima/dopo del PDF; del .docx, del contenuto (1.25.0)</td>
+            <td>Chi deposita vede cosa è sparito prima di consegnare.</td>
+          </tr>
+          <tr>
+            <td>Desktop</td>
+            <td>Pacchetti IT / EN / atti, profili, sempre/mai, tasto destro, appunti</td>
+            <td>Il collega che non apre l’app è coperto lo stesso.</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>Terzo esito fail-closed (opaco = non parte)</td>
+            <td>Niente «passato perché non capivo il PDF».</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>Sentinella sui ganci; tondino verde = sto su questa pagina, non «sei pulito»</td>
+            <td>Il verde non è un semaforo di sicurezza finto.</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>Casella + rete; se la riscrittura fallisce, <strong>copia</strong> è la via principale</td>
+            <td>ChatGPT cambia il DOM. Il dato non deve uscire lo stesso.</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>Allegati ispezionati (PDF/Office a testo); immagini = terzo esito, non OCR</td>
+            <td>L’incidente vero è spesso il file, non la riga.</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>Deroga una tantum, per categoria; «questo non è un dato»</td>
+            <td>Senza memoria di giudizio lo si disinstalla al terzo falso positivo.</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>Nomi minuscoli (chat), non solo «Mario Rossi»</td>
+            <td>In chat si scrive come si parla. Il motore da documento lì è cieco.</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>Nessun <code>&lt;all_urls&gt;</code>; mappa invii datata; elenco siti visibile</td>
+            <td>Si installa senza guerra col security team.</td>
+          </tr>
+          <tr>
+            <td>Plus</td>
+            <td>«Verifica tu stesso» in opzioni; giornale locale; export profilo; MDM</td>
+            <td>Lo studio decide una volta. Il sales motion è la prova, non la brochure.</td>
+          </tr>
+          <tr>
+            <td>Entrambi</td>
+            <td>Stesso giudizio su CF/IBAN/età; corpus di conformità 239 casi</td>
+            <td>Due prodotti, una verità su cosa è un dato. Divergenza misurata, non promessa.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s6">
+    <h2><span class="num">06</span>Cosa non faremo mai</h2>
+    <p>Per un DPO questo elenco è posizionamento, non astinenza.</p>
+    <ul class="never">
+      <li>Telemetria, di qualunque forma.</li>
+      <li>Permesso <code>&lt;all_urls&gt;</code>.</li>
+      <li>Semaforo verde «il messaggio è pulito».</li>
+      <li>Dizionario reversibile (archivio di dati scremati).</li>
+      <li>Far passare l’opaco come se fosse stato letto.</li>
+      <li>Mandare il testo a un nostro cloud o a un proxy terzo.</li>
+      <li>OCR nell’estensione (decine di MB, secondi a pagina) finché il terzo esito basta.</li>
+      <li>Diventare un DLP di rete: su quel tavolo siamo un Purview piccolo, e perdiamo.</li>
+    </ul>
+  </section>
+
+  <section id="s7">
+    <h2><span class="num">07</span>Limiti — detti in faccia</h2>
+    <ul>
+      <li><strong>Solo i siti in elenco.</strong> Host nuovo del sito AI = Plus non è sulla pagina e non può accendere nemmeno il tondino rosso. Mitigazione: elenco visibile, mappa invii datata, rilascio in giornata. Non si sistema senza <code>&lt;all_urls&gt;</code>.</li>
+      <li><strong>Le scansioni.</strong> Senza testo estraibile il desktop non finge una redazione a rettangoli. Plus, su un’immagine, dice che non legge i pixel.</li>
+      <li><strong>Niente pentest di terzi, ancora.</strong> La postura è verificabile sul codice e sui test; non è una certificazione SOC 2.</li>
+      <li><strong>Desktop 1.25.0</strong> (anteprima .docx, età/sesso nel rapporto) è chiusa e provabile in locale; non è ancora su GitHub né in una release firmata. In distribuzione resta la 1.24.0.</li>
+      <li><strong>Mac:</strong> esiste il .dmg arm64, firma ad-hoc, Gatekeeper avvisa. La prova sul Mac scaricato da internet la fa solo chi ha la macchina.</li>
+      <li><strong>La policy «vietiamo ChatGPT»</strong> resta un’alternativa. Questo duo è per chi l’AI la usa lo stesso — cioè quasi tutti.</li>
+    </ul>
+  </section>
+
+  <section id="s8">
+    <h2><span class="num">08</span>Tabella di verifica</h2>
+    <p>Ogni affermazione che un board può contestare, con il metodo. È la parte che resiste a una domanda scomoda in sala.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Affermazione</th><th>Metodo</th><th>Esito</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="claim">Plus 0.1.25 su Chrome Web Store e Edge Add-ons</td>
+            <td class="method">Pagine store pubbliche, consultabili</td>
+            <td><span class="status ok">Verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Pacchetto Firefox su addons.mozilla.org</td>
+            <td class="method">URL di download del file; la scheda /addon/ può non essere ancora indicizzata</td>
+            <td><span class="status ok">File verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Sito rao.valor-cyber.com e /plus/</td>
+            <td class="method">Visitato; pulsanti store attivi</td>
+            <td><span class="status ok">Verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Manifest Plus: solo <code>storage</code>, niente <code>&lt;all_urls&gt;</code></td>
+            <td class="method">Lettura di <code>manifest.json</code></td>
+            <td><span class="status ok">Verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">1&nbsp;133 test Plus verdi; conformità motore 141/141 + 98 inerti</td>
+            <td class="method">Esecuzione della suite, 13 agosto 2026</td>
+            <td><span class="status ok">Verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">1&nbsp;999 test desktop; documenti allineati a v1.25.0</td>
+            <td class="method">pytest + <code>check_docs.py</code> sulla copia locale</td>
+            <td><span class="status ok">Verificato in locale</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Desktop AGPL-3.0 pubblico; Plus commerciale, repo privato</td>
+            <td class="method">LICENSE, NOTICE, package.json</td>
+            <td><span class="status ok">Verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Nessuna chiamata di rete nostra (desktop e Plus)</td>
+            <td class="method">Architettura e assenza di host permission; cattura traffico indipendente non ancora fatta</td>
+            <td><span class="status warn">Dichiarato — da misurare</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Copertura live su tutte le chat AI elencate, da loggato</td>
+            <td class="method">Banco fixture 8 siti; live senza login è parziale. Strumento di sessione pronto</td>
+            <td><span class="status pending">Parziale</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Penetration test / certificazione esterna</td>
+            <td class="method">Non commissionato</td>
+            <td><span class="status pending">Assente</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Cliente che ha misurato N blocchi in 30 giorni</td>
+            <td class="method">Non ancora raccolto — protocollo al punto 9</td>
+            <td><span class="status pending">Assente</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s9">
+    <h2><span class="num">09</span>La prova che manca: un caso misurato</h2>
+    <p>Senza un cliente che conta gli stop, ogni slide resta un’ipotesi. Con un caso, anche piccolo, questa nota diventa vendibile. Non inventiamo i numeri: li prendiamo.</p>
+    <p><strong>Protocollo, 30 giorni, uno studio.</strong> 8–15 persone che usano già ChatGPT o Copilot. Plus installato dallo store. Giornale locale acceso (solo aggregati sul device: niente testo, niente destinatario). A fine mese si legge solo quello.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Cosa si scrive nel caso</th><th>Valore</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Studio, mestiere, numero di postazioni</td><td><span class="status pending">Da compilare</span></td></tr>
+          <tr><td>Invii fermati in 30 giorni</td><td><span class="status pending">N — dal giornale</span></td></tr>
+          <tr><td>Di cui IBAN / CF / allegati opachi / altro</td><td><span class="status pending">Spezzato per categoria</span></td></tr>
+          <tr><td>Deroghe («allega lo stesso» / «non è un dato»)</td><td><span class="status pending">Quante, su cosa</span></td></tr>
+          <tr><td>Disinstallazioni o lamentele</td><td><span class="status pending">Zero / quali</span></td></tr>
+          <tr><td>Frase del titolare, se la dà</td><td>Solo se vera, col nome che accetta</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Un solo studio basta per aprire la pagina 01 di questa nota con un fatto invece che con un danno immaginato. Finché non c’è, la riga onesta è: <em>il prodotto ferma; non abbiamo ancora pubblicato quanto spesso lo fa in un ufficio vero</em>.</p>
+  </section>
+
+  <section id="s10">
+    <h2><span class="num">10</span>Posizionamento</h2>
+    <p>Pubblico: studi legali e notarili, commercialisti, HR, PA, aziende con DPO. Il problema non è «la sicurezza della rete». È l’uso non autorizzato o sbadato delle chat AI pubbliche.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Categoria</th><th>Cosa fanno</th><th>Cosa facciamo noi che loro no</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>DLP enterprise</td>
+            <td>Rete / endpoint, mesi di progetto, console cloud</td>
+            <td>Intervento <em>nella casella</em>, prima dell’invio. Installazione in un pomeriggio. Zero console nostra.</td>
+          </tr>
+          <tr>
+            <td>Proxy AI (Nightfall, Lakera)</td>
+            <td>Filtrano il messaggio, sul loro server</td>
+            <td>Il testo non va da nessun terzo. Niente DPA extra.</td>
+          </tr>
+          <tr>
+            <td>Estensioni regex / OSS generico</td>
+            <td>Pattern, spesso solo inglese, si rompono sul DOM</td>
+            <td>Checksum, formati IT, fail-closed, sentinella, allegati, deroga.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Non è una ricerca di mercato esaustiva. È il confronto con le tre categorie che un CISO nomina. La combinazione — dispositivo, casella prima della rete, fallimento chiuso, nessun permesso ampio, motore italiano — non risulta in un prodotto solo fra quelle tre.</p>
+    <p>Copertura più stretta dei DLP (solo le chat elencate): va detto. È il prezzo dell’installabilità e della promessa.</p>
+    <p>Modello: desktop libero (AGPL: un wrapper SaaS chiuso sul motore è illecito) e Plus a pagamento sull’ultimo miglio. Le versioni 0.x di Plus sono gratuite; alla scadenza la protezione continua, cambia solo ciò che l’estensione dice.</p>
+  </section>
+
+  <section id="s11">
+    <h2><span class="num">11</span>Ipotesi di ricavo</h2>
+    <p>Non è una previsione. Ogni cifra ha l’assunzione sopra la riga. Servono al board per discutere l’ordine di grandezza, non per mettere a budget un numero solo.</p>
+    <p><strong>Offerta:</strong> coppia desktop + Plus, abbonamento annuale. <strong>Prezzo di listino:</strong> 29&nbsp;€/utente/anno (fascia 20–50). <strong>Costo di sviluppo da ammortizzare:</strong> nessuno — il prodotto esiste, una persona. Il costo residuo è il mantenimento (siti che cambiano, store, correzioni).</p>
+
+    <h3>Scenario A — canale diretto (studi, professionisti, PA)</h3>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Scenario</th><th>Anno 1</th><th>Anno 2</th><th>Anno 3</th><th>Cumulato</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="claim"><span class="status hypo">Prudente</span></td>
+            <td>60 utenti<br>1&nbsp;740&nbsp;€</td>
+            <td>140 utenti<br>4&nbsp;060&nbsp;€</td>
+            <td>260 utenti<br>7&nbsp;540&nbsp;€</td>
+            <td><strong>13&nbsp;340&nbsp;€</strong></td>
+          </tr>
+          <tr>
+            <td class="claim"><span class="status hypo">Base</span></td>
+            <td>120 utenti<br>3&nbsp;480&nbsp;€</td>
+            <td>320 utenti<br>9&nbsp;280&nbsp;€</td>
+            <td>650 utenti<br>18&nbsp;850&nbsp;€</td>
+            <td><strong>31&nbsp;610&nbsp;€</strong></td>
+          </tr>
+          <tr>
+            <td class="claim"><span class="status hypo">Ottimistico</span></td>
+            <td>200 utenti<br>5&nbsp;800&nbsp;€</td>
+            <td>600 utenti<br>17&nbsp;400&nbsp;€</td>
+            <td>1&nbsp;400 utenti<br>40&nbsp;600&nbsp;€</td>
+            <td><strong>63&nbsp;800&nbsp;€</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>A 20&nbsp;€ i ricavi scendono del 31%; a 50&nbsp;€ salgono del 72%. Sotto questa struttura di costo il ricavo è quasi tutto margine, finché il mantenimento resta il tempo di una persona. Questo scenario è quello che un primo studio misurato (punto 9) può rendere concreto.</p>
+
+    <h3>Scenario B — canale telco (proiezione di scala)</h3>
+
+    <ul>
+      <li><strong>Bacino dichiarato:</strong> TIM ≈ 28 milioni di SIM (AGCOM Q4 2025) + Fastweb+Vodafone ≈ 19,8 milioni di clienti mobili (dato societario, metà 2026) ≈ <strong>48 milioni</strong> di utenze. Tetto teorico: include SIM M2M, doppie linee, chi non userà mai una chat AI.</li>
+      <li><strong>Prezzo di proiezione:</strong> 1,20&nbsp;€/utente attivo/anno — listino da bundle, non i 29&nbsp;€ del diretto.</li>
+      <li><strong>Adozione:</strong> 1% / 3% / 8% a regime. Variabile che decide tutto. Non è negoziata.</li>
+      <li><strong>Rampa:</strong> pilota anno 1, diffusione anno 2, regime anno 3.</li>
+    </ul>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Scenario</th><th>Anno 1</th><th>Anno 2</th><th>Anno 3</th><th>Cumulato</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="claim"><span class="status hypo">Prudente</span><br>1% a regime</td>
+            <td>96&nbsp;000<br>115&nbsp;200&nbsp;€</td>
+            <td>288&nbsp;000<br>345&nbsp;600&nbsp;€</td>
+            <td>480&nbsp;000<br>576&nbsp;000&nbsp;€</td>
+            <td><strong>≈ 1,04&nbsp;M€</strong></td>
+          </tr>
+          <tr>
+            <td class="claim"><span class="status hypo">Base</span><br>3% a regime</td>
+            <td>288&nbsp;000<br>345&nbsp;600&nbsp;€</td>
+            <td>864&nbsp;000<br>1&nbsp;036&nbsp;800&nbsp;€</td>
+            <td>1&nbsp;440&nbsp;000<br>1&nbsp;728&nbsp;000&nbsp;€</td>
+            <td><strong>≈ 3,11&nbsp;M€</strong></td>
+          </tr>
+          <tr>
+            <td class="claim"><span class="status hypo">Ottimistico</span><br>8% a regime</td>
+            <td>768&nbsp;000<br>921&nbsp;600&nbsp;€</td>
+            <td>2&nbsp;304&nbsp;000<br>2&nbsp;764&nbsp;800&nbsp;€</td>
+            <td>3&nbsp;840&nbsp;000<br>4&nbsp;608&nbsp;000&nbsp;€</td>
+            <td><strong>≈ 8,29&nbsp;M€</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Fonti del bacino: Osservatorio AGCOM (quote SIM, Q4 2025) e comunicati Fastweb+Vodafone (giugno 2026). Prezzo e tassi non sono stati negoziati con nessun operatore. Un accordo vero sposterebbe queste righe; finché non c’è, restano la scala dell’opportunità, non il piano A.</p>
+  </section>
+
+  <section id="s12">
+    <h2><span class="num">12</span>Passi successivi</h2>
+    <ul class="roadmap">
+      <li><span class="status ok">Fatto</span><span>Store Chrome e Edge live; sito e pulsanti allineati; motore Plus = desktop 1.25.0 sul riconoscimento.</span></li>
+      <li><span class="status warn">Subito</span><span>Un caso da 30 giorni in uno studio reale (punto 9). Senza quello, il resto è proiezione.</span></li>
+      <li><span class="status warn">Subito</span><span>Cattura di traffico indipendente: zero chiamate nostre, da usare in comunicazione esterna.</span></li>
+      <li><span class="status pending">In corso</span><span>Prova 1.25.0 desktop in locale, poi tag/release quando il Mac e il board dicono sì.</span></li>
+      <li><span class="status pending">Pianificato</span><span>Batteria Plus da loggato sulle chat coperte (lo strumento c’è).</span></li>
+      <li><span class="status pending">Da valutare</span><span>Pentest esterno sull’estensione, ora che è pubblica. Utile verso telco e PA, non verso il primo studio.</span></li>
+      <li><span class="status hypo">Canale</span><span>Continuare i contatti telco con questa nota in mano: scenario B come scala, scenario A come ciò che si può firmare prima.</span></li>
+    </ul>
+  </section>
+
+
+</div>
+</body>
+</html>
