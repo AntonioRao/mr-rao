@@ -42,6 +42,10 @@ jobs:
     needs: test
     runs-on: macos-14
     timeout-minutes: 60
+    permissions:
+      contents: write        # solo per allegare il .dmg alla release del tag
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -87,3 +91,22 @@ jobs:
             dist/SHA256SUMS-macos.txt
           retention-days: 14
           if-no-files-found: error
+
+      # L'artefatto Actions scade in 14 giorni e non e' raggiungibile da un
+      # link pubblico: la landing punta a
+      # /releases/latest/download/MrRao-macos-arm64.dmg, che senza questo
+      # passo risponde 404 finche' qualcuno non allega il file a mano.
+      # E' successo alla v1.24.0 -- il .dmg e' arrivato sulla release un
+      # giorno dopo, da un'esecuzione lanciata a mano.
+      #
+      # Solo su tag: le esecuzioni a mano su un ramo non hanno una release
+      # a cui allegare, e non devono cambiare quella esistente.
+      - name: Allega il .dmg alla release del tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: >-
+          gh release upload "$GITHUB_REF_NAME"
+          dist/MrRao-macos-arm64.dmg
+          dist/SHA256SUMS-macos.txt
+          --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
