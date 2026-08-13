@@ -13,7 +13,7 @@ un pezzo di email, si preme Invio. Fra il pensiero e il server non c'è niente.
 |---|---|
 | **Google Chrome** | [scheda sullo store](https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek) |
 | **Microsoft Edge** | [scheda sullo store](https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead) |
-| **Firefox** | [pacchetto su addons.mozilla.org](https://addons.mozilla.org/firefox/downloads/file/4954977/mr_rao_plus-0.1.25.zip) |
+| **Firefox** | [pacchetto su addons.mozilla.org](https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip) |
 | Licenza | **commerciale**, non AGPL. Mr. Rao resta AGPL-3.0 |
 | Privacy | [rao.valor-cyber.com/plus/privacy](https://rao.valor-cyber.com/plus/privacy/) |
 

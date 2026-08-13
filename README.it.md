@@ -336,7 +336,7 @@ TypeScript e verificato caso per caso contro l'originale.
 |---|---|
 | **Google Chrome** | [scheda sullo store](https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek) |
 | **Microsoft Edge** | [scheda sullo store](https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead) |
-| **Firefox** | [addons.mozilla.org](https://addons.mozilla.org/firefox/downloads/file/4954977/mr_rao_plus-0.1.25.zip) |
+| **Firefox** | [addons.mozilla.org](https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip) |
 | Licenza | **commerciale**, non AGPL. Mr. Rao resta AGPL-3.0 |
 
 Un permesso solo (`storage`), nessun permesso verso host, nessuna chiamata di
