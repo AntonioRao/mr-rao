@@ -1231,6 +1231,16 @@ _AMBIGUOUS_ALONE = frozenset(
         # con cui si apre mezzo atto amministrativo. Da sole non provano
         # niente, ed e' esattamente cio' che questo elenco raccoglie.
         "fermo", "norma",
+        # `Virginia`: nome di battesimo italiano e Stato americano. Sui moduli
+        # IRS compare dentro l'elenco degli Stati -- «Vermont, Virginia, West
+        # Virginia, Wisconsin» -- e li' non e' nessuno. Fino alla 1.26
+        # scampava per caso: la guardia sull'intitolazione risaliva
+        # all'indietro senza badare alle virgole e incontrava il `West` di
+        # cinque parole prima. Chiusa quella scorciatoia (P9.4), la parola
+        # resta scoperta, ed e' questo l'elenco giusto per lei -- in coppia
+        # («Virginia Woolf») continua a essere protetta, perche' qui si
+        # decide solo della parola **sola**.
+        "virginia",
         "franco", "sereno", "fiore", "fede", "vero", "divo", "duce",
         # Cognomi frequentissimi che sono anche parole comuni. In coppia
         # restano riconoscibili ("Mario Costa"); da soli no, altrimenti
@@ -2779,6 +2789,124 @@ def _scrub_addresses(text: str, report: RedactionReport) -> str:
     return _RE_ADDRESS.sub(_sub, text)
 
 
+# Le parole che davanti a un nome dicono «edificio», non «persona». Sta qui
+# fuori perche' la usano due guardie diverse: quella sul nome isolato
+# (`_dopo_una_intitolazione`) e quella sulla coppia
+# (`_intitolazione_adiacente`).
+def _dice_edificio(parola: str) -> bool:
+    return (
+        parola in _PRIMA_NON_E_PERSONA
+        or parola in _ENTITY_WORDS
+        or re.fullmatch(_ADDRESS_KW, parola) is not None
+    )
+
+
+# Articoli e preposizioni: fra la parola d'edificio e il nome ci stanno quasi
+# sempre, e senza saltarle nessuna delle due guardie scatterebbe.
+_ARTICOLI_E_PREPOSIZIONI = frozenset(
+    {
+        "il", "lo", "la", "i", "gli", "le", "un", "uno", "una", "l", "dell",
+        "all", "nell", "sull", "dall", "del", "dello", "della", "dei", "degli",
+        "delle", "al", "allo", "alla", "ai", "agli", "alle", "nel", "nello",
+        "nella", "nei", "negli", "nelle", "dal", "dallo", "dalla", "dai",
+        "dagli", "dalle", "sul", "sullo", "sulla", "sui", "sugli", "sulle",
+        "di", "a", "da", "in", "su", "con", "per", "tra", "fra", "e",
+    }
+)
+
+
+# Aggettivi che qualificano l'edificio e non decidono niente: fra la parola
+# che dice «edificio» e il nome ci si infilano, e senza saltarli la risalita
+# si ferma su di loro. «biblioteca nazionale Vittorio Emanuele III», «scuola
+# primaria Cristoforo Colombo», «centro sportivo Giacinto Facchetti»: tre
+# intitolazioni che il banco vedeva passare per una parola in mezzo.
+#
+# Sono aggettivi, quindi **non possono essere loro** la parola che decide, e
+# saltarli fa arrivare la risalita una parola piu' indietro -- mai piu' di
+# quanto la risalita gia' facesse sulle maiuscole. Il prezzo: «il
+# responsabile tecnico Mario Rossi» non cambia (`responsabile` edificio non
+# e'), «l'ufficio tecnico Mario Rossi» si comporta ora come «Ufficio Mario
+# Rossi», che era gia' schermato dalla 1.20.
+_QUALIFICATORI = frozenset(
+    {
+        "nazionale", "statale", "comunale", "provinciale", "regionale",
+        "civico", "civica", "municipale", "cittadino", "cittadina",
+        "primaria", "primario", "secondaria", "secondario", "elementare",
+        "media", "medie", "superiore", "superiori", "inferiore",
+        "comprensivo", "classico", "scientifico", "linguistico", "artistico",
+        "tecnico", "tecnica", "professionale", "magistrale",
+        "sportivo", "sportiva", "polivalente", "olimpico", "olimpica",
+        "militare", "generale", "centrale", "maggiore", "vecchio", "vecchia",
+        "nuovo", "nuova", "storico", "storica", "antico", "antica",
+        "grande", "piccolo", "piccola", "santissimo", "santissima",
+    }
+)
+
+
+# Quanto indietro si guarda. Serve solo la coda attaccata al nome: oltre
+# «l'ospedale civile Giovanni Paolo» non c'e' piu' niente da leggere, e senza
+# un limite un documento tutto maiuscolo farebbe risalire pagine intere.
+_CODA_MAX = 120
+
+
+def _intitolazione_adiacente(testo: str, posizione: int) -> bool:
+    """P9.4 — la **coppia** che e' un'intitolazione: «stadio Giuseppe Meazza».
+
+    Il riconoscitore delle coppie non sa che quello e' uno stadio: due parole
+    maiuscole di fila, tutte e due negli elenchi, e la sequenza sparisce
+    portandosi via il soggetto della frase. Lo scudo che gia' c'era --
+    `_is_entity_word` dentro la sequenza -- vede solo la parola d'ente
+    **scritta maiuscola e dentro la sequenza**: «Ospedale Giovanni Paolo II»
+    era schermato, «l'ospedale Giovanni Paolo II» no. In prosa italiana la
+    forma normale e' la seconda.
+
+    **Perche' non e' `_dopo_una_intitolazione` (quella dei nomi soli).**
+    Quella guardia salta la punteggiatura, e va bene dov'e': un nome solo e'
+    l'appiglio piu' debole del motore. Sulle coppie no. «Residenza: Mario
+    Rossi» e «Zona 3 - referente Mario Rossi» sono un'etichetta di modulo
+    seguita da una persona vera, e `residenza` e `zona` stanno nell'elenco:
+    con la guardia larga quelle due persone smetterebbero di essere protette.
+    Qui quindi si legge **solo la coda di lettere e spazi** che tocca il nome,
+    e qualunque segno -- due punti, virgola, trattino, cifra -- ferma la
+    risalita.
+
+    Il prezzo, dichiarato: «presso casa Mario Rossi» non viene piu'
+    sostituito. `casa` e' in elenco, l'adiacenza e' pulita, e nessuna regola
+    puo' distinguere quella forma da «casa Giuseppe Verdi». E' la stessa
+    rinuncia gia' accettata per «Fondazione Mario Rossi», con in piu' il
+    fatto che qui la parola e' minuscola, cioe' un nome comune usato per
+    quello che e'.
+    """
+    # **A mano e all'indietro, non con una espressione regolare.** La prima
+    # stesura tagliava `testo[:posizione]` e ci cercava `(?:\w+\s*)+$`: su un
+    # documento lungo quel taglio e' una copia a ogni sequenza, e l'ancora
+    # finale fa ripartire il motore da ogni posizione. Sul corpus pubblico il
+    # banco non e' arrivato in fondo in dieci minuti. Qui si guardano al
+    # massimo `_CODA_MAX` caratteri, una volta.
+    i = posizione
+    inizio = max(0, posizione - _CODA_MAX)
+    while i > inizio and (testo[i - 1].isalpha()
+                          or testo[i - 1] in " \t'’"):
+        i -= 1
+    for parola in reversed(re.findall(r"[^\W\d_]+", testo[i:posizione])):
+        if _dice_edificio(parola.lower()):
+            return True
+        # Si continua a risalire **solo** attraverso maiuscole e articoli. Le
+        # maiuscole fanno parte della stessa intitolazione: in «il ponte
+        # Vittorio Emanuele II» il tratto che sta per essere sostituito
+        # comincia a «Emanuele», e la parola che decide -- `ponte` -- sta
+        # dietro a «Vittorio». Alla prima parola minuscola che edificio non
+        # e' ci si ferma, ed e' cio' che tiene protetto «il premio e' stato
+        # consegnato a Mario Rossi»: `consegnato` chiude la risalita prima
+        # che `premio` si possa vedere.
+        if (parola[:1].isupper()
+                or parola.lower() in _ARTICOLI_E_PREPOSIZIONI
+                or parola.lower() in _QUALIFICATORI):
+            continue
+        return False
+    return False
+
+
 def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
     """Davanti al nome c'e' una parola che dice «edificio», non «persona».
 
@@ -2794,21 +2922,8 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
     # dal banco, non a mente.
     prima = testo[:posizione]
     parole = re.findall(r"[^\W\d_]+", prima.lower())
-    salta = {
-        "il", "lo", "la", "i", "gli", "le", "un", "uno", "una", "l", "dell",
-        "all", "nell", "sull", "dall", "del", "dello", "della", "dei", "degli",
-        "delle", "al", "allo", "alla", "ai", "agli", "alle", "nel", "nello",
-        "nella", "nei", "negli", "nelle", "dal", "dallo", "dalla", "dai",
-        "dagli", "dalle", "sul", "sullo", "sulla", "sui", "sugli", "sulle",
-        "di", "a", "da", "in", "su", "con", "per", "tra", "fra", "e",
-    }
-
-    def dice_edificio(parola: str) -> bool:
-        return (
-            parola in _PRIMA_NON_E_PERSONA
-            or parola in _ENTITY_WORDS
-            or re.fullmatch(_ADDRESS_KW, parola) is not None
-        )
+    salta = _ARTICOLI_E_PREPOSIZIONI
+    dice_edificio = _dice_edificio
 
     # **Si risale tutta la sequenza di maiuscole, non solo la parola prima.**
     #
@@ -2825,15 +2940,34 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
     # dove finisce il nome proprio, e «all'ospedale ho incontrato Pietro» non
     # viene toccato dalla parola «ospedale», che sta cinque parole indietro e
     # fuori dalla sequenza.
-    maiuscole = re.findall(r"[^\W\d_]+", prima)
+    #
+    # **E la risalita si ferma dove si spezza l'adiacenza** (P9.4). Fra una
+    # parola maiuscola e la successiva ci devono stare solo spazi: un a capo,
+    # una cifra, un segno di punteggiatura vogliono dire che quella maiuscola
+    # e' un'altra frase. Senza questa condizione, su una Gazzetta Ufficiale la
+    # risalita partiva da «MARGHERITA CARDONA ALBINI», scavalcava due codici
+    # pratica -- che contengono le lettere maiuscole di «24A03016» -- e
+    # arrivava a «La direttrice d'ufficio:» due righe sopra: la redattrice
+    # della Gazzetta smetteva di essere protetta. L'ha trovato la misura sul
+    # corpus pubblico, non un banco fatto in casa.
+    maiuscole = list(re.finditer(r"[^\W\d_]+", prima))
     i = len(maiuscole) - 1
-    while i >= 0 and maiuscole[i][:1].isupper():
-        if dice_edificio(maiuscole[i].lower()):
+    fine = posizione
+    while i >= 0 and maiuscole[i].group(0)[:1].isupper():
+        if prima[maiuscole[i].end():fine].strip(" \t'’-"):
+            break
+        if dice_edificio(maiuscole[i].group(0).lower()):
             return True
+        fine = maiuscole[i].start()
         i -= 1
 
-    for parola in reversed(parole):
-        if parola in salta:
+    # `parole[: i + 1]`, non tutte: si riprende **da dove la risalita sulle
+    # maiuscole si e' fermata**. Ripartire dal fondo voleva dire rileggere le
+    # maiuscole appena scartate e decidere su quelle: in «il ponte Vittorio
+    # Emanuele II» la guardia si fermava su `vittorio` -- che edificio non e'
+    # -- e non arrivava mai a `ponte`, due parole piu' indietro.
+    for parola in reversed(parole[: i + 1]):
+        if parola in salta or parola in _QUALIFICATORI:
             continue
         return dice_edificio(parola)
     return False
@@ -3034,6 +3168,27 @@ def _scrub_names(
         # i tipi di via, qui le parole di ente.
         if any(_is_entity_word(t) for t in tokens):
             return m.group(0)
+        # P9.4 — la parola che dice «edificio» **in testa alla sequenza**.
+        #
+        # «San Giovanni Rotondo», «Sant'Antonio Abate», «San Giorgio
+        # Costruzioni», «Torre Annunziata»: qui la parola che decide non sta
+        # davanti alla sequenza, sta dentro, ed e' la prima. La guardia che
+        # legge il contesto precedente non la vede per costruzione, e
+        # `_ENTITY_WORDS` non la contiene: `san` un ente non e'.
+        #
+        # **Solo la prima parola**, non una qualunque, ed e' cio' che rende
+        # accettabile il prezzo. Una parola di questo elenco in mezzo o in
+        # coda non scherma niente: «Mario Rossi Villa» resta protetto. In
+        # testa invece la lettura «edificio» e' quella giusta quasi sempre,
+        # e vale la stessa rinuncia scritta sopra `_ENTITY_WORDS`: «Villa
+        # Mario Rossi» e «Casa Mario Rossi» smettono di essere sostituiti.
+        #
+        # L'apostrofo separa anche qui: «Sant'Antonio Abate» e' un token
+        # solo, e la parola che decide e' `sant`, non `sant'antonio`.
+        if tokens:
+            testa = tokens[0].lower().strip("'’-.,;:")
+            if _dice_edificio(testa) or _dice_edificio(re.split(r"['’]", testa)[0]):
+                return m.group(0)
         common = [_is_common_in_context(tokens, i) for i in range(len(tokens))]
         # Il cognome che e' anche una parola comune, **appoggiato al nome di
         # battesimo che ha davanti**.
@@ -3190,6 +3345,19 @@ def _scrub_names(
             # modulo lo stesso riscontro e' quasi sempre un'etichetta, e
             # accettarlo costa 2 739 sostituzioni sbagliate.
             bastano = 1 if prosa else 2
+            # P9.4: davanti alla sequenza c'e' una parola che dice
+            # «edificio». `inizio` e' la posizione del primo token del
+            # tratto **nel testo intero**, non nella corrispondenza: la
+            # parola che decide sta fuori dalla sequenza maiuscola, e da
+            # `m.group(0)` non si vede.
+            inizio = m.start() + sum(len(p) for p in parts[: 2 * i])
+            if lungo_giusto and noti >= bastano and _intitolazione_adiacente(text, inizio):
+                original = tokens[i]
+                for k in range(i + 1, j):
+                    original += seps[k - 1] + tokens[k]
+                pieces.append((original, j - 1))
+                i = j
+                continue
             if lungo_giusto and noti >= bastano:
                 pieces.append(
                     (report.segnaposto("names", "{{NAME}}", " ".join(tokens[i:j])), j - 1)

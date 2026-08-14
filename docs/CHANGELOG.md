@@ -1,5 +1,57 @@
 # Changelog
 
+## Non ancora rilasciato
+
+### Le intitolazioni diventavano persone: «stadio Giuseppe Meazza» spariva
+
+Il riconoscitore delle coppie non sa che quello è uno stadio. Due parole
+maiuscole adiacenti, tutte e due negli elenchi dei nomi, e la sequenza
+spariva portandosi via il soggetto della frase:
+
+    Si gioca allo stadio Giuseppe Meazza   ->   Si gioca allo {{NAME_1}}
+
+Uno scudo c'era già — una parola d'ente scherma l'intera sequenza — ma
+vedeva solo la parola **scritta maiuscola e dentro la sequenza**: `Ospedale
+Giovanni Paolo II` era protetto, `l'ospedale Giovanni Paolo II` no. In prosa
+italiana la forma normale è la seconda, e passava.
+
+Ora davanti alla sequenza si legge **la coda di lettere e spazi** che la
+tocca, saltando articoli, preposizioni, altre parole maiuscole della stessa
+intitolazione e gli aggettivi che qualificano l'edificio (`biblioteca
+nazionale Vittorio Emanuele III`, `scuola primaria Cristoforo Colombo`). E
+la parola che decide viene guardata anche quando sta **in testa** alla
+sequenza: `San Giovanni Rotondo`, `Sant'Antonio Abate`.
+
+**Qualunque segno interrompe la risalita**, ed è la differenza fra questa
+guardia e quella dei nomi isolati: `Residenza: Mario Rossi` e `Zona 3 -
+referente Mario Rossi` sono etichette di modulo seguite da una persona vera,
+e restano protette. Lo stesso vale per un verbo in mezzo: «il premio è stato
+consegnato a Mario Rossi» continua a essere sostituito.
+
+**Misurato, non stimato.** Sul banco dei nomi in contesto i falsi positivi
+passano da 14 a 0 in prosa e da 9 a 0 su modulo; sul corpus pubblico — undici
+Gazzette Ufficiali e trentasei moduli in bianco — le sostituzioni sui moduli
+in bianco **scendono** e sulla prosa vera il motore non prende di meno.
+Sette casi nuovi nel corpus di conformità, due dei quali sono contrappesi:
+la persona che deve restare protetta.
+
+**Il prezzo, dichiarato:** «presso casa Mario Rossi» non viene più
+sostituito. `casa` è nell'elenco, l'adiacenza è pulita, e nessuna regola può
+distinguere quella forma da «casa Giuseppe Verdi». C'è un test che lo
+congela, perché sia una scelta e non una sorpresa.
+
+### Due controlli che non potevano fallire
+
+* Il banco `bench_nomi_isolati.py` confrontava le opzioni di serie con
+  `names_alone=True`. Dalla 1.26.0 quella funzione è accesa di serie, quindi
+  confrontava una misura con se stessa: stampava «+0» qualunque cosa facesse
+  il motore, e sarebbe rimasto verde anche cancellando la regola. Ora la
+  linea di partenza è `names_alone=False`, esplicito.
+* `Virginia` sui moduli IRS in bianco veniva sostituito, e fino a ieri
+  scampava per caso — la guardia risaliva all'indietro senza badare alle
+  virgole e incontrava il `West` di cinque parole prima. Ora sta nell'elenco
+  dei nomi che da soli non provano niente, dove doveva stare.
+
 ## 1.26.0 — I cognomi composti passavano interi, e un nome di battesimo da solo restava scritto
 
 ### I cognomi composti passavano interi: «Walter Di Salvo» restava scritto

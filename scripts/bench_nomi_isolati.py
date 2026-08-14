@@ -94,7 +94,14 @@ def confronta(prosa: bool, dettaglio: bool) -> int:
     più vecchio di questa funzione, e va misurato a parte: quello che si
     chiede qui è **quanto cambia accendendo `names_alone`**.
     """
-    prima_presi, prima_falsi = misura(prosa)
+    # `names_alone=False` **esplicito**, non le opzioni di serie.
+    #
+    # Dalla 1.26.0 la funzione e' accesa di serie, e da quel giorno le due
+    # misure erano la stessa misura: il banco stampava «+0» qualunque cosa
+    # facesse il motore, e sarebbe rimasto verde anche cancellando la regola.
+    # Un controllo che non puo' fallire non e' una verifica. Trovato mentre si
+    # misurava P9.4, cioe' per caso: nessuno stava guardando questo banco.
+    prima_presi, prima_falsi = misura(prosa, names_alone=False)
     dopo_presi, dopo_falsi = misura(prosa, names_alone=True)
     nuovi_presi = [c for c in dopo_presi if c not in prima_presi]
     nuovi_falsi = [c for c in dopo_falsi if c not in prima_falsi]

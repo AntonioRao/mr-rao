@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.26.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "32660c59544ffcbb39ffbc30df6d7b3eb9abd4545241b29348c7c278c30c49b9",
+      "mr_rao/privacy.py": "7e1117caaa6805bc912f5e929a7af5b02a9578e694f5057402a3424cedfc0ea5",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -3877,6 +3877,146 @@
       "report": {
         "counts": {},
         "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "intitolazione-01": {
+      "gruppo": "nomi",
+      "uscita": "Si gioca allo stadio Giuseppe Meazza domenica.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Gi•••••••••••za",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          },
+          {
+            "kind": "nome",
+            "sample": "Gi••••pe",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "intitolazione-02": {
+      "gruppo": "nomi",
+      "uscita": "Ha vinto il premio Italo Calvino nel 2024.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Ca•••no",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "intitolazione-03": {
+      "gruppo": "nomi",
+      "uscita": "Il figlio frequenta il liceo Alessandro Manzoni.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Al••••••••••••••ni",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          },
+          {
+            "kind": "nome",
+            "sample": "Al••••••ro",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "intitolazione-04": {
+      "gruppo": "nomi",
+      "uscita": "Consultare la biblioteca nazionale Vittorio Emanuele III.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Em••••le",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "intitolazione-05": {
+      "gruppo": "nomi",
+      "uscita": "Residente a San Giovanni Rotondo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Gi••••ni",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          },
+          {
+            "kind": "nome",
+            "sample": "Ro•••do",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "intitolazione-06": {
+      "gruppo": "nomi",
+      "uscita": "Il premio e' stato consegnato a {{NAME_1}}.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "intitolazione-07": {
+      "gruppo": "nomi",
+      "uscita": "Residenza: {{NAME_1}}",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
         "suspects": [],
         "suspects_total": 0,
         "detected": [],
