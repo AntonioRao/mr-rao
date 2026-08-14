@@ -127,7 +127,7 @@ class TestQuelloCheNonDeveToccare:
         un riscontro solo, e «San Pietro» ne ha uno. Il banco lo dice
         confrontando acceso e spento invece di pretendere un'uscita: quello
         che si chiede a una funzione nuova è di non peggiorare, e quel
-        difetto va misurato per conto suo (è in backlog).
+        difetto va misurato per conto suo: è **P9.4** del backlog.
         """
         testo = "La funzione è nella chiesa di San Pietro."
         assert redigi(testo, acceso=True, prosa=prosa) == redigi(
