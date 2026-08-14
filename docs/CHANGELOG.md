@@ -47,6 +47,31 @@ restano intatti, e c'è un banco che lo pretende.
 `san`, `santa`, `santo` restano fuori dall'insieme: aprono i toponimi (San
 Giovanni, Santa Croce), che sui documenti sono molti più dei cognomi.
 
+### Ottantacinque cognomi composti in più negli elenchi
+
+La regola generica si appoggia al nome di battesimo davanti: «Walter Di
+Maio» funziona senza che `dimaio` stia scritto da nessuna parte. Il cognome
+**da solo** — un fascicolo, una firma, la casella di un modulo — non ha
+niente a cui appoggiarsi, e lì l'unica prova possibile è che il cognome
+risulti negli elenchi.
+
+Misurato su trenta composti frequenti: la forma incollata già presente ne
+copriva 13, la regola generica altri 13, e restavano fuori proprio quelli
+senza nome accanto. Ora ce ne sono 117 dichiarati, di cui 85 nuovi — Di
+Maio, Di Bella, Di Caro, La Rocca, Lo Russo, De Martino, Della Torre, Dal
+Bosco, Degli Esposti — tutti nella forma incollata, che è quella in cui
+l'elenco storico li teneva.
+
+Il criterio è lo stesso di tutto il resto: cognomi italiani diffusi.
+Nessuna variante inventata per simmetria — «deriso» era nella prima
+stesura ed è stato tolto, perché è anche un participio, e una collisione
+così non dà un errore: fa sparire una parola italiana da tutti i documenti,
+in silenzio. C'è un banco che lo controlla.
+
+**Sulla soglia dei moduli non cambia niente, ed è voluto**: un cognome da
+solo è un riscontro solo, composto o no. Sul modulo ne servono due, ed è la
+soglia che ha tolto 8 904 sostituzioni sbagliate.
+
 ### Dopo un titolo professionale usciva mezzo nome
 
 Stessa causa, porta diversa, e questa faceva più danno. La regola del

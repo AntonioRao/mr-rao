@@ -155,6 +155,67 @@ class TestNonDeveRompereQuelloCheFunzionava:
         assert redigi("Gentile Cliente", prosa) == "Gentile Cliente"
 
 
+class TestElencoDeiComposti:
+    """I composti scritti nell'elenco, e cosa comprano davvero.
+
+    La regola generica si appoggia al nome di battesimo davanti: «Walter Di
+    Maio» funziona senza che `dimaio` stia da nessuna parte. Il cognome
+    **da solo** — un fascicolo, una firma, la casella di un modulo — non ha
+    niente a cui appoggiarsi: lì l'unica prova possibile è che il cognome
+    risulti negli elenchi.
+    """
+
+    @pytest.mark.parametrize(
+        "testo",
+        [
+            "Il fascicolo Di Maio è stato aperto",
+            "Il fascicolo Di Caro è stato aperto",
+            "Il fascicolo La Rocca è stato aperto",
+            "Il fascicolo Lo Russo è stato aperto",
+            "Il fascicolo De Martino è stato aperto",
+        ],
+    )
+    def test_in_prosa_il_composto_da_solo_basta(self, testo: str) -> None:
+        assert "{{NAME_1}}" in redigi(testo, prosa=True)
+
+    def test_sul_modulo_un_cognome_solo_resta_un_riscontro_solo(self) -> None:
+        # **Non è una dimenticanza.** Su modulo servono due riscontri, e un
+        # cognome da solo ne è uno — composto o no. Aggiungere i composti
+        # all'elenco non cambia questa soglia, e non deve: è la stessa che
+        # ha tolto 8 904 sostituzioni sbagliate sui moduli in bianco.
+        assert redigi("Il fascicolo Di Maio", prosa=False) == "Il fascicolo Di Maio"
+
+    def test_nessun_composto_e_anche_una_parola_comune(self) -> None:
+        # Una collisione qui non darebbe un errore: farebbe sparire una
+        # parola italiana da tutti i documenti, in silenzio. «deriso» era
+        # nella prima stesura ed è stato tolto per questo.
+        from mr_rao.it_names import COMMON_CAPITALIZED, _SURNAMES_COMPOSTI
+
+        composti = _SURNAMES_COMPOSTI.split()
+        assert len(composti) > 100, "l'elenco si è svuotato: il banco non prova più niente"
+        assert [c for c in composti if c in COMMON_CAPITALIZED] == []
+
+    def test_i_composti_sono_scritti_incollati(self) -> None:
+        # Se qualcuno li scrivesse con lo spazio, `split()` li spezzerebbe in
+        # due parole e l'elenco si riempirebbe di **particelle**: `di`
+        # diventerebbe un cognome, e ogni «Comune di Roma» una persona.
+        #
+        # Il controllo non guarda la lunghezza — «dileo», «dimeo», «demeo»
+        # sono composti veri di cinque lettere, e una soglia li avrebbe
+        # bocciati — ma la forma: nessuna voce può *essere* una particella,
+        # e ognuna deve cominciare con una di quelle.
+        from mr_rao.privacy import _PARTICELLE_COGNOME
+        from mr_rao.it_names import _SURNAMES_COMPOSTI
+
+        composti = _SURNAMES_COMPOSTI.split()
+        assert [c for c in composti if c in _PARTICELLE_COGNOME] == []
+        senza_particella = [
+            c for c in composti
+            if not any(c.startswith(p) and len(c) > len(p) for p in _PARTICELLE_COGNOME)
+        ]
+        assert senza_particella == []
+
+
 def test_la_particella_non_vale_come_riscontro() -> None:
     """«di» non e' il nome di nessuno.
 

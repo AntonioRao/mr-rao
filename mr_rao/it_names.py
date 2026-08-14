@@ -428,7 +428,52 @@ zingaretti zinno zippo zito zizza zoccola zoia zola zollo zonta zoppi
 zorzi zucca zucchelli zucchetti zucchi zuccotti zumbo zunino zurlo
 """
 
-SURNAMES: frozenset[str] = frozenset(_SURNAMES.split())
+# I cognomi composti, nella forma **incollata**.
+#
+# Non e' una scelta di stile: e' la forma in cui i 151 composti che
+# l'elenco qui sopra gia' conteneva erano stati normalizzati dalla lista di
+# provenienza — `disalvo`, `dipietro`, `damico`, `dangelo` — spazio e
+# apostrofo tolti. `_cognome_composto_noto` in `privacy.py` prova quella
+# forma prima di dire di no, quindi «Di Salvo», «D'Amico» e «Dell'Aquila»
+# arrivano tutti qui.
+#
+# **Perche' servono anche questi, se la regola generica c'e'.** La regola
+# generica si appoggia al nome di battesimo davanti: «Walter Di Maio»
+# funziona senza che `dimaio` stia in nessun elenco. Ma il cognome **da
+# solo** — «il fascicolo Di Maio», una firma, una casella di modulo — non ha
+# niente a cui appoggiarsi, e li' l'unica prova possibile e' che il cognome
+# risulti. Misurato su trenta composti frequenti: la forma incollata ne
+# copriva 13, la regola generica altri 13, e restavano fuori proprio i
+# quattro senza nome accanto.
+#
+# Il criterio per stare in questo elenco e' lo stesso di tutto il resto: un
+# cognome italiano diffuso. Non ci sono varianti inventate per simmetria —
+# se un composto qui non c'e', la regola generica lo prende lo stesso
+# quando accanto c'e' il nome.
+_SURNAMES_COMPOSTI = """
+dibattista dibella dibenedetto dicarlo dicaro dicostanzo didomenico
+didonato difazio difelice difilippo diflorio difrancesco difranco
+digennaro digiacomo digiovanni digiuseppe digregorio diiorio dilauro
+dileo dilorenzo diluca dimaio dimarco dimaria dimartino dimarzio dimatteo
+dimauro dimeo dimichele dinardo dinatale dipalma dipaolo dipasquale
+diprima direnzo dirocco dirosa disalvatore disanto disarno distefano
+ditommaso ditullio divito
+debernardi decesare defilippis defilippo degiorgio degregori delaurentis
+delellis deluise demaria demarco demartino demasi demeo demichele demonte
+denicola denicolo depalma depaoli depasquale derosa deruggiero
+desantis desimone detommaso devincenzo devito devitis
+delbianco delgaudio delgrosso delmonte delprete delrosso delsordo
+dellacorte dellafemina dellarocca dellatorre dellavedova
+delloiacono dellorusso
+locascio loconte logiudice lomonaco lopresti lorusso losasso
+labarbera lacava lagreca lamarca lamattina laporta larocca larosa laspina
+latorre lavecchia licausi lopiccolo
+dalbosco dallacosta dallavalle dallolio degliesposti
+"""
+
+SURNAMES: frozenset[str] = frozenset(
+    _SURNAMES.split() + _SURNAMES_COMPOSTI.split()
+)
 
 
 # ---------------------------------------------------------------------------
