@@ -1,5 +1,52 @@
 # Changelog
 
+## In lavorazione
+
+### I cognomi composti passavano interi: «Walter Di Salvo» restava scritto
+
+Il riconoscitore dei nomi lavora su **tratti continui di parole che non
+sono parole comuni**. Quasi tutte le particelle dei cognomi composti sono
+preposizioni, e quindi stanno — giustamente — fra le parole comuni: `di`,
+`del`, `della`, `dei`, `degli`, `da`, `dal`, `dalla`, `lo`, `la`. La
+particella **spezzava il tratto**, il nome si sbriciolava in due parole
+isolate, e una parola sola non basta mai:
+
+    Walter Di Salvo ha firmato   ->   Walter Di Salvo ha firmato
+
+Dopo un titolo professionale usciva **mezzo nome**, che è il modo peggiore
+di sbagliare — il documento sembra trattato e il cognome che identifica la
+persona è ancora lì:
+
+    Il sig. Walter Di Salvo      ->   Il sig. {{NAME_1}} Di Salvo
+
+`de`, `li`, `lu` fra le parole comuni non ci sono, ed è tutta qui la ragione
+per cui «Luca De Luca» funzionava e «Walter Di Salvo» no. Non l'aveva
+deciso nessuno.
+
+**Nell'elenco dei cognomi i composti c'erano già.** Centocinquantuno, ma
+incollati e senza apostrofo — `disalvo`, `dipietro`, `damico`, `dangelo` —
+perché la lista di provenienza era normalizzata così. Il dato esisteva da
+sempre ed era irraggiungibile: bastava provare la forma incollata prima di
+dire di no.
+
+Ora la particella non spezza più, e si aggancia in tre modi, dal più forte
+al più debole: la forma incollata è un cognome degli elenchi; davanti c'è un
+nome di battesimo che negli elenchi c'è (ed è il nome a fare da prova,
+esattamente come per un cognome che nessuno conosce); dopo c'è una parola
+degli elenchi e davanti una che parola comune non è.
+
+**La particella non conta come riscontro**: `di` non è il nome di nessuno, e
+contarla darebbe a «Di Salvo» due prove al prezzo di una — cioè scavalcare
+di soppiatto la soglia dei moduli, che di prove ne chiede due.
+
+Il presidio è che tutto questo vive **dentro una sequenza di maiuscole**: il
+«di» della prosa normale è minuscolo e qui non arriva mai. `Comune di Roma`,
+`Corte di Cassazione`, `Ministero della Giustizia`, `Consiglio dei Ministri`
+restano intatti, e c'è un banco che lo pretende.
+
+`san`, `santa`, `santo` restano fuori dall'insieme: aprono i toponimi (San
+Giovanni, Santa Croce), che sui documenti sono molti più dei cognomi.
+
 ## 1.25.0 — Il rapporto che non vedeva l'età, e l'anteprima che un .docx non può avere come il PDF
 
 Tre cose. Nessuna è una funzione nuova nel senso di «adesso fa altro»:

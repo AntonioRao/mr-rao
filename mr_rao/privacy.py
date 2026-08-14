@@ -1941,6 +1941,69 @@ _LOCUZIONI_GEOGRAFICHE = {
 }
 
 
+# Le particelle dei cognomi composti: «Di Salvo», «De Luca», «Lo Bianco».
+#
+# **Perche' esistono qui e non nell'elenco dei cognomi.** Quasi tutte sono
+# preposizioni, e quindi stanno — giustamente — fra le parole comuni: `di`,
+# `del`, `della`, `dei`, `degli`, `da`, `dal`, `dalla`, `lo`, `la`. Il
+# riconoscitore lavora su tratti continui di parole *non* comuni, quindi la
+# particella **spezzava il tratto**: «Walter Di Salvo» diventava «Walter» e
+# «Salvo», due parole isolate, e una parola sola non basta mai. Il cognome
+# restava in chiaro senza che niente lo segnalasse.
+#
+# Misurato prima di scrivere una riga: `Walter Di Salvo ha firmato` usciva
+# intatto sia in prosa sia su modulo, e `Il sig. Walter Di Salvo` usciva
+# come `Il sig. {{NAME_1}} Di Salvo` — il nome tolto e il cognome lasciato,
+# che e' il modo peggiore di sbagliare.
+#
+# `de`, `li`, `lu` sono nell'insieme ma parole comuni non sono: infatti «Luca
+# De Luca» funzionava gia'. L'insieme le tiene lo stesso, perche' la regola
+# dev'essere la stessa per tutte — se domani `de` finisse fra le parole
+# comuni, il difetto tornerebbe da quella porta.
+#
+# `san`, `santa`, `santo` **restano fuori**: aprono i toponimi (San Giovanni,
+# Santa Croce), che sui documenti sono molti piu' dei cognomi.
+_PARTICELLE_COGNOME = frozenset({
+    "di", "de", "del", "dello", "della", "delle", "dei", "degli",
+    "da", "dal", "dalla", "dallo", "dagli", "lo", "la", "li", "lu",
+})
+
+
+def _forma_incollata(particella: str, seguente: str) -> str:
+    """«di» + «salvo» -> «disalvo», come stanno negli elenchi."""
+    return particella + seguente
+
+
+def _cognome_composto_noto(particella: str, seguente: str) -> bool:
+    """La coppia «particella + parola» e' un cognome che gli elenchi hanno gia'.
+
+    **L'elenco dei cognomi contiene gia' 151 composti**, ma incollati e senza
+    apostrofo — `disalvo`, `dipietro`, `damico`, `dangelo` — perche' la lista
+    di provenienza era normalizzata cosi'. Nei documenti si scrive «Di Salvo»,
+    quindi quel dato c'era da sempre ed era irraggiungibile: bastava provare
+    la forma incollata prima di dire di no.
+    """
+    if particella not in _PARTICELLE_COGNOME:
+        return False
+    return _forma_incollata(particella, seguente) in SURNAMES
+
+
+def _cognome_apostrofato(token: str) -> bool:
+    """«D'Amico», «Dell'Aquila»: il pezzo dopo l'apostrofo fa il cognome.
+
+    Stessa storia della forma incollata, con l'apostrofo al posto dello
+    spazio: negli elenchi c'e' `damico`, nel documento c'e' `D'Amico`.
+    """
+    t = token.lower().strip("'’-.,;:")
+    pezzi = re.split(r"['’]", t)
+    if len(pezzi) != 2 or not pezzi[1]:
+        return False
+    testa, coda = pezzi
+    if testa not in _PARTICELLE_COGNOME and testa not in {"d", "dell", "l", "sant"}:
+        return False
+    return (testa + coda) in SURNAMES or coda in SURNAMES or coda in FIRST_NAMES
+
+
 def _cognome_appoggiato(tokens: list[str]) -> bool:
     """L'ultima parola e' comune, ma e' un cognome noto e davanti ha un nome.
 
@@ -2764,6 +2827,51 @@ def _scrub_names(
             if common[i] and not common[i - 1] and _cognome_appoggiato(tokens[i - 1 : i + 1]):
                 common[i] = False
 
+        # La particella del cognome composto non spezza piu' la sequenza.
+        #
+        # `ponte[i]` la marca: entra nel nome, ma **non conta come
+        # riscontro** — «di» non e' un nome di nessuno. Senza questa
+        # distinzione «Di Salvo» avrebbe due riscontri invece di uno e
+        # scavalcherebbe la soglia dei moduli senza averne il diritto.
+        #
+        # Tre modi di agganciarla, dal piu' forte al piu' debole:
+        #   1. la forma incollata e' un cognome degli elenchi (`disalvo`):
+        #      prova piena, non serve nient'altro intorno;
+        #   2. davanti c'e' una parola che negli elenchi c'e' («Walter»): e'
+        #      il nome di battesimo a fare da prova, esattamente come per
+        #      «Mario Sbrancagnoli», dove il cognome non lo conosce nessuno;
+        #   3. dopo c'e' una parola che negli elenchi c'e' («Salvatore»), e
+        #      davanti una che parola comune non e'.
+        #
+        # In tutti e tre i casi la particella deve stare **dentro** una
+        # sequenza di maiuscole: il «di» della prosa normale e' minuscolo e
+        # qui non arriva mai.
+        riscontro = [
+            t.lower().strip("'’-") in FIRST_NAMES
+            or t.lower().strip("'’-") in SURNAMES
+            or _cognome_apostrofato(t)
+            for t in tokens
+        ]
+        ponte = [False] * len(tokens)
+        for i in range(len(tokens) - 1):
+            part = tokens[i].lower().strip("'’-.,;:")
+            if part not in _PARTICELLE_COGNOME:
+                continue
+            dopo = tokens[i + 1].lower().strip("'’-.,;:")
+            composto = _cognome_composto_noto(part, dopo)
+            prima_nome = i > 0 and riscontro[i - 1] and not common[i - 1]
+            prima_utile = i > 0 and not common[i - 1]
+            if not (composto or (prima_nome and not common[i + 1])
+                    or (prima_utile and riscontro[i + 1])):
+                continue
+            common[i] = False
+            ponte[i] = True
+            if composto:
+                # «Di Natale», «Del Vecchio»: la seconda parola e' comune di
+                # suo, ma incollata alla particella e' un cognome e basta.
+                common[i + 1] = False
+                riscontro[i + 1] = True
+
         pieces: list[tuple[str, int]] = []  # (testo, indice ultimo token)
         i = 0
         while i < len(tokens):
@@ -2795,7 +2903,13 @@ def _scrub_names(
             # sostituiva quando NESSUNA delle parole sembrava italiana --
             # cioe' senza nessun riscontro negli elenchi. E' quella che e'
             # stata ritirata: indovinava e decideva da sola.
-            noti = sum(1 for t in run if t in FIRST_NAMES or t in SURNAMES)
+            # `riscontro`/`ponte` invece dell'elenco letto qui: la particella
+            # di un cognome composto sta dentro il nome ma non e' il nome di
+            # nessuno, e contarla darebbe a «Di Salvo» due prove al prezzo di
+            # una.
+            noti = sum(
+                1 for k in range(i, j) if riscontro[k] and not ponte[k]
+            )
             lungo_giusto = 2 <= len(run) <= _MAX_TOKEN_NOME
             # Su prosa un riscontro solo basta: «da Ludovica Sbrancagnoli»
             # in una frase e' quasi sempre una persona, e pretendere due
