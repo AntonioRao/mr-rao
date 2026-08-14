@@ -158,32 +158,48 @@ class TestNonDeveRompereQuelloCheFunzionava:
 class TestElencoDeiComposti:
     """I composti scritti nell'elenco, e cosa comprano davvero.
 
-    La regola generica si appoggia al nome di battesimo davanti: «Walter Di
-    Maio» funziona senza che `dimaio` stia da nessuna parte. Il cognome
-    **da solo** — un fascicolo, una firma, la casella di un modulo — non ha
-    niente a cui appoggiarsi: lì l'unica prova possibile è che il cognome
-    risulti negli elenchi.
+    **Non comprano il composto da solo**, ed è una rinuncia decisa dopo
+    averla misurata. Una prima stesura sostituiva «il fascicolo Di Maio»,
+    e una revisione avversariale su 357 casi ha mostrato il prezzo: 96
+    falsi positivi, «Sala Della Vittoria» e «Rocca Di Papa» compresi — che
+    hanno *esattamente la stessa struttura* di «Di Maio». Senza qualcosa
+    che dica «qui c'è una persona», un cognome composto e un toponimo sono
+    indistinguibili, e nessuna taratura può separarli.
+
+    Gli elenchi servono dove quel qualcosa c'è: l'ordine burocratico con il
+    nome di battesimo dall'altra parte, la potatura dopo un titolo, e le
+    regole di contesto (ruolo, codice fiscale accanto, saluto).
     """
 
     @pytest.mark.parametrize(
         "testo",
         [
             "Il fascicolo Di Maio è stato aperto",
-            "Il fascicolo Di Caro è stato aperto",
             "Il fascicolo La Rocca è stato aperto",
-            "Il fascicolo Lo Russo è stato aperto",
-            "Il fascicolo De Martino è stato aperto",
+            "Sala Della Vittoria",
+            "Rocca Di Papa",
+            "Castel Del Monte",
+            "Vacanze Di Natale",
+            "Trattoria La Vecchia Osteria",
         ],
     )
-    def test_in_prosa_il_composto_da_solo_basta(self, testo: str) -> None:
-        assert "{{NAME_1}}" in redigi(testo, prosa=True)
+    def test_il_composto_da_solo_non_basta(self, testo: str) -> None:
+        # Le prime due sono cognomi veri, le altre no, e il motore non ha
+        # modo di dirlo: la forma è la stessa. Restano tutte.
+        assert redigi(testo, prosa=True) == testo
+        assert redigi(testo, prosa=False) == testo
 
-    def test_sul_modulo_un_cognome_solo_resta_un_riscontro_solo(self) -> None:
-        # **Non è una dimenticanza.** Su modulo servono due riscontri, e un
-        # cognome da solo ne è uno — composto o no. Aggiungere i composti
-        # all'elenco non cambia questa soglia, e non deve: è la stessa che
-        # ha tolto 8 904 sostituzioni sbagliate sui moduli in bianco.
-        assert redigi("Il fascicolo Di Maio", prosa=False) == "Il fascicolo Di Maio"
+    @pytest.mark.parametrize(
+        "testo",
+        [
+            "Il cliente Di Salvo ha aperto un conto",
+            "Il sig. Di Maio ha firmato",
+        ],
+    )
+    def test_ma_con_un_contesto_che_dichiara_la_persona_si(self, testo: str) -> None:
+        # Qui a dire «persona» è il ruolo o il titolo, non la forma delle
+        # parole — ed è lì che l'elenco dei composti lavora.
+        assert "{{NAME_1}}" in redigi(testo, prosa=True)
 
     def test_nessun_composto_e_anche_una_parola_comune(self) -> None:
         # Una collisione qui non darebbe un errore: farebbe sparire una

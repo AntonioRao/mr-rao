@@ -39,6 +39,35 @@ degli elenchi e davanti una che parola comune non è.
 contarla darebbe a «Di Salvo» due prove al prezzo di una — cioè scavalcare
 di soppiatto la soglia dei moduli, che di prove ne chiede due.
 
+**La prima stesura era troppo larga, e il conto l'ha fatto una revisione
+avversariale su 357 casi: 96 falsi positivi, 7 dei quali passavano anche la
+soglia dei moduli.** Sparivano `Sala Della Vittoria`, `Rocca Di Papa`,
+`Castel Del Monte`, `Vacanze Di Natale`, `Trattoria La Vecchia Osteria`.
+
+La causa era strutturale, non di taratura: bastava che la parola davanti
+alla particella *risultasse negli elenchi*, e gli elenchi dei cognomi
+contengono centinaia di sostantivi italiani — sala, costa, rocca, bosco,
+casale, croce, fonte, fontana, valle, torre, conte, papa. E la particella,
+pur non contando come prova, **saldava in un tratto solo due parole che
+prima erano isolate**: due isolate non bastavano mai, due nello stesso
+tratto bastano. Il ponte non aggiungeva una prova, toglieva il muro.
+
+Ora a reggere il ponte dev'essere un **nome di battesimo**, davanti o
+dall'altra parte della coppia. Si perde il composto **da solo** — «il
+fascicolo Di Maio» non viene più sostituito — ed è la rinuncia giusta:
+`Rocca Di Papa` e `Di Maio` hanno la stessa identica struttura, e senza
+qualcosa che dichiari la persona nessuna regola può separarli. Quando quel
+qualcosa c'è — un titolo, un ruolo, un codice fiscale accanto, un saluto —
+sono le regole di contesto a prenderlo, e quelle gli elenchi dei composti li
+usano come prima.
+
+Resta un caso ambiguo dichiarato: `Marina Di Camerota` in prosa viene
+sostituito, perché «Marina» è uno dei nomi di battesimo più diffusi. Non è
+una novità di questa regola — `Marina Camerota` senza particella spariva già
+— ed è la stessa asimmetria di sempre: in prosa un riscontro basta. Scritto
+com'è davvero il toponimo, `Marina di Camerota` con la `d` minuscola, non
+viene toccato.
+
 Il presidio è che tutto questo vive **dentro una sequenza di maiuscole**: il
 «di» della prosa normale è minuscolo e qui non arriva mai. `Comune di Roma`,
 `Corte di Cassazione`, `Ministero della Giustizia`, `Consiglio dei Ministri`

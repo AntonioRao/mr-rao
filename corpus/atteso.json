@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.25.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "a8b8c19251d21e6f0f3cc72f02484155286c35599bf78204394854658bab777a",
+      "mr_rao/privacy.py": "1d70770c04975326312f85182d6147aaa3946474116c6060154d3816eb499c07",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -3683,12 +3683,10 @@
     },
     "composto-09": {
       "gruppo": "prosa_modulo",
-      "uscita": "Il fascicolo {{NAME_1}} e' stato aperto ieri.",
+      "uscita": "Il fascicolo Di Maio e' stato aperto ieri.",
       "report": {
-        "counts": {
-          "names": 1
-        },
-        "total": 1,
+        "counts": {},
+        "total": 0,
         "suspects": [],
         "suspects_total": 0,
         "detected": [],
@@ -3702,14 +3700,8 @@
       "report": {
         "counts": {},
         "total": 0,
-        "suspects": [
-          {
-            "kind": "nome",
-            "sample": "Di•••io",
-            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
-          }
-        ],
-        "suspects_total": 1,
+        "suspects": [],
+        "suspects_total": 0,
         "detected": [],
         "detected_counts": {},
         "detected_total": 0
@@ -3774,6 +3766,51 @@
     "saluto-05": {
       "gruppo": "nomi",
       "uscita": "Salve Ufficio Protocollo, in allegato la pratica.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-11": {
+      "gruppo": "nomi",
+      "uscita": "Sala Della Vittoria e Rocca Di Papa",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "••••",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-12": {
+      "gruppo": "nomi",
+      "uscita": "Vacanze Di Natale al Castel Del Monte",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-13": {
+      "gruppo": "nomi",
+      "uscita": "Trattoria La Vecchia Osteria, Immobiliare La Rocca",
       "report": {
         "counts": {},
         "total": 0,

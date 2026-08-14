@@ -2897,24 +2897,60 @@ def _scrub_names(
         # distinzione «Di Salvo» avrebbe due riscontri invece di uno e
         # scavalcherebbe la soglia dei moduli senza averne il diritto.
         #
-        # Tre modi di agganciarla, dal piu' forte al piu' debole:
-        #   1. la forma incollata e' un cognome degli elenchi (`disalvo`):
-        #      prova piena, non serve nient'altro intorno;
-        #   2. davanti c'e' una parola che negli elenchi c'e' («Walter»): e'
-        #      il nome di battesimo a fare da prova, esattamente come per
-        #      «Mario Sbrancagnoli», dove il cognome non lo conosce nessuno;
-        #   3. dopo c'e' una parola che negli elenchi c'e' («Salvatore»), e
-        #      davanti una che parola comune non e'.
+        # **A tenere il ponte dev'essere un nome di battesimo, e nient'altro.**
         #
-        # In tutti e tre i casi la particella deve stare **dentro** una
-        # sequenza di maiuscole: il «di» della prosa normale e' minuscolo e
-        # qui non arriva mai.
+        # La prima stesura si accontentava che la parola davanti alla
+        # particella risultasse negli elenchi. Sembrava prudente e non lo era:
+        # gli elenchi dei cognomi contengono centinaia di sostantivi italiani
+        # — `sala`, `costa`, `rocca`, `bosco`, `casale`, `croce`, `fonte`,
+        # `fontana`, `marina`, `valle`, `torre`, `conte`, `papa` — quindi la
+        # regola scattava su **qualunque** «Sostantivo Di Sostantivo» scritto
+        # con le maiuscole di cortesia. Misurato da una revisione avversariale
+        # su 357 casi: 96 falsi positivi nuovi, e 7 passavano anche la soglia
+        # dei moduli. `Sala Della Vittoria` e `Rocca Di Papa` sparivano.
+        #
+        # Il difetto era **strutturale e non di taratura**: la particella non
+        # contava come riscontro, ma saldava in un unico tratto due parole che
+        # prima erano isolate, e due isolate non bastavano mai mentre due
+        # nello stesso tratto bastano. Il ponte non aggiungeva una prova:
+        # toglieva il muro che teneva innocue quelle due.
+        #
+        # Ora i modi sono due, e in tutti e due c'e' un **nome di battesimo**:
+        #   1. davanti c'e' un nome di battesimo e dopo la particella non c'e'
+        #      una parola comune — «Walter Di Salvo», «Antonio Di Salvatore»;
+        #   2. la forma incollata e' un cognome degli elenchi **e** un nome di
+        #      battesimo sta di la' della coppia — «Di Salvo Walter», l'ordine
+        #      burocratico dei moduli.
+        #
+        # Cio' che si perde e' il composto **da solo**, senza nessun nome
+        # accanto: «il fascicolo Di Maio» non viene piu' sostituito. E' la
+        # rinuncia giusta, perche' in quella forma un cognome composto e un
+        # toponimo sono la stessa cosa — `Rocca Di Papa` e `Di Maio` hanno
+        # esattamente la stessa struttura, e nessuna regola puo' distinguerli
+        # senza qualcosa che dica «qui c'e' una persona». Quando quel qualcosa
+        # c'e' — un titolo, un ruolo, un codice fiscale accanto, un saluto —
+        # sono le regole di contesto a prenderlo, e quelle usano gli elenchi
+        # dei composti come prima.
+        #
+        # In ogni caso la particella deve stare **dentro** una sequenza di
+        # maiuscole: il «di» della prosa normale e' minuscolo e qui non
+        # arriva mai. Ma non basta, e la revisione l'ha mostrato: intestazioni,
+        # oggetti, ragioni sociali ed etichette di modulo le maiuscole ce
+        # l'hanno.
         riscontro = [
             t.lower().strip("'’-") in FIRST_NAMES
             or t.lower().strip("'’-") in SURNAMES
             or _cognome_apostrofato(t)
             for t in tokens
         ]
+
+        def _e_nome_di_battesimo(k: int) -> bool:
+            return (
+                0 <= k < len(tokens)
+                and not common[k]
+                and tokens[k].lower().strip("'’-.,;:") in FIRST_NAMES
+            )
+
         ponte = [False] * len(tokens)
         for i in range(len(tokens) - 1):
             part = tokens[i].lower().strip("'’-.,;:")
@@ -2922,10 +2958,10 @@ def _scrub_names(
                 continue
             dopo = tokens[i + 1].lower().strip("'’-.,;:")
             composto = _cognome_composto_noto(part, dopo)
-            prima_nome = i > 0 and riscontro[i - 1] and not common[i - 1]
-            prima_utile = i > 0 and not common[i - 1]
-            if not (composto or (prima_nome and not common[i + 1])
-                    or (prima_utile and riscontro[i + 1])):
+            nome_prima = _e_nome_di_battesimo(i - 1)
+            nome_dopo = _e_nome_di_battesimo(i + 2)
+            if not ((nome_prima and not common[i + 1])
+                    or (composto and (nome_prima or nome_dopo))):
                 continue
             common[i] = False
             ponte[i] = True
