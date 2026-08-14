@@ -8,9 +8,17 @@ It is public because a signing policy that only the signer can read proves
 nothing: the point of a signature is to let a stranger decide whether to
 trust a file, and a stranger cannot evaluate a promise they cannot see.
 
-**Current status: releases are not code-signed yet.** An application to the
-SignPath Foundation has been submitted. Until it is approved and the first
-signed release ships, the integrity guarantees are the ones described under
+**Current status: releases downloaded from GitHub are not code-signed.**
+The application to the SignPath Foundation was **declined in August 2026**:
+they look for projects with an established community, and this one does not
+have it yet. No free certificate carrying the author's name exists — a
+certificate authority has to verify an identity, and that check is what they
+charge for.
+
+**The route that removes the Windows warning is the Microsoft Store**, where
+the package is signed by Microsoft and Smart App Control trusts it. For the
+portable zip and the installer the integrity guarantees stay the ones
+described under
 [What already protects a release](#what-already-protects-a-release) — which
 are not weaker than a signature, only different, and Windows does not read
 them.
