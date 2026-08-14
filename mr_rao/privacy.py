@@ -2843,6 +2843,48 @@ _QUALIFICATORI = frozenset(
 )
 
 
+# Le **sigle** che dicono «edificio»: `IC`, `I.C.S.`, `SMS`, `SC.MEDIA`.
+#
+# Stanno separate dalle parole per una ragione sola, e non e' l'estetica:
+# **contano solo scritte tutte maiuscole**. `sms` minuscolo e' un messaggio —
+# «ho mandato un sms a Mario Rossi» — e metterlo fra le parole d'edificio
+# lascerebbe in chiaro quel Mario Rossi. `SMS` maiuscolo, davanti a un nome,
+# e' una scuola media.
+#
+# **Le ha dettate un documento vero**, non l'immaginazione: su un elenco
+# pubblico di posti di sostegno — nessun dato personale dentro — il motore
+# faceva 604 sostituzioni, e ventuno nomi distinti erano tutti nomi di
+# **scuole**: «IC MAZZARRONE», «I.C.S. Giovanni XXIII», «SC.MEDIA Fermi».
+# `istituto` stava gia' fra le parole d'ente, la sua sigla no.
+#
+# I punti si tolgono prima del confronto, quindi `I.C.S.` e `ICS` sono la
+# stessa voce. Restano fuori le sigle di **due lettere puntate** che sono
+# quasi sempre le iniziali di una persona — `S.G.`, `A.R.` — perche' li'
+# schermare vorrebbe dire lasciare in chiaro un nome vero.
+_SIGLE_DI_ENTE = frozenset(
+    {
+        "ic", "ics", "icd", "iis", "iiss", "isis", "itis", "itc", "itet",
+        "ipsia", "ipseoa", "ipsseoa", "its", "cpia", "sms", "smim",
+        "scmedia", "scelementare", "scinfanzia",
+        "asl", "asp", "ausl", "usl", "irccs", "ipab", "iacp", "acer",
+    }
+)
+
+
+def _sigla_di_ente(token: str) -> bool:
+    """Vale **solo** se il token e' scritto tutto maiuscolo nel testo."""
+    nudo = token.strip("'’-.,;:()[]")
+    if len(nudo) < 2 or not nudo.replace(".", "").isupper():
+        return False
+    return nudo.replace(".", "").lower() in _SIGLE_DI_ENTE
+
+
+# La sigla attaccata al nome: `IC `, `I.C. `, `SC.MEDIA `. Si legge a parte
+# perche' il punto ferma la risalita normale — ed e' giusto che la fermi:
+# e' cio' che tiene protetto «Residenza: Mario Rossi».
+_RE_SIGLA_PRIMA = re.compile(r"(?<![\w.])([A-Z][A-Z.]{1,11})[ \t]*$")
+
+
 # Quanto indietro si guarda. Serve solo la coda attaccata al nome: oltre
 # «l'ospedale civile Giovanni Paolo» non c'e' piu' niente da leggere, e senza
 # un limite un documento tutto maiuscolo farebbe risalire pagine intere.
@@ -2877,6 +2919,12 @@ def _intitolazione_adiacente(testo: str, posizione: int) -> bool:
     fatto che qui la parola e' minuscola, cioe' un nome comune usato per
     quello che e'.
     """
+    # Prima la sigla: `IC Mazzarrone`, `I.C.S. Giovanni XXIII`. Il punto
+    # ferma la risalita normale, quindi va letta a parte.
+    sigla = _RE_SIGLA_PRIMA.search(testo[max(0, posizione - 24):posizione])
+    if sigla is not None and _sigla_di_ente(sigla.group(1)):
+        return True
+
     # **A mano e all'indietro, non con una espressione regolare.** La prima
     # stesura tagliava `testo[:posizione]` e ci cercava `(?:\w+\s*)+$`: su un
     # documento lungo quel taglio e' una copia a ogni sequenza, e l'ancora
@@ -2888,8 +2936,22 @@ def _intitolazione_adiacente(testo: str, posizione: int) -> bool:
     while i > inizio and (testo[i - 1].isalpha()
                           or testo[i - 1] in " \t'’"):
         i -= 1
+    visto_articolo = False
     for parola in reversed(re.findall(r"[^\W\d_]+", testo[i:posizione])):
         if _dice_edificio(parola.lower()):
+            return True
+        # La sigla **senza punti**, dentro la coda: «IC MADRE Teresa di
+        # Calcutta». Con i punti la coda si spezza e la trova il controllo
+        # in fondo; senza, `IC` e' una parola maiuscola come le altre.
+        #
+        # **Ma solo se fra la sigla e il nome ci sono altre maiuscole, non
+        # un articolo.** Senza questa condizione «il referente ASL e Mario
+        # Rossi» smetteva di essere protetto: `e` e' una congiunzione, la
+        # risalita la salta come salta gli articoli, e trovava `ASL` una
+        # parola piu' in la'. Una sigla attaccata a un nome proprio nomina
+        # un ente; una sigla separata da una congiunzione e' un'altra cosa
+        # nella frase.
+        if _sigla_di_ente(parola) and not visto_articolo:
             return True
         # Si continua a risalire **solo** attraverso maiuscole e articoli. Le
         # maiuscole fanno parte della stessa intitolazione: in «il ponte
@@ -2899,12 +2961,19 @@ def _intitolazione_adiacente(testo: str, posizione: int) -> bool:
         # e' ci si ferma, ed e' cio' che tiene protetto «il premio e' stato
         # consegnato a Mario Rossi»: `consegnato` chiude la risalita prima
         # che `premio` si possa vedere.
-        if (parola[:1].isupper()
-                or parola.lower() in _ARTICOLI_E_PREPOSIZIONI
-                or parola.lower() in _QUALIFICATORI):
+        if parola.lower() in _ARTICOLI_E_PREPOSIZIONI:
+            visto_articolo = True
+            continue
+        if parola[:1].isupper() or parola.lower() in _QUALIFICATORI:
             continue
         return False
-    return False
+    # La coda e' finita senza decidere: tutte maiuscole, articoli o
+    # aggettivi. Allora la parola che decide puo' essere la **sigla appena
+    # prima della coda** — «IC MADRE Teresa di Calcutta», «I.C. GIOVANNI
+    # XXIII»: fra la sigla e il nome c'e' un'altra parola maiuscola, e il
+    # punto della sigla ferma la risalita normale.
+    sigla = _RE_SIGLA_PRIMA.search(testo[max(0, i - 24):i])
+    return sigla is not None and _sigla_di_ente(sigla.group(1))
 
 
 def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
@@ -2920,6 +2989,14 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
     # dentro il token la guardia leggeva «all'ospedale» — che in nessun
     # elenco c'e' — e lasciava passare tre intitolazioni su cinque. Trovato
     # dal banco, non a mente.
+    # La sigla vale anche qui: dopo che il riconoscitore delle coppie ha
+    # schermato «IC Giovanni Verga», la parola sola («Giovanni») arriva a
+    # questa regola, e senza la sigla davanti se la riprenderebbe — mezzo
+    # nome di scuola sostituito, che e' il difetto di partenza travestito.
+    sigla = _RE_SIGLA_PRIMA.search(testo[max(0, posizione - 24):posizione])
+    if sigla is not None and _sigla_di_ente(sigla.group(1)):
+        return True
+
     prima = testo[:posizione]
     parole = re.findall(r"[^\W\d_]+", prima.lower())
     salta = _ARTICOLI_E_PREPOSIZIONI
@@ -2957,6 +3034,9 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
         if prima[maiuscole[i].end():fine].strip(" \t'’-"):
             break
         if dice_edificio(maiuscole[i].group(0).lower()):
+            return True
+        # La sigla dentro la sequenza di maiuscole: «IC MADRE Teresa».
+        if _sigla_di_ente(maiuscole[i].group(0)):
             return True
         fine = maiuscole[i].start()
         i -= 1
@@ -3213,6 +3293,11 @@ def _scrub_names(
         if tokens:
             testa = tokens[0].lower().strip("'’-.,;:")
             if _dice_edificio(testa) or _dice_edificio(re.split(r"['’]", testa)[0]):
+                return m.group(0)
+            # La sigla dentro la sequenza: «IC MAZZARRONE - LICODIA», dove
+            # `IC` e' una parola maiuscola come le altre e finisce nel
+            # tratto. Vale la stessa regola: solo in testa, e solo maiuscola.
+            if _sigla_di_ente(tokens[0]):
                 return m.group(0)
         common = [_is_common_in_context(tokens, i) for i in range(len(tokens))]
         # Il cognome che e' anche una parola comune, **appoggiato al nome di

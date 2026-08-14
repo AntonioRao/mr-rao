@@ -120,6 +120,53 @@ def test_e_la_parola_davanti_a_decidere(con_edificio: str, senza: str) -> None:
     assert "{{NAME" in redigi(senza, prosa=True)
 
 
+# --- Le sigle: «IC», «I.C.S.», «SMS» --------------------------------------
+#
+# **Le ha dettate un documento vero**: un elenco pubblico di posti di
+# sostegno, dove il motore faceva 604 sostituzioni senza che ci fosse un solo
+# dato personale, e i ventun nomi distinti erano tutti nomi di **scuole**.
+# `istituto` stava gia' fra le parole d'ente; la sua sigla no.
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "IC MAZZARRONE - LICODIA",
+        "IC Giovanni Verga - Maniace",
+        "I.C. Giovanni XXIII",
+        "I.C.S. Leonardo Da Vinci II- Belpasso",
+        "SC.MEDIA Enrico Fermi",
+        "SMS Luigi Pirandello",
+        # Fra la sigla e il nome un'altra maiuscola: e' la stessa
+        # intitolazione, non un'altra frase.
+        "IC MADRE Teresa di Calcutta",
+    ],
+)
+def test_la_sigla_di_scuola_scherma(testo: str) -> None:
+    assert "{{NAME" not in redigi(testo, prosa=True), testo
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        # Minuscolo: `sms` e' un messaggio, non una scuola media. La sigla
+        # vale **solo** scritta tutta maiuscola.
+        "ho mandato un sms a Mario Rossi",
+        # Fra la sigla e il nome c'e' una congiunzione: sono due cose diverse
+        # della stessa frase, non un'intitolazione.
+        "Il referente ASL e' Mario Rossi",
+        "La ASL ha convocato Mario Rossi",
+        # Una sigla che in elenco non c'e' non scherma niente.
+        "Gentile SIG Mario Rossi",
+        # Le iniziali puntate di una persona non sono una sigla d'ente, ed e'
+        # la ragione per cui le sigle di due lettere puntate restano fuori.
+        "A.R. Mario Rossi ha firmato",
+        # La punteggiatura spezza comunque.
+        "IC di Belpasso, referente Mario Rossi",
+    ],
+)
+def test_la_sigla_non_copre_le_persone(testo: str) -> None:
+    assert "{{NAME" in redigi(testo, prosa=True), testo
+
+
 # --- Il prezzo, scritto perche' non torni di sorpresa ---------------------
 def test_il_prezzo_dichiarato() -> None:
     """«presso casa Mario Rossi» non viene piu' sostituito.

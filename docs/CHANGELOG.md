@@ -40,6 +40,30 @@ sostituito. `casa` è nell'elenco, l'adiacenza è pulita, e nessuna regola può
 distinguere quella forma da «casa Giuseppe Verdi». C'è un test che lo
 congela, perché sia una scelta e non una sorpresa.
 
+### Le sigle delle scuole: 604 sostituzioni su un elenco pubblico
+
+Su un elenco pubblico di posti di sostegno — **nessun dato personale dentro**
+— il motore faceva 604 sostituzioni, e i ventun nomi distinti erano tutti
+nomi di **scuole**: «IC MAZZARRONE», «I.C.S. Leonardo Da Vinci», «SC.MEDIA
+Enrico Fermi». È la stessa famiglia delle intitolazioni, ma la parola che
+doveva fare da scudo è una **sigla**: `istituto` stava già fra le parole
+d'ente, `IC` no. E i punti di `I.C.` fermavano la risalita — giustamente,
+perché è quello che tiene protetto «Residenza: Mario Rossi» — quindi la
+sigla va letta a parte.
+
+**Le sigle contano solo scritte tutte maiuscole**, ed è la condizione che
+rende la regola accettabile: `sms` minuscolo è un messaggio, e «ho mandato un
+sms a Mario Rossi» deve restare sostituito. Stessa cosa per la congiunzione:
+«il referente ASL è Mario Rossi» sono due cose diverse della stessa frase,
+non un'intitolazione. Restano fuori le sigle di due lettere puntate — `S.G.`,
+`A.R.` — perché sono quasi sempre le iniziali di una persona.
+
+Misura sullo stesso documento: **da 604 a 214 sostituzioni**, da 21 nomi
+distinti a 11. Quel che resta è indecidibile per costruzione — una cella di
+tabella che contiene solo «Vittorio Emanuele» non ha niente intorno che dica
+«scuola». Sul corpus pubblico non cambia niente: moduli in bianco fermi,
+prosa vera ferma.
+
 ### «Di Salvo Andrea <a.disalvo@…>» usciva come «Di Salvo {{NAME_1}}»
 
 **Trovato su documenti veri**, non su un banco: un'intestazione di posta con

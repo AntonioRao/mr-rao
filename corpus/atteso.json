@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.26.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "7eb80a0ceeb7a31157f89d70675930216f2ded0aa3eefa0b1e73917ae72e8ca2",
+      "mr_rao/privacy.py": "c29bd1d0d8af95f5f70a30fa9710cd59c825c5397092edef33563506a3036775",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -4105,6 +4105,97 @@
       "report": {
         "counts": {
           "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "sigla-01": {
+      "gruppo": "nomi",
+      "uscita": "IC MAZZARRONE - LICODIA",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "sigla-02": {
+      "gruppo": "nomi",
+      "uscita": "I.C.S. Leonardo Da Vinci II- Belpasso",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Le••••do",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          },
+          {
+            "kind": "nome",
+            "sample": "Vi•ci",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "sigla-03": {
+      "gruppo": "nomi",
+      "uscita": "IC MADRE Teresa di Calcutta",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "MA••••••••sa",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          },
+          {
+            "kind": "nome",
+            "sample": "Te••sa",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 2,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "sigla-04": {
+      "gruppo": "nomi",
+      "uscita": "ho mandato un sms a {{NAME_1}}",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "sigla-05": {
+      "gruppo": "nomi",
+      "uscita": "Il referente ASL e' {{NAME_1}}",
+      "report": {
+        "counts": {
+          "names": 1
         },
         "total": 1,
         "suspects": [],
