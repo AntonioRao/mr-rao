@@ -47,6 +47,29 @@ restano intatti, e c'è un banco che lo pretende.
 `san`, `santa`, `santo` restano fuori dall'insieme: aprono i toponimi (San
 Giovanni, Santa Croce), che sui documenti sono molti più dei cognomi.
 
+### «Ciao Pietro»: il saluto dichiara che quello che segue è una persona
+
+Un nome di battesimo **da solo** non basta mai, ed è una scelta pagata:
+«Rosa», «Vera», «Costa», «Villa» sono nomi *e* parole italiane, e
+sostituirli costerebbe più di quanto renda. Un nome isolato resta quindi un
+sospetto — sta nel rapporto, resta nel testo.
+
+Ma «Ciao Pietro» non è un nome isolato: davanti ha una formula che dice
+cosa sia. È lo stesso genere di prova del titolo professionale, del nome
+accanto a un indirizzo di posta e della firma in chiusura, che il motore già
+usa. Una formula di **chiusura** dichiara che quello che segue è una
+persona; una di **apertura** fa lo stesso all'inizio — ed è il caso più
+frequente nelle email e nelle chat, dove il cognome spesso non c'è affatto.
+
+Il confine è tutta la sicurezza della regola: dopo un saluto ci finisce di
+tutto — «Ciao Team», «Salve Ufficio», «Gentile Cliente» — e l'essere
+maiuscola non prova niente. La parola dev'essere **negli elenchi dei nomi**,
+o la regola prenderebbe la prima parola di ogni messaggio che comincia con
+«Ciao».
+
+Il caso generale non si è mosso: «Pietro» da solo, senza saluto davanti,
+continua a non essere toccato, e c'è un banco che lo pretende.
+
 ### Ottantacinque cognomi composti in più negli elenchi
 
 La regola generica si appoggia al nome di battesimo davanti: «Walter Di

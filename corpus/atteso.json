@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.25.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "87eb970940a4e28b1c4d374f1fff6f3475fc2b2f73092ea09e8d74517a467410",
+      "mr_rao/privacy.py": "a8b8c19251d21e6f0f3cc72f02484155286c35599bf78204394854658bab777a",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -3710,6 +3710,75 @@
           }
         ],
         "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "saluto-01": {
+      "gruppo": "nomi",
+      "uscita": "Ciao {{NAME_1}}, ci vediamo domani.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "saluto-02": {
+      "gruppo": "nomi",
+      "uscita": "Caro {{NAME_1}}, grazie di tutto.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "saluto-03": {
+      "gruppo": "nomi",
+      "uscita": "Gentile Cliente, la informiamo che il servizio e' attivo.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "saluto-04": {
+      "gruppo": "nomi",
+      "uscita": "Ciao Team, buon lavoro a tutti.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "saluto-05": {
+      "gruppo": "nomi",
+      "uscita": "Salve Ufficio Protocollo, in allegato la pratica.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
         "detected": [],
         "detected_counts": {},
         "detected_total": 0

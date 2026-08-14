@@ -982,6 +982,27 @@ _RE_FIRMA_IT = re.compile(
     rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
 )
 
+# Le formule di **apertura**. Sono l'altra meta' della firma: una chiusura
+# dichiara che quello che segue e' una persona, e un saluto fa lo stesso
+# all'inizio.
+#
+# Serve perche' un nome di battesimo **da solo** non basta mai — «Rosa»,
+# «Vera», «Costa» sono nomi e parole insieme, e sostituirli costerebbe piu'
+# di quanto renda. «Ciao Pietro» pero' non e' un nome isolato: e' un nome con
+# davanti qualcosa che dice cosa sia, ed e' lo stesso genere di prova del
+# titolo professionale e dell'indirizzo di posta accanto.
+#
+# E' il caso piu' frequente nelle email e nelle chat, dove il cognome spesso
+# non c'e' affatto.
+_APERTURE_IT = (
+    r"ciao|caro|cara|carissimo|carissima|gentile|gentilissimo|gentilissima|"
+    r"egregio|egregia|salve|buongiorno|buonasera|buondi'|buonasera a"
+)
+_RE_SALUTO_NOME = re.compile(
+    rf"(?<!\w)(?i:{_APERTURE_IT})[ \t]+"
+    rf"(?P<name>{_TOK}(?:{_SP}{_TOK}){{0,2}})"
+)
+
 # «Il Ministro: GIORGETTI» — un ruolo, due punti, e un cognome solo.
 #
 # E' la forma con cui si firmano gli atti pubblici italiani, e nessuna delle
@@ -2792,6 +2813,34 @@ def _scrub_names(
         return m.group(0).replace(name, report.segnaposto("names", "{{NAME}}", name), 1)
 
     text = _RE_FIRMA_IT.sub(_firma_sub, text)
+
+    # 2-quinquies. Il saluto che apre: «Ciao Pietro», «Gentile Anna».
+    def _saluto_sub(m: re.Match) -> str:
+        name = m.group("name")
+        tokens = name.split()
+        # La coda si pota come dopo un titolo: «Ciao Marco, ci vediamo»
+        # arriva qui con «Marco» e le parole che seguono, e quelle non sono
+        # del nome.
+        while tokens and _is_common_in_context(tokens, len(tokens) - 1):
+            if _cognome_appoggiato(tokens):
+                break
+            tokens.pop()
+        if not tokens or any(_is_entity_word(t) for t in tokens):
+            return m.group(0)
+        # **La parola dev'essere negli elenchi.** Dopo un saluto ci finisce
+        # di tutto — «Ciao Team», «Salve Ufficio», «Gentile Cliente» — e il
+        # solo fatto di essere maiuscola non dice niente: qui la prova non e'
+        # la forma della parola, e' che il saluto annunci qualcuno di cui
+        # sappiamo il nome. Senza questa riga la regola prenderebbe la prima
+        # parola maiuscola di ogni messaggio che comincia con «Ciao».
+        primo = tokens[0].lower().strip("'’-.,;:")
+        if primo not in FIRST_NAMES and primo not in SURNAMES:
+            return m.group(0)
+        kept = " ".join(tokens)
+        segno = report.segnaposto("names", "{{NAME}}", kept)
+        return m.group(0).replace(name, segno + name[len(kept):], 1)
+
+    text = _RE_SALUTO_NOME.sub(_saluto_sub, text)
 
     # 3. Elenchi (nome proprio o cognome noto) e, se abilitata,
     #    4. euristica: due parole maiuscole che non sono parole italiane.
