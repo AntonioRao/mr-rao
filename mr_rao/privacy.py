@@ -3044,6 +3044,31 @@ def _scrub_names(
         tokens = name.split()
         dropped = []
         while tokens and _is_common_in_context(tokens, 0):
+            # **La particella del cognome composto non si butta via.**
+            #
+            # `Di Salvo Andrea <a.disalvo@...>` usciva come `Di Salvo
+            # {{NAME_1}}`: la potatura di testa toglie le parole comuni una
+            # per una, e `di` e `salvo` sono tutte e due parole italiane
+            # comunissime -- una preposizione e un avverbio. Restava
+            # «Andrea», cioe' **mezzo nome**, che e' il modo peggiore di
+            # sbagliare: il documento sembra trattato e il cognome che
+            # identifica la persona e' ancora li'.
+            #
+            # Trovato su documenti veri (intestazioni di posta con decine di
+            # destinatari nella forma «Cognome Nome»), non su un banco.
+            #
+            # La condizione e' la stessa del riconoscitore delle coppie e
+            # non e' «la parola sembra un cognome»: la **forma incollata**
+            # dev'essere un cognome degli elenchi, `di`+`salvo` = `disalvo`.
+            # Senza quella prova, qualunque «salvo Mario <...>» diventerebbe
+            # un cognome composto.
+            part = tokens[0].lower().strip("'’-.,;:")
+            if (
+                len(tokens) >= 2
+                and part in _PARTICELLE_COGNOME
+                and _cognome_composto_noto(part, tokens[1].lower().strip("'’-.,;:"))
+            ):
+                break
             dropped.append(tokens.pop(0))
         if not tokens:
             return m.group(0)

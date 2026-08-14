@@ -241,3 +241,53 @@ def test_la_particella_non_vale_come_riscontro() -> None:
     guarda il caso peggiore: due parole comuni legate da una particella.
     """
     assert redigi("Della Bella", prosa=False) == "Della Bella"
+
+
+class TestCompostoAccantoAUnaEmail:
+    """«Di Salvo Andrea <a.disalvo@...>» usciva come «Di Salvo {{NAME_1}}».
+
+    **Trovato su documenti veri**, non su un banco: un'intestazione di posta
+    con decine di destinatari scritti «Cognome Nome». La regola che riconosce
+    il nome accanto a un indirizzo pota le parole comuni in testa, una per
+    una — e `di` e `salvo` sono tutte e due parole italiane comunissime, una
+    preposizione e un avverbio. Restava «Andrea».
+
+    È **mezzo nome**, cioè il modo peggiore di sbagliare: il documento sembra
+    trattato e il cognome che identifica la persona è ancora lì. È lo stesso
+    difetto per cui `_cognome_appoggiato` era stata scritta, rientrato da
+    un'altra porta — quella dell'indirizzo di posta.
+    """
+
+    @PROSA
+    @pytest.mark.parametrize(
+        "testo",
+        [
+            "Di Salvo Andrea <andrea.disalvo@esempio.it>",
+            "Lo Bianco Giuseppe <g.lobianco@esempio.it>",
+            "De Luca Anna <a.deluca@esempio.it>",
+            "Del Vecchio Marco <m.delvecchio@esempio.it>",
+            "La Rocca Silvia <s.larocca@esempio.it>",
+        ],
+    )
+    def test_il_composto_non_resta_indietro(self, testo: str, prosa: bool) -> None:
+        fuori = redigi(testo, prosa)
+        assert "{{NAME" in fuori
+        # Il punto non è che *qualcosa* sia sparito: è che non resti in
+        # chiaro la parte che identifica. Senza questa riga il banco
+        # passerebbe anche con mezzo nome sostituito.
+        for pezzo in testo.split(" <")[0].split():
+            assert pezzo not in fuori, f"{pezzo} è rimasto in chiaro"
+
+    @PROSA
+    @pytest.mark.parametrize(
+        "testo,resta",
+        [
+            # La prova è la **forma incollata**: senza, qualunque parola
+            # comune davanti a un indirizzo diventerebbe un cognome.
+            ("il pagamento e' salvo buon fine <info@esempio.it>", "salvo buon fine"),
+            ("Contatta mario@esempio.it per il resto", "Contatta"),
+            ("Scrivi a supporto@esempio.it", "Scrivi a"),
+        ],
+    )
+    def test_le_parole_comuni_restano_parole(self, testo: str, resta: str, prosa: bool) -> None:
+        assert resta in redigi(testo, prosa)

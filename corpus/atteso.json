@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.26.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "7e1117caaa6805bc912f5e929a7af5b02a9578e694f5057402a3424cedfc0ea5",
+      "mr_rao/privacy.py": "7eb80a0ceeb7a31157f89d70675930216f2ded0aa3eefa0b1e73917ae72e8ca2",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -4015,6 +4015,96 @@
       "report": {
         "counts": {
           "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "appoggiato-01": {
+      "gruppo": "nomi",
+      "uscita": "{{NAME_1}} ha firmato il verbale.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "appoggiato-02": {
+      "gruppo": "nomi",
+      "uscita": "Il documento e' firmato da {{NAME_1}}.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "appoggiato-03": {
+      "gruppo": "nomi",
+      "uscita": "Gentile Cliente, la informiamo che la pratica e' conclusa.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-email-01": {
+      "gruppo": "nomi",
+      "uscita": "{{NAME_1}} <{{EMAIL_1}}>",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-email-02": {
+      "gruppo": "nomi",
+      "uscita": "{{NAME_1}} <{{EMAIL_1}}>",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-email-03": {
+      "gruppo": "nomi",
+      "uscita": "Il pagamento e' salvo buon fine <{{EMAIL_1}}>",
+      "report": {
+        "counts": {
+          "emails": 1
         },
         "total": 1,
         "suspects": [],

@@ -40,6 +40,25 @@ sostituito. `casa` è nell'elenco, l'adiacenza è pulita, e nessuna regola può
 distinguere quella forma da «casa Giuseppe Verdi». C'è un test che lo
 congela, perché sia una scelta e non una sorpresa.
 
+### «Di Salvo Andrea <a.disalvo@…>» usciva come «Di Salvo {{NAME_1}}»
+
+**Trovato su documenti veri**, non su un banco: un'intestazione di posta con
+decine di destinatari scritti «Cognome Nome». La regola che riconosce il nome
+accanto a un indirizzo pota le parole comuni in testa, una per una — e `di` e
+`salvo` sono tutte e due parole italiane comunissime, una preposizione e un
+avverbio. Restava «Andrea».
+
+È **mezzo nome**, cioè il modo peggiore di sbagliare: il documento sembra
+trattato e il cognome che identifica la persona è ancora lì. È lo stesso
+difetto per cui la regola sul cognome appoggiato era stata scritta, rientrato
+dalla porta dell'indirizzo di posta.
+
+Ora la potatura si ferma quando la parola in testa è la **particella di un
+cognome composto**, con la prova di sempre: la forma incollata dev'essere un
+cognome degli elenchi (`di`+`salvo` = `disalvo`). Vale per `Di Salvo`,
+`Lo Bianco`, `De Luca`, `Del Vecchio`, `La Rocca`. Il contrappeso è nel
+banco: «il pagamento è salvo buon fine <info@…>» resta una frase.
+
 ### Due controlli che non potevano fallire
 
 * Il banco `bench_nomi_isolati.py` confrontava le opzioni di serie con
