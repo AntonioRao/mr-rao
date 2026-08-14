@@ -1,6 +1,6 @@
 # Changelog
 
-## Non ancora rilasciato
+## 1.27.0 — Uno stadio non è una persona, e «Di Salvo» non resta indietro
 
 ### Le intitolazioni diventavano persone: «stadio Giuseppe Meazza» spariva
 
