@@ -47,6 +47,25 @@ restano intatti, e c'è un banco che lo pretende.
 `san`, `santa`, `santo` restano fuori dall'insieme: aprono i toponimi (San
 Giovanni, Santa Croce), che sui documenti sono molti più dei cognomi.
 
+### Dopo un titolo professionale usciva mezzo nome
+
+Stessa causa, porta diversa, e questa faceva più danno. La regola del
+titolo pota la coda finché trova parole comuni, per non inghiottire la
+frase che segue — è il motivo per cui esiste. Su un cognome composto la
+potatura lo smontava un pezzo per volta: prima «Salvo», che è anche una
+parola, poi «Di», che è una preposizione. Restava:
+
+    il sig. {{NAME_1}} Di Salvo
+
+Il nome tolto e il cognome lasciato. Ora la potatura sa riconoscere la
+particella: si ferma se la forma incollata è un cognome degli elenchi, o se
+dietro la particella c'è un nome di battesimo che negli elenchi c'è.
+
+I casi del banco finiscono apposta con una parola comune — Di **Salvo**, Di
+**Natale**, Del **Vecchio** — perché sono gli unici che innescano la
+potatura: con una coda qualunque il banco resterebbe verde anche col
+difetto rimesso.
+
 ## 1.25.0 — Il rapporto che non vedeva l'età, e l'anteprima che un .docx non può avere come il PDF
 
 Tre cose. Nessuna è una funzione nuova nel senso di «adesso fa altro»:

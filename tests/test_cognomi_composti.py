@@ -85,6 +85,47 @@ def test_composto_noto_senza_nome_di_battesimo(prosa: bool) -> None:
     assert "{{NAME_1}}" in fuori
 
 
+class TestDopoUnTitoloProfessionale:
+    """Il posto dove il difetto faceva più male: usciva **mezzo nome**.
+
+    La regola del titolo pota la coda finché trova parole comuni, per non
+    inghiottire la frase che segue. Su un cognome composto la potatura lo
+    smontava un pezzo per volta — prima «Salvo» (parola comune), poi «Di»
+    (preposizione) — e restava `il sig. {{NAME_1}} Di Salvo`: il documento
+    sembra trattato e il cognome che identifica la persona è ancora lì.
+    """
+
+    @PROSA
+    @pytest.mark.parametrize(
+        "testo,resto",
+        [
+            # I primi tre finiscono con una parola comune — «salvo»,
+            # «natale», «vecchio» — ed è quello che innesca la potatura.
+            # Senza casi così il banco resterebbe verde anche col difetto
+            # rimesso: gli altri passano perché la coda non è comune.
+            ("Il sig. Walter Di Salvo", ""),
+            ("Il sig. Marco Di Natale", ""),
+            ("Il sig. Paolo Del Vecchio", ""),
+            ("Il dott. Marco Di Pietro ha risposto", " ha risposto"),
+            ("Il sig. Luca De Luca", ""),
+            ("Il rag. Mario D'Amico", ""),
+            ("La dott.ssa Chiara Lo Bianco", ""),
+        ],
+    )
+    def test_il_titolo_non_lascia_indietro_il_cognome(
+        self, testo: str, resto: str, prosa: bool
+    ) -> None:
+        fuori = redigi(testo, prosa)
+        assert fuori.endswith("{{NAME_1}}" + resto)
+
+    @PROSA
+    def test_la_potatura_di_coda_continua_a_funzionare(self, prosa: bool) -> None:
+        # Il motivo per cui la potatura esiste: senza, il titolo si mangia
+        # la frase che segue. Allentandola per i composti non deve
+        # allentarsi per tutto il resto.
+        assert redigi("il dott. Marco Conti", prosa) == "il dott. {{NAME_1}}"
+
+
 class TestNonDeveRompereQuelloCheFunzionava:
     """La particella e' una preposizione: allentare qui costa caro.
 

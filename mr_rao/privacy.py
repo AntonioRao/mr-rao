@@ -2025,8 +2025,22 @@ def _cognome_appoggiato(tokens: list[str]) -> bool:
         return False
     ultimo = tokens[-1].lower().strip("'’-.,;:")
     prima = tokens[-2].lower().strip("'’-.,;:")
-    return (ultimo in SURNAMES
-            and (prima in FIRST_NAMES or prima in SURNAMES))
+    if ultimo in SURNAMES and (prima in FIRST_NAMES or prima in SURNAMES):
+        return True
+    # Il cognome composto, dove fra il nome e il cognome c'e' la particella.
+    #
+    # Senza questo ramo la potatura di coda smontava il nome un pezzo per
+    # volta: «il sig. Walter Di Salvo» perdeva prima «Salvo» (parola comune),
+    # poi «Di» (preposizione), e usciva `il sig. {{NAME_1}} Di Salvo` — il
+    # nome tolto e il cognome lasciato. E' lo stesso difetto per cui questa
+    # funzione era stata scritta, rientrato da un'altra porta.
+    if prima in _PARTICELLE_COGNOME:
+        if _cognome_composto_noto(prima, ultimo):
+            return True
+        if len(tokens) >= 3 and (ultimo in SURNAMES or ultimo in FIRST_NAMES):
+            avanti = tokens[-3].lower().strip("'’-.,;:")
+            return avanti in FIRST_NAMES or avanti in SURNAMES
+    return False
 
 
 def _is_common_in_context(tokens: list[str], i: int) -> bool:
