@@ -265,3 +265,43 @@ def test_lo_stile_conta_anche_col_profilo():
             data={"profile": "default", "privacy_filter": "true",
                   "privacy_stile": "modulo"}):
         assert _merge_privacy(request.form, {}).prosa is False
+
+
+def test_i_nomi_da_soli_arrivano_al_motore_anche_col_profilo():
+    """La casella «togli anche i nomi da soli» deve comandare.
+
+    E' l'ultima arrivata delle opzioni che **non** sono riconoscitori, e
+    quindi non stanno ne' nei profili ne' in `FIELD_DEFAULTS`: vanno lette a
+    mano nel ramo col profilo, che e' quello che l'interfaccia percorre
+    sempre. Dimenticarla la renderebbe decorativa — si spunta e non cambia
+    niente — ed e' esattamente il difetto per cui questo file esiste.
+
+    Si prova nei due versi: acceso vince sul predefinito spento, e assente
+    lascia il predefinito. Solo il primo verso non basterebbe: un
+    `names_alone=True` cablato lo supererebbe.
+    """
+    from flask import Flask, request
+
+    from mr_rao.routes import _merge_privacy
+
+    app = Flask(__name__)
+    base = {"profile": "default", "privacy_filter": "true"}
+    with app.test_request_context("/", method="POST",
+                                  data={**base, "privacy_names_alone": "true"}):
+        assert _merge_privacy(request.form, {}).names_alone is True
+    with app.test_request_context("/", method="POST", data=base):
+        assert _merge_privacy(request.form, {}).names_alone is False
+
+
+def test_la_casella_dei_nomi_da_soli_e_nella_pagina():
+    """Una funzione che dalla GUI non si raggiunge, per chi usa il programma
+    non esiste. L'identificativo della casella e' il nome del campo che
+    `app.js` spedisce: se cambia in un posto solo, la casella smette di
+    comandare senza che niente lo dica."""
+    from pathlib import Path
+
+    radice = Path(__file__).resolve().parent.parent
+    pagina = (radice / "templates" / "index.html").read_text(encoding="utf-8")
+    js = (radice / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    assert 'id="privacy-names_alone"' in pagina
+    assert '"names_alone"' in js

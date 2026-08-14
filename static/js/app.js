@@ -98,6 +98,10 @@
     // con lo stesso prefisso, quindi sta in questo elenco. Lato Python e'
     // nominato a mano in `options_from_form` per lo stesso motivo.
     "numerati",
+    // Come `numerati`: non dice quale dato cercare, dice quanta prova
+    // serve. Senza questa riga la casella nella pagina non partirebbe con
+    // la richiesta, cioe' sarebbe decorativa.
+    "names_alone",
   ];
 
   const PROFILE_HINTS = {

@@ -1163,6 +1163,45 @@ _RE_NAME_PAIR_UPPER = re.compile(rf"(?<![\w{{]){_TOK_UP}(?:{_SP}{_TOK_UP}){{1,2}
 # altro e nessuno ci penserebbe.
 _RE_LONE_TOKEN = re.compile(rf"(?<![\w{{]){_TOK}(?![\w}}])")
 
+# Le parole dopo le quali un nome di battesimo **non e' una persona**.
+#
+# Servono solo alla regola sul nome isolato (`names_alone`), e sono l'unica
+# cosa che la rende utilizzabile: «Umberto» in mezzo a una frase e' un
+# collega, «ospedale Umberto» e' un edificio, «via Umberto» e' un indirizzo,
+# «Sant'Umberto» e' un paese. La parola sono sempre **le stesse lettere**: a
+# distinguerle e' solo cio' che sta davanti.
+#
+# Tre gruppi, e nessuno dei tre e' stato immaginato:
+#   * le parole d'ente, che il motore ha gia' e usa come scudo sulle coppie;
+#   * i tipi di via, che il riconoscitore di indirizzi ha gia';
+#   * i santi e le intitolazioni, che sono il caso rimasto fuori da tutti e
+#     due -- «stadio Giuseppe», «premio Italo», «ponte Vittorio», «villa Ada».
+#
+# `sala`, `casa`, `centro` sono anche cognomi: qui non fa danno, perche'
+# questo elenco **non sostituisce mai**, impedisce soltanto.
+_PRIMA_NON_E_PERSONA = frozenset(
+    {
+        "san", "santa", "santo", "sant", "santi", "beato", "beata",
+        "stadio", "palastadio", "palazzetto", "palazzo", "padiglione",
+        "ponte", "viadotto", "tunnel", "traforo", "molo", "banchina",
+        "premio", "torneo", "trofeo", "concorso", "borsa", "medaglia",
+        "villa", "parco", "giardino", "giardini", "campus", "complesso",
+        "centro", "polo", "casa", "casale", "cascina", "masseria",
+        "hotel", "albergo", "bar", "ristorante", "trattoria", "osteria",
+        "pizzeria", "residence", "residenza", "agriturismo", "camping",
+        "aula", "sala", "salone", "atrio", "cappella", "cripta",
+        "monumento", "statua", "targa", "lapide", "obelisco", "fontana",
+        "nave", "motonave", "traghetto", "treno", "locomotiva",
+        "quartiere", "rione", "frazione", "borgo", "contrada", "localita",
+        "località", "zona", "comprensorio",
+        # Le due che il banco ha aggiunto dopo averle viste passare: il nome
+        # proprio diventato **prodotto** («pizza Margherita») e l'uscita
+        # autostradale intitolata a una persona.
+        "pizza", "pizze", "torta", "torte", "gelato", "cocktail", "panino",
+        "uscita", "casello", "svincolo", "autostradale", "raccordo",
+    }
+)
+
 # Nomi propri che sono anche parole comuni: da soli non bastano.
 _AMBIGUOUS_ALONE = frozenset(
     {
@@ -1268,6 +1307,18 @@ class PrivacyOptions:
     # documento e non porta da nessuna parte; il dizionario numero->valore
     # e' P6.9, sta fermo, e ha un'altra ragione di stare fermo.
     numerati: bool = True
+    #: Il nome di battesimo **da solo**, quando non e' anche una parola.
+    #:
+    #: Oggi un nome isolato e' un sospetto, mai una sostituzione: «Rosa»,
+    #: «Vera», «Costa» sono nomi *e* parole italiane. Quella ragione pero'
+    #: non vale per «Walter», «Nazzareno», «Ludovica», che parole non sono —
+    #: e sono l'88% dell'elenco (891 su 1017).
+    #:
+    #: **Spenta di serie**, e non per prudenza generica: cambia il verso di
+    #: una rinuncia vecchia, quindi chi ha costruito qualcosa sull'uscita di
+    #: ieri deve poterla ritrovare identica spegnendola. Il numero che dice
+    #: quanto costa lo stampa `scripts/bench_nomi_isolati.py`.
+    names_alone: bool = False
     # QUI C'ERA `name_guess`, RITIRATA NELLA 1.13.0.
     #
     # Era l'euristica del cognome: due parole maiuscole che non sembrano
@@ -2691,8 +2742,44 @@ def _scrub_addresses(text: str, report: RedactionReport) -> str:
     return _RE_ADDRESS.sub(_sub, text)
 
 
+def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
+    """Davanti al nome c'e' una parola che dice «edificio», non «persona».
+
+    Si guarda **l'ultima parola prima**, saltando articoli e preposizioni
+    articolate: nei documenti si scrive «l'ospedale Umberto», «allo stadio
+    Giuseppe», «della villa Ada», e con la sola parola immediatamente
+    precedente la guardia non scatterebbe quasi mai.
+    """
+    # L'apostrofo **separa**, non fa parte della parola: nei documenti si
+    # scrive «all'ospedale», «l'istituto», «dell'aeroporto», e tenendolo
+    # dentro il token la guardia leggeva «all'ospedale» — che in nessun
+    # elenco c'e' — e lasciava passare tre intitolazioni su cinque. Trovato
+    # dal banco, non a mente.
+    parole = re.findall(r"[^\W\d_]+", testo[:posizione].lower())
+    salta = {
+        "il", "lo", "la", "i", "gli", "le", "un", "uno", "una", "l", "dell",
+        "all", "nell", "sull", "dall", "del", "dello", "della", "dei", "degli",
+        "delle", "al", "allo", "alla", "ai", "agli", "alle", "nel", "nello",
+        "nella", "nei", "negli", "nelle", "dal", "dallo", "dalla", "dai",
+        "dagli", "dalle", "sul", "sullo", "sulla", "sui", "sugli", "sulle",
+        "di", "a", "da", "in", "su", "con", "per", "tra", "fra", "e",
+    }
+    for parola in reversed(parole):
+        if parola in salta:
+            continue
+        return (
+            parola in _PRIMA_NON_E_PERSONA
+            or parola in _ENTITY_WORDS
+            or re.fullmatch(_ADDRESS_KW, parola) is not None
+        )
+    return False
+
+
 def _scrub_names(
-    text: str, report: RedactionReport, prosa: bool | None = None
+    text: str,
+    report: RedactionReport,
+    prosa: bool | None = None,
+    soli: bool = False,
 ) -> str:
     """Sostituisce i nomi di persona, dal segnale piu' forte al piu' debole.
 
@@ -3075,6 +3162,17 @@ def _scrub_names(
             return m.group(0)
         if tok not in FIRST_NAMES and tok not in SURNAMES:
             return m.group(0)
+        # Il nome di battesimo che parola italiana non e', quando davanti non
+        # ha niente che dica «qui c'e' un edificio».
+        #
+        # E' P9.2 del backlog, ed e' spenta di serie: cambia il verso di una
+        # rinuncia vecchia, e chi ha costruito qualcosa sull'uscita di ieri
+        # deve poterla ritrovare identica. Vale **solo per i nomi di
+        # battesimo**: un cognome isolato -- «Esposito», «Ferraris» -- resta
+        # un sospetto, perche' li' la parola da sola non dice se sia una
+        # persona o un'azienda che porta quel cognome.
+        if soli and tok in FIRST_NAMES and not _dopo_una_intitolazione(text, m.start()):
+            return report.segnaposto("names", "{{NAME}}", m.group(0))
         # Una parola sola, in elenco, senza nient'altro intorno: e' il
         # segnale piu' debole che abbiamo, e sostituire su quello vuol dire
         # cancellare «Costa», «Monte» e «Villa» ogni volta che compaiono in
@@ -3844,7 +3942,7 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("addresses_en", EN, "addresses", 71, _scrub_en_addresses),
     Passo(
         "names", IT, "names", 90,
-        lambda t, r, o: _scrub_names(t, r, prosa=o.prosa),
+        lambda t, r, o: _scrub_names(t, r, prosa=o.prosa, soli=o.names_alone),
     ),
     # Stessa fascia dei nomi italiani: se i due pacchetti sono accesi
     # insieme gira prima quello italiano, che e' piu' aggressivo, e questo
@@ -4274,6 +4372,10 @@ def options_from_form(form) -> PrivacyOptions:
         # quello della dataclass, non `True` scritto qui: uno solo dei due
         # posti puo' essere la verita'.
         numerati=flag("privacy_numerati", PrivacyOptions.numerati),
+        # Come `numerati`: non e' un riconoscitore -- non dice *quale dato*
+        # cercare, dice quanta prova serve su un dato che il motore trova
+        # gia' -- quindi non sta in `FIELD_DEFAULTS` e va nominata qui.
+        names_alone=flag("privacy_names_alone", PrivacyOptions.names_alone),
         **{k: flag("privacy_" + k, d) for k, d in FIELD_DEFAULTS.items()},
     )
 
@@ -4289,5 +4391,8 @@ def options_from_dict(data: dict | None) -> PrivacyOptions:
         mai=termini_da(data.get("privacy_mai")),
         segnala=categorie_da(data.get("privacy_segnala")),
         numerati=bool(data.get("privacy_numerati", PrivacyOptions.numerati)),
+        names_alone=bool(
+            data.get("privacy_names_alone", PrivacyOptions.names_alone)
+        ),
         **{k: bool(data.get("privacy_" + k, d)) for k, d in FIELD_DEFAULTS.items()},
     )

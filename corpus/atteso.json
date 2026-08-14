@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.25.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "1d70770c04975326312f85182d6147aaa3946474116c6060154d3816eb499c07",
+      "mr_rao/privacy.py": "91334a2a3a16a3433f167d56b46cfbec775c5be0d65177fe04ae1bc5462e6c80",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -3811,6 +3811,85 @@
     "composto-13": {
       "gruppo": "nomi",
       "uscita": "Trattoria La Vecchia Osteria, Immobiliare La Rocca",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "solo-01": {
+      "gruppo": "nomi",
+      "uscita": "Ho parlato con {{NAME_1}} e mi ha detto di si.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "solo-02": {
+      "gruppo": "nomi",
+      "uscita": "Ho parlato con Pietro e mi ha detto di si.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Pi••ro",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "solo-03": {
+      "gruppo": "nomi",
+      "uscita": "Il paziente e stato trasferito all'ospedale Umberto.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Um•••to",
+            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "solo-04": {
+      "gruppo": "nomi",
+      "uscita": "Passeggiata a villa Ada domenica mattina.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "solo-05": {
+      "gruppo": "nomi",
+      "uscita": "Il dossier Ferraris e' pronto.",
       "report": {
         "counts": {},
         "total": 0,

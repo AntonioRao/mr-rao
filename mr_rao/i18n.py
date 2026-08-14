@@ -681,6 +681,31 @@ TESTI: dict[str, dict[str, str]] = {
               "is the third state: looked for, found, deliberately left in "
               "the clear, and written down in the report.",
     },
+    # Il testo dice il **prezzo**, non solo il beneficio: e' un'opzione che
+    # sposta una soglia, e chi la accende deve sapere in che direzione.
+    "tip_names_alone": {
+        "it": "Spento di default. Di serie un nome di battesimo da solo — "
+              "«Pietro», senza cognome e senza titolo — viene segnalato nel "
+              "rapporto ma lasciato nel testo, perche' «Rosa», «Vera» e "
+              "«Costa» sono nomi e parole insieme. Acceso, i nomi che parole "
+              "non sono vengono tolti anche da soli: sono l'88% dell'elenco. "
+              "Restano fuori quelli che una parola italiana la sembrano "
+              "(Vittorio, Federica) e quelli preceduti da un edificio o da un "
+              "indirizzo — «ospedale Umberto», «via Vittorio», «villa Ada» — "
+              "che persone non sono.",
+        "en": "Off by default. Out of the box a lone first name — «Pietro», "
+              "with no surname and no title — is reported but left in the "
+              "text, because many Italian first names are also common words. "
+              "Turn it on and the ones that are not words get replaced on "
+              "their own; names preceded by a building or a street keep "
+              "their place.",
+    },
+    "opt_names_alone_titolo": {
+        "it": "Togli anche i nomi da soli", "en": "Remove lone first names",
+    },
+    "opt_names_alone_desc": {
+        "it": "«Pietro» senza cognome", "en": "«Pietro» with no surname",
+    },
     "opt_numerati_titolo": {"it": "Numera i segnaposto", "en": "Number the placeholders"},
     "opt_numerati_desc": {
         "it": "{{NAME_1}}, {{NAME_2}}", "en": "{{NAME_1}}, {{NAME_2}}",

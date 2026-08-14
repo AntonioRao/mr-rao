@@ -135,6 +135,16 @@ def _merge_privacy(form, profile: dict) -> PrivacyOptions:
             if "privacy_numerati" in form
             else PrivacyOptions.numerati
         ),
+        # Stessa storia della numerazione, e stesso motivo per cui va letta
+        # **qui**: non e' un riconoscitore, quindi non sta ne' nei profili ne'
+        # in `FIELD_DEFAULTS`, e questo e' il ramo che l'interfaccia percorre
+        # sempre. Dimenticarla renderebbe la casella decorativa -- il difetto
+        # per cui esiste `tests/test_gui_parity.py`.
+        names_alone=(
+            _truthy(form.get("privacy_names_alone"), PrivacyOptions.names_alone)
+            if "privacy_names_alone" in form
+            else PrivacyOptions.names_alone
+        ),
         **{
             k: (_truthy(form.get("privacy_" + k), v) if "privacy_" + k in form else v)
             for k, v in base.items()

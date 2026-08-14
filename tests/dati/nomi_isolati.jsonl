@@ -1,0 +1,42 @@
+{"id": "p-01", "atteso": "persona", "bersaglio": "Pietro", "testo": "Ho parlato con Pietro e mi ha detto di sì.", "perche": "Il caso segnalato: un nome di battesimo in una frase, senza cognome."}
+{"id": "p-02", "atteso": "persona", "bersaglio": "Walter", "testo": "L'appuntamento con Walter è alle 15.", "perche": "Nome non ambiguo dentro una frase normale."}
+{"id": "p-03", "atteso": "persona", "bersaglio": "Nazzareno", "testo": "Chiedi a Nazzareno se ha finito la relazione.", "perche": "Nome raro: nessuna parola italiana ci somiglia."}
+{"id": "p-04", "atteso": "persona", "bersaglio": "Antonio", "testo": "Antonio non è venuto alla riunione di ieri.", "perche": "Nome a inizio frase, che è la posizione più insidiosa."}
+{"id": "p-05", "atteso": "persona", "bersaglio": "Vittorio", "testo": "Il collega Vittorio si occupa della pratica.", "perche": "Lo stesso nome che negli odonimi non è una persona."}
+{"id": "p-06", "atteso": "persona", "bersaglio": "Emanuele", "testo": "Il pacco è stato consegnato a Emanuele in portineria.", "perche": "Come sopra: «Vittorio Emanuele» è una via, «Emanuele» qui è il portiere."}
+{"id": "p-07", "atteso": "persona", "bersaglio": "Leonardo", "testo": "Leonardo mi ha girato il preventivo stamattina.", "perche": "Nome di un aeroporto, di un istituto e di una persona."}
+{"id": "p-08", "atteso": "persona", "bersaglio": "Umberto", "testo": "Umberto ha chiesto una proroga di dieci giorni.", "perche": "Nome di un ospedale, di un corso e di una persona."}
+{"id": "p-09", "atteso": "persona", "bersaglio": "Giuseppe", "testo": "La firma di Giuseppe manca in fondo al modulo.", "perche": "Nome di uno stadio e di mezza Italia."}
+{"id": "p-10", "atteso": "persona", "bersaglio": "Alessandra", "testo": "Alessandra segue il cliente da tre anni.", "perche": "Nome femminile non ambiguo."}
+{"id": "p-11", "atteso": "persona", "bersaglio": "Riccardo", "testo": "Ne ho parlato con Riccardo, è d'accordo.", "perche": "Nome in mezzo a una frase, dopo una virgola."}
+{"id": "p-12", "atteso": "persona", "bersaglio": "Federica", "testo": "Federica ti richiama nel pomeriggio.", "perche": "Nome a inizio frase."}
+{"id": "p-13", "atteso": "persona", "bersaglio": "Corrado", "testo": "Il verbale è stato redatto da Corrado.", "perche": "Nome in coda alla frase."}
+{"id": "p-14", "atteso": "persona", "bersaglio": "Ludovica", "testo": "Ludovica ha aperto il fascicolo il 3 marzo.", "perche": "Nome raro davanti a una data."}
+{"id": "p-15", "atteso": "persona", "bersaglio": "Gianluca", "testo": "Gianluca è il referente tecnico del progetto.", "perche": "Nome composto scritto attaccato."}
+{"id": "p-16", "atteso": "persona", "bersaglio": "Nicoletta", "testo": "Passa la pratica a Nicoletta, per favore.", "perche": "Nome femminile lungo, non ambiguo."}
+{"id": "p-17", "atteso": "persona", "bersaglio": "Ferdinando", "testo": "Ferdinando ha chiesto copia del contratto.", "perche": "Nome lungo e raro."}
+{"id": "p-18", "atteso": "persona", "bersaglio": "Samuele", "testo": "Ho lasciato i documenti a Samuele.", "perche": "Nome breve ma non ambiguo."}
+{"id": "n-01", "atteso": "non-persona", "bersaglio": "Vittorio", "testo": "L'ufficio è in via Vittorio Emanuele 24.", "perche": "Odonimo: il nome fa parte dell'indirizzo, e toglierlo rompe un dato che il motore tratta per conto suo."}
+{"id": "n-02", "atteso": "non-persona", "bersaglio": "Umberto", "testo": "La sede è in corso Umberto I, secondo piano.", "perche": "Odonimo con numero romano."}
+{"id": "n-03", "atteso": "non-persona", "bersaglio": "Marco", "testo": "Ci vediamo in piazza San Marco alle sei.", "perche": "Toponimo con il santo: «San» davanti cambia tutto."}
+{"id": "n-04", "atteso": "non-persona", "bersaglio": "Umberto", "testo": "Il paziente è stato trasferito all'ospedale Umberto I.", "perche": "Intitolazione: l'ente porta il nome di una persona ma non è una persona."}
+{"id": "n-05", "atteso": "non-persona", "bersaglio": "Leonardo", "testo": "Atterraggio previsto all'aeroporto Leonardo da Vinci.", "perche": "Intitolazione di un aeroporto."}
+{"id": "n-06", "atteso": "non-persona", "bersaglio": "Giuseppe", "testo": "La partita si gioca allo stadio Giuseppe Meazza.", "perche": "Intitolazione di uno stadio."}
+{"id": "n-07", "atteso": "non-persona", "bersaglio": "Rita", "testo": "La funzione si terrà nella chiesa di Santa Rita.", "perche": "Santa più nome: è una chiesa."}
+{"id": "n-08", "atteso": "non-persona", "bersaglio": "Giovanni", "testo": "Residente a San Giovanni Rotondo.", "perche": "Toponimo che comincia con San."}
+{"id": "n-09", "atteso": "non-persona", "bersaglio": "Leonardo", "testo": "Il figlio frequenta l'istituto Leonardo da Vinci.", "perche": "Intitolazione di una scuola."}
+{"id": "n-10", "atteso": "non-persona", "bersaglio": "Vittorio", "testo": "Negozio in galleria Vittorio Emanuele II.", "perche": "Odonimo con la parola galleria, che è anche un tipo di via."}
+{"id": "n-11", "atteso": "non-persona", "bersaglio": "Margherita", "testo": "Due pizze Margherita e una birra.", "perche": "Nome di un prodotto: qui il nome proprio è diventato un sostantivo."}
+{"id": "n-12", "atteso": "non-persona", "bersaglio": "Carlo", "testo": "Lo spettacolo è al teatro Carlo Felice.", "perche": "Intitolazione di un teatro."}
+{"id": "n-13", "atteso": "non-persona", "bersaglio": "Torquato", "testo": "Diplomato al liceo Torquato Tasso nel 1998.", "perche": "Intitolazione di un liceo."}
+{"id": "n-14", "atteso": "non-persona", "bersaglio": "Cesare", "testo": "Il bando è della fondazione Cesare Pavese.", "perche": "Intitolazione di una fondazione."}
+{"id": "n-15", "atteso": "non-persona", "bersaglio": "Italo", "testo": "Ha vinto il premio Italo Calvino.", "perche": "Intitolazione di un premio."}
+{"id": "n-16", "atteso": "non-persona", "bersaglio": "Vittorio", "testo": "Il ponte Vittorio Emanuele II è chiuso al traffico.", "perche": "Intitolazione di un ponte."}
+{"id": "n-17", "atteso": "non-persona", "bersaglio": "Marco", "testo": "Basilica di San Marco, ingresso da nord.", "perche": "Toponimo religioso."}
+{"id": "n-18", "atteso": "non-persona", "bersaglio": "Ada", "testo": "Passeggiata a villa Ada domenica mattina.", "perche": "Parco intitolato a una persona."}
+{"id": "n-19", "atteso": "non-persona", "bersaglio": "Vittorio", "testo": "Consultare la biblioteca nazionale Vittorio Emanuele III.", "perche": "Intitolazione di una biblioteca."}
+{"id": "n-20", "atteso": "non-persona", "bersaglio": "Antonio", "testo": "Il paese si chiama Sant'Antonio Abate.", "perche": "Toponimo con Sant'."}
+{"id": "n-21", "atteso": "non-persona", "bersaglio": "Cristoforo", "testo": "Scuola primaria Cristoforo Colombo, classe terza.", "perche": "Intitolazione di una scuola primaria."}
+{"id": "n-22", "atteso": "non-persona", "bersaglio": "Gaetano", "testo": "Il reparto si trova al padiglione Gaetano Pini.", "perche": "Intitolazione di un padiglione ospedaliero."}
+{"id": "n-23", "atteso": "non-persona", "bersaglio": "Amedeo", "testo": "Uscita autostradale Amedeo di Savoia.", "perche": "Intitolazione stradale."}
+{"id": "n-24", "atteso": "non-persona", "bersaglio": "Giorgio", "testo": "Il cliente è la San Giorgio Costruzioni.", "perche": "Ragione sociale che comincia con San."}

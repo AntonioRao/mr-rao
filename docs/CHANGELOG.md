@@ -76,6 +76,40 @@ restano intatti, e c'è un banco che lo pretende.
 `san`, `santa`, `santo` restano fuori dall'insieme: aprono i toponimi (San
 Giovanni, Santa Croce), che sui documenti sono molti più dei cognomi.
 
+### Nuova opzione, spenta di serie: «togli anche i nomi da soli»
+
+Di serie un nome di battesimo isolato — «Pietro», senza cognome, senza
+titolo, senza saluto davanti — viene **segnalato nel rapporto e lasciato nel
+testo**. La ragione è che «Rosa», «Vera», «Costa», «Villa» sono nomi *e*
+parole italiane, ed è la stessa misura che aveva fatto ritirare l'euristica
+del cognome: 8 904 sostituzioni sbagliate su venti moduli in bianco.
+
+Quella ragione però **non vale per «Walter», «Nazzareno», «Samuele»**, che
+parole non sono: sono l'88% dell'elenco, 891 nomi su 1017. L'opzione tratta
+solo quelli, e resta **spenta di serie** perché cambia il verso di una
+rinuncia vecchia — chi ha costruito qualcosa sull'uscita di ieri deve poterla
+ritrovare identica.
+
+**A renderla utilizzabile invece che dannosa è la guardia sul contesto.** La
+stessa parola cambia natura a seconda di cosa le sta davanti: «Umberto» è un
+collega, «ospedale Umberto» è un edificio, «via Umberto» è un indirizzo,
+«Sant'Umberto» è un paese, «stadio Giuseppe» è uno stadio, «pizza
+Margherita» è una cena. Nella parola non c'è niente che li distingua, quindi
+la regola guarda l'ultima parola prima — saltando articoli e preposizioni,
+perché in italiano fra l'edificio e il nome ce n'è sempre uno.
+
+**Misurata prima di essere accettata**, con un banco costruito apposta
+(`scripts/bench_nomi_isolati.py`, 42 casi in due popolazioni opposte):
+**+15 nomi presi, 0 falsi positivi nuovi**, in prosa e su modulo. Restano
+fuori i nomi che una parola italiana la sembrano — Vittorio finisce in
+`-orio`, Federica in `-ica` — e il veto morfologico che li ferma è lo stesso
+di prima: è la rinuncia che tiene l'opzione lontana dai guai.
+
+La casella è nella pagina, con il testo che dice anche il prezzo. Vale per i
+**nomi di battesimo**: un cognome isolato — «Ferraris» — resta un sospetto,
+perché lì la parola da sola non dice se sia una persona o l'azienda che
+porta quel cognome.
+
 ### «Ciao Pietro»: il saluto dichiara che quello che segue è una persona
 
 Un nome di battesimo **da solo** non basta mai, ed è una scelta pagata:
