@@ -1,0 +1,67 @@
+# Plumber Score: analizza i workflow di GitHub Actions e cerca le forme
+# rischiose che si insinuano in una pipeline — permessi troppo larghi,
+# secret leggibili da un fork, input non fidati passati a `run:`. Non
+# guarda il codice del prodotto (a quello pensa CodeQL, gia' nel
+# repository): guarda **come** e' fatta la CI stessa.
+#
+# https://getplumber.io/docs/plumber-score
+#
+# ---------------------------------------------------------------------------
+# `score-push: false`, e non e' il predefinito del sito -- e' quello del
+# README del progetto, e qui e' una scelta, non una dimenticanza.
+# ---------------------------------------------------------------------------
+#
+# Con `score-push: true` l'esito dell'analisi (in JSON) viaggia verso
+# `score.getplumber.io` e diventa un punteggio **pubblico**. Non e' codice
+# sorgente, ma e' comunque un dato che esce dal repository verso un server
+# di terzi -- ed e' esattamente la categoria di cosa che questo progetto
+# rifiuta per principio altrove (nessuna telemetria, nessuna chiamata di
+# rete non dichiarata). Spento, l'analisi resta interamente dentro GitHub:
+# il risultato va nella scheda «Security > Code scanning», dove va gia'
+# CodeQL, e non lascia il repository.
+#
+# Se un giorno si vuole il badge pubblico, la riga da cambiare e' una sola.
+#
+# ---------------------------------------------------------------------------
+# `soft-fail: true`, per lo stesso motivo per cui P5.5 del backlog mette in
+# guardia dai gate rumorosi.
+# ---------------------------------------------------------------------------
+#
+# Senza `min-points`/`min-score` impostati, il gate predefinito fallisce a
+# **qualunque** riscontro -- e non sappiamo ancora cosa trovera' sulla CI
+# esistente. Un primo giro rosso per un motivo mai visto insegna a ignorare
+# il rosso, che e' peggio di non avere il controllo. `soft-fail` lo tiene
+# visibile (i riscontri restano in Security > Code scanning) senza bloccare
+# la pipeline: quando il primo giro mostra un punteggio vero, si toglie e si
+# fissa una soglia con `min-points` o `min-score`.
+name: Plumber Score
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  plumber:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      # `id-token: write` serve solo con `score-push: true` (l'azione lo
+      # usa per l'OIDC verso score.getplumber.io). Con `score-push: false`
+      # concederlo sarebbe un permesso in piu' del necessario.
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Analisi CI/CD
+        # Pin per commit, non per tag mobile: e' l'attuale v0.4.36.
+        uses: getplumber/plumber@e81ed4965fd92e0d2b63e95d399ed0419f5de2fa
+        with:
+          score-push: false
+          soft-fail: true
