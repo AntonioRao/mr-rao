@@ -17,6 +17,7 @@
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FAntonioRao%2Fmr-rao.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FAntonioRao%2Fmr-rao?ref=badge_shield)
 
 
 ### Download — no Python required
@@ -439,6 +440,9 @@ Distributed **without any warranty**, in the hope that it will be useful.
 Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ---
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FAntonioRao%2Fmr-rao.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FAntonioRao%2Fmr-rao?ref=badge_large)
 
 ## Quality
 
