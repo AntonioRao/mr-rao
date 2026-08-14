@@ -1,6 +1,6 @@
 # Changelog
 
-## In lavorazione
+## 1.26.0 — I cognomi composti passavano interi, e un nome di battesimo da solo restava scritto
 
 ### I cognomi composti passavano interi: «Walter Di Salvo» restava scritto
 
