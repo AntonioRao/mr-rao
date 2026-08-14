@@ -23,7 +23,13 @@ Otto invarianti, tutte verificabili senza leggere il testo:
 5. ogni segnaposto che il motore puo' emettere e' in PRIVACY.md;
 6. ogni opzione della riga di comando e' in CLI.md;
 7. la versione dichiarata in config.py ha la sua voce nel changelog;
-8. le landing HTML pubblicate non dichiarano versioni o conteggi vecchi.
+8. le landing HTML pubblicate non dichiarano versioni o conteggi vecchi;
+9. il rapporto per il board -- che non e' tracciato, perche' e' interno e
+   questo repository e' pubblico -- non dichiara versioni, conteggi o link
+   di ieri. E' l'unico controllo che guarda un file **non** tracciato, ed e'
+   anche l'unico che puo' **saltare**: su una macchina che quel file non ce
+   l'ha (la CI, o il clone di chiunque altro) il salto viene detto, perche'
+   un controllo che tace quando non ha guardato sembra passato.
 
 Il changelog e' escluso da (3) e (4) apposta: e' una cronologia, e ogni
 voce cita giustamente i numeri del suo momento. Proprio quell'esclusione
@@ -108,6 +114,14 @@ _RE_SEPARATORE_MIGLIAIA = re.compile(
 def _unisci_cifre(testo: str) -> str:
     """`2&nbsp;001` → `2001`, solo fra cifre e solo su gruppi di tre."""
     return _RE_SEPARATORE_MIGLIAIA.sub("", testo)
+# «2 133 test desktop» / «2 133 test Desktop superati»: la parola dopo
+# distingue le due suite che il rapporto cita.
+_RE_CONTEGGIO_DESKTOP = re.compile(
+    r"(\d{3,5})(?:&nbsp;)?[\s-]*test[\s]*desktop", re.I
+)
+_RE_LINK_AMO = re.compile(
+    r"https://addons\.mozilla\.org/firefox/downloads/file/\d+/[\w.-]+\.zip"
+)
 _RE_LINK = re.compile(r"\]\(([^)#:]+\.(?:md|py|txt|ico|png|yml|bat|ps1))[^)]*\)")
 _RE_VOCE_CHANGELOG = re.compile(r"^#{1,3}[ \t]*\[?v?(\d+\.\d+\.\d+)\]?", re.MULTILINE)
 
@@ -460,8 +474,104 @@ def test_raccolti() -> int:
     raise RuntimeError("non riesco a contare i test: " + "\n".join(uscita[-3:]))
 
 
+# Il rapporto per il board: sta sul disco dell'autore e **non e' tracciato**,
+# perche' e' un documento interno e questo repository e' pubblico.
+AUDIT = "audit_mr_rao_report.html"
+
+
+def audit_invecchiato(reale: int) -> tuple[list[str], bool]:
+    """Il rapporto per il board dice numeri di ieri?
+
+    **Perche' e' un controllo diverso dagli altri.** Tutti i controlli di
+    questo file guardano cio' che git traccia, ed e' una scelta: un glob sul
+    disco pesca gli scarti di lavoro e il gate diventa rosso per file che
+    chi clona non ha. Questo rapporto pero' non e' uno scarto — e' il
+    documento che l'autore mostra a terzi — e non e' tracciato perche' e'
+    interno e il repository e' pubblico.
+
+    Il risultato e' che invecchia meglio di qualunque altra cosa: nessun
+    banco lo apre, il gate non lo vede, e le sue cifre non vengono
+    confrontate con niente. Misurato il 2026-08-14: dichiarava la 1.25.0 con
+    il programma alla 1.26.0, 1 999 test invece di 2 133, e **«Plus 0.1.31 su
+    Chrome e Edge» quando sugli store c'era la 0.1.25**. Quest'ultima non e'
+    una cifra vecchia: e' un'affermazione falsa consegnata a qualcuno che non
+    ha modo di verificarla.
+
+    Restituisce anche se il controllo ha **davvero guardato**: sulla CI il
+    file non c'e' e il salto va detto, non taciuto. Un controllo che quando
+    non trova niente da controllare risponde «tutto bene» e' verde proprio
+    dove servirebbe.
+    """
+    f = ROOT / AUDIT
+    if not f.is_file():
+        return [], False
+    testo = _RE_CODICE_HTML.sub(" ", f.read_text(encoding="utf-8"))
+    fonte = [(AUDIT, testo)]
+    problemi = versioni_incoerenti(fonte, _RE_VERSIONE_LANDING)
+    problemi += conteggi_desktop_incoerenti(reale, testo)
+    problemi += link_amo_diverso(testo)
+    return [
+        p + ". E' il documento che mostri a terzi: una cifra vecchia li' "
+        "dentro e' un'affermazione sbagliata, non un fastidio"
+        for p in problemi
+    ], True
+
+
+def conteggi_desktop_incoerenti(reale: int, testo: str) -> list[str]:
+    """Il conteggio dei test **desktop**, e solo quello.
+
+    Il controllo generale non va bene qui, e lo ha detto al primo giro: il
+    rapporto cita due suite -- «2 133 test desktop» e «1 190 test Plus» -- e
+    `_RE_CONTEGGIO` prende qualunque numero seguito da «test», quindi
+    bocciava il numero di Plus dicendo che avrebbe dovuto essere quello del
+    desktop. Due numeri veri, un controllo che ne conosce uno solo.
+
+    Il numero di Plus non e' verificabile da qui: nasce in un altro
+    repository, che questo non ha. Resta scritto a mano, e resta un buco
+    dichiarato invece di un controllo che finge.
+    """
+    reali = _RE_CONTEGGIO_DESKTOP.findall(_unisci_cifre(testo))
+    if not reali:
+        return [
+            f"{AUDIT}: non dichiara nessun conteggio di test desktop. Se la "
+            "frase e' cambiata aggiorna _RE_CONTEGGIO_DESKTOP, altrimenti "
+            "questo controllo non puo' piu' fallire"
+        ]
+    return [
+        f"{AUDIT}: dice {n} test desktop, ma sono {reale}"
+        for n in reali
+        if n != str(reale)
+    ]
+
+
+def link_amo_diverso(testo: str) -> list[str]:
+    """Il link Firefox del rapporto dev'essere quello delle pagine pubblicate.
+
+    Non c'e' un numero di versione da confrontare: addons.mozilla.org
+    assegna a ogni caricamento un **numero di file** nuovo, quindi il link
+    cambia per intero e non e' ricavabile da `APP_VERSION`. L'unica verita'
+    disponibile e' che tutti i posti che lo scrivono dicano lo stesso, e le
+    pagine pubblicate sono la copia che qualcuno guarda ogni giorno.
+    """
+    quali = _RE_LINK_AMO.findall(testo)
+    if not quali:
+        return []
+    attesi = set()
+    for _, pagina in _fonti_landing():
+        attesi.update(_RE_LINK_AMO.findall(pagina))
+    if not attesi:
+        return []
+    diversi = sorted(set(quali) - attesi)
+    return [
+        f"{AUDIT}: il link Firefox punta a {d}, le landing dicono "
+        f"{sorted(attesi)[0]}"
+        for d in diversi
+    ]
+
+
 def main() -> int:
     reale = test_raccolti()
+    guai_audit, audit_letto = audit_invecchiato(reale)
     problemi = (
         id_duplicati()
         + link_rotti()
@@ -472,6 +582,7 @@ def main() -> int:
         + opzioni_cli_non_documentate()
         + versione_senza_changelog()
         + landing_invecchiate(reale)
+        + guai_audit
     )
     if problemi:
         print(f"DOCUMENTI DISALLINEATI ({len(problemi)}):", file=sys.stderr)
@@ -486,6 +597,14 @@ def main() -> int:
     print(
         f"  documenti allineati: {len(documenti())} file + {len(landing())} landing, "
         f"{reale} test, v{APP_VERSION}"
+    )
+    # Il salto si dice. Su una macchina che il rapporto non ce l'ha -- la CI,
+    # o il clone di chiunque altro -- questo controllo non guarda niente, e
+    # tacerlo lo farebbe sembrare passato.
+    print(
+        f"  {AUDIT}: allineato"
+        if audit_letto
+        else f"  {AUDIT}: non c'e' su questa macchina, controllo saltato"
     )
     return 0
 

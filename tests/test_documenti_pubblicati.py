@@ -90,3 +90,74 @@ def test_claude_md_e_agents_md_restano_identici():
         "AGENTS.md e CLAUDE.md sono diversi: chi legge il secondo seguirebbe "
         "regole vecchie. Copia l'uno sull'altro."
     )
+
+
+class TestRapportoPerIlBoard:
+    """Il controllo sul rapporto non tracciato (invariante 9).
+
+    Vive fuori da git — è un documento interno e il repository è pubblico —
+    e quindi nessun altro controllo lo guarda: non compare in un diff quando
+    si bumpa la versione, e le sue cifre non vengono confrontate con niente.
+    Il 2026-08-14 dichiarava la 1.25.0, 1 999 test e «Plus 0.1.31 sugli
+    store» quando lì c'era la 0.1.25.
+
+    Si prova con file finti, non con quello vero: un banco che dipende da un
+    file presente solo su una macchina è verde per costruzione altrove.
+    """
+
+    def scrivi(self, tmp_path, testo: str):
+        import scripts.check_docs as cd
+
+        f = tmp_path / cd.AUDIT
+        f.write_text(testo, encoding="utf-8")
+        return f
+
+    def test_se_il_file_non_c_e_il_controllo_lo_dice(self, tmp_path, monkeypatch):
+        import scripts.check_docs as cd
+
+        monkeypatch.setattr(cd, "ROOT", tmp_path)
+        problemi, letto = cd.audit_invecchiato(2133)
+        assert problemi == []
+        assert letto is False, "il salto va dichiarato, o sembra un controllo passato"
+
+    def test_conteggio_vecchio_bocciato(self, tmp_path, monkeypatch):
+        import scripts.check_docs as cd
+
+        monkeypatch.setattr(cd, "ROOT", tmp_path)
+        self.scrivi(tmp_path, "<p>1&nbsp;999 test desktop</p>")
+        problemi, letto = cd.audit_invecchiato(2133)
+        assert letto is True
+        assert any("1999 test desktop" in p for p in problemi)
+
+    def test_conteggio_giusto_passa(self, tmp_path, monkeypatch):
+        import scripts.check_docs as cd
+
+        monkeypatch.setattr(cd, "ROOT", tmp_path)
+        self.scrivi(tmp_path, "<p>2&nbsp;133 test desktop</p>")
+        problemi, _ = cd.audit_invecchiato(2133)
+        assert problemi == []
+
+    def test_il_numero_di_plus_non_viene_scambiato_per_quello_desktop(
+        self, tmp_path, monkeypatch
+    ):
+        # Il primo giro del controllo bocciava «1 190 test Plus» dicendo che
+        # avrebbe dovuto essere il numero del desktop: due numeri veri, e un
+        # controllo che ne conosceva uno solo.
+        import scripts.check_docs as cd
+
+        monkeypatch.setattr(cd, "ROOT", tmp_path)
+        self.scrivi(
+            tmp_path, "<p>2&nbsp;133 test desktop · 1&nbsp;190 test Plus</p>"
+        )
+        problemi, _ = cd.audit_invecchiato(2133)
+        assert problemi == []
+
+    def test_se_la_frase_sparisce_il_controllo_lo_dice(self, tmp_path, monkeypatch):
+        # Senza questa riga, cambiare il testo del rapporto spegnerebbe il
+        # controllo in silenzio: zero conteggi trovati, zero problemi.
+        import scripts.check_docs as cd
+
+        monkeypatch.setattr(cd, "ROOT", tmp_path)
+        self.scrivi(tmp_path, "<p>nessun numero qui</p>")
+        problemi, _ = cd.audit_invecchiato(2133)
+        assert any("non puo' piu' fallire" in p for p in problemi)
