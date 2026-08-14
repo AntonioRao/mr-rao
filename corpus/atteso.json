@@ -2,7 +2,7 @@
   "motore": {
     "app": "1.25.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "91334a2a3a16a3433f167d56b46cfbec775c5be0d65177fe04ae1bc5462e6c80",
+      "mr_rao/privacy.py": "32660c59544ffcbb39ffbc30df6d7b3eb9abd4545241b29348c7c278c30c49b9",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -2117,23 +2117,20 @@
     },
     "en-mrz-02": {
       "gruppo": "mrz",
-      "uscita": "P<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C<4UTO7408123F1204158ZE184226B<<<<<10",
+      "uscita": "P<UTOERIKSSON<<{{NAME_1}}<MARIA<<<<<<<<<<<<<<<<<<<\nL898902C<4UTO7408123F1204158ZE184226B<<<<<10",
       "report": {
-        "counts": {},
-        "total": 0,
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
         "suspects": [
           {
             "kind": "mrz",
             "sample": "P<•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••10",
             "why": "ha la forma della zona a lettura automatica di un documento ma nessuna cifra di controllo torna: possibile lettura OCR sbagliata, e li' dentro ci sono nome, nascita e cittadinanza"
-          },
-          {
-            "kind": "nome",
-            "sample": "••••",
-            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2,
+        "suspects_total": 1,
         "detected": [],
         "detected_counts": {},
         "detected_total": 0
@@ -2152,14 +2149,9 @@
             "kind": "nome",
             "sample": "De••••••es",
             "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
-          },
-          {
-            "kind": "nome",
-            "sample": "Ja•es",
-            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2,
+        "suspects_total": 1,
         "detected": [],
         "detected_counts": {},
         "detected_total": 0
@@ -2180,7 +2172,7 @@
     },
     "en-nome-03": {
       "gruppo": "nomi_en",
-      "uscita": "Kind regards,\n{{NAME_1}}",
+      "uscita": "Kind regards,\n{{NAME_1}} Whitfield",
       "report": {
         "counts": {
           "names": 1
@@ -2191,14 +2183,9 @@
             "kind": "nome",
             "sample": "Sa•••••••••••ld",
             "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
-          },
-          {
-            "kind": "nome",
-            "sample": "Sa•ah",
-            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2,
+        "suspects_total": 1,
         "detected": [],
         "detected_counts": {},
         "detected_total": 0
@@ -2234,23 +2221,20 @@
     },
     "en-nome-06": {
       "gruppo": "nomi_en",
-      "uscita": "Sarah Whitfield attended the meeting.",
+      "uscita": "{{NAME_1}} Whitfield attended the meeting.",
       "report": {
-        "counts": {},
-        "total": 0,
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
         "suspects": [
           {
             "kind": "nome",
             "sample": "Sa•••••••••••ld",
             "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
-          },
-          {
-            "kind": "nome",
-            "sample": "Sa•ah",
-            "why": "risulta negli elenchi dei nomi ma non ha nulla intorno che dica che sia una persona: nessun titolo, nessuna firma, nessun indirizzo accanto"
           }
         ],
-        "suspects_total": 2,
+        "suspects_total": 1,
         "detected": [],
         "detected_counts": {},
         "detected_total": 0

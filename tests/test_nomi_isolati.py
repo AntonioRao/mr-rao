@@ -15,11 +15,16 @@ cambia natura a seconda di cosa le sta davanti — «Umberto» è un collega,
 «ospedale Umberto» è un edificio, «via Umberto» è un indirizzo,
 «Sant'Umberto» è un paese — e a distinguerli non c'è niente nella parola.
 
-Quindi l'opzione è **spenta di serie** e ha una guardia sul contesto, e
-questo banco tiene le due metà: che i nomi veri vengano presi, e che le
-intitolazioni no. Il costo lo misura `scripts/bench_nomi_isolati.py`, che
-confronta il motore con e senza: **+15 nomi presi, 0 falsi positivi nuovi**
-sulle due popolazioni del banco.
+Quindi la regola ha una **guardia sul contesto**, e questo banco tiene le
+due metà: che i nomi veri vengano presi, e che le intitolazioni no.
+
+È **accesa di serie dalla 1.26.0**, e il predefinito l'ha deciso una misura
+sui documenti che non abbiamo scritto noi: 0 sostituzioni in più sui
+venticinque moduli IRS in bianco e sugli undici moduli amministrativi
+italiani — dove ogni sostituzione è sbagliata per costruzione — e 84 nomi in
+più sulle Gazzette Ufficiali, dove i nomi ci sono davvero. Un banco scritto
+in casa non l'avrebbe autorizzata: `scripts/bench_nomi_isolati.py` dice +15
+e 0, ma quei 42 casi li ho scritti io.
 """
 import pytest
 
@@ -34,19 +39,39 @@ def redigi(testo: str, acceso: bool, prosa: bool = True) -> str:
     )[0]
 
 
-class TestSpentaDiSerie:
-    """Il verso di una rinuncia vecchia non si cambia senza dirlo."""
+class TestAccesaDiSerie:
+    """Accesa dalla 1.26.0, e il predefinito l'ha deciso una misura.
 
-    def test_di_serie_resta_un_sospetto(self) -> None:
-        fuori, rapporto = apply_privacy_filter("Ho parlato con Pietro.", PrivacyOptions())
+    Non «tanto è meglio»: sui moduli in bianco — dove ogni sostituzione è
+    sbagliata per costruzione — il costo misurato è **zero**, sui
+    venticinque moduli IRS e sugli undici italiani. È lo stesso corpus con
+    cui era stata ritirata l'euristica del cognome (8 904 sostituzioni
+    sbagliate), quindi i numeri sono omogenei.
+    """
+
+    def test_di_serie_il_nome_isolato_sparisce(self) -> None:
+        fuori, _ = apply_privacy_filter("Ho parlato con Pietro.", PrivacyOptions())
+        assert fuori == "Ho parlato con {{NAME_1}}."
+
+    def test_il_predefinito_della_dataclass_e_acceso(self) -> None:
+        assert PrivacyOptions.names_alone is True
+
+    def test_spegnerla_riporta_l_uscita_della_1_25(self) -> None:
+        # Il costo di cambiare un predefinito è reale: chi aveva costruito
+        # qualcosa sull'uscita di ieri deve poterla ritrovare identica.
+        fuori, rapporto = apply_privacy_filter(
+            "Ho parlato con Pietro.", PrivacyOptions(names_alone=False)
+        )
         assert fuori == "Ho parlato con Pietro."
         assert any(s["kind"] == "nome" for s in rapporto.to_dict()["suspects"])
 
-    def test_il_predefinito_della_dataclass_e_spento(self) -> None:
-        # Scritto qui perché è il posto in cui si nota se qualcuno lo
-        # accende «tanto è meglio»: cambierebbe l'uscita di ogni conversione
-        # già fatta, e nessun altro banco lo direbbe.
-        assert PrivacyOptions.names_alone is False
+    def test_no_redaction_la_spegne(self) -> None:
+        # `no_redaction()` deve spegnere **tutto**: un interruttore nuovo
+        # dimenticato lì si manifesta come una redazione che avviene quando
+        # l'utente ha chiesto di non redigere niente.
+        from mr_rao.privacy import no_redaction
+
+        assert no_redaction().names_alone is False
 
 
 class TestAccesaPrendeINomi:

@@ -684,21 +684,21 @@ TESTI: dict[str, dict[str, str]] = {
     # Il testo dice il **prezzo**, non solo il beneficio: e' un'opzione che
     # sposta una soglia, e chi la accende deve sapere in che direzione.
     "tip_names_alone": {
-        "it": "Spento di default. Di serie un nome di battesimo da solo — "
-              "«Pietro», senza cognome e senza titolo — viene segnalato nel "
-              "rapporto ma lasciato nel testo, perche' «Rosa», «Vera» e "
-              "«Costa» sono nomi e parole insieme. Acceso, i nomi che parole "
-              "non sono vengono tolti anche da soli: sono l'88% dell'elenco. "
-              "Restano fuori quelli che una parola italiana la sembrano "
-              "(Vittorio, Federica) e quelli preceduti da un edificio o da un "
-              "indirizzo — «ospedale Umberto», «via Vittorio», «villa Ada» — "
-              "che persone non sono.",
-        "en": "Off by default. Out of the box a lone first name — «Pietro», "
-              "with no surname and no title — is reported but left in the "
-              "text, because many Italian first names are also common words. "
-              "Turn it on and the ones that are not words get replaced on "
-              "their own; names preceded by a building or a street keep "
-              "their place.",
+        "it": "Acceso dalla 1.26.0. Un nome di battesimo da solo — «Pietro», "
+              "senza cognome e senza titolo — viene tolto se non e' anche una "
+              "parola italiana: sono l'88% dell'elenco. Restano dove sono "
+              "quelli che una parola la sembrano (Vittorio, Federica) e "
+              "quelli preceduti da un edificio, da una via o da un santo — "
+              "«ospedale Umberto», «via Vittorio», «villa Ada», "
+              "«Sant'Antonio» — che persone non sono. Il predefinito l'ha "
+              "deciso una misura: zero sostituzioni sbagliate in piu' su "
+              "trentasei moduli in bianco. Spegnilo per l'uscita della 1.25.",
+        "en": "On since 1.26.0. A lone first name — «Pietro», with no surname "
+              "and no title — is removed unless it is also an Italian word. "
+              "Names preceded by a building, a street or a saint stay where "
+              "they are. The default was decided by a measurement: zero extra "
+              "wrong substitutions across thirty-six blank forms. Turn it off "
+              "for the 1.25 output.",
     },
     "opt_names_alone_titolo": {
         "it": "Togli anche i nomi da soli", "en": "Remove lone first names",

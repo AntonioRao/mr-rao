@@ -76,19 +76,19 @@ restano intatti, e c'è un banco che lo pretende.
 `san`, `santa`, `santo` restano fuori dall'insieme: aprono i toponimi (San
 Giovanni, Santa Croce), che sui documenti sono molti più dei cognomi.
 
-### Nuova opzione, spenta di serie: «togli anche i nomi da soli»
+### I nomi di battesimo da soli: adesso si tolgono, e il predefinito l'ha deciso una misura
 
-Di serie un nome di battesimo isolato — «Pietro», senza cognome, senza
-titolo, senza saluto davanti — viene **segnalato nel rapporto e lasciato nel
-testo**. La ragione è che «Rosa», «Vera», «Costa», «Villa» sono nomi *e*
+Fino alla 1.25.0 un nome di battesimo isolato — «Pietro», senza cognome,
+senza titolo, senza saluto davanti — veniva **segnalato nel rapporto e
+lasciato nel testo**. La ragione è che «Rosa», «Vera», «Costa», «Villa» sono nomi *e*
 parole italiane, ed è la stessa misura che aveva fatto ritirare l'euristica
 del cognome: 8 904 sostituzioni sbagliate su venti moduli in bianco.
 
 Quella ragione però **non vale per «Walter», «Nazzareno», «Samuele»**, che
-parole non sono: sono l'88% dell'elenco, 891 nomi su 1017. L'opzione tratta
-solo quelli, e resta **spenta di serie** perché cambia il verso di una
-rinuncia vecchia — chi ha costruito qualcosa sull'uscita di ieri deve poterla
-ritrovare identica.
+parole non sono: sono l'88% dell'elenco, 891 nomi su 1017. La regola tratta
+solo quelli, e resta un **interruttore**: spento, l'uscita torna identica a
+quella della 1.25.0, perché il costo di cambiare un predefinito è reale e va
+detto.
 
 **A renderla utilizzabile invece che dannosa è la guardia sul contesto.** La
 stessa parola cambia natura a seconda di cosa le sta davanti: «Umberto» è un
@@ -98,15 +98,47 @@ Margherita» è una cena. Nella parola non c'è niente che li distingua, quindi
 la regola guarda l'ultima parola prima — saltando articoli e preposizioni,
 perché in italiano fra l'edificio e il nome ce n'è sempre uno.
 
-**Misurata prima di essere accettata**, con un banco costruito apposta
-(`scripts/bench_nomi_isolati.py`, 42 casi in due popolazioni opposte):
-**+15 nomi presi, 0 falsi positivi nuovi**, in prosa e su modulo. Restano
-fuori i nomi che una parola italiana la sembrano — Vittorio finisce in
-`-orio`, Federica in `-ica` — e il veto morfologico che li ferma è lo stesso
-di prima: è la rinuncia che tiene l'opzione lontana dai guai.
+**Il predefinito non è un'opinione: è una misura sui documenti che non
+abbiamo scritto noi**, che è l'unico metro con cui in questo progetto si
+tocca una regola sui nomi.
 
-La casella è nella pagina, con il testo che dice anche il prezzo. Vale per i
-**nomi di battesimo**: un cognome isolato — «Ferraris» — resta un sospetto,
+* **moduli in bianco** — venticinque moduli IRS e undici moduli
+  amministrativi italiani, dove ogni sostituzione è sbagliata per
+  costruzione: **0 sostituzioni in più**. È lo stesso corpus con cui era
+  stata ritirata l'euristica del cognome (8 904 sbagliate), quindi i numeri
+  sono omogenei;
+* **Gazzette Ufficiali**, dove i nomi ci sono davvero: **84 nomi in più** —
+  «di Gianpaolo», «senatore Alessandro», «e Damiano».
+
+**Lo zero non è venuto gratis, ed è la parte che vale.** Le prime misure
+segnavano 26 falsi positivi sui moduli IRS — `North Carolina`, `South
+Carolina`, `West Virginia`, `St Thomas`, perché Carolina, Virginia e Thomas
+stanno negli elenchi dei nomi — e 25 su un comune, `Torre Annunziata`.
+Nessun banco scritto in casa li avrebbe prodotti: sono diventati i punti
+cardinali, `torre` e l'abbreviazione puntata del santo nell'elenco delle
+parole che dicono «edificio». `Fermo` e `Norma` sono finiti fra i nomi che
+sono anche parole comuni: sono due comuni italiani e due parole di uso
+quotidiano.
+
+Un banco in casa c'è lo stesso (`scripts/bench_nomi_isolati.py`, 42 casi in
+due popolazioni opposte: **+15 presi, 0 falsi positivi**), ma quei 42 casi
+li ha scritti chi ha scritto la regola, e non bastano ad autorizzare un
+predefinito.
+
+Restano fuori i nomi che una parola italiana la sembrano — Vittorio finisce
+in `-orio`, Federica in `-ica` — e il veto morfologico che li ferma è lo
+stesso di prima: è la rinuncia che tiene la regola lontana dai guai.
+
+**E la guardia guarda in tutte e due le direzioni.** Il riconoscitore delle
+coppie scherma l'intera sequenza quando ci trova una parola d'ente; questa
+regola gira dopo, su ciò che quello ha lasciato intatto, e guardando solo
+all'indietro toglieva il **nome** e lasciava il resto: «come indicato da
+{{NAME_1}} Chiesa», «Liceo Classico {{NAME_1}} Parini». È il modo peggiore
+di sbagliare, e a dirlo sono stati tre banchi che quei casi li tenevano
+congelati da versioni.
+
+La casella è nella pagina, spuntata, con il testo che dice anche il prezzo.
+Vale per i **nomi di battesimo**: un cognome isolato — «Ferraris» — resta un sospetto,
 perché lì la parola da sola non dice se sia una persona o l'azienda che
 porta quel cognome.
 

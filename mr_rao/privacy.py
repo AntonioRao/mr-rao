@@ -1199,6 +1199,20 @@ _PRIMA_NON_E_PERSONA = frozenset(
         # autostradale intitolata a una persona.
         "pizza", "pizze", "torta", "torte", "gelato", "cocktail", "panino",
         "uscita", "casello", "svincolo", "autostradale", "raccordo",
+        # **Queste le ha trovate il corpus pubblico, non un banco fatto in
+        # casa**, ed e' la ragione per cui quel corpus esiste.
+        #
+        # I punti cardinali: sui moduli IRS in bianco sparivano `North
+        # Carolina`, `South Carolina`, `West Virginia` -- ventisei
+        # sostituzioni su documenti che non contengono un solo dato
+        # personale. Carolina, Virginia, Charlotte e Thomas stanno negli
+        # elenchi dei nomi, e nessuna regola sulla parola sola puo'
+        # accorgersi che li' sono uno Stato.
+        "north", "south", "east", "west", "nord", "sud", "est", "ovest",
+        # `torre`: sulle Gazzette `Torre Annunziata` -- un comune -- spariva
+        # venticinque volte. E l'abbreviazione del santo, che nei toponimi si
+        # scrive quasi sempre puntata: `S. Biagio`.
+        "torre", "s", "st", "ss", "saint", "box",
     }
 )
 
@@ -1211,6 +1225,12 @@ _AMBIGUOUS_ALONE = frozenset(
         "fortunato", "benedetto", "giusto", "amato", "diana", "iris", "viola",
         "stella", "luna", "alba", "italo", "italia", "domenica", "sabato",
         "marzo", "agosto", "maggio", "conte", "modesto", "candido", "bruno",
+        # Trovate sulle Gazzette Ufficiali, non a mente: `Fermo` e' un nome
+        # di battesimo, un comune delle Marche **e** un aggettivo («fermo
+        # restando»); `Norma` e' un nome, un comune del Lazio e la parola
+        # con cui si apre mezzo atto amministrativo. Da sole non provano
+        # niente, ed e' esattamente cio' che questo elenco raccoglie.
+        "fermo", "norma",
         "franco", "sereno", "fiore", "fede", "vero", "divo", "duce",
         # Cognomi frequentissimi che sono anche parole comuni. In coppia
         # restano riconoscibili ("Mario Costa"); da soli no, altrimenti
@@ -1314,11 +1334,28 @@ class PrivacyOptions:
     #: non vale per «Walter», «Nazzareno», «Ludovica», che parole non sono —
     #: e sono l'88% dell'elenco (891 su 1017).
     #:
-    #: **Spenta di serie**, e non per prudenza generica: cambia il verso di
-    #: una rinuncia vecchia, quindi chi ha costruito qualcosa sull'uscita di
-    #: ieri deve poterla ritrovare identica spegnendola. Il numero che dice
-    #: quanto costa lo stampa `scripts/bench_nomi_isolati.py`.
-    names_alone: bool = False
+    #: **Accesa di serie dalla 1.26.0, e il predefinito l'ha deciso una
+    #: misura sui documenti che non abbiamo scritto noi** — l'unico metro
+    #: con cui in questo progetto si tocca una regola sui nomi.
+    #:
+    #: Sui **moduli in bianco**, dove ogni sostituzione e' sbagliata per
+    #: costruzione, il costo e' **zero**: 0 in piu' sui venticinque moduli
+    #: IRS, 0 sugli undici moduli amministrativi italiani. E' lo stesso
+    #: corpus che aveva fatto ritirare l'euristica del cognome con 8 904
+    #: sostituzioni sbagliate, quindi si confrontano numeri omogenei.
+    #:
+    #: Sulle **Gazzette Ufficiali**, dove i nomi ci sono davvero, prende 84
+    #: nomi in piu' — «di Gianpaolo», «senatore Alessandro», «e Damiano».
+    #:
+    #: Lo zero non e' venuto gratis: le prime misure segnavano 26 falsi
+    #: positivi sui moduli IRS (`North Carolina`, `West Virginia`,
+    #: `St Thomas`) e 25 su un comune (`Torre Annunziata`). Sono diventate
+    #: righe di `_PRIMA_NON_E_PERSONA`, e nessun banco scritto in casa le
+    #: avrebbe mai prodotte.
+    #:
+    #: Resta un interruttore, e spento riporta l'uscita a quella della
+    #: 1.25.0: il costo di cambiare un predefinito e' reale e va detto.
+    names_alone: bool = True
     # QUI C'ERA `name_guess`, RITIRATA NELLA 1.13.0.
     #
     # Era l'euristica del cognome: due parole maiuscole che non sembrano
@@ -2755,7 +2792,8 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
     # dentro il token la guardia leggeva «all'ospedale» — che in nessun
     # elenco c'e' — e lasciava passare tre intitolazioni su cinque. Trovato
     # dal banco, non a mente.
-    parole = re.findall(r"[^\W\d_]+", testo[:posizione].lower())
+    prima = testo[:posizione]
+    parole = re.findall(r"[^\W\d_]+", prima.lower())
     salta = {
         "il", "lo", "la", "i", "gli", "le", "un", "uno", "una", "l", "dell",
         "all", "nell", "sull", "dall", "del", "dello", "della", "dei", "degli",
@@ -2764,14 +2802,63 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
         "dagli", "dalle", "sul", "sullo", "sulla", "sui", "sugli", "sulle",
         "di", "a", "da", "in", "su", "con", "per", "tra", "fra", "e",
     }
-    for parola in reversed(parole):
-        if parola in salta:
-            continue
+
+    def dice_edificio(parola: str) -> bool:
         return (
             parola in _PRIMA_NON_E_PERSONA
             or parola in _ENTITY_WORDS
             or re.fullmatch(_ADDRESS_KW, parola) is not None
         )
+
+    # **Si risale tutta la sequenza di maiuscole, non solo la parola prima.**
+    #
+    # «Liceo Classico Giuseppe Parini», «Biblioteca Nazionale Vittorio
+    # Emanuele III», «Istituto Comprensivo Alessandro Manzoni»: fra la parola
+    # d'ente e il nome ce n'e' un'altra, e guardando solo quella la guardia
+    # non scattava. Il riconoscitore delle coppie quelle sequenze le scherma
+    # gia' — una parola d'ente scherma **l'intera** sequenza — e questa regola
+    # gira dopo, sul testo che quella ha lasciato intatto: senza risalire, si
+    # rimangiava lo scudo di chi era passato prima. Tre banchi di
+    # `test_enti_non_sono_persone.py` l'hanno detto subito.
+    #
+    # Si risale solo finche' le parole sono **maiuscole**: la sequenza finisce
+    # dove finisce il nome proprio, e «all'ospedale ho incontrato Pietro» non
+    # viene toccato dalla parola «ospedale», che sta cinque parole indietro e
+    # fuori dalla sequenza.
+    maiuscole = re.findall(r"[^\W\d_]+", prima)
+    i = len(maiuscole) - 1
+    while i >= 0 and maiuscole[i][:1].isupper():
+        if dice_edificio(maiuscole[i].lower()):
+            return True
+        i -= 1
+
+    for parola in reversed(parole):
+        if parola in salta:
+            continue
+        return dice_edificio(parola)
+    return False
+
+
+def _dentro_una_sequenza_di_ente(testo: str, dopo: int) -> bool:
+    """La parola d'ente sta **dopo** il nome: «Marco Chiesa», «Anna Villa».
+
+    Il riconoscitore delle coppie scherma l'intera sequenza quando ci trova
+    una parola d'ente, e lo fa in tutte e due le direzioni. Questa regola
+    gira dopo, su ciò che quello ha lasciato intatto: guardando solo
+    all'indietro toglieva il **nome** e lasciava il resto — «come indicato da
+    {{NAME_1}} Chiesa» — che è il modo peggiore di sbagliare, perché il
+    documento sembra trattato.
+
+    Trovato da `tests/test_forme_difficili.py`, che quel caso lo teneva
+    congelato da versioni: senza, sarebbe passato per un miglioramento.
+    """
+    resto = testo[dopo:]
+    for m in re.finditer(r"[^\W\d_]+|\S", resto):
+        parola = m.group(0)
+        if not parola[:1].isalpha() or not parola[:1].isupper():
+            return False
+        if parola.lower() in _ENTITY_WORDS or parola.lower() in _PRIMA_NON_E_PERSONA:
+            return True
     return False
 
 
@@ -3171,7 +3258,12 @@ def _scrub_names(
         # battesimo**: un cognome isolato -- «Esposito», «Ferraris» -- resta
         # un sospetto, perche' li' la parola da sola non dice se sia una
         # persona o un'azienda che porta quel cognome.
-        if soli and tok in FIRST_NAMES and not _dopo_una_intitolazione(text, m.start()):
+        if (
+            soli
+            and tok in FIRST_NAMES
+            and not _dopo_una_intitolazione(text, m.start())
+            and not _dentro_una_sequenza_di_ente(text, m.end())
+        ):
             return report.segnaposto("names", "{{NAME}}", m.group(0))
         # Una parola sola, in elenco, senza nient'altro intorno: e' il
         # segnale piu' debole che abbiamo, e sostituire su quello vuol dire
@@ -4308,7 +4400,9 @@ def no_redaction() -> PrivacyOptions:
     perche' quell'invariante e' cio' che accorge di un riconoscitore nuovo
     dimenticato qui dentro.
     """
-    return PrivacyOptions(**{k: False for k in FIELD_DEFAULTS}, numerati=False)
+    return PrivacyOptions(
+        **{k: False for k in FIELD_DEFAULTS}, numerati=False, names_alone=False
+    )
 
 
 def only(*fields: str) -> PrivacyOptions:

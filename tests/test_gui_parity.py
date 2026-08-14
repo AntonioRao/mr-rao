@@ -276,9 +276,9 @@ def test_i_nomi_da_soli_arrivano_al_motore_anche_col_profilo():
     sempre. Dimenticarla la renderebbe decorativa — si spunta e non cambia
     niente — ed e' esattamente il difetto per cui questo file esiste.
 
-    Si prova nei due versi: acceso vince sul predefinito spento, e assente
-    lascia il predefinito. Solo il primo verso non basterebbe: un
-    `names_alone=True` cablato lo supererebbe.
+    Si prova nei due versi: **spento** vince sul predefinito acceso, e
+    assente lascia il predefinito. Solo un verso non basterebbe: un valore
+    cablato supererebbe la meta' della prova.
     """
     from flask import Flask, request
 
@@ -287,10 +287,10 @@ def test_i_nomi_da_soli_arrivano_al_motore_anche_col_profilo():
     app = Flask(__name__)
     base = {"profile": "default", "privacy_filter": "true"}
     with app.test_request_context("/", method="POST",
-                                  data={**base, "privacy_names_alone": "true"}):
-        assert _merge_privacy(request.form, {}).names_alone is True
-    with app.test_request_context("/", method="POST", data=base):
+                                  data={**base, "privacy_names_alone": "false"}):
         assert _merge_privacy(request.form, {}).names_alone is False
+    with app.test_request_context("/", method="POST", data=base):
+        assert _merge_privacy(request.form, {}).names_alone is True
 
 
 def test_la_casella_dei_nomi_da_soli_e_nella_pagina():

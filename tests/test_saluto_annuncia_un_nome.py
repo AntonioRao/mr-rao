@@ -78,9 +78,13 @@ class TestQuelloCheIlSalutoNonDeveTirarsiDietro:
 def test_serve_il_saluto_davvero() -> None:
     """Senza formula di apertura il nome isolato resta un sospetto.
 
-    È il controllo che dice che la regola nuova non ha allargato il caso
-    generale: «Pietro» da solo continua a non essere toccato.
+    È il controllo che dice che la regola del saluto non ha allargato il
+    caso generale. Si prova con `names_alone` **spenta**, perché dalla
+    1.26.0 quella è accesa di serie e prenderebbe «Pietro» per conto suo:
+    lasciandola accesa, questo banco non proverebbe più niente.
     """
-    fuori, rapporto = apply_privacy_filter("Pietro", PrivacyOptions())
+    fuori, rapporto = apply_privacy_filter(
+        "Pietro", PrivacyOptions(names_alone=False)
+    )
     assert fuori == "Pietro"
     assert any(s["kind"] == "nome" for s in rapporto.to_dict()["suspects"])
