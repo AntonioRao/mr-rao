@@ -12,8 +12,8 @@
 [![Mac](https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Versione](https://img.shields.io/badge/versione-1.27.0-3b82f6)](docs/CHANGELOG.md)
-[![Test](https://img.shields.io/badge/test-2217%20passati-10b981)](tests/)
+[![Versione](https://img.shields.io/badge/versione-1.27.1-3b82f6)](docs/CHANGELOG.md)
+[![Test](https://img.shields.io/badge/test-2241%20passati-10b981)](tests/)
 [![Rete](https://img.shields.io/badge/rete-nessuna%20chiamata%20esterna-8b5cf6)](#come-fa-a-essere-davvero-locale)
 [![Licenza](https://img.shields.io/badge/licenza-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%20senza%20Python-06b6d4)](docs/PORTABLE.md)
@@ -463,7 +463,7 @@ Le dipendenze restano ciascuna sotto la propria licenza — vedi [THIRD_PARTY.md
 scripts\quality_gate.bat
 ```
 
-Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **2217 test**, allineamento dei documenti pubblicati.
+Sei passaggi: compilazione, import di ogni modulo uno per uno, verifica delle dipendenze, allineamento delle licenze, **2241 test**, allineamento dei documenti pubblicati.
 
 I test non coprono solo il caso felice. Coprono i difetti che sono costati caro: la matrice profilo × formato che ha scoperto l'OCR su PDF rotto, l'isolamento delle opzioni tra file dello stesso lotto, la porta occupata su Windows, la GET che scriveva su disco, le cartelle che finivano nel cloud. Ogni test di regressione è stato verificato **fallire sul codice di prima**: un test che non fallisce sul bug non dimostra niente.
 

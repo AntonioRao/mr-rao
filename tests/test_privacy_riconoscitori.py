@@ -754,3 +754,88 @@ def test_i_recapiti_veri_restano_riconosciuti():
         out, report = apply_privacy_filter(testo, PrivacyOptions())
         assert report.counts.get("phones") == 1, f"non tolto: {testo!r}"
         assert atteso not in out
+
+
+# ---------------------------------------------------------------------------
+# La carta d'identita' elettronica: la sigla e la forma spaziata
+# ---------------------------------------------------------------------------
+#
+# Il formato `CA12345AA` era gia' riconosciuto; mancavano due forme che sulle
+# scansioni e sui moduli sono le piu' comuni — la sigla **CIE** come
+# etichetta, e il numero stampato **a gruppi** come sta sulla tessera.
+#
+# Il contesto resta obbligatorio, e questi test lo esercitano nei due versi:
+# la stessa cifra senza un'etichetta che dica «documento» non si tocca.
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "CIE n. CA12345AA",
+        "carta d'identita' CA 12345 AA",
+        "carta d'identita' n. CA12345AA",
+    ],
+)
+def test_la_cie_si_toglie_quando_il_contesto_lo_dice(testo):
+    from mr_rao.privacy import apply_privacy_filter
+
+    assert "{{DOC_ID" in apply_privacy_filter(testo, PrivacyOptions())[0], testo
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "Il protocollo CA 12345 AA non e' un documento",
+        "Codice pratica CA12345AA del 3 marzo",
+    ],
+)
+def test_senza_contesto_la_forma_da_sola_non_basta(testo):
+    from mr_rao.privacy import apply_privacy_filter
+
+    fuori, rapporto = apply_privacy_filter(testo, PrivacyOptions())
+    assert "{{DOC_ID" not in fuori
+    # E non sparisce in silenzio: diventa un sospetto, che e' l'esito giusto.
+    assert any(s["kind"] == "documento" for s in rapporto.suspects)
+
+
+# ---------------------------------------------------------------------------
+# Il numero di conto con l'etichetta davanti
+# ---------------------------------------------------------------------------
+#
+# **Due difetti in uno, e il secondo e' peggiore.** Un conto etichettato
+# restava in chiaro — ed e' un dato bancario dichiarato — e quando le cifre
+# somigliavano a un cellulare finiva **fra i telefoni**: «numero di conto
+# 3331234567» usciva `{{PHONE_1}}`. Un conteggio che sbaglia categoria e'
+# peggio di uno che manca, perche' chi legge il rapporto si fida.
+@pytest.mark.parametrize(
+    "testo",
+    [
+        "c/c 000012345678",
+        "c.c. 000012345678",
+        "conto corrente n. 12345678",
+        "numero di conto 3331234567",
+        "Conto corrente n. 000012345678 presso Banca X",
+        "ABI 03069 CAB 09606 000012345678",
+    ],
+)
+def test_il_conto_etichettato_diventa_una_coordinata(testo):
+    from mr_rao.privacy import apply_privacy_filter
+
+    fuori, rapporto = apply_privacy_filter(testo, PrivacyOptions())
+    assert "{{BBAN" in fuori, testo
+    assert rapporto.counts.get("phones", 0) == 0, "contato fra i telefoni"
+
+
+@pytest.mark.parametrize(
+    "testo",
+    [
+        # L'etichetta senza cifre non fa niente.
+        "il conto corrente e' stato chiuso",
+        # Troppo poche cifre: un civico, un anno, un codice breve.
+        "conto n. 12",
+        # E un telefono resta un telefono.
+        "Tel. 333 1234567",
+    ],
+)
+def test_l_etichetta_da_sola_non_basta(testo):
+    from mr_rao.privacy import apply_privacy_filter
+
+    assert "{{BBAN" not in apply_privacy_filter(testo, PrivacyOptions())[0], testo

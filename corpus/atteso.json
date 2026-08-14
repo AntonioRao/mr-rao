@@ -1,8 +1,8 @@
 {
   "motore": {
-    "app": "1.27.0",
+    "app": "1.27.1",
     "sorgenti": {
-      "mr_rao/privacy.py": "c29bd1d0d8af95f5f70a30fa9710cd59c825c5397092edef33563506a3036775",
+      "mr_rao/privacy.py": "0153880f3d4a1f6ade6fa529e5e8adaf6617b60631573e1b75f6f360651f912c",
       "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
       "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
     }
@@ -4198,6 +4198,154 @@
           "names": 1
         },
         "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "cie-01": {
+      "gruppo": "documenti",
+      "uscita": "CIE n. {{DOC_ID_1}} rilasciata dal Comune di Roma.",
+      "report": {
+        "counts": {
+          "documenti": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "cie-02": {
+      "gruppo": "documenti",
+      "uscita": "Carta d'identita' {{DOC_ID_1}} in corso di validita'.",
+      "report": {
+        "counts": {
+          "documenti": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "cie-03": {
+      "gruppo": "documenti",
+      "uscita": "Il protocollo CA 12345 AA non e' un documento.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "documento",
+            "sample": "CA•••••••AA",
+            "why": "ha la forma di un numero di documento d'identita', ma intorno non c'e' scritto di che documento si tratta: potrebbe essere un protocollo o un codice pratica"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "targa-storica-01": {
+      "gruppo": "atti",
+      "uscita": "Veicolo con targa {{TARGA_1}} intestato al defunto.",
+      "report": {
+        "counts": {
+          "targa": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "targa-storica-02": {
+      "gruppo": "atti",
+      "uscita": "Il protocollo MI 123456 e' stato registrato.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "targa-storica-03": {
+      "gruppo": "atti",
+      "uscita": "Autovettura con targa XY 123456.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "conto-01": {
+      "gruppo": "iban",
+      "uscita": "Accreditare sul c/c {{BBAN_1}} presso la filiale.",
+      "report": {
+        "counts": {
+          "bban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "conto-02": {
+      "gruppo": "iban",
+      "uscita": "Il numero di conto {{BBAN_1}} e' quello nuovo.",
+      "report": {
+        "counts": {
+          "bban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "conto-03": {
+      "gruppo": "iban",
+      "uscita": "{{BBAN_1}}",
+      "report": {
+        "counts": {
+          "bban": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "conto-04": {
+      "gruppo": "iban",
+      "uscita": "Il conto corrente e' stato chiuso il 3 marzo.",
+      "report": {
+        "counts": {},
+        "total": 0,
         "suspects": [],
         "suspects_total": 0,
         "detected": [],

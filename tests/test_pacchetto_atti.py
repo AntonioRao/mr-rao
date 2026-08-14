@@ -340,3 +340,49 @@ def test_e_raggiungibile_dall_interfaccia() -> None:
     # E **senza** `checked`: la casella del pacchetto dev'essere spenta.
     pezzo = pagina.split('id="privacy-pack_atti"')[1][:40]
     assert "checked" not in pezzo, pezzo
+
+
+# ---------------------------------------------------------------------------
+# La targa del vecchio formato provinciale: «MI 123456»
+# ---------------------------------------------------------------------------
+#
+# Fuori uso dal 1994, quindi non compare in un documento vivo — compare negli
+# atti che parlano del passato: compravendite di veicoli d'epoca, perizie,
+# successioni. Il formato moderno era coperto, questo no.
+#
+# Tre condizioni **insieme**, e servono tutte e tre: il contesto obbligatorio,
+# la sigla di provincia vera, e da quattro a sei cifre. Senza la seconda la
+# regola prenderebbe qualunque coppia di lettere seguita da cifre; senza la
+# prima, `MI 123456` da solo è indistinguibile da un numero di protocollo.
+class TestTargaStorica:
+    @pytest.mark.parametrize(
+        "testo",
+        [
+            "Veicolo con targa MI 123456 intestato al defunto.",
+            "targa RM987654",
+            "autovettura TO 456789",
+            "immatricolata TO 45678",
+            "motoveicolo NA 1234",
+        ],
+    )
+    def test_con_il_contesto_si_toglie(self, testo: str) -> None:
+        assert "{{TARGA" in redigi(testo, ACCESO), testo
+
+    @pytest.mark.parametrize(
+        "testo",
+        [
+            # Senza contesto: un numero come un altro.
+            "protocollo MI 123456",
+            "il documento MI 123456 non e' una targa",
+            # Sigla che provincia non è: `XY` non è mai stata una targa.
+            "targa XY 123456",
+            # Troppe poche cifre.
+            "targa MI 123",
+        ],
+    )
+    def test_senza_le_tre_condizioni_resta(self, testo: str) -> None:
+        assert "{{TARGA" not in redigi(testo, ACCESO), testo
+
+    def test_resta_nel_pacchetto_spento(self) -> None:
+        """Vale la stessa regola del resto: a pacchetto spento non si tocca."""
+        assert "{{TARGA" not in redigi("targa MI 123456")

@@ -213,6 +213,36 @@ _RE_BBAN = re.compile(
 _RE_ABI_CAB = re.compile(
     r"(?i)\bABI[\s:]*\d{5}\b[\s,;]*(?:\bCAB[\s:]*\d{5}\b)?"
     r"(?:[\s,;]*\bCIN[\s:]*[A-Z]\b)?"
+    # **E il numero di conto che segue**, con o senza etichetta.
+    # `ABI 03069 CAB 09606 000012345678` lasciava in chiaro proprio la
+    # parte che identifica il conto: le prime due sono coordinate
+    # dell'istituto — le stesse per tutti i correntisti di quella filiale —
+    # e l'unica cifra personale restava scritta.
+    r"(?:[\s,;]*(?:\bc(?:/|\.)?c\.?\b|\bconto\b)?[\s:.n°]*\d{10,14}\b)?"
+)
+
+# Il numero di conto **con l'etichetta davanti**: «c/c 000012345678»,
+# «conto corrente n. 12345678», «numero di conto 3331234567».
+#
+# **Due difetti in uno, e il secondo e' peggiore del primo.** Un conto
+# etichettato restava in chiaro — ed e' un dato bancario dichiarato, non un
+# indizio. E quando le cifre somigliavano a un cellulare veniva contato
+# **fra i telefoni**: `numero di conto 3331234567` usciva `{{PHONE_1}}`. Un
+# conteggio che sbaglia categoria e' peggio di un conteggio che manca,
+# perche' chi legge il rapporto si fida — e' la stessa ragione per cui il
+# riconoscitore del BBAN era stato scritto.
+#
+# Sta qui, e non fra i telefoni, perche' i passi di questo pacchetto girano
+# **prima** (43 contro 60): quando arriva il riconoscitore dei telefoni il
+# numero non c'e' piu'.
+#
+# L'etichetta e' obbligatoria e non c'e' nessuna forma nuda: da 8 a 16 cifre
+# senza contesto sono un protocollo, un codice articolo, una data lunga.
+_RE_CONTO_ETICHETTATO = re.compile(
+    r"(?i)(?P<eti>\bc(?:/|\.)?c\.?\b|\bconto\s+corrente\b|\bnumero\s+di\s+conto\b"
+    r"|\bconto\s+n(?:um(?:ero)?)?\b)"
+    r"[\s:.n°]*"
+    r"(?P<val>\d[\d\s.\-]{6,20}\d)(?![\w])"
 )
 
 
@@ -677,7 +707,13 @@ _RE_BIRTH_CTX = re.compile(
 
 _RE_DOC_ID = re.compile(
     r"(?<![A-Z0-9])("
-    r"[A-Z]{2}\d{5}[A-Z]{2}"          # carta d'identita' elettronica
+    # La CIE **spaziata**: sulla tessera il numero e' stampato a gruppi —
+    # `CA 12345 AA` — e chi ricopia a mano lo riscrive cosi'. La forma
+    # attaccata c'era gia'; questa no, e sono lo stesso documento.
+    # Il contesto resta obbligatorio per tutte e due (vedi `_scrub_documenti_id`),
+    # quindi allargare la forma non allarga cio' che sparisce da solo.
+    r"[A-Z]{2}[ .-]\d{5}[ .-][A-Z]{2}"
+    r"|[A-Z]{2}\d{5}[A-Z]{2}"         # carta d'identita' elettronica
     r"|(?:Y[AB]|TA)\d{7}"             # passaporto
     r"|[A-Z]{2}\d{7}[A-Z]"            # patente, modello per provincia
     r"|U[12][A-Z0-9]{8}"              # patente, duplicati UCO
@@ -691,6 +727,10 @@ _RE_DOC_ID = re.compile(
 _RE_DOC_ID_CTX = re.compile(
     r"(?i)\b("
     r"cart[ae]\s+d[i']?\s*identit[\u00e0a]|c\.?\s*i\.?\s*n"
+    # La sigla della carta d'identita' elettronica. Mancava: \u00abCIE n.
+    # CA12345AA\u00bb e' la forma piu' corta e piu' comune sui moduli, e senza
+    # etichetta riconosciuta quel numero restava un sospetto.
+    r"|\bcie\b"
     r"|documento\s+d[i']?\s*identit[\u00e0a]"
     r"|identity\s+card|id\s+card"
     r"|patente|driving\s+licence|driver'?s?\s+licen[cs]e|licenza\s+di\s+guida"
@@ -2618,6 +2658,33 @@ _RE_TARGA_CTX = re.compile(
     rf"(?P<val>{_TARGA_L}{{2}}[ .-]?\d{{5}})(?![\w-])"
 )
 
+# La targa **del vecchio formato provinciale**: due lettere di provincia e
+# fino a sei cifre — `MI 123456`, `RM 987654`. Si trova negli atti di
+# compravendita di veicoli e nelle perizie su mezzi storici.
+#
+# Tre condizioni insieme, e servono tutte e tre:
+#
+#  1. **il contesto e' obbligatorio** (`targa`, `veicolo`, `autovettura`,
+#     `autocarro`, `motoveicolo`, `ciclomotore`, `immatricolat*`,
+#     `telaio`), perche' `MI 123456` da solo e' indistinguibile da un numero
+#     di protocollo, da un codice articolo o da un importo in centesimi;
+#  2. **le due lettere devono essere una sigla di provincia vera**
+#     (`_SIGLE_PROVINCIA`, che serviva gia' agli indirizzi): `XY 123456` non
+#     e' mai stata una targa, e senza questo vincolo la regola prenderebbe
+#     qualunque coppia di lettere seguita da cifre;
+#  3. **le cifre sono da 4 a 6**: sotto le quattro si entra nel territorio
+#     dei numeri civici e dei codici brevi.
+#
+# Il formato e' fuori uso dal 1994, quindi qui non si perde niente di vivo:
+# si guadagna sui documenti che parlano del passato, che sono esattamente
+# quelli in cui il vecchio formato compare.
+_RE_TARGA_STORICA_CTX = re.compile(
+    r"(?i:targ(?:a|he|at[oaie])|veicolo|autoveicolo|autovettura|autocarro"
+    r"|motoveicolo|ciclomotore|rimorchio|immatricolat[oaie]|telaio)"
+    r"[^\S\r\n]*:?[^\S\r\n]*(?:[nN][.°]?[^\S\r\n]*)?"
+    r"(?P<val>[A-Z]{2}[ .-]?\d{4,6})(?![\w-])"
+)
+
 
 def _scrub_targhe(text: str, report: RedactionReport) -> str:
     """Targhe di veicoli.
@@ -2634,7 +2701,21 @@ def _scrub_targhe(text: str, report: RedactionReport) -> str:
         prima = m.string[m.start():m.start("val")]
         return prima + report.segnaposto("targa", "{{TARGA}}", m.group("val"))
 
-    return _RE_TARGA.sub(_sub, _RE_TARGA_CTX.sub(_sub_ctx, text))
+    def _sub_storica(m: re.Match) -> str:
+        # La sigla dev'essere una provincia vera: `XY 123456` non e' mai
+        # stata una targa. Se non lo e', il testo torna intatto — non un
+        # sospetto, perche' senza la sigla giusta non c'e' nemmeno il
+        # sospetto.
+        val = m.group("val")
+        sigla = val[:2].upper()
+        if sigla not in _SIGLE_PROVINCIA:
+            return m.group(0)
+        prima = m.string[m.start():m.start("val")]
+        return prima + report.segnaposto("targa", "{{TARGA}}", val)
+
+    out = _RE_TARGA_CTX.sub(_sub_ctx, text)
+    out = _RE_TARGA_STORICA_CTX.sub(_sub_storica, out)
+    return _RE_TARGA.sub(_sub, out)
 
 
 # ---------------------------------------------------------------------------
@@ -3701,7 +3782,19 @@ def _scrub_bban(text: str, report: RedactionReport, opts: PrivacyOptions) -> str
         return report.segnaposto("bban", "{{BBAN}}", m.group(0))
 
     out = _RE_BBAN.sub(_sub, text)
-    return _replace_all(out, _RE_ABI_CAB, "{{BBAN}}", report, "bban")
+    out = _replace_all(out, _RE_ABI_CAB, "{{BBAN}}", report, "bban")
+
+    def _sub_conto(m: re.Match) -> str:
+        # Le cifre vere, senza separatori: sotto le otto e' un numero
+        # qualunque — un civico, un anno, un codice di due lettere — e
+        # l'etichetta da sola non basta a farne un conto.
+        cifre = re.sub(r"\D", "", m.group("val"))
+        if not 8 <= len(cifre) <= 16:
+            return m.group(0)
+        prima = m.string[m.start():m.start("val")]
+        return prima + report.segnaposto("bban", "{{BBAN}}", m.group("val"))
+
+    return _RE_CONTO_ETICHETTATO.sub(_sub_conto, out)
 
 
 # Recupero dei codici storpiati dall'OCR. Gira dopo i riconoscitori esatti,

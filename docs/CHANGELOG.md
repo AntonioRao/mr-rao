@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.27.1 — Tre buchi trovati leggendo il motore riga per riga
+
+Nessuno dei tre veniva da un banco: sono usciti da una revisione del
+riconoscitore e sono stati **verificati uno per uno** prima di essere
+accettati. Delle quattro segnalazioni esaminate, due erano già coperte —
+gli odonimi abbreviati (`C.so`, `P.zza`, `V.le`, `L.go`, `P.le`, `V.lo`)
+stanno nel motore da tempo, e il numero di conto con gli zeri iniziali non
+finiva affatto fra i telefoni. Le altre due erano vere, e la verifica ne ha
+fatta emergere una terza.
+
+### La carta d'identità elettronica: la sigla e la forma spaziata
+
+Il formato `CA12345AA` era già riconosciuto, ma solo attaccato e solo dopo
+un'etichetta lunga. Mancavano le due forme più comuni: la sigla **CIE**
+(«CIE n. CA12345AA») e il numero **stampato a gruppi**, come sta sulla
+tessera («CA 12345 AA»). Il contesto resta obbligatorio: la stessa forma
+senza un'etichetta che dica «documento» non si tocca e diventa un sospetto.
+
+### La targa del vecchio formato provinciale
+
+`MI 123456`, `RM 987654`: fuori uso dal 1994, quindi non compare in un
+documento vivo — compare negli atti che parlano del passato, cioè
+compravendite di veicoli d'epoca, perizie, successioni. Servono **tre
+condizioni insieme**: il contesto («targa», «veicolo», «immatricolata»,
+«telaio»), una **sigla di provincia vera**, e da quattro a sei cifre. Senza
+la seconda la regola prenderebbe qualunque coppia di lettere seguita da
+cifre; senza la prima, `MI 123456` è indistinguibile da un protocollo.
+
+### Il numero di conto con l'etichetta davanti
+
+Due difetti in uno, e **il secondo è peggiore**. «c/c 000012345678» e «conto
+corrente n. 12345678» restavano in chiaro — ed è un dato bancario
+dichiarato, non un indizio. E quando le cifre somigliavano a un cellulare il
+conto veniva contato **fra i telefoni**: «numero di conto 3331234567»
+usciva `{{PHONE_1}}`. Un conteggio che sbaglia categoria è peggio di uno che
+manca, perché chi legge il rapporto si fida.
+
+Nella stessa passata: `ABI 03069 CAB 09606 000012345678` lasciava in chiaro
+proprio la parte che identifica il conto. Le prime due sono coordinate
+dell'istituto — uguali per tutti i correntisti di quella filiale — e l'unica
+cifra personale restava scritta.
+
+Dieci casi nuovi nel corpus di conformità, **quattro dei quali negativi**.
+
 ## 1.27.0 — Uno stadio non è una persona, e «Di Salvo» non resta indietro
 
 ### Le intitolazioni diventavano persone: «stadio Giuseppe Meazza» spariva
