@@ -3566,6 +3566,154 @@
         "detected_counts": {},
         "detected_total": 0
       }
+    },
+    "composto-01": {
+      "gruppo": "nomi",
+      "uscita": "{{NAME_1}} ha firmato il contratto.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-02": {
+      "gruppo": "nomi",
+      "uscita": "Il sig. {{NAME_1}} attende risposta.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-03": {
+      "gruppo": "nomi",
+      "uscita": "{{NAME_1}}, nato a Messina.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-04": {
+      "gruppo": "nomi",
+      "uscita": "{{NAME_1}} e {{NAME_2}} erano presenti.",
+      "report": {
+        "counts": {
+          "names": 2
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-05": {
+      "gruppo": "nomi",
+      "uscita": "Il rag. {{NAME_1}} ha depositato il bilancio.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-06": {
+      "gruppo": "nomi",
+      "uscita": "Il Comune di Roma ha deliberato in merito.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-07": {
+      "gruppo": "nomi",
+      "uscita": "Ministero della Giustizia - Corte di Cassazione",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-08": {
+      "gruppo": "nomi",
+      "uscita": "Universita' degli Studi di Padova, Consiglio dei Ministri.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-09": {
+      "gruppo": "prosa_modulo",
+      "uscita": "Il fascicolo {{NAME_1}} e' stato aperto ieri.",
+      "report": {
+        "counts": {
+          "names": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "composto-10": {
+      "gruppo": "prosa_modulo",
+      "uscita": "Il fascicolo Di Maio e' stato aperto ieri.",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [
+          {
+            "kind": "nome",
+            "sample": "Di•••io",
+            "why": "una sola parola risulta negli elenchi dei nomi: non basta a dire che sia una persona, ma potrebbe esserlo"
+          }
+        ],
+        "suspects_total": 1,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
     }
   }
 }
