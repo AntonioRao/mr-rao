@@ -323,9 +323,9 @@
       direttamente nell'interfaccia di input delle chat AI, con supporto algoritmico nativo per formati e identificatori italiani.
     </p>
     <dl class="meta-row">
-      <div><dt>Desktop</dt><dd>1.25.0 in distribuzione</dd></div>
-      <div><dt>Plus</dt><dd>0.1.31 su Chrome e Edge · zip Firefox su AMO</dd></div>
-      <div><dt>Prove automatiche</dt><dd>1&nbsp;999 test desktop · 1&nbsp;133 Plus · conformità 141/141</dd></div>
+      <div><dt>Desktop</dt><dd>1.27.0 in distribuzione</dd></div>
+      <div><dt>Plus</dt><dd>0.1.37 su Chrome, Edge e AMO (Firefox)</dd></div>
+      <div><dt>Prove automatiche</dt><dd>2&nbsp;217 test desktop · 1&nbsp;225 Plus · conformità 168/168</dd></div>
       <div><dt>A cura di</dt><dd>Antonio Andrea Rao</dd></div>
     </dl>
     <div class="brandrow">
@@ -338,7 +338,7 @@
       <a href="https://github.com/AntonioRao/mr-rao">Repository GitHub (Desktop)</a>
       <a href="https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek">Chrome Web Store</a>
       <a href="https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead">Edge Add-ons</a>
-      <a href="https://addons.mozilla.org/firefox/downloads/file/4956227/mr_rao_plus-0.1.29.zip">Firefox Add-ons</a>
+      <a href="https://addons.mozilla.org/firefox/downloads/file/4958409/mr_rao_plus-0.1.37.zip">Firefox Add-ons</a>
       <a href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">Microsoft Store</a>
     </div>
     <ol class="toc">
@@ -489,7 +489,7 @@
           </tr>
           <tr>
             <td>Entrambi</td>
-            <td>Motore di riconoscimento unificato e corpus di conformità (239 casi di test)</td>
+            <td>Motore di riconoscimento unificato e corpus di conformità (280 casi di test)</td>
             <td>Assicura coerenza di valutazione e classificazione tra l'ambiente desktop e l'estensione browser.</td>
           </tr>
         </tbody>
@@ -518,7 +518,7 @@
       <li><strong>Copertura dei domini:</strong> Il monitoraggio di Mr. Rao Plus è attivo esclusivamente sui domini dei servizi AI supportati. L'eventuale aggiunta di nuovi host richiede l'aggiornamento dell'elenco configurato, in ossequio al principio del minimo privilegio.</li>
       <li><strong>Documenti rasterizzati:</strong> I documenti PDF privi di testo vettoriale (scansioni pure) richiedono il trattamento tramite OCR nell'applicazione Desktop; l'estensione browser ne blocca il caricamento in modalità fail-closed.</li>
       <li><strong>Audit terzi formali:</strong> L'affidabilità della soluzione è attualmente basata sulla suite di test automatizzati e sulla trasparenza del codice sorgente open source, in attesa di certificazioni terze dedicate (es. SOC 2).</li>
-      <li><strong>Stato del rilascio Desktop:</strong> La versione 1.25.0 è distribuita e verificata, con allineamento documentale e suite di test completa.</li>
+      <li><strong>Stato del rilascio Desktop:</strong> La versione 1.27.0 è distribuita e verificata, con allineamento documentale e suite di test completa.</li>
       <li><strong>Supporto macOS:</strong> È disponibile il pacchetto <code>.dmg</code> per architettura Apple Silicon con firma ad-hoc; il primo avvio richiede la consueta conferma Gatekeeper.</li>
       <li><strong>Integrazione con le policy aziendali:</strong> La soluzione si rivolge alle organizzazioni che consentono o tollerano l'uso dell'AI generativa, fornendo un presidio tecnico efficace contro le condivisioni involontarie.</li>
     </ul>
@@ -534,7 +534,7 @@
         </thead>
         <tbody>
           <tr>
-            <td class="claim">Mr. Rao Plus 0.1.31 su Chrome Web Store ed Edge Add-ons</td>
+            <td class="claim">Mr. Rao Plus 0.1.37 su Chrome Web Store, Edge Add-ons e AMO (Firefox)</td>
             <td class="method">Pagine ufficiali degli store pubblici, liberamente consultabili</td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
@@ -554,12 +554,12 @@
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">1&nbsp;133 test Plus superati; conformità motore 141/141 + 98 casi negativi</td>
+            <td class="claim">1&nbsp;225 test Plus superati; conformità motore 152/152 + 110 casi negativi</td>
             <td class="method">Esecuzione completa della suite di test automatizzati</td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">1&nbsp;999 test Desktop superati; documentazione allineata alla v1.25.0</td>
+            <td class="claim">2&nbsp;217 test Desktop superati; documentazione allineata alla v1.27.0</td>
             <td class="method">Esecuzione pytest e validatore <code>check_docs.py</code></td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
@@ -726,10 +726,10 @@
   <section id="s12">
     <h2><span class="num">12</span>Roadmap e prossimi passi</h2>
     <ul class="roadmap">
-      <li><span class="status ok">Completato</span><span>Pubblicazione di Mr. Rao Plus sugli store Chrome, Edge e AMO (Firefox); allineamento del sito web e del motore di riconoscimento alla v1.25.0.</span></li>
+      <li><span class="status ok">Completato</span><span>Pubblicazione di Mr. Rao Plus sugli store Chrome, Edge e AMO (Firefox); allineamento del sito web e del motore di riconoscimento alla v1.27.0.</span></li>
       <li><span class="status warn">Priorità</span><span>Avvio del primo test pilota formale di 30 giorni presso uno studio professionale partner (sezione 09).</span></li>
       <li><span class="status warn">Priorità</span><span>Esecuzione di un report indipendente di cattura traffico per attestare formalmente l'assenza di comunicazioni esterne.</span></li>
-      <li><span class="status pending">In corso</span><span>Consolidamento dei pacchetti di distribuzione Desktop v1.25.0 per ambiente Windows e macOS.</span></li>
+      <li><span class="status pending">In corso</span><span>Consolidamento dei pacchetti di distribuzione Desktop v1.27.0 per ambiente Windows e macOS.</span></li>
       <li><span class="status pending">Pianificato</span><span>Esecuzione periodica dei test automatizzati di conformità e compatibilità sulle interfacce delle piattaforme AI.</span></li>
       <li><span class="status pending">Da valutare</span><span>Commissione di un penetration test e audit di sicurezza formale da parte di un ente terzo indipendente.</span></li>
       <li><span class="status hypo">Sviluppo Canale</span><span>Proseguimento delle interlocuzioni con partner e operatori per valutare accordi di distribuzione congiunta.</span></li>
