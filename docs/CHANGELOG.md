@@ -40,6 +40,23 @@ sostituito. `casa` è nell'elenco, l'adiacenza è pulita, e nessuna regola può
 distinguere quella forma da «casa Giuseppe Verdi». C'è un test che lo
 congela, perché sia una scelta e non una sorpresa.
 
+### Il Markdown in ingresso: il formato che Mr. Rao produce e non accettava
+
+Dodici file su trentadue di una scrivania vera venivano rifiutati con un
+`400`, tutti `.md`. Il resto del programma il Markdown lo conosceva già — sta
+fra le estensioni di prosa del motore e fra quelle del ripiego a testo
+semplice, e `docs/PRIVACY.md` lo elencava fra i formati leggibili. Mancava
+**solo** nell'elenco che fa da porta.
+
+Il difetto è peggiore di una mancanza qualunque: un documento redatto da
+Mr. Rao esce in Markdown, e Mr. Rao non lo riprendeva. **Il formato che
+produce era l'unico che rifiutava.**
+
+Ora `.md` e `.markdown` entrano, e c'è il controllo che sarebbe servito: il
+selettore file e l'elenco dei formati ammessi devono coincidere **nei due
+versi**. Un formato offerto e non accettato è una promessa rotta dopo il
+clic; uno accettato e non offerto è una funzione che nessuno trova.
+
 ### Le sigle delle scuole: 604 sostituzioni su un elenco pubblico
 
 Su un elenco pubblico di posti di sostegno — **nessun dato personale dentro**

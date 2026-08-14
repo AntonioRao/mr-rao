@@ -245,6 +245,15 @@ ALLOWED_EXTENSIONS = {
     ".json",
     ".xml",
     ".txt",
+    # `.md` e `.markdown`: mancavano, ed era una dimenticanza, non una
+    # scelta. Il resto del programma il Markdown lo conosceva gia' — sta fra
+    # le estensioni di prosa e fra quelle del ripiego a testo semplice — ma
+    # da qui non passava, quindi **Mr. Rao non sapeva rileggere la propria
+    # uscita**: il formato che produce era l'unico che non accettava.
+    # Trovato passando i documenti veri di una scrivania: dodici file su
+    # trentadue rifiutati con un `400`, tutti `.md`.
+    ".md",
+    ".markdown",
     ".rtf",
     ".png",
     ".jpg",

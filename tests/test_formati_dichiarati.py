@@ -146,3 +146,60 @@ def test_ogni_dipendenza_dichiarata_e_anche_nel_requirements():
         f"dichiarati come necessari ma non richiesti in requirements.txt: "
         f"{mancanti}. Su una macchina pulita quel formato non funziona."
     )
+
+
+# ---------------------------------------------------------------------------
+# Il Markdown: il formato che Mr. Rao **produce** e non accettava
+# ---------------------------------------------------------------------------
+#
+# Trovato passando i documenti veri di una scrivania: dodici file su
+# trentadue rifiutati con un `400`, tutti `.md`. Il resto del programma il
+# Markdown lo conosceva gia' — sta fra le estensioni di prosa del motore e
+# fra quelle del ripiego a testo semplice — e `docs/PRIVACY.md` lo elencava
+# fra i formati leggibili. Mancava **solo** in `ALLOWED_EXTENSIONS`, che e'
+# la porta.
+#
+# Il difetto e' peggiore di una mancanza qualunque: un documento gia'
+# redatto da Mr. Rao esce in Markdown, e Mr. Rao non lo riprendeva. Il
+# formato che produce era l'unico che rifiutava.
+def test_il_markdown_e_accettato():
+    assert ".md" in ALLOWED_EXTENSIONS
+    assert ".markdown" in ALLOWED_EXTENSIONS
+
+
+def test_un_markdown_vero_si_converte_e_si_redige(tmp_path):
+    p = tmp_path / "verbale.md"
+    p.write_text(
+        "# Verbale\n\nPresenti: Mario Rossi (mario.rossi@esempio.it).\n",
+        encoding="utf-8",
+    )
+    r = convert_file(p, ConvertOptions())
+    assert "{{NAME" in r.markdown
+    assert "{{EMAIL" in r.markdown
+    assert "mario.rossi@esempio.it" not in r.markdown
+
+
+def test_il_selettore_file_offre_esattamente_i_formati_ammessi():
+    """**Il controllo che sarebbe servito.**
+
+    L'elenco `accept=` del selettore e `ALLOWED_EXTENSIONS` sono due copie
+    della stessa verita', scritte in due file diversi: e' la forma in cui
+    questo difetto e' nato, ed e' la stessa di `test_integrazione_shell.py`
+    per il menu contestuale. Qui si pretende che coincidano **nei due
+    versi** — un formato offerto e non accettato e' una promessa rotta dopo
+    il clic; un formato accettato e non offerto e' una funzione che nessuno
+    trova.
+    """
+    import re
+    from pathlib import Path
+
+    html = (Path(__file__).resolve().parents[1] / "templates" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    m = re.search(r'accept="([^"]+)"', html)
+    assert m, "nessun accept= nel selettore: il controllo non guarderebbe niente"
+    offerti = {e.strip().lower() for e in m.group(1).split(",") if e.strip()}
+    assert offerti == ALLOWED_EXTENSIONS, (
+        f"solo nel selettore: {sorted(offerti - ALLOWED_EXTENSIONS)}; "
+        f"solo fra gli ammessi: {sorted(ALLOWED_EXTENSIONS - offerti)}"
+    )
