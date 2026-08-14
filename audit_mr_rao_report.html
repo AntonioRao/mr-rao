@@ -350,10 +350,11 @@
       <li><a href="#s6">Principi inderogabili</a></li>
       <li><a href="#s7">Limiti dichiarati</a></li>
       <li><a href="#s8">Matrice di verifica</a></li>
-      <li><a href="#s9">Piano pilota</a></li>
-      <li><a href="#s10">Posizionamento</a></li>
-      <li><a href="#s11">Proiezioni economiche</a></li>
-      <li><a href="#s12">Passi successivi</a></li>
+      <li><a href="#s9">Inquadramento AI Act</a></li>
+      <li><a href="#s10">Piano pilota</a></li>
+      <li><a href="#s11">Posizionamento</a></li>
+      <li><a href="#s12">Proiezioni economiche</a></li>
+      <li><a href="#s13">Passi successivi</a></li>
     </ol>
   </header>
 
@@ -554,7 +555,7 @@
             <td><span class="status ok">Verificato</span></td>
           </tr>
           <tr>
-            <td class="claim">1&nbsp;225 test Plus superati; conformità motore 152/152 + 110 casi negativi</td>
+            <td class="claim">1&nbsp;225 test Plus superati; conformità motore 175/175 + 115 casi negativi</td>
             <td class="method">Esecuzione completa della suite di test automatizzati</td>
             <td><span class="status ok">Verificato</span></td>
           </tr>
@@ -594,7 +595,42 @@
   </section>
 
   <section id="s9">
-    <h2><span class="num">09</span>Protocollo di validazione sul campo (Test Pilota)</h2>
+    <h2><span class="num">09</span>Inquadramento rispetto al Regolamento (UE) 2024/1689 (AI Act)</h2>
+    <p>Domanda ricorrente da parte di DPO e responsabili acquisti: se Mr. Rao / Mr. Rao Plus ricadano nel perimetro dell'AI Act, in particolare come strumento di prevenzione della perdita di dati (DLP) collocato a monte dei modelli general-purpose (GPAI). La risposta tecnica e giuridica è netta, e va data con precisione perché è essa stessa una garanzia.</p>
+    <ul>
+      <li><strong>Non è un sistema di AI ai sensi del Regolamento.</strong> Il motore di riconoscimento è interamente a regole deterministiche — espressioni regolari, cifre di controllo (mod-97 per IBAN, Luhn per le carte, il carattere di controllo del codice fiscale), elenchi lessicali — senza alcun componente di apprendimento automatico né capacità di inferenza. Il Considerando 12 del Regolamento esclude esplicitamente dalla definizione di «sistema di AI» il software che esegue operazioni secondo regole definite unicamente da persone fisiche, senza apprendimento, ragionamento o modellazione dei dati; le Linee guida della Commissione Europea del 2025 confermano che il tratto distintivo di un sistema di AI è la capacità di inferire, assente qui per costruzione.</li>
+      <li><strong>Gli obblighi sui modelli general-purpose non si estendono agli strumenti terzi che li intercettano.</strong> Il Capo V del Regolamento (artt. 51-56) impone obblighi ai <em>fornitori</em> dei modelli GPAI — le organizzazioni che addestrano e distribuiscono ChatGPT, Claude, Gemini e simili — non agli strumenti che, lato client, filtrano il traffico in uscita verso quei servizi. Mr. Rao Plus non è né fornitore né componente integrato del modello: opera come controllo indipendente sull'endpoint dell'utente.</li>
+      <li><strong>Non esiste, nel Regolamento, una categoria «DLP per GPAI».</strong> Qualunque rivendicazione di conformità o certificazione in tal senso userebbe una categoria che l'AI Act non definisce, e costituirebbe un'affermazione verificabile falsa — esattamente il tipo di promessa che la metodologia di questo documento evita per principio (§08).</li>
+    </ul>
+    <p>La posizione corretta, e più solida, è la seguente: la soluzione <strong>non è regolata</strong> dall'AI Act, e proprio per questo può presentarsi alle organizzazioni clienti come controllo tecnico privo di obblighi normativi propri, che <strong>supporta</strong> il deployer nel rispettare i propri doveri di governance quando impiega sistemi GPAI (minimizzazione dei dati in uscita, tracciabilità delle deroghe, alfabetizzazione dell'AI ai sensi dell'art. 4). È lo stesso registro già adottato per NIS2 nel backlog di prodotto: «supporta», non «rispetta l'art. X».</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Affermazione</th><th>Fondamento</th><th>Stato</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="claim">Il motore non è un sistema di AI ai sensi dell'art. 3(1)</td>
+            <td class="method">Assenza strutturale di apprendimento automatico e di inferenza; Considerando 12 e Linee guida della Commissione (2025)</td>
+            <td><span class="status ok">Verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">Nessun obbligo come fornitore o deployer di modelli GPAI (Capo V)</td>
+            <td class="method">Analisi del perimetro soggettivo degli artt. 51-56: la soluzione non fornisce né integra il modello</td>
+            <td><span class="status ok">Verificato</span></td>
+          </tr>
+          <tr>
+            <td class="claim">«Conforme all'AI Act come DLP per GPAI»</td>
+            <td class="method">Categoria non definita dal Regolamento</td>
+            <td><span class="status warn">Da non rivendicare</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s10">
+    <h2><span class="num">10</span>Protocollo di validazione sul campo (Test Pilota)</h2>
     <p>Al fine di quantificare l'efficacia della protezione in scenari aziendali reali, è stato predisposto un protocollo di sperimentazione pilota:</p>
     <p><strong>Parametri del protocollo pilota (30 giorni):</strong> Coinvolgimento di un campione di 8–15 professionisti (studi legali, notarili o commerciali) che utilizzano regolarmente chat AI. Installazione di Mr. Rao Plus da store ufficiale e attivazione del registro eventi locale (dati aggregati anonimi registrati esclusivamente sull'endpoint, senza memorizzazione di testi o identificatori personali).</p>
     <div class="tablewrap">
@@ -615,8 +651,8 @@
     <p>I risultati del test pilota consentiranno di presentare metriche concrete sull'incidenza effettiva dei rischi di data leak e sull'efficacia preventiva della soluzione.</p>
   </section>
 
-  <section id="s10">
-    <h2><span class="num">10</span>Analisi di posizionamento competitivo</h2>
+  <section id="s11">
+    <h2><span class="num">11</span>Analisi di posizionamento competitivo</h2>
     <p>Target di riferimento: studi legali e notarili, studi di commercialisti, direzioni HR, Pubblica Amministrazione e aziende strutturate con presidio DPO. L'esigenza primaria è consentire l'utilizzo operativo delle AI generative tutelando il patrimonio informativo aziendale.</p>
     <div class="tablewrap">
       <table>
@@ -646,8 +682,8 @@
     <p>Modello di licenza: componente Desktop open-source (AGPLv3) a tutela della trasparenza e componente Plus con licenza d'uso commerciale sull'endpoint browser.</p>
   </section>
 
-  <section id="s11">
-    <h2><span class="num">11</span>Proiezioni economiche e scenari di ricavo</h2>
+  <section id="s12">
+    <h2><span class="num">12</span>Proiezioni economiche e scenari di ricavo</h2>
     <p>Le proiezioni economiche di seguito riportate illustrano gli ordini di grandezza dei ricavi potenziali in funzione del canale di distribuzione. I calcoli assumono un prezzo di listino indicativo di <strong>29&nbsp;€/utente/anno</strong> per il canale diretto e una struttura di costo altamente scalabile basata su sviluppo già completato e costi operativi di sola manutenzione e supporto.</p>
 
     <h3>Scenario A — Canale Diretto (Studi professionali, PMI, PA)</h3>
@@ -723,8 +759,8 @@
     <p>Fonti per la quantificazione del bacino: Osservatorio sulle Comunicazioni AGCOM e comunicati societari degli operatori. Le proiezioni di scala rappresentano un'opportunità strategica ad alto volume derivante da accordi di distribuzione congiunta.</p>
   </section>
 
-  <section id="s12">
-    <h2><span class="num">12</span>Roadmap e prossimi passi</h2>
+  <section id="s13">
+    <h2><span class="num">13</span>Roadmap e prossimi passi</h2>
     <ul class="roadmap">
       <li><span class="status ok">Completato</span><span>Pubblicazione di Mr. Rao Plus sugli store Chrome, Edge e AMO (Firefox); allineamento del sito web e del motore di riconoscimento alla v1.27.1.</span></li>
       <li><span class="status warn">Priorità</span><span>Avvio del primo test pilota formale di 30 giorni presso uno studio professionale partner (sezione 09).</span></li>
