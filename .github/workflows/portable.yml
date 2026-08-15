@@ -236,9 +236,17 @@ jobs:
           fi
           echo "i quattro segreti ci sono"
 
+      # Pinnata al commit, non al tag. Un tag e' un puntatore che chi possiede
+      # l'action puo' spostare quando vuole: `@v1.1` oggi e `@v1.1` domani
+      # possono essere due codici diversi, e questo passo gira nel job che ha
+      # accesso ai quattro segreti dello Store. Il commit invece non si muove.
+      # Il prezzo e' che un aggiornamento va fatto a mano: e' voluto -- che
+      # cambi il codice a cui diamo le credenziali dev'essere una decisione,
+      # non un effetto collaterale. (Il tag e' fermo a v1.1: a monte esiste
+      # fino a v1.4, ma passare di versione e' una scelta separata da questa.)
       - name: Microsoft Store CLI
         if: inputs.pubblica_store != ''
-        uses: microsoft/microsoft-store-apppublisher@v1.1
+        uses: microsoft/microsoft-store-apppublisher@15abd1c50fcc164b19cb240fb04ef3c49bf715a2 # v1.1
 
       - name: Credenziali dello Store
         if: inputs.pubblica_store != ''
