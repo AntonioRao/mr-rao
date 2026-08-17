@@ -73,3 +73,12 @@ docs/landing/publish/test-results/
 # wrangler scrive la sua cache dove viene lanciato, non dove sta la pagina:
 # se il deploy parte dalla radice del repository la cartella nasce qui.
 .wrangler/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/
+
+# Tutela del codice: catalogo di impronte e nomi propri da escludere. Materiale
+# privato per costruzione — un catalogo pubblico direbbe esattamente cosa
+# cancellare per rendersi invisibili a una ricerca. Vedi scripts/impronte.py e
+# docs/TUTELA-CODICE.md.
+provenance/

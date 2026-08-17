@@ -2,9 +2,9 @@
   "motore": {
     "app": "1.27.1",
     "sorgenti": {
-      "mr_rao/privacy.py": "0153880f3d4a1f6ade6fa529e5e8adaf6617b60631573e1b75f6f360651f912c",
-      "mr_rao/en_formats.py": "4a4d025abc40822803dd4f7991aeaeea57d07293dcd7e7f6acf5bfb453c7a7f7",
-      "mr_rao/it_names.py": "bccb5ce533097f6396513eb4cc94c43f645291b646b767603e550dfe867f0ef9"
+      "mr_rao/privacy.py": "4976edf4bdad4ebba130941d05656780de1935c4cc32c2e3ebd9edd41ad4ff45",
+      "mr_rao/en_formats.py": "427e302cfce8844046847e11a4522f02b4ffddc9ddaa32d6e9b279533fbc4ea6",
+      "mr_rao/it_names.py": "d5ef38d9b14748a8345aaf3124abd4a82c3c4d9205f45738877be23dc138a87a"
     }
   },
   "casi": {

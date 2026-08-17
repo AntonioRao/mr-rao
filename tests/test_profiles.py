@@ -1,3 +1,8 @@
+# Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+# GNU Affero General Public License pubblicata dalla Free Software Foundation,
+# versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository.
 from mr_rao.profiles import list_profiles, options_from_profile
 from mr_rao.converter import merge_markdowns, ConvertResult
 from mr_rao.privacy import RedactionReport

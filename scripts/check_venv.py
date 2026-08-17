@@ -1,3 +1,8 @@
+# Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+# GNU Affero General Public License pubblicata dalla Free Software Foundation,
+# versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository.
 """Controlla che l'ambiente non contenga resti di disinstallazioni fallite.
 
 Su Windows, quando pip non riesce a cancellare un file perche' e' in uso —

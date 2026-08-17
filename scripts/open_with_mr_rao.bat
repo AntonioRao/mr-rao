@@ -1,5 +1,10 @@
 @echo off
 chcp 65001 >nul 2>&1
+REM Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+REM SPDX-License-Identifier: AGPL-3.0-or-later
+REM Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+REM GNU Affero General Public License pubblicata dalla Free Software Foundation,
+REM versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository.
 cd /d "%~dp0.."
 REM --attendi tiene aperta la finestra quando c'e' qualcosa da leggere:
 REM redazioni fatte o, soprattutto, sospetti. Prima si chiudeva sempre

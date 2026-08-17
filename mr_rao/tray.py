@@ -1,3 +1,8 @@
+# Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+# GNU Affero General Public License pubblicata dalla Free Software Foundation,
+# versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository.
 # pystray is used under the GNU LGPL v3 (or later).
 # Copyright (C) 2016-2022 Moses Palmér — https://github.com/moses-palmer/pystray
 # Full license texts: licenses/pystray/ (COPYING.LGPL, COPYING, NOTICE.txt)
