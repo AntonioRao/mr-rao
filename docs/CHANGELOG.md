@@ -1,5 +1,48 @@
 # Changelog
 
+## Il `.dmg` della 1.27.1 è stato sostituito il 17 agosto 2026
+
+Non è una versione nuova: è **lo stesso numero con un file diverso**, e va
+detto invece di lasciarlo scoprire da un checksum che non torna.
+
+Il `.dmg` allegato il 14 agosto **non si apriva su nessun Mac recente**. Non
+era l'avviso di Gatekeeper, che è previsto e si supera: era il programma che
+moriva prima di partire, perché `Frameworks/Python.framework/.../Python` — un
+binario Mach-O **senza estensione** — sfuggiva al filtro `*.dylib`/`*.so` di
+`build_mac.sh` e restava firmato da chi ha compilato l'interprete, mentre
+l'app era firmata ad-hoc. Due identità nello stesso processo, e con
+l'hardened runtime acceso dyld rifiuta di caricarlo.
+
+Segnalato da un utente su un MacBook Air M1 con macOS 26, sul file scaricato
+da questa pagina.
+
+**Perché la CI non l'ha visto**, che è la parte che conta: `verify_dmg.sh`
+monta il disco e **avvia davvero** l'eseguibile, quindi il controllo giusto
+c'era e girava. Ma girava su `macos-14`, mentre chi scarica sta su Sequoia e
+Tahoe, e la regola di caricamento si è stretta dopo. Lo stesso identico file
+passava in CI e non partiva su un Mac vero. Un controllo che prova su un
+sistema più permissivo del pubblico non è una verifica.
+
+| | |
+|---|---|
+| `.dmg` vecchio (rotto) | 179 660 003 byte, allegato il 14/08/2026 |
+| `.dmg` nuovo | 178 685 931 byte, `sha256 1c222d87…92430` |
+| Costruito da | [run 32038088223](https://github.com/AntonioRao/mr-rao/actions/runs/32038088223), su `macos-26` |
+
+Gli allegati Windows non sono stati toccati: restano quelli della 1.27.1,
+già provati.
+
+Nel codice: firma per **forma** e non per estensione (si chiede a `file` chi è
+Mach-O), framework firmati alla loro versione, `--options runtime` tolto
+(serviva alla notarizzazione, che qui non si fa, e accendeva proprio la regola
+che uccideva l'app), un controllo che ferma la build se resta un binario
+annidato con un Team ID estraneo, e il runner portato a `macos-26`.
+
+Corretta anche l'istruzione per il primo avvio, superata in tre punti
+(`docs/MACOS.md` e le due landing pubblicate): diceva «tasto destro → Apri»,
+gesto che Apple ha tolto con macOS 15 Sequoia. Ora indica Impostazioni di
+Sistema → Privacy e sicurezza → **Apri comunque**.
+
 ## 1.27.1 — Tre buchi trovati leggendo il motore riga per riga
 
 Nessuno dei tre veniva da un banco: sono usciti da una revisione del
