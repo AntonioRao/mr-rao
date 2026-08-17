@@ -26,15 +26,38 @@ domanda già inviata) firma Authenticode per **Windows**, non sostituisce
 Apple su Mac. Inventare un’identità senza quel certificato sarebbe una
 firma falsa, peggio del vuoto.
 
-## Primo avvio (Tahoe e dintorni)
+## Primo avvio (Sequoia, Tahoe e successivi)
 
-1. Scarica `MrRao-macos-arm64.dmg`, aprilo, trascina **Mr. Rao** su
-   **Applicazioni**.
-2. **Non** fare doppio clic la prima volta: tasto destro → **Apri** → Apri.
-3. Se Tahoe lo blocca ancora: Impostazioni di Sistema → Privacy e
-   sicurezza → **Apri comunque**.
-4. Il programma ascolta su `127.0.0.1` e apre la finestra (o il browser).
-   La scorciatoia appunti **Ctrl+Alt+R non c’è**: è Windows-only.
+1. Scarica `MrRao-macos-arm64.dmg` e aprilo. macOS chiede conferma sul disco:
+   **Apri comunque**.
+2. Trascina **Mr. Rao** su **Applicazioni**. Falla davvero, prima di
+   proseguire: dal disco montato l'app resta in sola lettura e il passo 4 non
+   trova niente da sbloccare.
+3. Doppio clic su Mr. Rao in Applicazioni. **Verrà bloccata**, con un avviso
+   che ha il solo pulsante *Fine*. È previsto: serve a dire a macOS quale app
+   stai per autorizzare.
+4. **Impostazioni di Sistema → Privacy e sicurezza**, in fondo alla sezione
+   *Sicurezza*: compare «Mr. Rao è stata bloccata» con il pulsante **Apri
+   comunque**. Premilo, autentica, e al dialogo che segue scegli **Apri**.
+5. Il programma ascolta su `127.0.0.1` e apre la finestra (o il browser).
+   La scorciatoia appunti **Ctrl+Alt+R non c'è**: è Windows-only.
+
+Da qui in poi si apre con un doppio clic come qualunque altra app.
+
+Chi preferisce il Terminale fa in una riga quello che i passi 3 e 4 fanno a
+mano — toglie la marcatura di «scaricato da internet»:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Mr. Rao.app"
+```
+
+> **Il «tasto destro → Apri» non funziona più.** Era la via classica, ed è
+> quella che questa pagina consigliava fino alla 1.27.1. Apple **l'ha tolta
+> con macOS 15 Sequoia**: da lì in avanti il menu contestuale non offre più
+> l'eccezione, e l'unica strada è Impostazioni di Sistema. Su Tahoe (26) è
+> ancora così. L'istruzione vecchia non era pericolosa, era peggio: mandava
+> l'utente a cercare un comando che non esiste, e sembrava che l'app fosse
+> rotta.
 
 Non è un buco: è lo stesso avviso «editore sconosciuto» di Windows, detto
 nel linguaggio di Apple.

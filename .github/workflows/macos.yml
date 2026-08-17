@@ -1,5 +1,15 @@
 # Build macOS arm64 (.app in un .dmg), firma ad-hoc gratuita.
-# Non richiede Apple Developer Program. Gatekeeper avvisa al primo avvio.
+# Non richiede Apple Developer Program. Gatekeeper blocca il primo avvio e si
+# sblocca da Impostazioni di Sistema (vedi docs/MACOS.md).
+#
+# ## Il runner va tenuto al passo, non fermo
+#
+# Fino al 16/08/2026 girava su `macos-14` (Sonoma) mentre gli utenti erano su
+# Sequoia e Tahoe. Le regole di caricamento del codice firmato si sono strette
+# **dopo** la 14: un `.dmg` che non partiva su macOS 26 passava qui tutti i
+# controlli, `verify_dmg` compreso, perche' il sistema che lo provava era piu'
+# permissivo di quello che lo avrebbe aperto. Un controllo che gira su un
+# sistema piu' vecchio del pubblico non e' una verifica: e' una rassicurazione.
 name: macOS
 
 on:
@@ -15,7 +25,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
@@ -40,7 +50,7 @@ jobs:
 
   build:
     needs: test
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 60
     permissions:
       contents: write        # solo per allegare il .dmg alla release del tag
