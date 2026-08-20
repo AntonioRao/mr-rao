@@ -125,7 +125,8 @@ _RE_CONTEGGIO_DESKTOP = re.compile(
     r"(\d{3,5})(?:&nbsp;)?[\s-]*test[\s]*desktop", re.I
 )
 _RE_LINK_AMO = re.compile(
-    r"https://addons\.mozilla\.org/firefox/downloads/file/\d+/[\w.-]+\.zip"
+    r"https://addons\.mozilla\.org/(?:[a-z]{2}(?:-[A-Z]{2})?/)?"
+    r"firefox/(?:addon/mr-rao-plus/?|downloads/file/\d+/[\w.-]+\.zip)"
 )
 _RE_LINK = re.compile(r"\]\(([^)#:]+\.(?:md|py|txt|ico|png|yml|bat|ps1))[^)]*\)")
 _RE_VOCE_CHANGELOG = re.compile(r"^#{1,3}[ \t]*\[?v?(\d+\.\d+\.\d+)\]?", re.MULTILINE)
@@ -552,11 +553,9 @@ def conteggi_desktop_incoerenti(reale: int, testo: str) -> list[str]:
 def link_amo_diverso(testo: str) -> list[str]:
     """Il link Firefox del rapporto dev'essere quello delle pagine pubblicate.
 
-    Non c'e' un numero di versione da confrontare: addons.mozilla.org
-    assegna a ogni caricamento un **numero di file** nuovo, quindi il link
-    cambia per intero e non e' ricavabile da `APP_VERSION`. L'unica verita'
-    disponibile e' che tutti i posti che lo scrivono dicano lo stesso, e le
-    pagine pubblicate sono la copia che qualcuno guarda ogni giorno.
+    La scheda store (`/addon/mr-rao-plus/`) e' il link da tenere allineato.
+    Un vecchio zip `/downloads/file/…` e' lo stesso controllo: se compare
+    in un posto e non nelle landing, e' un link morto o rimasto indietro.
     """
     quali = _RE_LINK_AMO.findall(testo)
     if not quali:

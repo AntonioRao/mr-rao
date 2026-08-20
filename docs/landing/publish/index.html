@@ -10,8 +10,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mr. Rao — Protocollo Zero</title>
-<meta name="description" content="Il contratto non esce dalla stanza. Mr. Rao: conversione e redazione dati personali, 100% locale." />
+<title>Mr. Rao — Soluzione DLP per la protezione dei dati personali nell'utilizzo dell'AI</title>
+<meta name="description" content="Mr. Rao e Mr. Rao Plus: DLP per la protezione dei dati personali nell'utilizzo dell'AI. Bloccano e redigono i dati nei file e nelle chat, sul computer, prima che escano in rete." />
 <link rel="icon" href="assets/favicon.svg?v=354c7fcf8b" type="image/svg+xml" />
 <!-- Il .ico serve a due cose che l'SVG non copre: i browser che non
      accettano favicon vettoriali, e la richiesta automatica a /favicon.ico
@@ -809,15 +809,14 @@
         <span class="ver">offline by design · v1.27.1</span>
       </p>
       <h1>
-        <span class="line-reveal"><span>Il contratto</span></span>
-        <span class="line-reveal"><span>non esce</span></span>
-        <span class="line-reveal"><span>dalla <em>stanza</em>.</span></span>
+        <span class="line-reveal"><span>Soluzione <em>DLP</em> per la</span></span>
+        <span class="line-reveal"><span>protezione dei <em>dati personali</em></span></span>
+        <span class="line-reveal"><span>nell'utilizzo dell'<em>AI</em></span></span>
       </h1>
       <p class="lede">
-        PDF, Word, scansioni, email → Markdown pulito, testo semplice o documento Word.
-        Codici fiscali, IBAN, nomi e chiavi API: fuori, <strong class="hl">prima</strong> che tu li incolli in un’AI —
-        o prima che tu pubblichi l’atto.
-        Zero chiamate di rete. Validatori aritmetici, non promesse.
+        Mr. Rao e Mr. Rao Plus sono strumenti DLP per lo shadow AI: bloccano e redigono
+        i dati personali nei file e nelle chat con l’intelligenza artificiale.
+        Tutto sul computer, in locale, prima che i dati escano in rete.
       </p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="https://apps.microsoft.com/detail/9N7SJ4W88KQC">
@@ -861,6 +860,12 @@
       Per far ragionare un modello su un contratto, quasi tutti gli strumenti
       ti chiedono di caricare il file. In quel momento nomi, IBAN e codici fiscali
       finiscono su un server di terzi. Mr. Rao spezza la catena: converte e redige <em>qui</em>.
+    </p>
+    <p class="intro">
+      Proteggere i dati che si scrivono nelle chat AI è un problema serio per le aziende:
+      documenti riservati finiscono in ChatGPT, Claude o Copilot senza che la rete se ne accorga.
+      Mr. Rao e Mr. Rao Plus aiutano a prevenire queste fughe di dati e a ridurre il rischio
+      di usare fascicoli riservati in modo improprio — sul computer, prima che qualcosa esca.
     </p>
     <div class="threat">
       <div class="threat-box bad">
@@ -938,7 +943,7 @@
 
   <section class="block" id="capacita">
     <p class="sec-label">// 04 · capacità</p>
-    <h2>Tutto ciò che resta in stanza.</h2>
+    <h2>Cosa fa, sul computer.</h2>
     <table class="spec" id="spec">
       <tr><td>Formati</td><td>PDF, DOCX, XLSX, PPTX, HTML, CSV, immagini, EML — MarkItDown + OCR offline</td></tr>
       <tr><td>Redazione</td><td>Email, telefoni, nomi, indirizzi, CF, P.IVA, IBAN, BBAN, carte, URL, segreti API</td></tr>
@@ -948,7 +953,7 @@
       <tr><td>Shell Windows</td><td>Tasto destro → Apri con Mr. Rao · sospetti stampati in console quando servono</td></tr>
       <tr><td>Cartella automatica</td><td>Da convertire → Convertiti, Markdown in uscita, default fuori da OneDrive/Dropbox</td></tr>
       <tr><td>Sicurezza locale</td><td>Host allow-list, anti-CSRF Origin, GET read-only, bind 127.0.0.1</td></tr>
-      <tr><td>Licenza</td><td>AGPL-3.0 · codice ispezionabile · nessun telefono a casa</td></tr>
+      <tr><td>Licenza</td><td>AGPL-3.0 · codice ispezionabile · non invia dati all'esterno</td></tr>
       <tr><td>Con Plus</td><td>Pulisce il file sul PC e può fermare l’invio nelle chat AI elencate. Non è un DLP di rete e non manda i testi a un filtro in cloud.</td></tr>
     </table>
   </section>
@@ -988,31 +993,19 @@
     <div class="limits">
       <div class="limit">
         <strong>NON è anonimizzazione GDPR forte</strong>
-        <p>È redazione assistita. Il contesto del documento resta. Serve una rilettura.</p>
+        <p>È redazione assistita. Il contesto del documento resta, e nonostante il motore di anonimizzazione sia stato testato su migliaia di documenti di vario tipo, è sempre bene verificare il contenuto editato.</p>
       </div>
       <div class="limit">
-        <strong>Nomi: non infallibili</strong>
-        <p>Liste di nomi e contesto della frase, ognuno con un riscontro. La regola che indovinava senza riscontri è stata tolta, perché sui moduli sbagliava novantaquattro volte tanto: il prezzo è che un cognome fuori elenco può restare. È la parte più difficile, e serve sempre una rilettura.</p>
+        <strong>L'anonimizzazione non è reversibile</strong>
+        <p>Una volta redatto un documento, non si può tornare indietro. Con un PDF vedrai il classico PDF con i rettangoli che nascondono le informazioni sensibili, ma sotto il dato non esiste più. Abbiamo preferito che i dati non possano essere recuperati. Meno comodo, ma più sicuro.</p>
       </div>
       <div class="limit">
         <strong>Sulle fotocopie sbiadite la copertura cala al 47%</strong>
         <p>Non è la risoluzione: fra 300 e 100 DPI, su una scansione pulita, la copertura non peggiora. È la qualità del segno. Su una fotocopia sbiadita a 200 DPI — un documento che a occhio si legge benissimo — viene redatto il 47% dei dati, e di quelli rimasti leggibili i sospetti ne segnalano 4 su 28: il resto passa in silenzio. Misurato, non stimato; la scheda «Confronto privacy» è l’unico controllo che lo vede.</p>
       </div>
       <div class="limit">
-        <strong>Due reti neurali, ma a monte</strong>
-        <p>Nel pacchetto ci sono ~30 MB di modelli .onnx (RapidOCR, che legge le scansioni) e uno da 3 MB che riconosce il tipo di file. Girano offline e non decidono niente. Ma il rovescio vale: quello che l’OCR legge male il motore non può decidere bene — tre errori di lettura bastano a far sfuggire un codice.</p>
-      </div>
-      <div class="limit">
-        <strong>Il .docx non è l’originale</strong>
-        <p>È un documento nuovo, ricostruito dal testo già redatto: il dato non c’è, ma l’impaginazione dell’originale nemmeno. Il PDF identico con sopra i rettangoli neri Mr. Rao non lo fa — sotto quei rettangoli il testo resta.</p>
-      </div>
-      <div class="limit">
         <strong>Monoutente locale</strong>
         <p>Nessuna auth. Esporre la porta in rete senza proxy è un errore consapevole.</p>
-      </div>
-      <div class="limit">
-        <strong>Windows dirà «editore sconosciuto»</strong>
-        <p>Il pacchetto scaricato da qui non è firmato per Windows: l’avviso compare, ed è giusto che tu lo veda. La domanda di firma gratuita alla <a class="glow" href="https://signpath.org/" target="_blank" rel="noopener noreferrer">SignPath Foundation</a> è stata <strong>respinta</strong> ad agosto 2026 — chiedono un progetto con una comunità già formata — e un certificato gratuito che porti il nome dell’autore non esiste: le autorità di certificazione devono verificare un’identità, e quella verifica la fanno pagare. <strong>La strada che toglie l’avviso è il Microsoft Store</strong>, dove il pacchetto è firmato da Microsoft. Chi scarica lo zip da qui ha invece le somme SHA-256 e le attestazioni Sigstore, che dicono da quale build è uscito il file — una garanzia più forte, che però Windows non legge. Cosa cambierà e cosa no sta nella <a class="glow" href="https://github.com/AntonioRao/mr-rao/blob/main/docs/CODE-SIGNING-POLICY.md" target="_blank" rel="noopener noreferrer">policy di firma</a>.</p>
       </div>
     </div>
   </section>
@@ -1045,7 +1038,7 @@
         <img class="browser" src="assets/logo-edge.svg?v=228f22cc4b" width="20" height="20" alt="" />
         Microsoft Edge
       </a>
-      <a class="btn btn-ghost" href="https://addons.mozilla.org/firefox/downloads/file/4958409/mr_rao_plus-0.1.37.zip" target="_blank" rel="noopener noreferrer">
+      <a class="btn btn-ghost" href="https://addons.mozilla.org/it/firefox/addon/mr-rao-plus/" target="_blank" rel="noopener noreferrer">
         <img class="browser" src="assets/logo-firefox.svg?v=f31b10673f" width="20" height="20" alt="" />
         Firefox
       </a>

@@ -333,7 +333,7 @@ checked case by case against the original.
 |---|---|
 | **Google Chrome** | [store listing](https://chromewebstore.google.com/detail/mr-rao-plus/aenhlpaflfbgjnafaecfhiehldgmdmek) |
 | **Microsoft Edge** | [store listing](https://microsoftedge.microsoft.com/addons/detail/mr-rao-plus/iecojbdclofpmlecldamgmdfofaanead) |
-| **Firefox** | [addons.mozilla.org](https://addons.mozilla.org/firefox/downloads/file/4958409/mr_rao_plus-0.1.37.zip) |
+| **Firefox** | [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/mr-rao-plus/) |
 | Licence | **commercial**, not AGPL. Mr. Rao itself stays AGPL-3.0 |
 
 One permission (`storage`), no host permissions, no network call — not even to
