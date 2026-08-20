@@ -82,3 +82,10 @@ graft/
 # cancellare per rendersi invisibili a una ricerca. Vedi scripts/impronte.py e
 # docs/TUTELA-CODICE.md.
 provenance/
+
+# La nota per il board: documento interno, e questo repository è pubblico.
+# Doveva stare fuori da git fin dall'inizio — c'è finita comunque, ed è
+# rimasta tracciata per giorni. Resta sul disco di chi la scrive e resta
+# dentro il cancello (invariante 9 di check_docs, l'unico controllo che
+# guarda un file non tracciato e l'unico che può dichiarare di saltare).
+audit_mr_rao_report.html
