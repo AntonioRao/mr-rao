@@ -4352,6 +4352,126 @@
         "detected_counts": {},
         "detected_total": 0
       }
+    },
+    "mestiere-01": {
+      "gruppo": "nomi",
+      "uscita": "Enterprise Architect {{EMAIL_1}}",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "mestiere-02": {
+      "gruppo": "nomi",
+      "uscita": "Project Manager {{EMAIL_1}}",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "mestiere-03": {
+      "gruppo": "nomi",
+      "uscita": "Direttore {{NAME_1}} {{EMAIL_1}}",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "mestiere-04": {
+      "gruppo": "nomi",
+      "uscita": "{{NAME_1}} {{EMAIL_1}}",
+      "report": {
+        "counts": {
+          "emails": 1,
+          "names": 1
+        },
+        "total": 2,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "tabella-01": {
+      "gruppo": "telefoni",
+      "uscita": "Imponibile 312 456 789 nella colonna A",
+      "report": {
+        "counts": {},
+        "total": 0,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "tabella-02": {
+      "gruppo": "telefoni",
+      "uscita": "Cell. {{PHONE_1}}",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "tabella-03": {
+      "gruppo": "telefoni",
+      "uscita": "Chiamami al {{PHONE_1}} domani",
+      "report": {
+        "counts": {
+          "phones": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
+    },
+    "ancora-01": {
+      "gruppo": "email",
+      "uscita": "Scrivi a {{EMAIL_1}}.",
+      "report": {
+        "counts": {
+          "emails": 1
+        },
+        "total": 1,
+        "suspects": [],
+        "suspects_total": 0,
+        "detected": [],
+        "detected_counts": {},
+        "detected_total": 0
+      }
     }
   }
 }
