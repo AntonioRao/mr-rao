@@ -18,7 +18,7 @@ che esistono. Un controllo che parte dall'elenco delle cose che ho in mano
 trova solo quello che ho gia' guardato. Questo parte da `git ls-files`,
 che non sa cosa ho toccato oggi.
 
-Otto invarianti, tutte verificabili senza leggere il testo:
+Nove invarianti, tutte verificabili senza leggere il testo:
 
 1. nessun identificativo duplicato nel backlog — «P2.7» ha significato due
    cose per qualche ora, in due stati diversi;
@@ -101,12 +101,12 @@ RIGENERATE = {
 #
 # Il limite, detto chiaro perche' non si scopra solo il giorno che morde:
 # questo repository non contiene l'artefatto mobile, quindi il numero qui
-# sotto e' **scritto a mano**. Se la mobile passa alla 0.1.3 e non si tocca
-# ne' le pagine ne' questa riga, il controllo tace. Prende il caso opposto —
+# sotto e' **scritto a mano**. Se la mobile passa a una versione nuova e non si
+# tocca ne' le pagine ne' questa riga, il controllo tace. Prende il caso opposto —
 # pagine aggiornate e riga no — che e' quello che capita davvero, perche' le
 # pagine si toccano quando si pubblica.
 VERSIONI_ALTRUI = {
-    "docs/landing/publish/mobile/": ("Mr. Rao Mobile", "0.1.2"),
+    "docs/landing/publish/mobile/": ("Mr. Rao Mobile", "0.1.3"),
 }
 
 _RE_ID = re.compile(r"^\| ([PSA]\d*\.\d+[a-z]?) \|", re.MULTILINE)
