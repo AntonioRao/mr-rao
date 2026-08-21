@@ -12,7 +12,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-TCZ0cYJ3rW5lVgizhrSSMXKxn7C9uTTFDTth4ufrQfY=' 'sha256-dv+Z2rgHN3Wws2/v7mtCoTqQVIJZLvIU1bBuGDIiBJc='; style-src 'self' 'sha256-g/UmsYkeyPp6cMY6Vw76VWGaBFgRKju09aZLSp6uH+I=' 'sha256-0P2U21vCMlyyLjipHHTuMkgHlzeOCbRqFISc8qNwL3A='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-TCZ0cYJ3rW5lVgizhrSSMXKxn7C9uTTFDTth4ufrQfY=' 'sha256-dv+Z2rgHN3Wws2/v7mtCoTqQVIJZLvIU1bBuGDIiBJc='; style-src 'self' 'sha256-2yCiLtx/32qAqCtbo9PwhnIc/pv+W5diib76W4jZpek=' 'sha256-rWeIn0bf0FD9d/HJpxUFpbIF1Wz/X/Ux/WP/8qbYT0c='; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
