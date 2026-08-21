@@ -1,5 +1,63 @@
 # Changelog
 
+## Il motore diventa lineare: 7,30 s -> 1,08 s su un elenco da 400.000 caratteri
+
+Non e' una versione nuova, ed e' una correzione di prestazioni **che non
+cambia una virgola di cio' che viene tolto**.
+
+Il costo del motore cresceva con il **quadrato** della lunghezza, ma solo su
+certi documenti: su un testo scritto era gia' lineare, e si vedeva soltanto
+dove i nomi sono tanti -- cioe' su un elenco esportato. E' questo che l'ha
+tenuto invisibile a lungo.
+
+Il profilatore, sulla versione TypeScript dello stesso motore, non ha
+lasciato margini: **`_dopo_una_intitolazione` valeva il 67,5% del tempo**,
+3.910 ms su 5.796. A ogni nome candidato prendeva tutto il testo che lo
+precede, lo minuscolizzava e lo scandiva con `[^\W\d_]+` due volte. Con m
+nomi in n caratteri il costo e' il prodotto.
+
+I due cicli di quella funzione pero' escono quasi subito -- il primo alla
+prima parola non maiuscola o alla prima adiacenza spezzata, il secondo alla
+prima parola che non sia un articolo o un qualificatore. Guardano una
+manciata di parole; tutto il resto veniva calcolato e mai letto. Ora si
+guarda una finestra di 512 caratteri, e **se non basta si allarga** finche' i
+cicli non concludono: con la finestra all'inizio del testo si e' letto
+esattamente quello che si leggeva prima. Cambia quando si smette di leggere,
+non cosa si decide.
+
+Sul file peggiore di un campione di documenti veri:
+
+| caratteri | prima | dopo |
+|---|---|---|
+| 100.000 | 0,70 s | 0,28 s |
+| 200.000 | 2,08 s | 0,54 s |
+| 400.000 | 7,30 s | 1,08 s |
+
+Il nuovo raddoppia il tempo al raddoppiare della dimensione; il vecchio lo
+triplicava.
+
+**La verifica che conta non e' la velocita'.** Una correzione di prestazioni
+su un motore di anonimizzazione che alterasse anche un carattere di cio' che
+viene tolto sarebbe molto peggio della lentezza che corregge: la lentezza si
+vede, un nome smesso di proteggere no.
+
+Due prove, entrambe su cio' che esce e non su cio' che si spera:
+
+* **Il corpus di conformita' rigenerato non cambia di una riga.** Delle 290
+  voci di `corpus/atteso.json`, l'unica differenza e' l'impronta del file
+  sorgente. Il gate `test_impronta_del_motore_allineata` esiste proprio per
+  costringere a guardare quel diff, ed e' il momento in cui si vede se e'
+  cambiato anche qualcosa che non si voleva cambiare.
+* **Banco differenziale su 120 documenti veri** del computer piu' quattro
+  costruiti apposta per far sbagliare una finestra corta -- un ente a
+  quattrocento parole di distanza, trecento maiuscole in fila, cinquecento
+  parole saltabili in fila, nessun contesto: **124 su 124 identici**, testo e
+  conteggi.
+
+Lo stesso difetto era nel motore TypeScript di Mr. Rao Plus, dove pesava di
+piu' perche' li' l'analisi gira nel thread della pagina del browser: sul file
+intero da 1.982.243 caratteri, da 127,94 s a 3,42 s.
+
 ## Il `.dmg` della 1.27.1 è stato sostituito il 17 agosto 2026
 
 Non è una versione nuova: è **lo stesso numero con un file diverso**, e va

@@ -3083,7 +3083,50 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
     if sigla is not None and _sigla_di_ente(sigla.group(1)):
         return True
 
-    prima = testo[:posizione]
+    # Si guarda **una finestra** prima della posizione, non tutto il testo che
+    # la precede -- e se la finestra non basta, si allarga.
+    #
+    # ## Perche', con i numeri
+    #
+    # Questa funzione viene chiamata una volta per ogni nome candidato. Prima,
+    # a ogni chiamata, prendeva `testo[:posizione]`, lo minuscolizzava e lo
+    # scandiva con `[^\W\d_]+` **due volte**. Con m nomi in un testo di n
+    # caratteri il costo e' il prodotto: quadratico. Su un CSV di esportazione
+    # da 400.000 caratteri il motore impiegava 7,3 secondi, e il profilatore
+    # sulla versione TypeScript -- stesso algoritmo, stessa forma -- ha
+    # attribuito a questa sola funzione il 67,5% del tempo.
+    #
+    # Non si vedeva su un testo normale: li' il motore era gia' lineare. Si
+    # vede dove i nomi sono tanti, cioe' su un elenco, ed e' per questo che e'
+    # rimasto invisibile a lungo.
+    #
+    # I due cicli piu' sotto pero' escono quasi subito: il primo alla prima
+    # parola non maiuscola o alla prima adiacenza spezzata, il secondo alla
+    # prima parola che non sia un articolo o un qualificatore. Guardano una
+    # manciata di parole; tutto il resto veniva calcolato e mai letto.
+    #
+    # ## Perche' il risultato non cambia
+    #
+    # Non e' un'approssimazione: la finestra si allarga finche' i cicli non
+    # concludono, e con `inizio == 0` si e' letto tutto come prima. Cambia
+    # **quando si smette di leggere**, non cosa si decide.
+    finestra = 512
+    while True:
+        inizio = max(0, posizione - finestra)
+        esito = _intitolazione_nella_finestra(testo, inizio, posizione)
+        if esito is not None or inizio == 0:
+            return esito is True
+        finestra *= 4
+
+
+def _intitolazione_nella_finestra(testo: str, inizio: int, posizione: int):
+    """La decisione, guardando solo da `inizio` a `posizione`.
+
+    Restituisce `None` quando i cicli hanno consumato tutte le parole della
+    finestra senza concludere: li' la risposta dipende da cio' che sta piu'
+    indietro, e darne una sarebbe inventarla.
+    """
+    prima = testo[inizio:posizione]
     parole = re.findall(r"[^\W\d_]+", prima.lower())
     salta = _ARTICOLI_E_PREPOSIZIONI
     dice_edificio = _dice_edificio
@@ -3115,7 +3158,11 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
     # corpus pubblico, non un banco fatto in casa.
     maiuscole = list(re.finditer(r"[^\W\d_]+", prima))
     i = len(maiuscole) - 1
-    fine = posizione
+    # `len(prima)`, non `posizione`: gli indici delle corrispondenze sono
+    # relativi alla finestra, e mescolarli con una posizione assoluta
+    # spezzerebbe il controllo dell'adiacenza in silenzio -- la risalita si
+    # fermerebbe subito e la guardia smetterebbe di scattare.
+    fine = len(prima)
     while i >= 0 and maiuscole[i].group(0)[:1].isupper():
         if prima[maiuscole[i].end():fine].strip(" \t'’-"):
             break
@@ -3136,7 +3183,12 @@ def _dopo_una_intitolazione(testo: str, posizione: int) -> bool:
         if parola in salta or parola in _QUALIFICATORI:
             continue
         return dice_edificio(parola)
-    return False
+
+    # Qui si arriva solo avendo consumato **tutte** le parole della finestra
+    # senza che nessuno dei due cicli abbia deciso. Se la finestra non
+    # cominciava all'inizio del testo, la risposta dipende da cio' che sta piu'
+    # indietro: dirla adesso vorrebbe dire inventarla.
+    return None
 
 
 def _dentro_una_sequenza_di_ente(testo: str, dopo: int) -> bool:
