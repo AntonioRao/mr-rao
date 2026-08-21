@@ -140,6 +140,16 @@ main { max-width: 48rem; margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 2rem) 5r
   letter-spacing: -0.02em;
   margin-bottom: 1.1rem;
 }
+/* La meta' evidenziata del titolo.
+   Era un attributo `style` sull'<em>, e la CSP della pagina lo bloccava: gli
+   attributi di stile non sono coperti dalle impronte (servirebbe
+   `unsafe-hashes`). Risultato: online quelle due parole uscivano in corsivo e
+   del colore sbagliato, mentre in locale, senza CSP, si vedevano giuste. */
+.hero h1 em {
+  font-style: normal;
+  color: var(--phosphor);
+}
+
 .hero .lead {
   font-size: 1.1rem;
   color: var(--fog);
