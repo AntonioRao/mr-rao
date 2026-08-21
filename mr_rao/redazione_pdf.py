@@ -131,6 +131,33 @@ LARGHEZZA_MEDIA_CARATTERE = 0.52
 #: il massimo un segnaposto in mezzo a un testo piccolo grida piu' del testo.
 CORPO_MIN, CORPO_MAX = 5.0, 10.5
 
+#: Quanto puo' scostarsi un pixel dal colore del rettangolo e valere ancora
+#: come «e' il rettangolo». Su 255: l'antialiasing ai bordi e la conversione
+#: di spazio colore del motore di rendering spostano di qualche unita'.
+TOLLERANZA_COLORE = 12
+
+#: Quanta parte del rettangolo deve arrivare a schermo perche' lo si consideri
+#: disegnato. Non il 100%: dentro ci sta l'etichetta bianca, che di quel
+#: rettangolo copre una fetta, e ai bordi c'e' l'antialiasing. Sotto questa
+#: quota il rettangolo c'e' nel file ma **non si vede**, che per chi legge e'
+#: la stessa cosa che non esserci.
+QUOTA_MINIMA_VISIBILE = 0.30
+
+#: Sulla pagina rifatta «sopra», l'etichetta si ridisegna dentro il
+#: rettangolo.
+#:
+#: Ha un prezzo, e va detto: quel testo si aggiunge a quello che sta gia' nel
+#: flusso, quindi su **quelle pagine** il segnaposto compare due volte in un
+#: copia-incolla — una volta al suo posto nella frase, e una in fondo alla
+#: pagina. L'alternativa e' un rettangolo pieno e muto: si vede che li' c'era
+#: un dato, non si vede piu' quale genere di dato fosse.
+#:
+#: Si e' scelto di tenere l'etichetta perche' il documento redatto si guarda
+#: piu' spesso di quanto lo si copi, e perche' «qui c'era un codice fiscale»
+#: e' meta' di cio' che un redatto deve dire. Mettendo questa a False si
+#: prende l'altro compromesso, senza toccare altro.
+ETICHETTA_SUL_RIQUADRO_SOPRA = True
+
 
 @dataclass
 class Glifo:
@@ -168,6 +195,11 @@ class EsitoRedazione:
     #: Nessun testo estraibile in tutto il documento: e' una scansione, e qui
     #: non si tocca niente.
     scansione: bool = False
+    #: Le pagine in cui il fondo colorato ha dovuto essere ridisegnato **sopra**
+    #: perche' sotto non si vedeva (vedi `_rifai_le_pagine_coperte`). Su queste
+    #: il segnaposto compare due volte nel testo copiato: una nella frase, una
+    #: in fondo alla pagina. Dirlo e' meglio che lasciarlo scoprire.
+    pagine_riquadro_sopra: list[int] = field(default_factory=list)
 
 
 class _Contenitore:
@@ -726,11 +758,8 @@ def _rettangoli(riquadri) -> bytes:
     """
     r, v, b = COLORE_RETTANGOLO
     pezzi = []
-    for sinistra, basso, destra, alto in riquadri:
-        x = sinistra - MARGINE_RETTANGOLO
-        y = basso - MARGINE_RETTANGOLO
-        larghezza = (destra - sinistra) + 2 * MARGINE_RETTANGOLO
-        altezza = (alto - basso) + 2 * MARGINE_RETTANGOLO
+    for riquadro in riquadri:
+        x, y, larghezza, altezza = _misure(riquadro)
         pezzi.append(
             f"q {r:.3f} {v:.3f} {b:.3f} rg "
             f"{x:.2f} {y:.2f} {larghezza:.2f} {altezza:.2f} re f Q\n"
@@ -738,13 +767,119 @@ def _rettangoli(riquadri) -> bytes:
     return "".join(pezzi).encode("latin-1", "replace")
 
 
+def _misure(riquadro) -> tuple[float, float, float, float]:
+    """Il rettangolo da disegnare: angolo in basso a sinistra, e i due lati."""
+    sinistra, basso, destra, alto = riquadro[:4]
+    return (
+        sinistra - MARGINE_RETTANGOLO,
+        basso - MARGINE_RETTANGOLO,
+        (destra - sinistra) + 2 * MARGINE_RETTANGOLO,
+        (alto - basso) + 2 * MARGINE_RETTANGOLO,
+    )
+
+
+def _rettangoli_con_etichetta(riquadri, risorsa: str) -> bytes:
+    """I rettangoli da mettere **in coda**, con dentro l'etichetta riscritta.
+
+    Serve alle pagine che dipingono un proprio fondo -- le slide, le carte
+    intestate, i riquadri bianchi arrotondati. Li' il rettangolo messo in testa
+    finisce **sotto quel fondo** e non arriva a schermo; in coda si vede, ma
+    copre il segnaposto che sta nel flusso, che percio' va riscritto sopra.
+
+    Il prezzo di questa riscrittura sta in ETICHETTA_SUL_RIQUADRO_SOPRA.
+    """
+    r, v, b = COLORE_RETTANGOLO
+    pezzi = []
+    for riquadro in riquadri:
+        x, y, larghezza, altezza = _misure(riquadro)
+        pezzi.append(
+            f"q {r:.3f} {v:.3f} {b:.3f} rg "
+            f"{x:.2f} {y:.2f} {larghezza:.2f} {altezza:.2f} re f "
+        )
+        etichetta = riquadro[4] if len(riquadro) > 4 else ""
+        if ETICHETTA_SUL_RIQUADRO_SOPRA and etichetta:
+            # Il corpo lo detta il rettangolo, non il testo intorno: quello lo
+            # ha gia' deciso il primo passaggio, e qui si tratta solo di
+            # rientrare in uno spazio noto. Si prende il piu' piccolo fra
+            # quanto ci sta in altezza e quanto ci sta in larghezza.
+            per_altezza = altezza * 0.72
+            per_larghezza = larghezza / (len(etichetta) * LARGHEZZA_MEDIA_CARATTERE)
+            corpo = max(CORPO_MIN, min(CORPO_MAX, per_altezza, per_larghezza))
+            larga = len(etichetta) * corpo * LARGHEZZA_MEDIA_CARATTERE
+            testo_x = x + max(0.4, (larghezza - larga) / 2)
+            # 0.26 dell'altezza sotto il testo: la linea di base non sta al
+            # centro del rettangolo, ci stanno i discendenti sotto.
+            testo_y = y + max(0.4, (altezza - corpo * 0.72) / 2)
+            sicuro = (
+                etichetta.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
+            )
+            pezzi.append(
+                f"BT {risorsa} {corpo:.2f} Tf 1 1 1 rg "
+                f"1 0 0 1 {testo_x:.2f} {testo_y:.2f} Tm ({sicuro}) Tj ET "
+            )
+        pezzi.append("Q\n")
+    return "".join(pezzi).encode("latin-1", "replace")
+
+
+def _e_il_fondo(colore: tuple[int, int, int]) -> bool:
+    atteso = [round(c * 255) for c in COLORE_RETTANGOLO]
+    return all(abs(colore[i] - atteso[i]) <= TOLLERANZA_COLORE for i in range(3))
+
+
+def quota_visibile(pagina_pdfium, riquadri) -> float:
+    """Quanta parte dei rettangoli arriva davvero a schermo, da 0 a 1.
+
+    **Si guarda la pagina prodotta, non il file che dovrebbe produrla.** Il
+    colore puo' esserci nel flusso di contenuto ed essere coperto dal fondo
+    della pagina, e in quel caso il documento e' formalmente giusto e
+    praticamente muto: chi lo legge non vede che li' e' stato tolto qualcosa.
+
+    Si rende solo il ritaglio di ogni rettangolo, non la pagina intera: su un
+    documento di duecento pagine la differenza e' fra qualche millisecondo e
+    parecchi secondi.
+    """
+    larghezza_pagina, altezza_pagina = pagina_pdfium.get_size()
+    trovati = attesi = 0
+    for riquadro in riquadri:
+        x, y, larghezza, altezza = _misure(riquadro)
+        sinistra = max(0.0, x)
+        basso = max(0.0, y)
+        destra = min(float(larghezza_pagina), x + larghezza)
+        alto = min(float(altezza_pagina), y + altezza)
+        if destra - sinistra < 1.0 or alto - basso < 1.0:
+            continue
+        immagine = pagina_pdfium.render(
+            scale=1.0,
+            crop=(sinistra, basso, larghezza_pagina - destra, altezza_pagina - alto),
+        ).to_pil().convert("RGB")
+        dati = immagine.tobytes()
+        attesi += immagine.width * immagine.height
+        for i in range(0, len(dati), 3):
+            if _e_il_fondo((dati[i], dati[i + 1], dati[i + 2])):
+                trovati += 1
+    if attesi == 0:
+        return 0.0
+    return trovati / attesi
+
+
 def riquadri_dei_segnaposto(pagina_pdfium) -> list[tuple[float, float, float, float]]:
-    """Dove sono finiti i segnaposto sulla pagina gia' redatta.
+    """Solo le coordinate, per chi non ha bisogno di sapere che cosa c'e'
+    scritto dentro."""
+    return [r[:4] for r in segnaposto_sulla_pagina(pagina_pdfium)]
+
+
+def segnaposto_sulla_pagina(
+    pagina_pdfium,
+) -> list[tuple[float, float, float, float, str]]:
+    """Dove sono finiti i segnaposto sulla pagina gia' redatta, e quali sono.
 
     Si misura **dopo** il taglio e non prima, ed e' l'unico ordine che
     funziona: il segnaposto e' piu' lungo del valore che ha sostituito, quindi
     occupa un posto diverso: un rettangolo disegnato sulle coordinate del
     valore originale finirebbe accanto, non sotto.
+
+    L'etichetta serve solo alle pagine da rifare «sopra», dove il rettangolo
+    copre il segnaposto scritto nel flusso e bisogna riscriverlo.
     """
     testo = pagina_pdfium.get_textpage()
     fuori = []
@@ -769,7 +904,7 @@ def riquadri_dei_segnaposto(pagina_pdfium) -> list[tuple[float, float, float, fl
             # quanto le due, coprendo cio' che sta in mezzo.
             if (alto - basso) > 2.5 * (destra - sinistra) / max(1, m.end() - m.start()) * 2:
                 continue
-            fuori.append((sinistra, basso, destra, alto))
+            fuori.append((sinistra, basso, destra, alto, m.group(0)))
     finally:
         testo.close()
     return fuori
@@ -900,11 +1035,11 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
     finally:
         pdf.close()
 
-    _dipingi_rettangoli(destinazione)
+    _dipingi_rettangoli(destinazione, esito)
     return esito
 
 
-def _dipingi_rettangoli(documento: Path) -> None:
+def _dipingi_rettangoli(documento: Path, esito=None) -> None:
     """Il secondo passaggio: il fondo colorato sotto i segnaposto.
 
     **Deve venire dopo il taglio, e in un file gia' scritto.** Il segnaposto e'
@@ -922,7 +1057,7 @@ def _dipingi_rettangoli(documento: Path) -> None:
         per_pagina = []
         try:
             for pagina in letto:
-                per_pagina.append(riquadri_dei_segnaposto(pagina))
+                per_pagina.append(segnaposto_sulla_pagina(pagina))
         finally:
             letto.close()
         if not any(per_pagina):
@@ -932,13 +1067,66 @@ def _dipingi_rettangoli(documento: Path) -> None:
         try:
             for numero, pagina in enumerate(pdf.pages):
                 if numero < len(per_pagina) and per_pagina[numero]:
-                    # `prepend=True`: **dietro** al testo. In coda finirebbe
-                    # sopra, e coprirebbe il segnaposto che deve incorniciare.
+                    # `prepend=True`: **dietro** al testo. In coda coprirebbe
+                    # il segnaposto che deve incorniciare.
                     pagina.contents_add(_rettangoli(per_pagina[numero]),
                                         prepend=True)
             pdf.save(str(documento))
         finally:
             pdf.close()
+    except Exception:
+        return
+
+    _rifai_le_pagine_coperte(documento, per_pagina, esito)
+
+
+def _rifai_le_pagine_coperte(documento: Path, per_pagina, esito=None) -> None:
+    """Guarda le pagine appena scritte, e rifa' quelle dove non si vede niente.
+
+    Il rettangolo va **dietro** al testo, e per farlo si mette in testa al
+    flusso della pagina. Su una pagina che dipinge un proprio fondo -- una
+    slide, una carta intestata, un riquadro bianco arrotondato -- quel fondo
+    viene disegnato dopo, e copre il rettangolo. Misurato su dodici PDF veri:
+    due, entrambi impaginati come slide. Il documento e' formalmente a posto e
+    praticamente muto, perche' il segnaposto e' scritto in bianco e conta sul
+    rettangolo che non c'e' piu': **non si vede niente di niente**, ne' che un
+    dato e' stato tolto ne' quale.
+
+    Non lo si indovina dalla struttura del PDF, che ha mille modi di dipingere
+    un fondo: si **rende la pagina prodotta e si guarda**. E' l'unico controllo
+    che risponde alla domanda vera, cioe' «chi apre questo file lo vede?».
+
+    Come il primo passaggio: se qualcosa va storto il file resta com'e'.
+    """
+    try:
+        letto = pdfium.PdfDocument(str(documento))
+        try:
+            da_rifare = [
+                numero
+                for numero, riquadri in enumerate(per_pagina)
+                if riquadri
+                and numero < len(letto)
+                and quota_visibile(letto[numero], riquadri) < QUOTA_MINIMA_VISIBILE
+            ]
+        finally:
+            letto.close()
+        if not da_rifare:
+            return
+
+        pdf = pikepdf.open(str(documento), allow_overwriting_input=True)
+        try:
+            for numero in da_rifare:
+                pagina = pdf.pages[numero]
+                risorsa = _aggiungi_font_standard(pagina)
+                pagina.contents_add(
+                    _rettangoli_con_etichetta(per_pagina[numero], risorsa),
+                    prepend=False,
+                )
+            pdf.save(str(documento))
+        finally:
+            pdf.close()
+        if esito is not None:
+            esito.pagine_riquadro_sopra = da_rifare
     except Exception:
         return
 

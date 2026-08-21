@@ -440,3 +440,198 @@ def test_un_cmap_illeggibile_non_inventa_niente():
     """
     assert leggi_tounicode(b"niente di riconoscibile qui dentro") == {}
     assert IGNOTI, "serve almeno un carattere per dire «non lo so»"
+
+
+# ------------------------------------------- il fondo colorato arriva a schermo
+
+
+def _pdf_con_fondo(percorso, righe: list[str]):
+    """Una pagina che **dipinge un proprio fondo** prima di scrivere.
+
+    E' come sono fatte le slide, le carte intestate e i riquadri bianchi
+    arrotondati: un rettangolo bianco grande quanto la pagina, e poi il testo.
+    Senza questa variante il controllo sul fondo colorato non puo' fallire --
+    su una pagina che non dipinge niente, un rettangolo messo in testa al
+    flusso si vede sempre.
+    """
+    pdf = pikepdf.Pdf.new()
+    font = pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Font"), Subtype=pikepdf.Name("/Type1"),
+        BaseFont=pikepdf.Name("/Helvetica"),
+        Encoding=pikepdf.Name("/WinAnsiEncoding")))
+    comandi = ["q 1 1 1 rg 0 0 595 842 re f Q", "BT", "/F1 12 Tf"]
+    y = 760
+    for riga in righe:
+        comandi.append(f"1 0 0 1 60 {y} Tm ({riga}) Tj")
+        y -= 30
+    comandi.append("ET")
+    pdf.pages.append(pikepdf.Page(pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Page"),
+        MediaBox=pikepdf.Array([0, 0, 595, 842]),
+        Resources=pikepdf.Dictionary(Font=pikepdf.Dictionary(F1=font)),
+        Contents=pdf.make_stream("\n".join(comandi).encode("latin-1"))))))
+    pdf.save(str(percorso))
+    pdf.close()
+    return percorso
+
+
+def _pixel_del_fondo(percorso, pagina: int = 0) -> int:
+    """Quanti pixel del verde del rettangolo si vedono sulla pagina."""
+    from mr_rao.redazione_pdf import COLORE_RETTANGOLO, TOLLERANZA_COLORE
+
+    atteso = [round(c * 255) for c in COLORE_RETTANGOLO]
+    documento = pdfium.PdfDocument(str(percorso))
+    try:
+        immagine = documento[pagina].render(scale=1.5).to_pil().convert("RGB")
+    finally:
+        documento.close()
+    dati = immagine.tobytes()
+    return sum(
+        1
+        for i in range(0, len(dati), 3)
+        if all(abs(dati[i + k] - atteso[k]) <= TOLLERANZA_COLORE for k in range(3))
+    )
+
+
+def test_il_misuratore_del_fondo_sa_dire_di_no(tmp_path):
+    """Prima di credere ai numeri qui sotto: su un PDF **non redatto** quei
+    pixel devono essere zero. Se il contatore li trovasse anche li', starebbe
+    misurando un'altra cosa e ogni verifica successiva sarebbe vera per
+    costruzione."""
+    dentro = _pdf_con_righe(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    assert _pixel_del_fondo(dentro) == 0
+
+
+def test_il_fondo_si_vede_su_una_pagina_normale(tmp_path):
+    dentro = _pdf_con_righe(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori)
+
+    assert esito.segnaposto_inseriti == 1
+    assert _pixel_del_fondo(fuori) > 200
+    # Non e' stato necessario rifare niente: questa pagina non copre niente.
+    assert esito.pagine_riquadro_sopra == []
+
+
+def test_il_fondo_si_vede_anche_se_la_pagina_ne_ha_uno_suo(tmp_path):
+    """**Il difetto per cui esiste il secondo passaggio.**
+
+    Il rettangolo va in testa al flusso, cioe' dietro a tutto. Una pagina che
+    dipinge un proprio fondo lo copre, e siccome il segnaposto e' scritto in
+    bianco -- conta sul rettangolo scuro dietro -- di quella redazione **non
+    si vede piu' niente**: ne' che un dato e' stato tolto, ne' quale.
+
+    Trovato su documenti veri: due PDF impaginati come slide su dodici presi
+    dal disco. Prima della correzione questo test trova zero pixel verdi.
+    """
+    dentro = _pdf_con_fondo(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori)
+
+    assert esito.segnaposto_inseriti == 1
+    assert _pixel_del_fondo(fuori) > 200, (
+        "il rettangolo e' nel file ma non arriva a schermo: il fondo della "
+        "pagina lo ha coperto"
+    )
+    assert esito.pagine_riquadro_sopra == [0]
+
+
+def test_l_etichetta_resta_leggibile_sul_riquadro_rifatto(tmp_path):
+    """Un rettangolo pieno e muto direbbe meta' di quello che serve.
+
+    Dentro al verde ci devono essere dei pixel chiari: sono l'etichetta
+    riscritta sopra. Si guardano **solo i pixel dentro il rettangolo**, se no
+    li si troverebbe nel bianco della pagina.
+    """
+    from mr_rao.redazione_pdf import segnaposto_sulla_pagina
+
+    dentro = _pdf_con_fondo(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori)
+
+    documento = pdfium.PdfDocument(str(fuori))
+    try:
+        riquadri = segnaposto_sulla_pagina(documento[0])
+        assert riquadri, "nessun segnaposto misurato sulla pagina"
+        sinistra, basso, destra, alto = riquadri[0][:4]
+        _, altezza_pagina = documento[0].get_size()
+        immagine = documento[0].render(scale=2.0).to_pil().convert("L")
+    finally:
+        documento.close()
+
+    ritaglio = immagine.crop((
+        int(sinistra * 2), int((altezza_pagina - alto) * 2),
+        int(destra * 2), int((altezza_pagina - basso) * 2),
+    ))
+    chiari = sum(1 for p in ritaglio.tobytes() if p > 200)
+    assert chiari > 30, (
+        f"dentro il rettangolo non c'e' testo chiaro: {chiari} pixel. "
+        "Il riquadro e' pieno e muto."
+    )
+
+
+def test_su_una_pagina_normale_il_segnaposto_non_si_ripete(tmp_path):
+    """Il prezzo del riquadro rifatto **non** si paga dove non serve.
+
+    Sulla pagina rifatta l'etichetta viene riscritta, quindi in un
+    copia-incolla il segnaposto compare due volte. Su tutte le altre pagine
+    -- cioe' la stragrande maggioranza -- deve restare una sola.
+    """
+    dentro = _pdf_con_righe(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori)
+
+    assert len(re.findall(r"\{\{NAME(?:_\d+)?\}\}", _testo(fuori))) == 1
+
+
+def test_il_riquadro_rifatto_raddoppia_il_segnaposto_nel_testo(tmp_path):
+    """Il prezzo, scritto invece che scoperto.
+
+    Sulla pagina rifatta l'etichetta viene ridisegnata sopra al rettangolo, e
+    quel testo si aggiunge a quello che sta gia' nel flusso: chi copia la
+    pagina trova il segnaposto due volte. E' il compromesso dichiarato in
+    `ETICHETTA_SUL_RIQUADRO_SOPRA`, e questo test esiste perche' cambiarlo
+    senza accorgersene non si possa.
+    """
+    dentro = _pdf_con_fondo(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori)
+
+    assert esito.pagine_riquadro_sopra == [0]
+    quante = len(re.findall(r"\{\{NAME(?:_\d+)?\}\}", _testo(fuori)))
+    assert quante == 2, quante
+
+
+def test_quota_visibile_distingue_coperto_da_scoperto(tmp_path):
+    """La misura su cui si regge la decisione, messa alla prova nei due versi.
+
+    Un controllo che rispondesse sempre «si vede» lascerebbe passare
+    esattamente il difetto che deve prendere, e sarebbe verde per sempre.
+    """
+    from mr_rao.redazione_pdf import (
+        QUOTA_MINIMA_VISIBILE,
+        quota_visibile,
+        segnaposto_sulla_pagina,
+    )
+
+    partenza = _pdf_con_righe(tmp_path / "a.pdf", ["Il cliente Mario Rossi."])
+    normale = tmp_path / "normale.pdf"
+    redigi_pdf(partenza, normale)
+
+    documento = pdfium.PdfDocument(str(normale))
+    try:
+        riquadri = segnaposto_sulla_pagina(documento[0])
+        visibile = quota_visibile(documento[0], riquadri)
+    finally:
+        documento.close()
+
+    # Gli stessi rettangoli, misurati dove non sono stati disegnati: la pagina
+    # di partenza. Li' la risposta deve essere «non si vede».
+    prima = pdfium.PdfDocument(str(partenza))
+    try:
+        coperto = quota_visibile(prima[0], riquadri)
+    finally:
+        prima.close()
+
+    assert visibile > QUOTA_MINIMA_VISIBILE, visibile
+    assert coperto < QUOTA_MINIMA_VISIBILE, coperto

@@ -1,5 +1,60 @@
 # Changelog
 
+## 1.27.3 — Il riquadro della redazione si vedeva solo su meta' dei documenti
+
+Su un PDF redatto, il dato tolto si segnala con un rettangolo verde scuro e
+il segnaposto scritto sopra in bianco. Su certi documenti non si vedeva
+**niente**: ne' il rettangolo ne' l'etichetta. Il dato era tolto davvero --
+quello ha sempre funzionato -- ma chi apriva il file non aveva modo di
+accorgersi che li' era stato tolto qualcosa.
+
+### Perche' succedeva
+
+Il rettangolo si disegna in testa al flusso della pagina, cioe' **dietro a
+tutto**: e' l'unico modo perche' il segnaposto scritto nel flusso gli resti
+sopra e si legga. Ma una pagina che dipinge un **proprio fondo** -- le slide,
+le carte intestate, i riquadri bianchi arrotondati -- lo dipinge dopo, e
+quindi lo copre. Il rettangolo restava nel file, formalmente giusto e
+praticamente muto.
+
+Non e' una regressione: e' cosi' da quando la funzione esiste (1.23.0). Il
+colore, fra l'altro, non e' mai stato blu.
+
+### Come e' stato corretto
+
+Il programma **guarda la pagina che ha appena prodotto**. Dopo aver disegnato
+i rettangoli, rende la fetta di pagina di ciascuno e conta quanti pixel di
+quel verde arrivano davvero a schermo; dove sono meno del 30% rifa' quella
+pagina disegnando il rettangolo **sopra** e riscrivendoci dentro l'etichetta.
+
+Non si indovina dalla struttura del PDF, che ha mille modi di dipingere un
+fondo: si guarda il risultato. E' l'unico controllo che risponde alla domanda
+vera, cioe' «chi apre questo file lo vede?».
+
+Misurato su dodici PDF veri presi dal disco: **dieci mostravano i riquadri,
+due no** (entrambi impaginati come slide); ora li mostrano tutti e dieci --
+uno da zero a 124.779 pixel di verde. Sulle pagine gia' buone non cambia
+niente, e il costo del secondo sguardo e' dentro il rumore della misura: su
+130 pagine e 226 segnaposto, 3,69 s contro 3,63 s.
+
+### Il prezzo, detto invece che scoperto
+
+Sulle pagine rifatte l'etichetta viene **riscritta** sopra al rettangolo, e
+quel testo si aggiunge a quello che sta gia' nel flusso: chi copia il testo
+di quelle pagine trova il segnaposto due volte, una nella frase e una in
+fondo alla pagina. Sulle altre pagine -- la grande maggioranza -- resta una
+sola. Il compromesso e' in `ETICHETTA_SUL_RIQUADRO_SOPRA`, con scritto
+accanto cosa si prende e cosa si lascia scegliendo il contrario; e
+`EsitoRedazione.pagine_riquadro_sopra` dice quali pagine sono state rifatte.
+
+### Perche' nessun test se n'era accorto
+
+I test costruivano PDF **senza fondo**, dove il rettangolo si vede sempre; e
+il passaggio che lo disegna cattura ogni eccezione e torna in silenzio.
+Adesso c'e' un banco che conta i pixel di quel verde sulla pagina renderizzata
+e una pagina di prova che il fondo ce l'ha: senza la correzione, tre test
+diventano rossi.
+
 ## 1.27.2 — Il motore diventa lineare: 7,30 s -> 1,08 s su un elenco da 400.000 caratteri
 
 E' una correzione di prestazioni **che non cambia una virgola di cio' che
