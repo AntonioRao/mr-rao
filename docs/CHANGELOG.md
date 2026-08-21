@@ -1,9 +1,16 @@
 # Changelog
 
-## Il motore diventa lineare: 7,30 s -> 1,08 s su un elenco da 400.000 caratteri
+## 1.27.2 — Il motore diventa lineare: 7,30 s -> 1,08 s su un elenco da 400.000 caratteri
 
-Non e' una versione nuova, ed e' una correzione di prestazioni **che non
-cambia una virgola di cio' che viene tolto**.
+E' una correzione di prestazioni **che non cambia una virgola di cio' che
+viene tolto**.
+
+Quando e' stata scritta era stata segnata come «non e' una versione nuova»,
+perche' il comportamento non cambia. Era la decisione sbagliata, per un motivo
+semplice: **finche' non c'e' un numero non c'e' una release**, e finche' non
+c'e' una release chi ha installato Mr. Rao continua a usare il motore che su
+un elenco lungo ci mette sette volte tanto. Una correzione che resta in `main`
+non e' una correzione consegnata.
 
 Il costo del motore cresceva con il **quadrato** della lunghezza, ma solo su
 certi documenti: su un testo scritto era gia' lineare, e si vedeva soltanto
