@@ -44,6 +44,7 @@ from check_sito_pubblicato import (  # noqa: E402
     Irraggiungibile,
     confronta_pagina,
     controlla,
+    indirizzi_e_attese,
     indirizzi_pubblicati,
     pagine_locali,
     peggiore,
@@ -325,3 +326,55 @@ def test_esiste_il_controllo_programmato():
     assert "--tollera-rete-assente" not in comandi, (
         "sul runner «non risponde» e' una notizia vera, non un falso rosso"
     )
+
+
+# --- ogni pagina sulla sua versione ------------------------------------------
+
+
+def test_ogni_pagina_porta_la_versione_che_deve_dichiarare():
+    """Le pagine della mobile non si confrontano con `APP_VERSION`.
+
+    Prima lo facevano, e il controllo giornaliero le dichiarava disallineate
+    **appena pubblicate**: «online c'e' la 0.1.6 (indietro), APP_VERSION e'
+    1.27.5». Due righe rosse fisse in un controllo che ne ha quattro.
+    """
+    attese = indirizzi_e_attese()
+    assert attese, "nessun indirizzo canonico"
+    assert [u for u, _, _ in attese] == indirizzi_pubblicati(), (
+        "le due funzioni non guardano piu' le stesse pagine"
+    )
+
+    mobile = [(u, a, c) for u, a, c in attese if "/mobile/" in u]
+    altre = [(u, a, c) for u, a, c in attese if "/mobile/" not in u]
+    assert mobile, "nessuna pagina della mobile: l'elenco non le prende piu'"
+    assert altre, "nessuna pagina del portable"
+
+    for _, attesa, di_chi in altre:
+        assert attesa == APP_VERSION and di_chi == "APP_VERSION"
+    for url, attesa, di_chi in mobile:
+        assert di_chi == "Mr. Rao Mobile", url
+        # Il punto della verifica: l'attesa dev'essere **diversa** da
+        # APP_VERSION. Se un giorno coincidessero per caso, questo test
+        # smetterebbe di dire qualcosa senza diventare rosso.
+        assert attesa != APP_VERSION, (
+            "l'attesa della mobile coincide con APP_VERSION: questo banco non "
+            "distingue piu' il caso che deve distinguere"
+        )
+
+
+def test_una_pagina_ferma_a_una_versione_vecchia_resta_rossa():
+    """Cambiare il termine di paragone non e' esentare.
+
+    Il rischio della correzione era questo: una cartella «trattata a parte»
+    che finisce per non essere piu' controllata affatto. Qui si verifica che
+    il rosso ci sia ancora, e che nomini il prodotto giusto — dire
+    «APP_VERSION e' 1.27.5» su una pagina della mobile manda a correggere la
+    cosa sbagliata.
+    """
+    esito = confronta_pagina(
+        URL, "0.1.6", _lettore(_pagina("versione 0.1.5")), "Mr. Rao Mobile"
+    )
+    assert esito.stato == DISALLINEATO
+    assert "0.1.5 (indietro)" in esito.dettaglio
+    assert "Mr. Rao Mobile" in esito.dettaglio
+    assert "APP_VERSION" not in esito.dettaglio

@@ -104,7 +104,16 @@ from config import APP_VERSION  # noqa: E402
 # duplicarle qui vorrebbe dire due controlli che col tempo rispondono in modo
 # diverso alla stessa domanda, cioe' un locale verde e un online rosso (o
 # peggio il contrario) per una differenza di regex e non di contenuto.
-from check_docs import _RE_CODICE_HTML, _RE_VERSIONE_LANDING  # noqa: E402
+#
+# `versione_attesa` sta qui per lo stesso motivo: le pagine di Mr. Rao Mobile
+# dichiarano il numero **di quel prodotto**, non `APP_VERSION`. Averlo scoperto
+# due volte, una per il gate e una per il sito online, e' il segno che la
+# risposta va tenuta in un posto solo.
+from check_docs import (  # noqa: E402
+    _RE_CODICE_HTML,
+    _RE_VERSIONE_LANDING,
+    versione_attesa,
+)
 
 TIMEOUT = 15.0
 TENTATIVI = 2
@@ -203,21 +212,50 @@ def pagine_locali() -> list[Path]:
     return pagine
 
 
-def indirizzi_pubblicati(pagine: Iterable[Path] | None = None) -> list[str]:
-    """Gli URL dichiarati come canonici dalle pagine pubblicate.
+def indirizzi_e_attese(
+    pagine: Iterable[Path] | None = None,
+) -> list[tuple[str, str, str]]:
+    """`(url, versione attesa, di chi)` per ogni pagina pubblicata tracciata.
+
+    L'attesa non e' sempre `APP_VERSION`: le pagine sotto
+    `docs/landing/publish/mobile/` parlano di Mr. Rao Mobile, che ha una
+    numerazione sua. Confrontarle col portable le dichiarava disallineate
+    **appena pubblicate** — «online c'e' la 0.1.6 (indietro), APP_VERSION e'
+    1.27.5» — cioe' due righe rosse tutti i giorni alle 06:00 per un difetto
+    che non esiste. Un controllo che non puo' diventare verde si impara a
+    saltare, e con lui si saltano le righe che invece dicono qualcosa.
+
+    Non e' un'esenzione: cambia il termine di paragone, il confronto resta.
+    Il numero atteso lo dice `check_docs.versione_attesa`, che e' lo stesso
+    che usa il cancello — una sola riga da aggiornare invece di due.
 
     Solo `https`. Un canonical con un altro schema qui non e' un dettaglio
     di stile: `urlopen` aprirebbe volentieri un `file://` letto da un file
     del repository, e il controllo direbbe «allineato» confrontando la
     pagina con se stessa.
     """
-    trovati: list[str] = []
+    trovati: list[tuple[str, str, str]] = []
+    visti: set[str] = set()
     for pagina in pagine_locali() if pagine is None else pagine:
+        try:
+            relativo = pagina.resolve().relative_to(RADICE).as_posix()
+        except ValueError:
+            # Una pagina fuori dal repository: capita ai banchi, che ne
+            # scrivono una in una cartella temporanea. Non appartiene a
+            # nessun prodotto elencato, quindi vale l'attesa predefinita.
+            relativo = pagina.name
+        prodotto, attesa = versione_attesa(relativo)
         for m in _RE_CANONICAL.finditer(pagina.read_text(encoding="utf-8")):
             url = m.group(1).strip()
-            if url.lower().startswith("https://") and url not in trovati:
-                trovati.append(url)
+            if url.lower().startswith("https://") and url not in visti:
+                visti.add(url)
+                trovati.append((url, attesa, prodotto or "APP_VERSION"))
     return trovati
+
+
+def indirizzi_pubblicati(pagine: Iterable[Path] | None = None) -> list[str]:
+    """Solo gli indirizzi, per chi non ha bisogno di sapere cosa aspettarsi."""
+    return [url for url, _, _ in indirizzi_e_attese(pagine)]
 
 
 # --- la lettura -------------------------------------------------------------
@@ -281,6 +319,7 @@ def confronta_pagina(
     url: str,
     attesa: str = APP_VERSION,
     lettore: Callable[[str], str] = scarica,
+    di_chi: str = "APP_VERSION",
 ) -> Esito:
     """Un solo indirizzo. `lettore` e' iniettabile: e' cio' che rende questo
     controllo verificabile senza rete (vedi `tests/test_sito_pubblicato.py`).
@@ -303,7 +342,7 @@ def confronta_pagina(
 
     sbagliate = [v for v in trovate if v != attesa]
     if not sbagliate:
-        return Esito(url, ALLINEATO, f"dichiara la {attesa}, come APP_VERSION")
+        return Esito(url, ALLINEATO, f"dichiara la {attesa}, come {di_chi}")
 
     # `indietro` o `avanti` non e' un dettaglio di cortesia: sono due
     # situazioni diverse. Indietro vuol dire deploy dimenticato; avanti vuol
@@ -316,7 +355,7 @@ def confronta_pagina(
     return Esito(
         url,
         DISALLINEATO,
-        f"online c'e' la {', '.join(pezzi)}, APP_VERSION e' {attesa}. Il sito "
+        f"online c'e' la {', '.join(pezzi)}, {di_chi} e' {attesa}. Il sito "
         f"pubblicato non e' il repository: {RIMEDIO}",
     )
 
@@ -326,8 +365,17 @@ def controlla(
     attesa: str = APP_VERSION,
     lettore: Callable[[str], str] = scarica,
 ) -> list[Esito]:
-    """Tutti gli indirizzi. Zero indirizzi e' un esito, non un successo."""
-    indirizzi = indirizzi_pubblicati() if url_da_guardare is None else url_da_guardare
+    """Tutti gli indirizzi. Zero indirizzi e' un esito, non un successo.
+
+    Con `url_da_guardare` esplicito l'attesa e' una sola, quella passata: chi
+    interroga un indirizzo a mano sa cosa si aspetta. Senza, ogni pagina
+    porta la sua (vedi `indirizzi_e_attese`).
+    """
+    indirizzi = (
+        indirizzi_e_attese()
+        if url_da_guardare is None
+        else [(u, attesa, "APP_VERSION") for u in url_da_guardare]
+    )
     if not indirizzi:
         return [
             Esito(
@@ -340,7 +388,7 @@ def controlla(
                 "aggiorna pagine_locali() in scripts/check_sito_pubblicato.py",
             )
         ]
-    return [confronta_pagina(u, attesa, lettore) for u in indirizzi]
+    return [confronta_pagina(u, att, lettore, di_chi) for u, att, di_chi in indirizzi]
 
 
 def peggiore(esiti: list[Esito]) -> str:
@@ -383,7 +431,10 @@ def main(argv: list[str] | None = None) -> int:
 
     stato = peggiore(esiti)
     if stato == ALLINEATO:
-        print(f"  sito pubblicato allineato: v{APP_VERSION} su {len(esiti)} pagine")
+        # Non «v{APP_VERSION} su N pagine»: alcune di quelle pagine parlano di
+        # un altro prodotto e dichiarano un altro numero. Dirlo con un numero
+        # solo sarebbe una riga verde che afferma una cosa falsa.
+        print(f"  sito pubblicato allineato: {len(esiti)} pagine, ognuna sulla sua versione")
         return 0
     if stato == IRRAGGIUNGIBILE and args.tollera_rete_assente:
         print("  esito non determinato (rete assente tollerata): NON e' un via libera")
