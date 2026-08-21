@@ -23,3 +23,20 @@
   Cache-Control: public, max-age=604800
   X-Content-Type-Options: nosniff
   Cross-Origin-Resource-Policy: same-origin
+
+# L'APK di Mr. Rao Mobile.
+#
+# `Content-Disposition: attachment` perche' senza, alcuni browser tentano di
+# aprire un `.apk` invece di scaricarlo, e l'utente si trova davanti un
+# errore invece di un file.
+#
+# La cache e' breve di proposito: il nome del file non porta la versione
+# (`/mobile/MrRao.apk` resta lo stesso a ogni rilascio), quindi una cache
+# lunga servirebbe la versione vecchia a chi torna. E' lo stesso difetto gia'
+# pagato con il logo, ma qui non si puo' risolvere con `?v=`: il link e'
+# scritto anche fuori dal sito.
+/mobile/MrRao.apk
+  Content-Type: application/vnd.android.package-archive
+  Content-Disposition: attachment; filename="MrRao.apk"
+  Cache-Control: public, max-age=3600
+  X-Content-Type-Options: nosniff

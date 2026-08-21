@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<!--
+  Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+  SPDX-License-Identifier: AGPL-3.0-or-later
+  Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+  GNU Affero General Public License pubblicata dalla Free Software Foundation,
+  versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository.
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mr. Rao per Android — documenti in Markdown, senza dati personali</title>
+<meta name="description" content="App Android: converte .docx, .xlsx e PDF in Markdown e ne toglie i dati personali. Non dichiara il permesso di rete: niente esce dal telefono." />
+<link rel="icon" href="/assets/favicon.svg?v=354c7fcf8b" type="image/svg+xml" />
+<link rel="alternate icon" href="/assets/favicon.ico?v=780f2c412d" sizes="16x16 32x32 48x48" />
+<link rel="canonical" href="https://rao.valor-cyber.com/mobile/" />
+<link rel="stylesheet" href="stile.css" />
+<link rel="stylesheet" href="/sito-nav.css?v=3" />
+</head>
+<body>
+<nav class="sito-nav" aria-label="Sito Mr. Rao">
+  <a class="brand" href="/">
+    <img src="/assets/logo.svg?v=bdb291803a" alt="" width="28" height="28" />
+    MR.RAO // OFFLINE
+  </a>
+  <span class="stamp">NO CLOUD</span>
+  <div class="links">
+    <a href="/#motore">Motore</a>
+    <a href="/#banco">Prove</a>
+    <a href="/#perche">Perché</a>
+    <a href="/#limiti">Limiti</a>
+    <a href="/#contatto">Contatto</a>
+    <a href="/impresa/">Impresa</a>
+    <a href="/plus/">Mr. Rao Plus</a>
+    <a href="/mobile/">Android</a>
+    <a href="/plus/privacy/">Privacy</a>
+    <a class="cta" href="/mobile/MrRao.apk">Scarica APK</a>
+  </div>
+  <details class="menu">
+    <summary>Menu</summary>
+    <div class="panel">
+      <a href="/">Home</a>
+      <a href="/#motore">Motore</a>
+      <a href="/#banco">Prove</a>
+      <a href="/#perche">Perché</a>
+      <a href="/#limiti">Limiti</a>
+      <a href="/#contatto">Contatto</a>
+      <a href="/impresa/">Impresa</a>
+      <a href="/plus/">Mr. Rao Plus</a>
+      <a href="/mobile/">Android</a>
+      <a href="/plus/privacy/">Privacy</a>
+      <a href="/mobile/MrRao.apk">Scarica APK</a>
+    </div>
+  </details>
+</nav>
+
+  <main>
+    <section class="hero">
+      <p class="kicker">// app android · niente rete · agpl</p>
+      <h1>Il documento diventa Markdown. <em style="font-style:normal;color:var(--phosphor)">Sul telefono.</em></h1>
+      <p class="lead">
+        Condividi un <strong>.docx</strong>, un <strong>PDF</strong> o un foglio di calcolo con Mr. Rao:
+        torna indietro in Markdown, con nomi, codici fiscali e IBAN già sostituiti.
+        Pronto da incollare in ChatGPT, Claude o Gemini — <strong>costa meno token</strong>, e non porta le persone con sé.
+      </p>
+      <p class="lead">
+        Niente esce dal dispositivo, e non perché lo diciamo noi:
+        <strong>l'app non dichiara il permesso di usare la rete.</strong>
+      </p>
+
+      <div class="stato">
+        <strong>Stato: prima versione.</strong> L'app è completa e provata, ma non è
+        ancora passata per le mani di nessuno su un telefono vero. Se qualcosa non
+        funziona come descritto qui, è un'informazione che serve — e si scrive.
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-primary" href="/mobile/MrRao.apk">Scarica l'APK · 2,5 MB</a>
+        <a class="btn btn-ghost btn-soon">F-Droid<span class="soon">in arrivo</span></a>
+        <a class="btn btn-ghost" href="#uso">Come si usa</a>
+      </div>
+      <p class="impronta">
+        versione 0.1.2 · 2.519.121 byte · SHA-256
+        <code>62aef5ceb30f8573a00855945977cdf1346f4472930e274ca1456edf112b6bf0</code><br />
+        Su Windows si controlla con <code>certutil -hashfile MrRao.apk SHA256</code>,
+        su Linux e Mac con <code>sha256sum MrRao.apk</code>.
+      </p>
+    </section>
+
+    <p class="sec-label">// 01 · a cosa serve</p>
+    <h2>Due problemi, un gesto solo.</h2>
+    <p class="muted">
+      Quando dai un documento a un modello linguistico paghi due prezzi. Uno è in token:
+      i formati d'ufficio ne costano molti più del necessario, e se l'alternativa è
+      fotografare le pagine il conto peggiora ancora. L'altro non si vede sulla fattura:
+      un verbale, una fattura o un elenco di dipendenti contengono nomi, codici fiscali e
+      IBAN, e incollarli in una chat significa consegnarli a un fornitore terzo.
+    </p>
+    <p class="muted">
+      Il Markdown dice le stesse cose con meno caratteri. L'anonimizzazione toglie le
+      persone e lascia il documento leggibile. Qui succedono <strong>insieme</strong>,
+      in un'unica condivisione.
+    </p>
+
+    <div class="grid three">
+      <div class="card">
+        <h3>Word</h3>
+        <p>Titoli, elenchi, grassetto e <strong>tabelle</strong>: la struttura vera, non il testo appiattito.</p>
+      </div>
+      <div class="card">
+        <h3>Fogli di calcolo</h3>
+        <p>Ogni foglio diventa una tabella Markdown. Colonne e righe vuote spariscono.</p>
+      </div>
+      <div class="card">
+        <h3>PDF</h3>
+        <p>Il testo, con la struttura dedotta dalle dimensioni. Senza inventare quello che non c'è.</p>
+      </div>
+    </div>
+
+    <p class="sec-label" id="uso">// 02 · come si usa</p>
+    <h2>Non si apre. Si condivide.</h2>
+    <p class="muted">
+      Mr. Rao non è un posto dove si va: è un passaggio. Non lo apri dal menu delle app —
+      lo trovi dentro il foglio di condivisione, dove il documento già si trova.
+    </p>
+
+    <ol class="passi">
+      <li><strong>Apri il documento dove ce l'hai.</strong> WhatsApp, la posta, il gestore di file, Drive.</li>
+      <li><strong>Tocca Condividi</strong> — o «Apri con» — e scegli <strong>Mr. Rao</strong>.</li>
+      <li><strong>Tocca Copia.</strong> L'app si apre con il lavoro già fatto. Vai sulla chat e incolla.</li>
+    </ol>
+
+    <p class="muted">
+      Funziona anche con del testo selezionato in qualunque app. E se preferisci un file,
+      <strong>Salva .md</strong> lo mette dove vuoi tu.
+    </p>
+
+    <p class="sec-label">// 03 · cosa esce</p>
+    <h2>Le persone se ne vanno, il documento resta leggibile.</h2>
+
+    <div class="confronto">
+      <figure>
+        <figcaption>// prima · verbale.docx</figcaption>
+<pre>## Presenti
+
+- Mario Rossi,
+  cf RSSMRA80A01H501U
+- Giulia Bianchi,
+  g.bianchi@studio.it
+
+Importo: euro 12.500,00
+su IBAN IT60X05428111
+01000000123456</pre>
+      </figure>
+      <figure>
+        <figcaption>// dopo · markdown</figcaption>
+<pre>## Presenti
+
+- <span class="tolto">{{NAME_1}}</span>,
+  cf <span class="tolto">{{CODICE_FISCALE_1}}</span>
+- <span class="tolto">{{NAME_2}}</span>,
+  <span class="tolto">{{EMAIL_1}}</span>
+
+Importo: euro 12.500,00
+su IBAN <span class="tolto">{{IBAN_1}}</span></pre>
+      </figure>
+    </div>
+
+    <p class="muted">
+      I segnaposto sono <strong>numerati</strong>, e non è un vezzo: senza numeri tre
+      persone diverse diventerebbero tre <code>{{NAME}}</code> identici, e
+      «<code>{{NAME}}</code> ha citato <code>{{NAME}}</code> davanti a <code>{{NAME}}</code>»
+      non si legge più. La stessa persona tiene lo stesso numero in tutto il documento.
+    </p>
+    <p class="muted">
+      L'importo è rimasto. Importi e date sono <strong>spenti di serie</strong>: toglierli
+      sempre renderebbe illeggibile una fattura o una delibera senza proteggere nessuno.
+      Se il tuo caso è diverso, si accendono in due tocchi.
+    </p>
+
+    <p class="sec-label">// 04 · la rete</p>
+    <h2>Non è una promessa. È un permesso che non c'è.</h2>
+    <p class="muted">
+      La maggior parte delle app che dicono «i tuoi dati non escono» ti chiede di
+      crederci. Qui puoi controllare da solo, in dieci secondi:
+      <strong>Impostazioni → App → Mr. Rao → Autorizzazioni</strong>.
+    </p>
+
+    <div class="permessi">
+      <span class="titolo">// autorizzazioni richieste</span>
+      <span class="vuoto">nessuna</span><br />
+      android.permission.INTERNET &nbsp;—&nbsp; <span class="vuoto">non dichiarata</span>
+    </div>
+
+    <p class="muted">
+      Senza quel permesso è il sistema operativo a rifiutare ogni connessione. Non un
+      controllo nel nostro codice, che potrebbe avere un difetto: una regola del sistema,
+      che vale anche se il nostro codice sbaglia e anche se una libreria di terzi tentasse
+      di chiamare casa. Il documento vive solo in memoria e se ne va quando chiudi l'app.
+    </p>
+
+    <p class="sec-label">// 05 · limiti</p>
+    <h2>Quello che non fa.</h2>
+
+    <div class="limiti">
+      <h3>// da sapere prima</h3>
+      <ul>
+        <li><strong>Un PDF non ha una struttura da leggere.</strong> Contiene glifi a delle coordinate: titoli e capoversi vengono <em>ipotizzati</em> dalle dimensioni. Su un documento impaginato su due colonne può sbagliare, e l'app te lo dice ogni volta.</li>
+        <li><strong>Niente riconoscimento ottico.</strong> Un PDF fatto di scansioni produce un avviso esplicito — non del testo inventato, e non un risultato vuoto che sembra pulito.</li>
+        <li><strong>L'anonimizzazione può sbagliare in entrambe le direzioni.</strong> Codici fiscali, partite IVA e IBAN vengono verificati nel carattere di controllo, quindi lì l'errore è raro; i nomi di persona si riconoscono con elenchi e regole, e lì è più facile.</li>
+        <li><strong>Guarda il documento prima di mandarlo.</strong> È il motivo per cui l'app te lo mostra invece di copiartelo negli appunti da sola.</li>
+      </ul>
+    </div>
+
+    <table class="tabella">
+      <thead>
+        <tr><th>Limite</th><th>Valore</th><th>Cosa succede</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Dimensione del documento</td><td>8 MB</td><td>rifiutato con un messaggio</td></tr>
+        <tr><td>Righe di un foglio</td><td>5.000</td><td>troncato, e lo dice</td></tr>
+        <tr><td>Pagine di un PDF</td><td>500</td><td>troncato, e lo dice</td></tr>
+        <tr><td>Copia e Condividi</td><td>~256.000 caratteri</td><td>usa «Salva .md»</td></tr>
+      </tbody>
+    </table>
+
+    <p class="muted">
+      Per dare un'idea della scala: una <strong>Gazzetta Ufficiale di 208 pagine</strong>
+      pesa 2,3 MB e viene convertita in meno di un secondo.
+    </p>
+
+    <p class="sec-label">// 06 · domande</p>
+    <h2>Quello che chiedono tutti.</h2>
+
+    <div class="faq">
+      <details>
+        <summary>Perché non è sul Play Store?</summary>
+        <div class="risposta">
+          <p>Il Play Store con un account personale chiede dodici collaudatori per quattordici giorni consecutivi prima di lasciarti pubblicare; con un account aziendale chiede un codice D-U-N-S, che presuppone una partita IVA.</p>
+          <p>Nel frattempo l'APK si scarica e si installa senza aspettare nessuno. <strong>F-Droid</strong> è la destinazione naturale: ricostruisce l'app dal sorgente sui propri server e mostra i permessi in cima alla scheda — per un'app la cui promessa è «non parla con nessuno», è la vetrina che rende quella promessa verificabile.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Installare un APK a mano è sicuro?</summary>
+        <div class="risposta">
+          <p>Android ti chiede di permettere l'installazione da fonti sconosciute, e fa bene a chiedertelo. Il punto in cui si ferma quasi tutti: <strong>il permesso va dato all'app da cui apri il file</strong> — File, Chrome, Telegram — non a Mr. Rao.</p>
+          <p>Il codice è pubblico e la licenza è AGPL: puoi leggere cosa fa, o ricostruirlo da te.</p>
+        </div>
+      </details>
+      <details>
+        <summary>È lo stesso motore di Mr. Rao sul computer?</summary>
+        <div class="risposta">
+          <p>Sì, portato riga per riga. Era la condizione: un dato riconosciuto sul computer ma non sul telefono non sarebbe un difetto minore — sarebbe la promessa del prodotto che smette di valere a seconda del dispositivo.</p>
+        </div>
+      </details>
+      <details>
+        <summary>E Mr. Rao Plus? Che differenza c'è?</summary>
+        <div class="risposta">
+          <p><strong>Plus</strong> è un'estensione per il browser sul computer: guarda quello che stai <em>per mandare</em> a una chat AI e ti ferma prima dell'invio.</p>
+          <p><strong>Mobile</strong> è un'app Android che converte un documento e te lo restituisce anonimizzato: sei tu a decidere dove incollarlo. Sul telefono l'AI si usa dentro le app native, dove nessuna estensione può arrivare.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Quanto risparmio davvero in token?</summary>
+        <div class="risposta">
+          <p>Dipende dal documento, e non troverai qui una percentuale a effetto. Confrontare i caratteri del Markdown con i byte di un <code>.docx</code> darebbe un «98% in meno» vero e privo di significato — un <code>.docx</code> è un archivio compresso, i suoi byte non sono caratteri, e quel numero misurerebbe soprattutto quanto comprime Word.</p>
+          <p>Quello che l'app fa davvero, e che si può dire senza barare: tabelle in Markdown invece che in HTML, immagini ridotte a un segnaposto invece che incorporate in base64, e le righe vuote di impaginazione buttate via.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Posso usarla in azienda?</summary>
+        <div class="risposta">
+          <p>La licenza è AGPL-3.0: l'uso interno è libero. Se l'AGPL non è compatibile con come la vuoi integrare o ridistribuire, si concorda una licenza separata — <a href="/#contatto">scrivi</a>.</p>
+        </div>
+      </details>
+    </div>
+
+    <p class="sec-label" id="sorgente">// 07 &middot; sorgente</p>
+    <h2>Il codice, a chi lo chiede.</h2>
+
+    <div class="sorgente">
+      <p>
+        Mr. Rao Mobile e&rsquo; <strong>software libero</strong>, distribuito sotto
+        <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0-or-later</a>.
+      </p>
+      <p>
+        Il repository non e&rsquo; pubblico, e la licenza non lo pretende: pretende che
+        il sorgente arrivi <strong>a chi riceve il programma</strong>. Quindi, se hai
+        scaricato l&rsquo;APK da questa pagina, hai diritto al sorgente corrispondente e
+        <strong>basta chiederlo</strong> &mdash; scrivi a
+        <a href="mailto:antonio.andrea.rao@gmail.com">antonio.andrea.rao@gmail.com</a>
+        e te lo mando, senza spese oltre a quelle di trasmissione.
+      </p>
+      <p>
+        L&rsquo;offerta vale per tre anni dal rilascio di questa versione, come previsto
+        dalla licenza. Quando l&rsquo;app arrivera&rsquo; su F-Droid il repository sara&rsquo;
+        pubblico per forza di cose, perche&rsquo; F-Droid ricostruisce ogni app dai
+        sorgenti sui propri server.
+      </p>
+      <p>
+        Le librerie di terzi incorporate &mdash; mammoth (BSD-2), turndown (MIT),
+        SheetJS (Apache-2.0), pdf.js (Apache-2.0) &mdash; restano soggette alle proprie
+        licenze, elencate dentro l&rsquo;app alla voce <strong>Licenze</strong>.
+      </p>
+    </div>
+
+    <div class="footer">
+      <span>Mr. Rao Mobile · AGPL-3.0 · © 2026 Antonio Andrea Rao</span>
+      <span>
+        <a href="#sorgente">Sorgente</a> ·
+        <a href="/">Mr. Rao</a> ·
+        <a href="/plus/">Mr. Rao Plus</a>
+      </span>
+    </div>
+  </main>
+</body>
+</html>

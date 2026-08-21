@@ -1,0 +1,445 @@
+/* Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+   SPDX-License-Identifier: AGPL-3.0-or-later
+   Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+   GNU Affero General Public License pubblicata dalla Free Software Foundation,
+   versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository. */
+/* Foglio esterno: la CSP ammette style-src 'self', non un terzo inline
+   senza hash. Vedi commento in privacy/stile.css. */
+
+:root {
+  --bg: #050705;
+  --panel: #0a100c;
+  --line: #1a2e22;
+  --phosphor: #3dff9a;
+  --phosphor-dim: #1a8f55;
+  --amber: #f0b429;
+  --fog: #8fa898;
+  --white: #e8f5ec;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --sans: "Instrument Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-700-normal.woff2") format("woff2");
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--sans);
+  line-height: 1.65;
+  min-height: 100vh;
+}
+a { color: var(--phosphor); }
+a:hover { filter: brightness(1.12); }
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem clamp(1rem, 4vw, 2.5rem);
+  background: linear-gradient(to bottom, rgba(5, 7, 5, 0.97), rgba(5, 7, 5, 0.85));
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+.nav a { color: inherit; text-decoration: none; }
+.nav .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--phosphor);
+  font-weight: 600;
+}
+.nav .brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: block;
+  background: #0a100c;
+}
+.nav .links { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
+.nav .cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--bg);
+  background: var(--phosphor);
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.nav .cta img.browser {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+
+main { max-width: 48rem; margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 2rem) 5rem; }
+
+.hero {
+  padding: 2.5rem 0 2rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2.5rem;
+}
+.hero .kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--phosphor);
+  margin-bottom: 1rem;
+}
+.hero h1 {
+  font-size: clamp(1.85rem, 5vw, 2.75rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.1rem;
+}
+.hero .lead {
+  font-size: 1.1rem;
+  color: var(--fog);
+  max-width: 38rem;
+  margin-bottom: 1.6rem;
+}
+.hero .lead strong { color: var(--white); font-weight: 600; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 0.5rem; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.9rem;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.btn-primary { background: var(--phosphor); color: var(--bg); }
+.btn-ghost {
+  border: 1px solid var(--phosphor-dim);
+  color: var(--phosphor);
+  background: transparent;
+}
+.btn img.browser {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  display: block;
+}
+.btn-soon { opacity: 0.55; cursor: default; }
+.soon {
+  margin-left: 0.4rem;
+  font-size: 10px;
+  color: var(--amber);
+}
+
+.sec-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phosphor-dim);
+  margin: 2.75rem 0 0.6rem;
+}
+h2 {
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  font-weight: 650;
+  line-height: 1.25;
+  margin-bottom: 0.9rem;
+}
+p { margin-bottom: 0.95rem; color: var(--white); }
+.muted { color: var(--fog); }
+
+.grid {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.4rem 0 1.8rem;
+}
+@media (min-width: 640px) {
+  .grid.three { grid-template-columns: repeat(3, 1fr); }
+  .grid.two { grid-template-columns: repeat(2, 1fr); }
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 1.1rem 1.15rem;
+  border-radius: 2px;
+}
+.card h3 {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--phosphor);
+  margin-bottom: 0.45rem;
+}
+.card p { margin: 0; font-size: 0.95rem; color: var(--fog); }
+
+.siti {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1rem 0 1.5rem;
+}
+.siti span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--line);
+  color: var(--fog);
+  padding: 0.35rem 0.6rem;
+}
+
+.faq { margin: 1.2rem 0 2rem; }
+.faq details {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  margin-bottom: 0.55rem;
+  padding: 0;
+}
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.95rem 1.1rem;
+  font-weight: 600;
+  color: var(--white);
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::before {
+  content: "+";
+  font-family: var(--mono);
+  color: var(--phosphor);
+  margin-right: 0.65rem;
+}
+.faq details[open] summary::before { content: "−"; }
+.faq .risposta {
+  padding: 0 1.1rem 1.1rem 2.2rem;
+  color: var(--fog);
+  font-size: 0.98rem;
+}
+.faq .risposta p { color: var(--fog); }
+.faq .risposta strong { color: var(--white); }
+.faq .risposta ul { margin: 0.5rem 0 0.75rem 1.1rem; }
+.faq .risposta li { margin-bottom: 0.35rem; }
+
+.limiti {
+  border-left: 3px solid var(--amber);
+  background: rgba(240, 180, 41, 0.06);
+  padding: 1rem 1.15rem;
+  margin: 1.5rem 0;
+}
+.limiti h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 0.5rem;
+}
+.limiti ul { margin-left: 1.1rem; color: var(--fog); }
+.limiti li { margin-bottom: 0.35rem; }
+
+.footer {
+  margin-top: 3.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--fog);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  justify-content: space-between;
+}
+.footer a { color: var(--fog); text-decoration: none; }
+.footer a:hover { color: var(--phosphor); }
+
+/* --- Aggiunte della pagina Android ---------------------------------- */
+
+/* I tre passi dell'uso. Numerati dal CSS e non a mano: un elenco scritto
+   «1. 2. 3.» nel markup si disallinea appena se ne inserisce uno in mezzo. */
+.passi { list-style: none; counter-reset: passo; margin: 1.4rem 0 1.8rem; }
+.passi li {
+  counter-increment: passo;
+  position: relative;
+  padding-left: 3rem;
+  margin-bottom: 1.15rem;
+  color: var(--fog);
+}
+.passi li::before {
+  content: counter(passo);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--phosphor);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+.passi li strong { color: var(--white); font-weight: 600; }
+
+/* Il prima/dopo. Le due colonne cadono una sotto l'altra sotto i 640px:
+   su un telefono due colonne di codice diventano illeggibili entrambe. */
+.confronto { display: grid; gap: 0.85rem; margin: 1.3rem 0 1.8rem; }
+@media (min-width: 640px) { .confronto { grid-template-columns: 1fr 1fr; } }
+.confronto figure {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 0.9rem 1rem;
+  margin: 0;
+  min-width: 0;
+}
+.confronto figcaption {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--phosphor-dim);
+  margin-bottom: 0.6rem;
+}
+.confronto pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--fog);
+  /* Il Markdown ha righe lunghe: scorrono dentro il riquadro invece di
+     allargare la pagina e far comparire lo scorrimento orizzontale su
+     tutto il resto. */
+  overflow-x: auto;
+  white-space: pre;
+}
+.confronto .tolto { color: var(--amber); }
+
+/* Il permesso vuoto: e' l'affermazione centrale della pagina, quindi ha
+   un trattamento suo invece di essere una riga in mezzo al testo. */
+.permessi {
+  border: 1px solid var(--phosphor-dim);
+  background: rgba(61, 255, 154, 0.05);
+  padding: 1.1rem 1.2rem;
+  margin: 1.5rem 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--fog);
+}
+.permessi .titolo {
+  color: var(--phosphor);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+.permessi .vuoto { color: var(--white); }
+
+/* Tabella dei limiti. */
+.tabella { width: 100%; border-collapse: collapse; margin: 1.2rem 0 1.8rem; font-size: 0.95rem; }
+.tabella th, .tabella td { border-bottom: 1px solid var(--line); padding: 0.6rem 0.5rem; text-align: left; }
+.tabella th {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--phosphor-dim);
+  font-weight: 400;
+}
+.tabella td { color: var(--fog); }
+.tabella td:first-child { color: var(--white); }
+
+/* Avviso di stato: l'app non e' ancora stata provata su un telefono vero,
+   e va detto sopra il pulsante di scaricamento, non in fondo. */
+.stato {
+  border-left: 3px solid var(--amber);
+  background: rgba(240, 180, 41, 0.06);
+  padding: 0.9rem 1.1rem;
+  margin: 1.4rem 0;
+  font-size: 0.95rem;
+  color: var(--fog);
+}
+.stato strong { color: var(--amber); }
+
+/* L'impronta dell'APK, sotto il pulsante di scaricamento.
+   In mono, e con l'esadecimale che va a capo: 64 caratteri non stanno su
+   una riga di telefono, e allargare la pagina per farceli stare
+   costringerebbe tutto il resto a scorrere in orizzontale. */
+.impronta {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--fog);
+  margin-top: 1rem;
+}
+.impronta code {
+  color: var(--phosphor-dim);
+  overflow-wrap: anywhere;
+}
+
+/* La consegna del sorgente. Non e' una nota a pie' di pagina: e' un
+   obbligo di licenza verso chi scarica il file, e va letto. */
+.sorgente {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 1.1rem 1.2rem;
+  margin: 1.4rem 0;
+}
+.sorgente p { color: var(--fog); font-size: 0.95rem; }
+.sorgente p:last-child { margin-bottom: 0; }
+.sorgente strong { color: var(--white); }

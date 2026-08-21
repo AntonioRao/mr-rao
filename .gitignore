@@ -89,3 +89,11 @@ provenance/
 # dentro il cancello (invariante 9 di check_docs, l'unico controllo che
 # guarda un file non tracciato e l'unico che può dichiarare di saltare).
 audit_mr_rao_report.html
+
+# L'APK di Mr. Rao Mobile: si pubblica, non si versiona.
+#
+# Sta in docs/landing/publish/mobile/ perche' e' da li' che wrangler carica il
+# sito, ma e' un binario da 2,5 MB costruito da un altro repository. Tenerlo
+# qui vorrebbe dire un binario nuovo a ogni rilascio dentro un repository
+# pubblico, e nessuno che possa verificarlo leggendo un diff.
+docs/landing/publish/mobile/*.apk
