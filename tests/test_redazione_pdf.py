@@ -754,3 +754,161 @@ def test_le_pagine_normali_restano_com_erano(tmp_path):
     assert esito.pagine_riquadro_sopra == []
     assert esito.pagine_senza_riquadro == []
     assert _quota_dentro_i_segnaposto(fuori) > 0.3
+
+
+# ------------------------------------------ l'ancora che stava dentro il dato
+
+
+def test_un_ancora_dentro_il_valore_non_taglia_a_meta(tmp_path):
+    """**La fuga peggiore trovata finora, e la verifica non la vedeva.**
+
+    L'allineamento fra testo originale e testo redatto usa come ancore i pezzi
+    copiati letteralmente fra un segnaposto e l'altro. Se l'ancora e' corta e
+    compare **dentro** il valore da togliere, la prima occorrenza cade nel
+    posto sbagliato e il taglio si ferma li'.
+
+    Misurato: «Scrivi a mario.rossi@example.it.» -- l'ancora dopo l'e-mail e'
+    un punto solo, e il primo punto sta dentro l'e-mail. Il PDF redatto usciva
+    con `{{EMAIL_1}}.rossi@example.it`, cioe' con quasi tutto l'indirizzo
+    ancora dentro. `verifica_redazione` diceva zero sopravvissuti, perche'
+    cerca il valore **intero** e quello, spezzato, non c'e' piu'.
+    """
+    dentro = _pdf_con_righe(tmp_path / "dentro.pdf",
+                            ["Scrivi a mario.rossi@example.it."])
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori)
+
+    assert esito.segnaposto_inseriti == 1
+    testo = _testo(fuori)
+    assert "rossi@example.it" not in testo, testo
+    assert "mario" not in testo, testo
+
+
+def test_l_intervallo_copre_tutto_il_valore():
+    """Lo stesso difetto, guardato dove nasce invece che dove si vede."""
+    from mr_rao.redazione_pdf import intervalli_da_togliere
+
+    testo = "Scrivi a mario.rossi@example.it."
+    tratti = intervalli_da_togliere(testo, PrivacyOptions())
+    assert len(tratti) == 1, tratti
+    a, b, segnaposto = tratti[0]
+    assert testo[a:b] == "mario.rossi@example.it", testo[a:b]
+    assert "EMAIL" in segnaposto
+
+
+def test_ancore_ripetute_non_spostano_i_tratti():
+    """Piu' valori con la stessa ancora corta fra loro: ognuno il suo pezzo."""
+    from mr_rao.redazione_pdf import intervalli_da_togliere
+
+    testo = "a.rossi@example.it, b.bianchi@example.it, c.verdi@example.it"
+    tratti = intervalli_da_togliere(testo, PrivacyOptions())
+    valori = [testo[a:b] for a, b, _ in tratti]
+    assert valori == [
+        "a.rossi@example.it",
+        "b.bianchi@example.it",
+        "c.verdi@example.it",
+    ], valori
+
+
+def test_quando_il_pezzo_da_solo_non_si_riconosce_si_torna_alla_prima():
+    """La rete non deve diventare una regola nuova.
+
+    Un recapito che il motore riconosce **solo per il contesto** («tel.»
+    davanti) da solo non si riconosce piu': in quel caso la scelta
+    dell'ancora torna a essere quella di prima, e il taglio resta quello che
+    era. E' un ripiego dichiarato, non un caso da far fallire.
+    """
+    from mr_rao.redazione_pdf import _valore_coerente
+
+    opzioni = PrivacyOptions()
+    assert _valore_coerente("mario.rossi@example.it", "{{EMAIL_1}}", opzioni)
+    assert not _valore_coerente("mario", "{{EMAIL_1}}", opzioni)
+    # Etichetta diversa: e' un dato, ma non quel dato.
+    assert not _valore_coerente("mario.rossi@example.it", "{{NAME_1}}", opzioni)
+
+
+# ------------------------------------- le due origini: ritaglio e disegno
+
+
+def _pdf_ritagliato(percorso, righe: list[str]):
+    """Una pagina con il `/CropBox` spostato: un documento **rifilato**.
+
+    E' come sono i manuali e le scansioni raddrizzate: la pagina fisica resta
+    A4, ma cio' che si vede comincia piu' in dentro. Il motore PDF misura il
+    testo da quel bordo; il flusso di contenuto disegna in coordinate utente,
+    che partono dal `/MediaBox`. Le due origini differiscono di tutto il
+    margine, e un rettangolo disegnato con le coordinate del motore finisce
+    fuori dalla parte di pagina che si vede.
+
+    Misurato su un manuale vero: `CropBox` a (80,49 · 123,46), riquadro
+    invisibile su due pagine.
+    """
+    pdf = pikepdf.Pdf.new()
+    font = pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Font"), Subtype=pikepdf.Name("/Type1"),
+        BaseFont=pikepdf.Name("/Helvetica"),
+        Encoding=pikepdf.Name("/WinAnsiEncoding")))
+    comandi = ["q 1 1 1 rg 0 0 595 842 re f Q", "BT", "/F1 12 Tf"]
+    y = 600
+    for riga in righe:
+        comandi.append(f"1 0 0 1 150 {y} Tm ({riga}) Tj")
+        y -= 30
+    comandi.append("ET")
+    pdf.pages.append(pikepdf.Page(pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Page"),
+        MediaBox=pikepdf.Array([0, 0, 595, 842]),
+        CropBox=pikepdf.Array([80, 123, 512, 718]),
+        Resources=pikepdf.Dictionary(Font=pikepdf.Dictionary(F1=font)),
+        Contents=pdf.make_stream("\n".join(comandi).encode("latin-1"))))))
+    pdf.save(str(percorso))
+    pdf.close()
+    return percorso
+
+
+def test_il_riquadro_tiene_conto_del_ritaglio(tmp_path):
+    """**Il difetto che il rapporto onesto ha fatto emergere.**
+
+    Su un documento rifilato il riquadro finiva ottanta punti a sinistra e
+    centoventitre piu' in basso del segnaposto. Non se ne accorgeva nessuno
+    perche' il conto dei pixel verdi guardava la pagina intera; da quando si
+    guarda **dentro il riquadro del segnaposto**, la pagina risulta senza
+    riquadro e lo dice.
+    """
+    dentro = _pdf_ritagliato(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori)
+
+    assert esito.segnaposto_inseriti == 1
+    assert esito.pagine_senza_riquadro == [], esito.pagine_senza_riquadro
+    quota = _quota_dentro_i_segnaposto(fuori)
+    assert quota > 0.3, f"il riquadro non sta sotto al segnaposto: {quota:.0%}"
+
+
+def test_la_misura_del_riquadro_tiene_conto_del_ritaglio(tmp_path):
+    """La misura e il disegno usano due origini, e vanno riconciliate li'.
+
+    `get_charbox` misura in coordinate utente; `render(crop=...)` conta dai
+    bordi del ritaglio. Su un documento rifilato la misura guardava un pezzo
+    di pagina dove il rettangolo non c'era: rispondeva «zero» mentre il
+    riquadro era al suo posto, e faceva rifare due pagine che andavano bene.
+
+    Il caso vero: un manuale con `CropBox` a (80,49 · 123,46).
+    """
+    from mr_rao.redazione_pdf import quota_visibile, segnaposto_sulla_pagina
+
+    dentro = _pdf_ritagliato(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori)
+
+    documento = pdfium.PdfDocument(str(fuori))
+    try:
+        pagina = documento[0]
+        riquadri = segnaposto_sulla_pagina(pagina)
+        assert riquadri, "nessun segnaposto misurato"
+        # Il ritaglio c'e' davvero: senza, questo test passerebbe anche con la
+        # misura sbagliata.
+        ritaglio = pagina.get_cropbox()
+        assert float(ritaglio[0]) > 0 and float(ritaglio[1]) > 0, ritaglio
+        assert quota_visibile(pagina, riquadri) > 0.3
+    finally:
+        documento.close()

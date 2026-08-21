@@ -1,5 +1,77 @@
 # Changelog
 
+## 1.27.5 — Mezza e-mail restava nel PDF, e il motore toglieva parole che non erano dati
+
+Quattro correzioni alla redazione dei PDF, tutte trovate su documenti veri.
+La prima e' una **perdita di dati** e da sola vale l'aggiornamento.
+
+### Mezza e-mail restava nel documento
+
+`Scrivi a mario.rossi@example.it.` usciva redatto come
+`{{EMAIL_1}}.rossi@example.it`: nel PDF restava quasi tutto l'indirizzo.
+
+Per sapere **dove** stanno i glifi da togliere, il testo redatto e quello
+originale si allineano usando come ancore i pezzi copiati fra un segnaposto e
+l'altro. Li' l'ancora era un punto solo, e il primo punto stava **dentro**
+l'indirizzo: il taglio si fermava a «mario».
+
+`verifica_redazione` non poteva accorgersene: cerca il valore **intero**, e
+un valore spezzato non c'e' piu'. Un difetto che nessuno dei controlli
+esistenti poteva vedere.
+
+Ora, fra le occorrenze possibili di un'ancora, si sceglie quella per cui il
+pezzo che verrebbe tagliato, **richiesto al motore da solo**, e' ancora quel
+dato. Se nessuna regge — un recapito che si riconosce solo dal contesto, per
+esempio — si torna al comportamento di prima: e' una rete, non una regola
+nuova.
+
+### «Enterprise Architect» non e' una persona
+
+Due parole maiuscole prima di un indirizzo diventavano un nome anche se in
+nessun elenco: e' la regola che prende i nomi stranieri e quelli rari, e sulle
+firme funziona. Su un curriculum vero faceva sparire «Enterprise» da
+«Enterprise Architect antonio@…» — e, siccome i segnaposto sono numerati per
+valore, da li' in poi spariva ogni «Enterprise» della pagina.
+
+Adesso, se **nessuna** delle parole sta negli elenchi di nomi e cognomi **e**
+almeno una e' un mestiere (architect, manager, direttore, responsabile…), non
+e' una persona. Il doppio vincolo tiene in piedi il caso vero: «Direttore
+Mario Rossi mario@…» ha «Mario» negli elenchi, e resta un nome.
+
+Misurato prima di toccare il motore: **zero** casi cambiati sul corpus di
+conformita' (290) e **zero** su sessanta documenti veri del disco.
+
+### Nove cifre in una tabella non sono un cellulare
+
+`3## ### ###` veniva preso per un recapito senza bisogno di nessuna parola
+davanti. Su una Certificazione Unica erano quattro, nessuno era un recapito, e
+**uno veniva davvero cancellato da dentro una tabella**: un numero tolto da un
+modulo fiscale.
+
+I cellulari assegnati oggi sono a dieci cifre e restano come prima; quelli a
+nove — i numeri vecchi, che esistono ancora — adesso chiedono «tel.», «cell.»,
+«fax» o il prefisso internazionale.
+
+Misurato: **zero** casi cambiati sul corpus; su 85 documenti veri le
+sostituzioni passano da 340 a 337, e le tre che spariscono sono un valore di
+luminanza e due nomi di file di log di Windows.
+
+### Il riquadro su un documento rifilato
+
+Su un manuale con il `/CropBox` spostato il controllo diceva che il fondo
+colorato non si vedeva, e faceva rifare due pagine che andavano benissimo. Le
+coordinate del testo si misurano dal `/MediaBox`, il rendering conta dai bordi
+del ritaglio: due origini diverse, ottanta punti di scarto. Adesso la misura
+le riconcilia, e il disegno resta dov'era.
+
+### Come sono state verificate
+
+Trenta PDF veri presi dal disco, redatti e passati a `verifica_redazione`:
+**zero valori sopravvissuti**, zero riquadri invisibili, zero pagine senza
+riquadro. Il curriculum che ha fatto trovare due di questi difetti esce con
+quattro sostituzioni — nome, e-mail, telefono, profilo — e **nient'altro
+toccato**.
+
 ## 1.27.4 — Il riquadro rifatto finiva a meta' pagina
 
 La 1.27.3 rimediava ai riquadri invisibili ridisegnandoli **in coda** al

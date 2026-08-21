@@ -2057,6 +2057,21 @@ def _phone_is_plausible(m: re.Match, contesto: bool | None = None) -> bool:
     # Cellulare italiano. La decade 30x non e' assegnata a nessun operatore:
     # «300 000 201», che su una tabella e' un valore, non e' un recapito.
     if digits.startswith("3") and digits[1:2] != "0" and 9 <= n <= 10:
+        # **I nove cifre chiedono una parola di contatto.** I cellulari
+        # assegnati oggi sono a dieci; a nove sono i vecchi numeri, che ci
+        # sono ancora e vanno protetti, ma sono rari. Un gruppo «3## ### ###»
+        # in una tabella di valori invece e' comunissimo, e non ha nessuna
+        # aritmetica che possa smentirne la forma.
+        #
+        # Misurato prima di stringere: sul corpus di conformita' non cambia
+        # **nessuno** dei 290 casi; su 85 documenti veri del disco le
+        # sostituzioni passano da 340 a 337, e le tre che spariscono sono un
+        # valore di luminanza e due nomi di file di log di Windows -- nessun
+        # recapito. Su una Certificazione Unica i falsi positivi passano da
+        # quattro a zero, e uno di quei quattro veniva davvero tolto da dentro
+        # una tabella: un numero cancellato da un modulo fiscale.
+        if n == 9 and not ctx:
+            return False
         return True
 
     # Fisso italiano. Il prefisso di distretto e' 0 seguito da una cifra
@@ -2230,6 +2245,33 @@ _WORDLIKE_SUFFIXES = (
     "oso", "osa", "osi", "ose", "ivo", "iva", "ivi", "ive", "bile", "bili",
     "ezza", "ezze", "orio", "oria", "ario", "aria", "esimo", "evole",
     "ura", "ure", "udine", "eria", "ficio", "logia", "grafia", "metro",
+)
+
+
+# Parole che dicono «questa sequenza e' un mestiere, non una persona».
+#
+# Servono in un punto solo: la coppia di parole davanti a un indirizzo di
+# posta, che il motore prende per un nome anche quando in nessun elenco c'e'.
+# In una firma di lavoro o in un curriculum davanti all'indirizzo c'e' il
+# ruolo — «Enterprise Architect antonio@…», «Project Manager giulia@…» — e
+# quel ruolo spariva dal documento.
+#
+# **Non e' un elenco di titoli**: «avvocato», «dottore», «ingegner» davanti a
+# un nome vero ci vanno spesso, e toglierli non serve a nessuno mentre far
+# saltare il nome che segue sarebbe grave. Qui ci sono solo le parole che
+# **da sole** descrivono un incarico, e la regola che le usa scatta soltanto
+# se nessuna delle parole della coppia sta negli elenchi di nomi e cognomi.
+MESTIERI = frozenset(
+    {
+        "architect", "architetto", "manager", "engineer", "ingegnere",
+        "director", "direttore", "officer", "analyst", "analista",
+        "consultant", "consulente", "developer", "sviluppatore",
+        "specialist", "specialista", "lead", "head", "chief", "founder",
+        "partner", "advisor", "coordinator", "coordinatore", "supervisor",
+        "administrator", "amministratore", "designer", "progettista",
+        "scientist", "researcher", "ricercatore", "responsabile",
+        "dirigente", "titolare", "presidente", "segretario",
+    }
 )
 
 
@@ -3298,6 +3340,27 @@ def _scrub_names(
         if len(tokens) == 1:
             solo = tokens[0].lower().strip("'’-")
             if solo not in FIRST_NAMES and solo not in SURNAMES:
+                return m.group(0)
+        # **Una coppia di parole che sono un mestiere non e' una persona.**
+        #
+        # La coppia, a differenza della parola sola, non ha mai dovuto stare
+        # negli elenchi — ed e' voluto, perche' e' la regola che prende i nomi
+        # stranieri e quelli rari, «Klaus Vogel klaus.vogel@…». Il prezzo si
+        # vede sui curriculum e sulle firme di lavoro, dove prima
+        # dell'indirizzo c'e' il ruolo: «Enterprise Architect
+        # antonio@…» faceva sparire «Enterprise», e da li' in poi ogni
+        # «Enterprise» della pagina. Misurato su un curriculum vero.
+        #
+        # La condizione e' doppia apposta: nessuna delle parole negli elenchi
+        # **e** almeno una che sia un mestiere. Cosi' «Direttore Mario Rossi
+        # mario@…» resta un nome, perche' «Mario» negli elenchi c'e'.
+        #
+        # Misurato prima di stringere: zero casi cambiati sul corpus di
+        # conformita' (290) e zero su sessanta documenti veri del disco.
+        if len(tokens) >= 2:
+            puliti = [t.lower().strip("'’-.,;:") for t in tokens]
+            if (not any(p in FIRST_NAMES or p in SURNAMES for p in puliti)
+                    and any(p in MESTIERI for p in puliti)):
                 return m.group(0)
         prefix = (" ".join(dropped) + " ") if dropped else ""
         tenuto = name[len(prefix):] if prefix else name

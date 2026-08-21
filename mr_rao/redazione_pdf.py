@@ -519,7 +519,7 @@ def intervalli_da_togliere(
         if pezzo.startswith("{{") and pezzo.endswith("}}"):
             in_attesa = pezzo
             continue
-        posizione = testo.find(pezzo, cursore)
+        posizione = _ancora(testo, pezzo, cursore, in_attesa, opzioni)
         if posizione < 0:
             # L'ancora non si ritrova: l'allineamento e' perso, e tagliare a
             # naso e' peggio che non tagliare. Il chiamante lo vede come una
@@ -532,6 +532,66 @@ def intervalli_da_togliere(
     if in_attesa and cursore < len(testo):
         tratti.append((cursore, len(testo), in_attesa))
     return tratti
+
+
+#: Quante occorrenze di un'ancora si provano prima di arrendersi alla prima.
+#: Oltre questo numero il testo e' fatto di ancore ripetute, e insistere costa
+#: piu' di quanto renda.
+ANCORE_DA_PROVARE = 12
+
+
+def _ancora(testo: str, pezzo: str, da: int, in_attesa: str,
+            opzioni: PrivacyOptions) -> int:
+    """Dove ricomincia il testo copiato, dopo un valore tolto.
+
+    **La prima occorrenza non basta, e costava una fuga.** Su
+    «Scrivi a mario.rossi@example.it.» l'ancora dopo l'e-mail e' un punto
+    solo, e il primo punto sta *dentro* l'e-mail: il tratto da tagliare
+    diventava «mario», e nel PDF redatto restava
+    `{{EMAIL_1}}.rossi@example.it`. La verifica non poteva accorgersene,
+    perche' cerca il valore **intero** e quello, spezzato, non c'e' piu'.
+
+    Qui si provano le prime occorrenze e si prende la prima che regge una
+    domanda in piu': **il pezzo che verrebbe tagliato e' davvero quel dato?**
+    Lo si chiede al motore, che e' l'unico a saperlo. Se nessuna regge -- un
+    recapito che si riconosce solo dal contesto, per esempio, da solo non si
+    riconosce piu' -- si torna alla prima, cioe' al comportamento di prima:
+    questa e' una rete, non un cambio di regola.
+    """
+    if not in_attesa:
+        # Nessun valore tolto in mezzo: l'ancora comincia esattamente qui.
+        return da if testo.startswith(pezzo, da) else testo.find(pezzo, da)
+
+    prima = testo.find(pezzo, da)
+    if prima < 0:
+        return -1
+    posizione = prima
+    for _ in range(ANCORE_DA_PROVARE):
+        if posizione > da and _valore_coerente(testo[da:posizione], in_attesa, opzioni):
+            return posizione
+        successiva = testo.find(pezzo, posizione + 1)
+        if successiva < 0:
+            break
+        posizione = successiva
+    return prima
+
+
+def _valore_coerente(valore: str, segnaposto: str, opzioni: PrivacyOptions) -> bool:
+    """Il motore, rimesso davanti a quel solo pezzo, ci rivede lo stesso dato?
+
+    Serve a scegliere fra due allineamenti possibili, non a decidere se un
+    dato e' un dato: chiede se il pezzo candidato, da solo, viene sostituito
+    **per intero** e con la **stessa etichetta**.
+    """
+    valore = valore.strip()
+    if not valore:
+        return False
+    fuori, rapporto = apply_privacy_filter(valore, opzioni)
+    if rapporto.total != 1:
+        return False
+    senza_numero = re.sub(r"\{\{([A-Z_]+?)(?:_\d+)?\}\}", r"{{\1}}", fuori).strip()
+    atteso = re.sub(r"\{\{([A-Z_]+?)(?:_\d+)?\}\}", r"{{\1}}", segnaposto)
+    return senza_numero == atteso
 
 
 def _senza_spazi(testo: str) -> tuple[str, list[int]]:
@@ -772,7 +832,13 @@ def _rettangoli(riquadri) -> bytes:
 
 
 def _misure(riquadro) -> tuple[float, float, float, float]:
-    """Il rettangolo da disegnare: angolo in basso a sinistra, e i due lati."""
+    """Il rettangolo da disegnare: angolo in basso a sinistra, e i due lati.
+
+    Le coordinate arrivano da `get_charbox`, che misura in **coordinate
+    utente**: sono gia' quelle in cui disegna il flusso di contenuto, e non
+    vanno spostate. Chi le confronta con un'immagine renderizzata invece deve
+    togliere l'origine del ritaglio -- vedi `quota_visibile`.
+    """
     sinistra, basso, destra, alto = riquadro[:4]
     return (
         sinistra - MARGINE_RETTANGOLO,
@@ -842,10 +908,21 @@ def quota_visibile(pagina_pdfium, riquadri) -> float:
     documento di duecento pagine la differenza e' fra qualche millisecondo e
     parecchi secondi.
     """
+    # **Le coordinate del testo e quelle del rendering hanno due origini.**
+    # `get_charbox` misura in coordinate utente, cioe' dal `/MediaBox`;
+    # `render(crop=...)` conta dai bordi del riquadro di ritaglio. Su un
+    # documento rifilato le due cose differiscono di tutto il margine, e la
+    # misura guardava un pezzo di pagina dove il rettangolo non c'era: su un
+    # manuale vero rispondeva «zero» mentre il riquadro era al suo posto, e
+    # faceva rifare due pagine che andavano bene.
+    ritaglio = pagina_pdfium.get_cropbox()
+    origine_x, origine_y = (float(ritaglio[0]), float(ritaglio[1])) if ritaglio else (0.0, 0.0)
     larghezza_pagina, altezza_pagina = pagina_pdfium.get_size()
     trovati = attesi = 0
     for riquadro in riquadri:
         x, y, larghezza, altezza = _misure(riquadro)
+        x -= origine_x
+        y -= origine_y
         sinistra = max(0.0, x)
         basso = max(0.0, y)
         destra = min(float(larghezza_pagina), x + larghezza)
