@@ -402,8 +402,10 @@
   .dl-note.warn { color: var(--amber); }
   .plus-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.3rem; }
   .plus-actions .btn { min-height: 3.2rem; }
-  /* Il pulsante di Chrome non è un pulsante: la scheda è ancora in bozza, e
-     un link che non porta da nessuna parte è peggio di un link assente. */
+  /* Un pulsante che non porta da nessuna parte è peggio di un pulsante
+     assente: `btn-soon` lo spegne e gli mette accanto «in arrivo».
+     Serviva per la scheda di Chrome quando era ancora in bozza; da quando è
+     pubblica lo usa solo F-Droid, che davvero non c'è ancora. */
   .btn-soon { opacity: 0.62; pointer-events: none; cursor: default; }
   .soon {
     display: inline-block; margin-left: 0.55rem; padding: 0.05rem 0.5rem;
