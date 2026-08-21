@@ -90,6 +90,25 @@ RIGENERATE = {
     ),
 }
 
+# Pagine pubblicate che **non parlano di questo programma**.
+#
+# `docs/landing/publish/mobile/` descrive Mr. Rao Mobile: altro repository,
+# altro artefatto, altra numerazione. Confrontarlo con APP_VERSION lo
+# dichiarava vecchio appena pubblicato — «dice 0.1.2, ma e' la 1.27.1» — e la
+# risposta comoda sarebbe stata esentare la cartella. Sarebbe stata la
+# risposta sbagliata: una pagina esentata puo' dire qualunque numero per
+# sempre. Qui cambia il numero atteso, il confronto resta.
+#
+# Il limite, detto chiaro perche' non si scopra solo il giorno che morde:
+# questo repository non contiene l'artefatto mobile, quindi il numero qui
+# sotto e' **scritto a mano**. Se la mobile passa alla 0.1.3 e non si tocca
+# ne' le pagine ne' questa riga, il controllo tace. Prende il caso opposto —
+# pagine aggiornate e riga no — che e' quello che capita davvero, perche' le
+# pagine si toccano quando si pubblica.
+VERSIONI_ALTRUI = {
+    "docs/landing/publish/mobile/": ("Mr. Rao Mobile", "0.1.2"),
+}
+
 _RE_ID = re.compile(r"^\| ([PSA]\d*\.\d+[a-z]?) \|", re.MULTILINE)
 _RE_VERSIONE = re.compile(r"(?:versione|version)[-\s:]+(\d+\.\d+\.\d+)", re.I)
 # Da tre a cinque cifre, non esattamente tre.
@@ -235,12 +254,29 @@ def versioni_incoerenti(
     """
     problemi = []
     for nome, testo in (_fonti_md() if fonti is None else fonti):
+        prodotto, attesa = versione_attesa(nome)
         for m in regex.finditer(testo):
-            if m.group(1) != APP_VERSION:
+            if m.group(1) != attesa:
+                di_chi = f" di {prodotto}" if prodotto else ""
                 problemi.append(
-                    f"{nome}: dice versione {m.group(1)}, ma e' la {APP_VERSION}"
+                    f"{nome}: dice versione{di_chi} {m.group(1)}, ma e' la {attesa}"
                 )
     return problemi
+
+
+def versione_attesa(nome: str) -> tuple[str | None, str]:
+    """Quale numero deve dichiarare questo file, e di quale prodotto.
+
+    Quasi sempre APP_VERSION. L'eccezione sono le pagine di VERSIONI_ALTRUI,
+    che parlano di un altro prodotto: li' il confronto non sparisce, cambia
+    termine. Il nome del prodotto finisce nel messaggio perche' «dice 0.1.2,
+    ma e' la 1.27.1» su una pagina della mobile manda a correggere la cosa
+    sbagliata.
+    """
+    for prefisso, (prodotto, versione) in VERSIONI_ALTRUI.items():
+        if nome.startswith(prefisso):
+            return prodotto, versione
+    return None, APP_VERSION
 
 
 def conteggi_incoerenti(
@@ -434,7 +470,12 @@ def landing_invecchiate(reale: int) -> list[str]:
     dichiarate = 0
     for fonte in fonti:
         nome, testo = fonte
-        dichiarate += len(_RE_VERSIONE_LANDING.findall(testo))
+        # Contano solo le pagine che parlano di **questo** programma: se
+        # restassero in piedi le sole pagine della mobile, il conteggio
+        # sarebbe diverso da zero e il controllo «nessuno dichiara piu' una
+        # versione» tacerebbe proprio nel caso che deve prendere.
+        if versione_attesa(nome)[0] is None:
+            dichiarate += len(_RE_VERSIONE_LANDING.findall(testo))
         trovati = versioni_incoerenti([fonte], _RE_VERSIONE_LANDING)
         trovati += conteggi_incoerenti(reale, [fonte])
         sorgente = RIGENERATE.get(nome)

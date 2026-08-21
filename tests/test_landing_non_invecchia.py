@@ -37,10 +37,12 @@ if str(RADICE / "scripts") not in sys.path:
 import check_docs  # noqa: E402
 from check_docs import (  # noqa: E402
     _RE_VERSIONE_LANDING,
+    VERSIONI_ALTRUI,
     _fonti_landing,
     conteggi_incoerenti,
     landing,
     landing_invecchiate,
+    versione_attesa,
     versioni_incoerenti,
 )
 from config import APP_VERSION  # noqa: E402
@@ -242,3 +244,87 @@ def test_landing_invecchiate_restituisce_una_lista():
     """Un controllo che tornasse None passerebbe ogni `assert not problemi`
     senza guardare niente."""
     assert isinstance(landing_invecchiate(880), list)
+
+
+# --- le pagine che parlano di un altro prodotto ------------------------------
+#
+# `docs/landing/publish/mobile/` descrive Mr. Rao Mobile, che ha la sua
+# numerazione. La CI l'ha detto al primo giro: «dice versione 0.1.2, ma e' la
+# 1.27.1». La correzione facile era esentare la cartella; qui si verifica che
+# **non** sia quello che e' stato fatto, cioe' che una pagina della mobile
+# possa ancora diventare rossa.
+
+PREFISSO_MOBILE = "docs/landing/publish/mobile/"
+PRODOTTO_MOBILE, VERSIONE_MOBILE = VERSIONI_ALTRUI[PREFISSO_MOBILE]
+
+
+def _pagina_mobile(corpo: str) -> list[tuple[str, str]]:
+    return [(PREFISSO_MOBILE + "index.html", f"<html><body>{corpo}</body></html>")]
+
+
+def test_la_versione_giusta_della_mobile_non_viene_segnalata():
+    assert not versioni_incoerenti(
+        _pagina_mobile(f"<p>versione {VERSIONE_MOBILE}</p>"), _RE_VERSIONE_LANDING
+    )
+
+
+def test_una_versione_vecchia_della_mobile_viene_segnalata():
+    """Il confronto non e' sparito: e' cambiato il termine di paragone."""
+    problemi = versioni_incoerenti(
+        _pagina_mobile("<p>versione 0.0.9</p>"), _RE_VERSIONE_LANDING
+    )
+    assert len(problemi) == 1, problemi
+    assert "0.0.9" in problemi[0] and VERSIONE_MOBILE in problemi[0]
+
+
+def test_la_versione_del_desktop_su_una_pagina_della_mobile_e_un_errore():
+    """La prova che non e' un'esenzione.
+
+    Se la cartella fosse stata semplicemente saltata, questo caso — la pagina
+    dell'app Android che annuncia il numero del programma desktop — sarebbe
+    passato in silenzio, ed e' proprio l'errore che il copia-incolla fra le
+    due landing rende facile.
+    """
+    assert versioni_incoerenti(
+        _pagina_mobile(f"<p>versione {APP_VERSION}</p>"), _RE_VERSIONE_LANDING
+    )
+
+
+def test_il_messaggio_dice_di_quale_prodotto_parla():
+    """«dice 0.0.9, ma e' la 0.1.2» su una pagina qualunque manda a cercare
+    nel posto sbagliato: i due numeri vivono in repository diversi."""
+    problemi = versioni_incoerenti(
+        _pagina_mobile("<p>versione 0.0.9</p>"), _RE_VERSIONE_LANDING
+    )
+    assert PRODOTTO_MOBILE in problemi[0]
+
+
+def test_le_pagine_normali_restano_confrontate_con_app_version():
+    assert versione_attesa("docs/landing/publish/index.html") == (None, APP_VERSION)
+    assert versione_attesa("MANUALE.md") == (None, APP_VERSION)
+
+
+def test_il_prefisso_altrui_corrisponde_a_file_che_esistono():
+    """Una voce che non combacia piu' con niente e' configurazione morta, e
+    la si scopre solo il giorno che serve. Se la cartella viene rinominata,
+    qui si dice subito."""
+    tracciate = {f.relative_to(RADICE).as_posix() for f in landing()}
+    for prefisso in VERSIONI_ALTRUI:
+        assert any(n.startswith(prefisso) for n in tracciate), (
+            f"VERSIONI_ALTRUI cita '{prefisso}' ma git non traccia nessuna "
+            f"landing sotto quel percorso"
+        )
+
+
+def test_le_sole_pagine_altrui_non_bastano_a_dire_verde(monkeypatch):
+    """Se restassero solo pagine di un altro prodotto, il controllo su
+    **questo** programma non avrebbe piu' niente da confrontare: e' un
+    controllo spento, non un verde."""
+    monkeypatch.setattr(
+        check_docs,
+        "_fonti_landing",
+        lambda: _pagina_mobile(f"<p>versione {VERSIONE_MOBILE}</p>"),
+    )
+    problemi = landing_invecchiate(880)
+    assert problemi
+    assert "_RE_VERSIONE_LANDING" in problemi[0]
