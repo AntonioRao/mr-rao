@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.27.4 — Il riquadro rifatto finiva a meta' pagina
+
+La 1.27.3 rimediava ai riquadri invisibili ridisegnandoli **in coda** al
+flusso della pagina. Su un PDF prodotto da Word o dal browser quel rimedio
+sbagliava posto: il rettangolo compariva a meta' foglio, e rovesciato.
+
+### Perche'
+
+Quei PDF cominciano con un `cm` al livello piu' esterno -- di solito
+`0.75 0 0 -0.75 0 altezza`, che porta i 96 dpi dello schermo ai 72 del PDF e
+rovescia l'asse Y. Non sta dentro nessun `q`, quindi vale fino alla fine del
+flusso: le coordinate misurate sulla pagina, aggiunte dopo, venivano
+trasformate una seconda volta. Misurato su un curriculum vero: il rettangolo
+chiesto a (21, 771) e' comparso a (15,75, 263,6).
+
+Adesso il contenuto della pagina viene avvolto in `q`/`Q`, cosi' cio' che si
+aggiunge riparte dallo stato iniziale. Se il flusso non e' bilanciato --
+piu' `Q` che `q`, o `q` aperte alla fine -- la pagina non si tocca: meglio un
+riquadro che non si vede che un documento che non si apre.
+
+### E il rimedio adesso si controlla da solo
+
+Il difetto era passato perche' il controllo contava i pixel del colore
+**sulla pagina intera**: un rettangolo a meta' foglio li faceva salire lo
+stesso, e il programma dichiarava «pagina rifatta» mentre il documento diceva
+il contrario. Ora si guarda **dentro il riquadro del segnaposto**, e dopo aver
+rifatto si guarda di nuovo: `EsitoRedazione.pagine_riquadro_sopra` elenca solo
+le pagine in cui il riquadro si vede davvero, e le altre finiscono in
+`pagine_senza_riquadro` invece di sparire dal rapporto.
+
+Misurato su venti PDF veri del disco: dodici con dati da togliere, quota
+visibile peggiore **37%**, nessun documento con un riquadro invisibile, otto
+pagine rifatte. Sul curriculum che ha fatto trovare il difetto: da **10%** a
+**62%**.
+
 ## 1.27.3 — Il riquadro della redazione si vedeva solo su meta' dei documenti
 
 Su un PDF redatto, il dato tolto si segnala con un rettangolo verde scuro e

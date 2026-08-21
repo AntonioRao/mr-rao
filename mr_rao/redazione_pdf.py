@@ -200,6 +200,10 @@ class EsitoRedazione:
     #: il segnaposto compare due volte nel testo copiato: una nella frase, una
     #: in fondo alla pagina. Dirlo e' meglio che lasciarlo scoprire.
     pagine_riquadro_sopra: list[int] = field(default_factory=list)
+    #: Le pagine in cui il fondo colorato **non si vede**, e non e' stato
+    #: possibile rimediare: il dato e' tolto lo stesso, ma chi guarda la
+    #: pagina non ha nessun segno che li' ci fosse qualcosa.
+    pagine_senza_riquadro: list[int] = field(default_factory=list)
 
 
 class _Contenitore:
@@ -1114,19 +1118,93 @@ def _rifai_le_pagine_coperte(documento: Path, per_pagina, esito=None) -> None:
             return
 
         pdf = pikepdf.open(str(documento), allow_overwriting_input=True)
+        rifatte = []
         try:
             for numero in da_rifare:
                 pagina = pdf.pages[numero]
+                if not _avvolgi_in_stato_iniziale(pagina):
+                    # Flusso sbilanciato: avvolgerlo lo romperebbe, e un
+                    # documento rotto e' molto peggio di un riquadro che non
+                    # si vede. Resta com'e', e lo dice l'esito.
+                    continue
                 risorsa = _aggiungi_font_standard(pagina)
                 pagina.contents_add(
-                    _rettangoli_con_etichetta(per_pagina[numero], risorsa),
+                    b"Q\n" + _rettangoli_con_etichetta(per_pagina[numero], risorsa),
                     prepend=False,
                 )
+                rifatte.append(numero)
             pdf.save(str(documento))
         finally:
             pdf.close()
-        if esito is not None:
-            esito.pagine_riquadro_sopra = da_rifare
+    except Exception:
+        return
+
+    _conta_cosa_si_vede_davvero(documento, per_pagina, da_rifare, rifatte, esito)
+
+
+def _avvolgi_in_stato_iniziale(pagina) -> bool:
+    """Mette il contenuto della pagina dentro `q`/`Q`. Falso se non si puo'.
+
+    **Senza questo, cio' che si aggiunge in coda finisce da un'altra parte.**
+    Un PDF prodotto da Word o dal browser comincia quasi sempre con un `cm` al
+    livello piu' esterno -- tipicamente `0.75 0 0 -0.75 0 altezza`, che porta i
+    96 dpi ai 72 del PDF e rovescia l'asse Y. Quel `cm` non sta dentro nessun
+    `q`, quindi vale fino alla fine del flusso: le coordinate misurate sulla
+    pagina, aggiunte dopo, vengono trasformate una seconda volta.
+    Misurato su un curriculum vero: il riquadro chiesto a (21, 771) e'
+    comparso a (15,75, 263,6), cioe' a meta' pagina e specchiato.
+
+    Avvolgere il contenuto in `q`/`Q` riporta lo stato a quello iniziale prima
+    di cio' che aggiungiamo: `q` va in testa, e la `Q` la mette chi accoda.
+
+    Si rifiuta se il flusso non e' bilanciato -- piu' `Q` che `q` a un certo
+    punto, oppure `q` aperte alla fine. Li' la `q` in testa verrebbe chiusa da
+    una `Q` del documento, e la nostra `Q` ne chiuderebbe una di troppo.
+    """
+    profondita = 0
+    for istruzione in pikepdf.parse_content_stream(pagina):
+        operatore = str(istruzione.operator)
+        if operatore == "q":
+            profondita += 1
+        elif operatore == "Q":
+            profondita -= 1
+            if profondita < 0:
+                return False
+    if profondita != 0:
+        return False
+    pagina.contents_add(b"q\n", prepend=True)
+    return True
+
+
+def _conta_cosa_si_vede_davvero(documento: Path, per_pagina, da_rifare,
+                                rifatte, esito) -> None:
+    """Guarda **di nuovo**, dopo aver rifatto: si vede o no?
+
+    Il primo sguardo dice quali pagine hanno un problema; questo dice se il
+    rimedio ha funzionato. Servono tutti e due, e il motivo e' costato caro:
+    la prima versione di questo passaggio disegnava i rettangoli in coda senza
+    accorgersi della trasformazione di pagina, li mandava a meta' foglio, e
+    dichiarava «pagina rifatta». Il rapporto diceva di si' e il documento
+    diceva di no.
+
+    Cio' che resta invisibile finisce in `pagine_senza_riquadro`, dichiarato.
+    Un rimedio che non ha funzionato taciuto e' peggio del difetto.
+    """
+    if esito is None:
+        return
+    try:
+        letto = pdfium.PdfDocument(str(documento))
+        try:
+            esito.pagine_riquadro_sopra = [
+                n for n in rifatte
+                if quota_visibile(letto[n], per_pagina[n]) >= QUOTA_MINIMA_VISIBILE
+            ]
+            esito.pagine_senza_riquadro = [
+                n for n in da_rifare
+                if n not in esito.pagine_riquadro_sopra
+            ]
+        finally:
+            letto.close()
     except Exception:
         return
 

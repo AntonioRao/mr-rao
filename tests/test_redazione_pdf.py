@@ -635,3 +635,122 @@ def test_quota_visibile_distingue_coperto_da_scoperto(tmp_path):
 
     assert visibile > QUOTA_MINIMA_VISIBILE, visibile
     assert coperto < QUOTA_MINIMA_VISIBILE, coperto
+
+
+# -------------------------------- il riquadro finisce dove sta il segnaposto
+
+
+def _pdf_stile_word(percorso, righe: list[str]):
+    """Una pagina come la produce Word, o il browser che stampa in PDF.
+
+    Due cose insieme, ed entrambe contano:
+
+      * un `cm` al **livello piu' esterno** -- `0.75 0 0 -0.75 0 altezza` --
+        che porta i 96 dpi dello schermo ai 72 del PDF e rovescia l'asse Y.
+        Non sta dentro nessun `q`, quindi vale fino alla fine del flusso: cio'
+        che si aggiunge in coda viene trasformato una seconda volta;
+      * un fondo bianco dipinto dalla pagina, che copre il rettangolo messo in
+        testa e obbliga a rifarlo in coda.
+
+    Senza tutte e due, il difetto non si riproduce: il primo da solo non fa
+    scattare il rifacimento, il secondo da solo non sposta niente.
+    """
+    pdf = pikepdf.Pdf.new()
+    font = pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Font"), Subtype=pikepdf.Name("/Type1"),
+        BaseFont=pikepdf.Name("/Helvetica"),
+        Encoding=pikepdf.Name("/WinAnsiEncoding")))
+    comandi = [
+        "q 1 1 1 rg 0 0 595 842 re f Q",
+        "0.75 0 0 -0.75 0 842 cm",
+        "BT", "/F1 16 Tf",
+    ]
+    y = 100
+    for riga in righe:
+        comandi.append(f"1 0 0 1 60 {y} Tm ({riga}) Tj")
+        y += 40
+    comandi.append("ET")
+    pdf.pages.append(pikepdf.Page(pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Page"),
+        MediaBox=pikepdf.Array([0, 0, 595, 842]),
+        Resources=pikepdf.Dictionary(Font=pikepdf.Dictionary(F1=font)),
+        Contents=pdf.make_stream("\n".join(comandi).encode("latin-1"))))))
+    pdf.save(str(percorso))
+    pdf.close()
+    return percorso
+
+
+def _quota_dentro_i_segnaposto(percorso, pagina: int = 0) -> float:
+    """Quanta parte dei riquadri **dei segnaposto** e' davvero colorata.
+
+    Contare i pixel verdi su tutta la pagina non basta e lo ha dimostrato un
+    difetto vero: il riquadro disegnato a meta' foglio invece che sotto al
+    segnaposto faceva salire il conto della pagina e il controllo diceva di
+    si'. Qui si guarda **dentro il riquadro del segnaposto**, che e' la sola
+    posizione che serve a chi legge.
+    """
+    from mr_rao.redazione_pdf import quota_visibile, segnaposto_sulla_pagina
+
+    documento = pdfium.PdfDocument(str(percorso))
+    try:
+        pag = documento[pagina]
+        riquadri = segnaposto_sulla_pagina(pag)
+        if not riquadri:
+            return 0.0
+        return quota_visibile(pag, riquadri)
+    finally:
+        documento.close()
+
+
+def test_il_riquadro_sta_sotto_al_segnaposto_e_non_altrove(tmp_path):
+    """**Il difetto che la correzione precedente aveva introdotto.**
+
+    Su una pagina con la trasformazione di Word, il rettangolo rifatto in coda
+    veniva trasformato una seconda volta: chiesto a (21, 771), compariva a
+    (15,75, 263,6) -- meta' pagina piu' in basso e specchiato. Il conto dei
+    pixel verdi sulla pagina restava alto, quindi il controllo di allora
+    diceva che andava bene. Misurato su un curriculum vero.
+    """
+    dentro = _pdf_stile_word(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori)
+
+    assert esito.segnaposto_inseriti == 1
+    assert esito.pagine_riquadro_sopra == [0]
+    assert esito.pagine_senza_riquadro == []
+    quota = _quota_dentro_i_segnaposto(fuori)
+    assert quota > 0.3, (
+        f"solo il {quota:.0%} del riquadro e' colorato: il rettangolo non sta "
+        "sotto al segnaposto"
+    )
+
+
+def test_una_pagina_sbilanciata_non_viene_toccata(tmp_path):
+    """Se il flusso non e' bilanciato, avvolgerlo lo romperebbe.
+
+    Meglio un riquadro che non si vede che un documento che non si apre: la
+    pagina resta com'e' e l'esito lo dichiara, invece di far credere che sia
+    stato rimediato.
+    """
+    from mr_rao.redazione_pdf import _avvolgi_in_stato_iniziale
+
+    pdf = pikepdf.Pdf.new()
+    pdf.pages.append(pikepdf.Page(pdf.make_indirect(pikepdf.Dictionary(
+        Type=pikepdf.Name("/Page"),
+        MediaBox=pikepdf.Array([0, 0, 595, 842]),
+        Resources=pikepdf.Dictionary(),
+        Contents=pdf.make_stream(b"q 1 1 1 rg 0 0 10 10 re f")))))  # `q` mai chiusa
+    assert _avvolgi_in_stato_iniziale(pdf.pages[0]) is False
+    pdf.close()
+
+
+def test_le_pagine_normali_restano_com_erano(tmp_path):
+    """La correzione non deve mettere le mani dove non serve: su una pagina
+    senza fondo il rifacimento non scatta, e il flusso non viene avvolto."""
+    dentro = _pdf_con_righe(tmp_path / "dentro.pdf", ["Il cliente Mario Rossi."])
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori)
+
+    assert esito.pagine_riquadro_sopra == []
+    assert esito.pagine_senza_riquadro == []
+    assert _quota_dentro_i_segnaposto(fuori) > 0.3
