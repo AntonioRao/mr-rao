@@ -106,7 +106,7 @@ RIGENERATE = {
 # pagine aggiornate e riga no — che e' quello che capita davvero, perche' le
 # pagine si toccano quando si pubblica.
 VERSIONI_ALTRUI = {
-    "docs/landing/publish/mobile/": ("Mr. Rao Mobile", "0.1.6"),
+    "docs/landing/publish/mobile/": ("Mr. Rao Mobile", "0.1.7"),
 }
 
 _RE_ID = re.compile(r"^\| ([PSA]\d*\.\d+[a-z]?) \|", re.MULTILINE)
