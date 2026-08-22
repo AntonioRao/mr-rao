@@ -1,0 +1,10 @@
+# Cloudflare Pages **non pubblica le cartelle che cominciano per punto**:
+# `.well-known/security.txt` era stato messo al suo posto standard e il sito
+# rispondeva 404 (misurato il 22/08/2026, come per `.assetsignore` e
+# `.wrangler/`). Il file sta quindi in `/security.txt`, e questa riga lo fa
+# rispondere anche all'indirizzo che dice RFC 9116.
+#
+# `200` e non `301`: una riscrittura, non un rimando. Chi cerca
+# `/.well-known/security.txt` -- di solito uno strumento automatico -- riceve
+# il file, non un salto da seguire.
+/.well-known/security.txt  /security.txt  200

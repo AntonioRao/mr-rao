@@ -1,0 +1,29 @@
+# Mr. Rao — come segnalare un problema di sicurezza.
+# RFC 9116. La versione discorsiva sta in SECURITY.md, nel repository.
+#
+# L'indirizzo qui sotto non e' nuovo: e' lo stesso che le pagine del sito
+# pubblicano gia' in nove punti. Questo file non espone niente di piu', dice
+# solo dove guardare a chi cerca in modo automatico.
+#
+# `Expires` non e' una formalita': un security.txt scaduto e' peggio di uno
+# assente, perche' chi lo legge crede di avere un canale che invece nessuno
+# sta piu' guardando. La data qui sotto e' sorvegliata da
+# tests/test_landing_pubblicata.py, che diventa rosso trenta giorni prima --
+# non il giorno dopo la scadenza, quando il danno e' gia' fatto.
+
+Contact: mailto:antonio.andrea.rao@gmail.com
+Expires: 2027-08-22T00:00:00.000Z
+Preferred-Languages: it, en
+Canonical: https://rao.valor-cyber.com/.well-known/security.txt
+Policy: https://github.com/AntonioRao/mr-rao/blob/main/SECURITY.md
+
+# Due perimetri, e la differenza conta per chi segnala:
+#
+#   * questo sito (rao.valor-cyber.com) e' una landing statica su Cloudflare
+#     Pages: nessun account, nessuna API, nessun dato di nessuno;
+#   * l'applicazione Mr. Rao gira sul computer di chi la usa, su 127.0.0.1 e
+#     senza autenticazione. E' li' che vive il threat model vero, ed e'
+#     descritto in SECURITY.md.
+#
+# Non serve un proof-of-concept elaborato: anche «questo endpoint fa X e non
+# dovrebbe» e' una segnalazione utile.

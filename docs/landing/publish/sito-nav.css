@@ -155,4 +155,17 @@ body:has(.sito-nav) .wrap {
   .sito-nav .links { display: none; }
   .sito-nav .menu { display: block; }
   .sito-nav .stamp { display: none; }
+
+  /* Lo spazio riservato sopra deve essere piu' alto della barra, non uguale.
+     Su 375 px la barra misura 76 px e la riserva ne dava 72: quattro pixel,
+     ma bastavano a far cominciare la prima riga di testo sotto il vetro.
+     Misurato sul sito pubblicato, non stimato.
+
+     5.5rem e non 4.75: un margine che regge se qualcuno alza di un punto il
+     corpo del carattere della barra. Una riserva calcolata al pixel e' una
+     riserva che tornera' a sbagliare. */
+  body:has(.sito-nav) main,
+  body:has(.sito-nav) .wrap {
+    padding-top: 5.5rem;
+  }
 }

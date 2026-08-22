@@ -185,13 +185,17 @@ Nessuno dei due conteneva segreti: il primo è AGPL e sta già su GitHub, il sec
 
 **Verificato:** entrambi i path → 404. `.wrangler/` (che contiene l'id dell'account) **non** era servito nemmeno prima: Pages salta le cartelle che cominciano per punto, e anche questo è stato misurato invece che dedotto.
 
-### MR-L1 — `security.txt` assente — Bassa — **aperto**
+### MR-L1 — `security.txt` — Bassa — **CHIUSO 22/08**
 
-`/.well-known/security.txt` adesso è un 404 vero. La policy di disclosure del **tool** è `SECURITY.md` (nel repository); per il sito pubblico manca RFC 9116.
+**Scritto e pubblicato.** Contact (lo stesso indirizzo che le pagine mostrano già in nove punti: non espone niente di nuovo), Expires, Preferred-Languages, Canonical, Policy che rimanda a `SECURITY.md`.
 
-`robots.txt` non è più in questa voce: lo serve Cloudflare (§3.2), e la domanda è semmai se quel contenuto è quello che si vuole dire.
+**Dove sta, e perché non dove dovrebbe:** Cloudflare Pages **non pubblica le cartelle che cominciano per punto** — misurato: il file al suo posto standard rispondeva 404, come `.assetsignore` e `.wrangler/`. Sta quindi in `/security.txt`, e all'indirizzo di RFC 9116 ci arriva una riscrittura in `_redirects` (`200`, non `301`: chi cerca è uno strumento, e riceve il file invece di un salto da seguire).
 
-**Fix, se si decide di averlo:** un file vero in `docs/landing/publish/.well-known/security.txt` (Contact, Expires, Preferred-Languages). Se si decide di non averlo, il 404 va bene: va solo scritto qui che è una decisione.
+**Verificato:** `/.well-known/security.txt` e `/security.txt` → 200 `text/plain; charset=utf-8`, 1 428 byte, stesso contenuto.
+
+**La scadenza è sorvegliata.** Un `security.txt` scaduto è peggio di uno assente: promette un canale che nessuno guarda più. `Expires` è il 22/08/2027, e `tests/test_landing_pubblicata.py` diventa rosso **trenta giorni prima** — non il giorno dopo, quando il danno è fatto.
+
+`robots.txt` non è in questa voce: lo serve Cloudflare (§3.2), e la domanda è semmai se quel contenuto è quello che si vuole dire.
 
 ### MR-L2 — CORP sul documento HTML — **SMENTITO**
 
@@ -218,7 +222,7 @@ Ristretta all'APK di proposito: applicarla a tutto il sito avrebbe reso l'HTML �
 
 ### MR-L4 — APK pubblico con nome senza versione — Info / by design
 
-`/mobile/MrRao.apk` fisso: il link è scritto anche fuori dal sito. Non è un leak. La pagina dichiara versione, dimensione e SHA-256 del file servito, ed è quella la cosa che dice quale versione si sta scaricando — verificato oggi: l'APK servito è **byte per byte** quello firmato (`0f34a5a9…`, 2 535 566 byte, versione 0.1.7).
+`/mobile/MrRao.apk` fisso: il link è scritto anche fuori dal sito. Non è un leak. La pagina dichiara versione, dimensione e SHA-256 del file servito, ed è quella la cosa che dice quale versione si sta scaricando — verificato oggi: l'APK servito è **byte per byte** quello firmato (`0f34a5a9…`, 2 535 566 byte, Mr. Rao Mobile 0.1.7).
 
 ---
 
@@ -268,14 +272,14 @@ Se ti chiedono «Mr. Rao è sicuro?», sono **due** risposte. Questo file rispon
 2. ~~404 vero sui path inesistenti~~ — fatto (MR-M2).
 3. ~~Non pubblicare ciò che non è il sito~~ — fatto, con un banco che lo tiene (MR-M3).
 4. ~~Far arrivare al browser il `max-age` dichiarato per l'APK~~ — fatto (MR-L3).
-5. **`security.txt`**: da decidere se averlo (MR-L1). Oggi è un 404.
-6. **`robots.txt` gestito da Cloudflare**: leggerlo e decidere se è quello che si vuole dire (§3.2).
+5. ~~`security.txt`~~ — fatto (MR-L1), con la scadenza sorvegliata da un banco.
+6. **`robots.txt` gestito da Cloudflare**: leggerlo e decidere se è quello che si vuole dire (§3.2). È l'unica voce ancora aperta.
 
 ---
 
 ## 10. Esito in una frase
 
-**Il 22 agosto 2026, dopo l'intervento, `rao.valor-cyber.com` è una landing statica con CSP a hash, font in casa, COOP/CORP, HSTS, nessun cookie, nessun header CORS, 404 veri sui path inesistenti e nella cartella pubblicata solo ciò che è il sito. Le due cose che la prima stesura di questo report non aveva visto — uno script di build servito online e un residuo di test — erano lì per lo stesso motivo, e ora c'è un banco che se ne accorge al posto nostro.**
+**Il 22 agosto 2026, dopo l'intervento, `rao.valor-cyber.com` è una landing statica con CSP a hash, font in casa, COOP/CORP, HSTS, nessun cookie, nessun header CORS, 404 veri sui path inesistenti e un `security.txt` con la scadenza sorvegliata, e nella cartella pubblicata solo ciò che è il sito. Le due cose che la prima stesura di questo report non aveva visto — uno script di build servito online e un residuo di test — erano lì per lo stesso motivo, e ora c'è un banco che se ne accorge al posto nostro.**
 
 ---
 
@@ -290,5 +294,8 @@ Se ti chiedono «Mr. Rao è sicuro?», sono **due** risposte. Questo file rispon
 | `.assetsignore` provato e scartato | — | Pages lo ignora e lo pubblica: `/.assetsignore` → 200. Rimosso |
 | Cache Rule per il solo APK | pannello Cloudflare, zona `valor-cyber.com` | `/mobile/MrRao.apk` → `max-age=3600`; HTML, font e asset invariati |
 | Banco che impedisce il ritorno | `tests/test_landing_pubblicata.py` | fallisce se in `publish/` compare un file che non è pagina/asset/font/CSS/APK/`_headers` |
+| Scritto `security.txt` | `publish/security.txt` + riscrittura in `_redirects` | 200 `text/plain` su tutti e due gli indirizzi; un banco fallisce 30 giorni prima della scadenza |
+
+Nella stessa sessione, ma **fuori dal perimetro di sicurezza**, è stata corretta la barra di navigazione sul telefono: su 375 px teneva undici voci, diventava alta 187 px e copriva 91 px di titolo. Ora tutte le pagine usano lo stesso menu a scomparsa sotto i 72rem. È nel changelog, non qui: non era un problema di sicurezza, e mescolarlo renderebbe questo verbale meno leggibile.
 
 **Non toccato nel pannello:** *Browser Cache TTL* di zona (4 ore) resta com'è — vale per gli altri siti della zona e cambiarlo sarebbe stato un intervento fuori dal perimetro di questo verbale. La Cache Rule lo scavalca per un file solo.

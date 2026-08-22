@@ -127,8 +127,8 @@ def test_le_impronte_csp_coprono_i_blocchi_inline_delle_due_pagine():
 # `.assetsignore` non serve: provato lo stesso giorno, Pages lo ignora e
 # pubblica anche quello. L'unico modo di non pubblicare un file e' non
 # tenerlo nella cartella, e questo elenco e' cio' che se ne accorge.
-ESTENSIONI_AMMESSE = {".html", ".css", ".svg", ".ico", ".woff2", ".apk"}
-FILE_AMMESSI = {"_headers"}
+ESTENSIONI_AMMESSE = {".html", ".css", ".svg", ".ico", ".woff2", ".apk", ".txt"}
+FILE_AMMESSI = {"_headers", "_redirects"}
 
 
 def test_nella_cartella_pubblicata_non_ci_sono_file_di_troppo():
@@ -177,3 +177,127 @@ def test_la_pagina_404_esiste_e_non_ha_inline_da_firmare():
     assert "<style" not in testo, "un <style> qui verrebbe bloccato dalla CSP"
     assert "<script" not in testo, "uno <script> qui verrebbe bloccato dalla CSP"
     assert (PUBBLICA / "404.css").is_file(), "manca il foglio di stile della 404"
+
+
+def test_il_security_txt_e_valido_e_non_sta_per_scadere():
+    """RFC 9116, e soprattutto la data.
+
+    **Un `security.txt` scaduto è peggio di uno assente**: chi lo legge crede
+    di avere un canale che invece nessuno sta più guardando. La scadenza è
+    l'unico campo di questo file che marcisce da solo, e non c'è niente altro
+    nel repository che se ne accorgerebbe.
+
+    Trenta giorni di margine e non zero: un banco che diventa rosso **il
+    giorno dopo** la scadenza segnala un danno già fatto.
+
+    Il file sta in `/security.txt` e non in `/.well-known/`, e non è una
+    scelta: **Cloudflare Pages non pubblica le cartelle che cominciano per
+    punto** — misurato il 22/08/2026, il file al suo posto standard rispondeva
+    404. All'indirizzo di RFC 9116 ci arriva una riscrittura in `_redirects`,
+    ed è per questo che quella riga va verificata insieme al file.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    percorso = PUBBLICA / "security.txt"
+    assert percorso.is_file(), "manca docs/landing/publish/security.txt"
+    testo = percorso.read_text(encoding="utf-8")
+
+    campi = dict(
+        riga.split(":", 1)
+        for riga in testo.splitlines()
+        if riga and not riga.startswith("#") and ":" in riga
+    )
+    for obbligatorio in ("Contact", "Expires"):
+        assert obbligatorio in campi, f"RFC 9116 richiede il campo {obbligatorio}"
+
+    scadenza = datetime.fromisoformat(campi["Expires"].strip().replace("Z", "+00:00"))
+    fra_un_mese = datetime.now(timezone.utc) + timedelta(days=30)
+    assert scadenza > fra_un_mese, (
+        f"security.txt scade il {scadenza:%d/%m/%Y}: aggiorna `Expires` in "
+        "docs/landing/publish/security.txt e ripubblica il sito. Un file "
+        "scaduto promette un canale che nessuno guarda."
+    )
+
+    atteso = "https://rao.valor-cyber.com/.well-known/security.txt"
+    assert campi.get("Canonical", "").strip() == atteso, (
+        "`Canonical` deve essere l'indirizzo di RFC 9116, non quello reale del file"
+    )
+
+    riscrittura = (PUBBLICA / "_redirects").read_text(encoding="utf-8")
+    assert "/.well-known/security.txt" in riscrittura and "200" in riscrittura, (
+        "senza la riscrittura in _redirects l'indirizzo di RFC 9116 risponde 404"
+    )
+
+
+def test_tutte_le_pagine_hanno_un_menu_a_scomparsa():
+    """La stessa barra deve comportarsi allo stesso modo su tutto il sito.
+
+    Non era così: le pagine con `sito-nav.css` nascondevano le voci dentro un
+    `<details class="menu">` sotto i 72rem, la home e la sua versione inglese
+    no — tenevano tutte e undici le voci, che su 375 px andavano a capo tre
+    volte. La barra diventava alta 187 px contro i 96 riservati dall'hero:
+    novanta pixel di titolo sotto al vetro. Misurato sul sito pubblicato.
+
+    Qui si verifica la **presenza** del menu in ogni pagina, che è la parte
+    che si può verificare senza un browser. Che la soglia scatti davvero, e a
+    che altezza finisca la barra, si guarda sul sito con gli strumenti del
+    browser: un file HTML non ha un layout.
+    """
+    pagine = [p for p in PUBBLICA.rglob("index.html")]
+    assert len(pagine) >= 6, f"pagine trovate: {len(pagine)}"
+    senza = [
+        p.relative_to(PUBBLICA).as_posix()
+        for p in pagine
+        if 'class="menu"' not in p.read_text(encoding="utf-8")
+    ]
+    assert senza == [], (
+        "queste pagine non hanno il menu a scomparsa: su un telefono le voci "
+        "restano nella barra e la fanno crescere sopra al contenuto\n  "
+        + "\n  ".join(senza)
+    )
+
+
+def test_il_foglio_condiviso_e_la_sua_versione_vanno_insieme():
+    """Cambiare `sito-nav.css` senza alzare il `?v=` non si vede subito.
+
+    La cartella è servita con `Cache-Control: max-age=14400`: chi ha visitato
+    il sito nelle ultime quattro ore continua a usare il foglio vecchio. È
+    già successo due volte in un giorno — la prima con `mobile/stile.css`, la
+    seconda proprio con questo file, e in mezzo c'è stata una misura che
+    diceva «la correzione non funziona» mentre online il file nuovo c'era.
+
+    L'impronta qui sotto è la sola cosa che lega le due modifiche: se il
+    foglio cambia e questa non viene aggiornata, il banco si ferma e ricorda
+    di alzare anche il numero nelle pagine.
+    """
+    import hashlib
+
+    IMPRONTA = "f84522513f40c52568eff5e05c9df258a3241e24329334baed80c0c54716f2d0"
+    VERSIONE = "sito-nav.css?v=4"
+
+    foglio = PUBBLICA / "sito-nav.css"
+    reale = hashlib.sha256(foglio.read_bytes()).hexdigest()
+    assert reale == IMPRONTA, (
+        "sito-nav.css è cambiato: alza il `?v=` nelle pagine che lo linkano e "
+        "aggiorna IMPRONTA qui sopra. Senza il bump, chi è passato di recente "
+        "vede il foglio vecchio per quattro ore."
+    )
+
+    # Chi lo **linka**, non chi lo nomina: la home lo cita in un commento
+    # (spiega di usare la sua stessa soglia) e finiva fra le pagine da
+    # correggere pur non caricandolo affatto.
+    usano = [
+        p
+        for p in PUBBLICA.rglob("*.html")
+        if 'href="/sito-nav.css' in p.read_text(encoding="utf-8")
+        or 'href="sito-nav.css' in p.read_text(encoding="utf-8")
+        or 'href="../sito-nav.css' in p.read_text(encoding="utf-8")
+        or 'href="../../sito-nav.css' in p.read_text(encoding="utf-8")
+    ]
+    assert usano, "nessuna pagina usa il foglio condiviso: l'elenco si è svuotato"
+    sbagliate = [
+        p.relative_to(PUBBLICA).as_posix()
+        for p in usano
+        if VERSIONE not in p.read_text(encoding="utf-8")
+    ]
+    assert sbagliate == [], f"queste pagine non chiedono {VERSIONE}:\n  " + "\n  ".join(sbagliate)

@@ -199,7 +199,12 @@ def pagine_locali() -> list[Path]:
     pagine = [
         RADICE / p
         for p in uscita
-        if "/plus/" not in p and "/impresa/" not in p
+        # `404.html` e' l'unica pagina pubblicata che **non deve** dichiarare
+        # una versione: e' la risposta agli indirizzi che non esistono, non
+        # una landing. Interrogarla non avrebbe nemmeno un indirizzo -- non
+        # ha un `<link rel=canonical>` -- e chiederle un numero renderebbe
+        # rosso un controllo che sta funzionando.
+        if "/plus/" not in p and "/impresa/" not in p and not p.endswith("404.html")
     ]
     # L'esclusione non deve poter mangiare la landing: se un giorno il filtro
     # diventasse troppo largo, meglio fermarsi che controllare niente e

@@ -223,6 +223,57 @@
   @media (max-width: 960px) {
     .hero { grid-template-columns: 1fr; padding-top: 6rem; }
   }
+  /*
+    Sotto i 72rem la barra si comporta come quella delle altre pagine: le
+    voci spariscono dentro un menu a scomparsa.
+
+    Prima non era cosi', e il numero dice perche' andava cambiato: su uno
+    schermo da 375 px le undici voci andavano a capo e la barra diventava
+    alta **187 px**, mentre l'hero ne riservava 96. Novanta pixel di titolo
+    finivano sotto al vetro -- compreso il proprio wordmark. Misurato sul
+    sito pubblicato, non a occhio.
+
+    La soglia e' la stessa di `sito-nav.css` (72rem) di proposito: prima
+    questa pagina teneva tutte le voci e le altre no, e la stessa barra si
+    comportava in due modi a seconda di dove ci si trovava.
+  */
+  .nav .menu {
+    display: none;
+    border: 1px solid #1a2e22;
+    background: #0a100c;
+    color: var(--phosphor);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.75rem;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  .nav .menu summary { list-style: none; cursor: pointer; }
+  .nav .menu summary::-webkit-details-marker { display: none; }
+  .nav .menu .panel { display: none; }
+  .nav .menu[open] { width: 100%; }
+  .nav .menu[open] .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding-top: 0.6rem;
+  }
+  /* 44 px e' la dimensione sotto la quale un bersaglio si sbaglia col dito. */
+  .nav .menu .panel a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    color: var(--fog);
+  }
+
+  @media (max-width: 72rem) {
+    .nav { flex-wrap: wrap; row-gap: 0.6rem; align-items: flex-start; }
+    .nav .links { display: none; }
+    .nav .stamp { display: none; }
+    .nav .menu { display: block; }
+  }
   .hero-copy .eyebrow {
     font-family: var(--mono);
     font-size: 11px;
@@ -794,6 +845,27 @@
       <a class="lang" href="01-protocollo-zero.html" hreflang="it" lang="it" title="Leggi questa pagina in italiano">IT · Italiano</a>
       <a class="cta" href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Download</a>
     </div>
+    <!--
+      The same collapsible menu as the rest of the site. See the Italian page
+      for why: eleven entries in a fixed bar became 187 px tall on a 375 px
+      screen, covering the hero. `<details>` and not JavaScript, because the
+      CSP admits inline scripts only by hash.
+    -->
+    <details class="menu">
+      <summary>Menu</summary>
+      <div class="panel">
+        <a href="#engine">Engine</a>
+        <a href="#proof">Proof</a>
+        <a href="#limits">Limits</a>
+        <a href="#contact">Contact</a>
+        <a href="/impresa/">Impresa</a>
+        <a href="/plus/en/">Mr. Rao Plus</a>
+        <a href="/mobile/en/">Android</a>
+        <a href="/plus/privacy/en/">Privacy</a>
+        <a href="01-protocollo-zero.html" hreflang="it" lang="it">IT · Italiano</a>
+        <a href="https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-Portable.zip">Download</a>
+      </div>
+    </details>
   </nav>
 
   <header class="hero" id="top">
@@ -1083,7 +1155,7 @@
       </div>
       <div class="dl-card">
         <a class="btn btn-ghost" href="https://github.com/AntonioRao/mr-rao">↗ GitHub</a>
-        <p class="dl-note">The code, the 2302 tests, and a provenance attestation for every file.</p>
+        <p class="dl-note">The code, the 2305 tests, and a provenance attestation for every file.</p>
       </div>
     </div>
   </section>
