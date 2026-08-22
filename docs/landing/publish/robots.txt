@@ -1,0 +1,29 @@
+# Il sito e' pubblico e va bene indicizzato: e' cosi' che lo si trova, ed e' il
+# problema vero di questo prodotto. Non c'e' niente di privato da nascondere —
+# quello che non e' il sito non e' nemmeno pubblicato, e risponde 404.
+#
+# Prima di questo file qui rispondeva il preambolo che Cloudflare aggiunge da
+# se': ventiquattro righe che spiegano cosa siano i content signals, e poi
+# **nessun segnale**. Un paragrafo che dichiara di riservare diritti senza
+# riservarne nessuno, con il pannello che lo confermava scrivendo «Not set».
+#
+# I tre segnali, e il perche' di ciascuno:
+#
+#   search=yes    e' il motivo per cui il sito esiste.
+#   ai-input=yes  essere citati da una risposta AI e' scoperta, non furto: chi
+#                 compra questo prodotto -- DPO, studi, pubbliche
+#                 amministrazioni -- cerca li'. Vietarlo nasconderebbe Mr. Rao
+#                 proprio nello strumento che i suoi utenti usano ogni giorno.
+#   ai-train=no   coerente con la tesi del prodotto, ed e' una riserva
+#                 espressa ai sensi dell'articolo 4 della direttiva UE
+#                 2019/790. Non costa niente: nessuno comprera' Mr. Rao
+#                 perche' un modello e' stato addestrato su questa landing.
+#
+# Un content signal e' una **dichiarazione**, non un blocco: vincola chi
+# sceglie di rispettarlo. Impedire davvero a un crawler di passare e' un'altra
+# cosa e si fa altrove (AI Crawl Control nel pannello Cloudflare).
+
+User-agent: *
+Allow: /
+
+Content-Signal: search=yes, ai-input=yes, ai-train=no

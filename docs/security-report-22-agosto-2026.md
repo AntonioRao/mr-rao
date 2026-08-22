@@ -185,6 +185,27 @@ Nessuno dei due conteneva segreti: il primo è AGPL e sta già su GitHub, il sec
 
 **Verificato:** entrambi i path → 404. `.wrangler/` (che contiene l'id dell'account) **non** era servito nemmeno prima: Pages salta le cartelle che cominciano per punto, e anche questo è stato misurato invece che dedotto.
 
+### MR-M3-bis — «chiuso» misurato sul deploy invece che sul servizio — Media — **il difetto è chiuso, la copia servita no**
+
+Segnalato dall'utente poche ore dopo aver letto «CHIUSO» qui sopra: `/_rebuild.py` → 200, 8 423 byte; `/test-results/.last-run.json` → 200. Aveva ragione, e la voce MR-M3 era stata dichiarata chiusa con una misura che rispondeva a **un'altra domanda**.
+
+**Le due domande, che non sono la stessa:**
+
+| Domanda | Come si misura | Risposta il 22/08 |
+|---|---|---|
+| il file è nel deploy? | con un `?cb=` (la query cambia la chiave di cache → si arriva all'origine) | **no**, 404 |
+| un visitatore lo riceve? | **senza** query e **senza** `Cache-Control` | **sì**, 200 |
+
+Verificare la prima e scrivere «chiuso» è l'errore. Un `Cache-Control: no-cache` mandato dal client **non** basta: Cloudflare lo ignora. È la query string a cambiare la chiave.
+
+**Dove sta la copia, misurato:** non nella cache di zona. Una `Purge Everything` **confermata dal pannello** («Purge request successfully received») non ha azzerato l'`Age`, che continua a crescere dal momento del deploy in cui quei file c'erano ancora. La risposta porta `cf-cache-status: DYNAMIC`, `Cache-Control: public, s-maxage=604800`, `x-robots-tag: noindex` e le **impronte CSP di un deploy vecchio**. L'alias di produzione `mr-rao.pages.dev` risponde 404 sugli stessi percorsi: è quindi qualcosa legato al **nome host**, davanti a Pages.
+
+**Cosa non l'ha risolto** (tutto provato e misurato): quattro deploy successivi; `Purge Everything`; purga per hostname; purga per URL; tre regole `404` esplicite in `_redirects` — che non vengono nemmeno consultate, perché la copia viene servita prima.
+
+**Cosa resta da fare:** ripuntare il dominio personalizzato sul progetto Pages (toglierlo e rimetterlo), che è l'unico rimedio rimasto e va fatto sapendo che il sito resta irraggiungibile per il tempo della riassegnazione. In alternativa la copia scade da sola: `s-maxage` dichiara sette giorni.
+
+**Cosa è cambiato perché non ricapiti:** `scripts/check_sito_non_espone.py` interroga il sito **come un visitatore** — nessuna query, nessuna intestazione — su un elenco di percorsi vietati che comprende *i file che ci sono finiti davvero*, non solo i classici da scanner. Gira ogni giorno insieme al controllo delle versioni (`.github/workflows/sito-pubblicato.yml`) e distingue due guasti opposti: «serve ciò che non deve» e «non serve ciò che deve» — perché un sito spento risponde 404 a tutto, e un controllo che cerca solo i 200 di troppo lo chiamerebbe pulito.
+
 ### MR-L1 — `security.txt` — Bassa — **CHIUSO 22/08**
 
 **Scritto e pubblicato.** Contact (lo stesso indirizzo che le pagine mostrano già in nove punti: non espone niente di nuovo), Expires, Preferred-Languages, Canonical, Policy che rimanda a `SECURITY.md`.
@@ -289,7 +310,7 @@ Se ti chiedono «Mr. Rao è sicuro?», sono **due** risposte. Questo file rispon
 |------|------|----------|
 | Staccato `Access-Control-Allow-Origin` | `_headers`, riga `! Access-Control-Allow-Origin` | header assente su sei path |
 | Aggiunta pagina 404 | `publish/404.html` + `404.css` | undici path inventati → 404; nessuna violazione CSP; stile e marchio caricati |
-| Tolto il residuo di Playwright | cancellata `publish/test-results/` | 404 |
+| Tolto il residuo di Playwright | cancellata `publish/test-results/` | 404 **dal deploy**; una copia continua a essere servita sul dominio, vedi MR-M3-bis |
 | Spostato il rigeneratore | `publish/_rebuild.py` → `docs/landing/rigenera_pubblicato.py` | 404; lo script rigenera le due pagine e `_headers` identici a prima |
 | `.assetsignore` provato e scartato | — | Pages lo ignora e lo pubblica: `/.assetsignore` → 200. Rimosso |
 | Cache Rule per il solo APK | pannello Cloudflare, zona `valor-cyber.com` | `/mobile/MrRao.apk` → `max-age=3600`; HTML, font e asset invariati |

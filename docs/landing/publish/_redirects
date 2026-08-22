@@ -8,3 +8,16 @@
 # `/.well-known/security.txt` -- di solito uno strumento automatico -- riceve
 # il file, non un salto da seguire.
 /.well-known/security.txt  /security.txt  200
+
+# I tre percorsi che il 22/08/2026 sono rimasti online DOPO essere stati tolti
+# dalla cartella. Il deploy era pulito -- `mr-rao.pages.dev/_rebuild.py`
+# rispondeva 404, e cosi' qualunque variante con una query -- ma sul dominio
+# vero continuavano a uscire 200 con il contenuto vecchio, con un `Age` che
+# cresceva e `cf-cache-status: DYNAMIC`: una copia tenuta da uno strato che
+# ne' «Purge Everything» ne' la purga per hostname hanno toccato.
+#
+# Togliere un file non basta, allora: qui il percorso viene **dichiarato**, e
+# risponde 404 di proposito. Una regola esplicita vale piu' di un'assenza.
+/_rebuild.py                /404.html  404
+/test-results/*             /404.html  404
+/.assetsignore              /404.html  404

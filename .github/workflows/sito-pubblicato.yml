@@ -51,3 +51,16 @@ jobs:
       # risponde» e' una notizia vera, non il portatile di qualcuno senza
       # rete. Il codice di uscita 2 dice proprio quello, ed e' distinto dal 1
       # (sito indietro) apposta.
+
+      # La seconda domanda, che il 22/08/2026 non era stata fatta: il sito
+      # serve **solo** il sito? Quel giorno erano online lo script che
+      # costruisce il sito e un residuo di Playwright, ed erano stati
+      # dichiarati chiusi interrogandoli con un `?cb=` -- che misura il
+      # deploy, non il servizio. Questo passo interroga come un visitatore.
+      #
+      # `if: always()` perche' le due domande sono indipendenti: un sito
+      # indietro di una versione non e' un motivo per non guardare se espone
+      # qualcosa, ed e' proprio nei giorni storti che conviene guardare.
+      - name: Il sito serve solo il sito
+        if: always()
+        run: python scripts/check_sito_non_espone.py
