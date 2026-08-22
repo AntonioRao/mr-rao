@@ -19,7 +19,7 @@ Codice di terze parti porta la **sua** licenza: metterci sopra la nostra sarebbe
 lo stesso illecito da cui ci si difende, al contrario. Qui non ce n'e' di vendorizzato nel repository (le
 dipendenze Python arrivano da pip, dichiarate in THIRD_PARTY.md), ma il filtro resta per percorso oltre che
 per estensione: `docs/landing/publish/index.html` e `docs/landing/publish/en/index.html` sono **output
-rigenerato** da `_rebuild.py` a partire dai sorgenti in `docs/landing/`, e marcarli vorrebbe dire perdere
+rigenerato** da `docs/landing/rigenera_pubblicato.py` a partire dai sorgenti in `docs/landing/`, e marcarli vorrebbe dire perdere
 l'intestazione alla prossima rigenerazione senza che nessuno se ne accorga. Il resto di
 `docs/landing/publish/` (`impresa/`, `plus/`, `sito-nav.css`) non e' generato da niente: sono pagine vere,
 e si marcano come qualunque altro sorgente -- l'esclusione e' sui due file esatti, non sulla cartella.
@@ -70,7 +70,7 @@ ESTENSIONI = CANCELLETTO | REM_STYLE | BLOCCO | HTML_STYLE
 
 # Percorsi generati: la prossima build li riscrive comunque, marcarli e' inutile e
 # rischia di perdere l'intestazione senza che nessuno se ne accorga. Sono SOLO i due
-# file che _rebuild.py scrive (vedi PAGINE li'), non l'intera cartella: dentro
+# file che il rigeneratore scrive (vedi PAGINE li'), non l'intera cartella: dentro
 # docs/landing/publish/ vivono anche pagine vere non generate (impresa/, plus/,
 # sito-nav.css), e un'esclusione per prefisso le avrebbe scambiate per output.
 ALTRUI = re.compile(r"^docs/landing/publish/(index\.html|en/index\.html)$")

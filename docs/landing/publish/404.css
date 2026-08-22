@@ -1,0 +1,94 @@
+/* Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+   SPDX-License-Identifier: AGPL-3.0-or-later
+   Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+   GNU Affero General Public License pubblicata dalla Free Software Foundation,
+   versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository. */
+
+/* Lo stile della pagina 404. Sta in un file e non dentro la pagina perche' la
+   CSP del sito ammette gli inline solo per impronta, e le impronte le calcola
+   `_rebuild.py` sulle due pagine principali: un `<style>` dentro 404.html
+   verrebbe bloccato, e l'errore comparirebbe senza stile.
+
+   I colori sono quelli della landing (`sito-nav.css`), copiati e non
+   importati: sono cinque valori, e una `@import` sarebbe una richiesta in piu'
+   sulla pagina che per definizione si apre per sbaglio. I caratteri sono
+   quelli di sistema per la stessa ragione: i woff2 del sito pesano piu' di
+   tutta questa pagina. */
+
+:root {
+  --bg: #050705;
+  --phosphor: #3dff9a;
+  --fog: #8fa898;
+  --ink: #e8f5ec;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.2rem;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+.scatola {
+  max-width: 34rem;
+  text-align: center;
+}
+
+.marchio {
+  display: block;
+  margin: 0 auto 1.4rem;
+}
+
+.codice {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.35em;
+  color: var(--phosphor);
+}
+
+h1 {
+  margin: 0.4rem 0 1rem;
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+  letter-spacing: -0.02em;
+}
+
+.riga {
+  margin: 0.2rem 0;
+  color: var(--fog);
+}
+
+/* La riga inglese sta sotto e piu' piccola: chi legge italiano non deve
+   leggere due volte la stessa frase per arrivare ai link. */
+.riga.en {
+  font-size: 0.92rem;
+  opacity: 0.8;
+}
+
+.azioni {
+  margin-top: 1.8rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--fog);
+}
+
+.azioni a {
+  color: var(--phosphor);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(61, 255, 154, 0.35);
+  padding-bottom: 1px;
+}
+
+.azioni a:hover,
+.azioni a:focus-visible {
+  border-bottom-color: var(--phosphor);
+}

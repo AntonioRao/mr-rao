@@ -45,7 +45,7 @@ Esito all'applicazione (2026-08-16): **165 marcati**, **2 già a posto** (`app.p
 `mr_rao/__init__.py` portavano già una nota AGPL completa in prosa inglese — riconosciuta e non
 duplicata). Rilanciato subito dopo: 167/167 già marcati, zero scritture — idempotenza confermata.
 
-Esclusi per costruzione: `docs/landing/publish/` (output **rigenerato** da `_rebuild.py` — marcare
+Esclusi per costruzione: `docs/landing/publish/` (output **rigenerato** da `docs/landing/rigenera_pubblicato.py` — marcare
 l'output vorrebbe dire perdere l'intestazione alla build successiva senza che nessuno se ne accorga;
 il sorgente vero, in `docs/landing/`, è marcato). Non c'è codice vendorizzato nel repository (le
 dipendenze Python arrivano da pip, dichiarate in `THIRD_PARTY.md`): marcare codice altrui sarebbe
@@ -61,7 +61,7 @@ un'implementazione TypeScript separata, per un altro prodotto). L'intestazione n
 quindi ne cambia l'impronta di contenuto — non il comportamento: rigenerato con
 `scripts/esporta_corpus_conformita.py` e verificato a diff che **sono cambiati solo i tre hash**, gli
 stessi 290 casi di prova producono le stesse 290 uscite. Anche `docs/landing/publish/*.html` è stato
-rigenerato con `_rebuild.py` per lo stesso motivo: i sorgenti HTML marcati non corrispondevano più
+rigenerato con `docs/landing/rigenera_pubblicato.py` per lo stesso motivo: i sorgenti HTML marcati non corrispondevano più
 all'output già pubblicato.
 
 ## 2 · Catalogo di impronte — `scripts/impronte.py`

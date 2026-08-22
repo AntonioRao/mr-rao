@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<!--
+  Mr. Rao -- Copyright (c) 2026 Antonio Andrea Rao.
+  SPDX-License-Identifier: AGPL-3.0-or-later
+  Software libero: puoi ridistribuirlo e/o modificarlo secondo i termini della
+  GNU Affero General Public License pubblicata dalla Free Software Foundation,
+  versione 3 o (a tua scelta) successiva. Vedi LICENSE nella radice del repository.
+
+  La pagina che Cloudflare Pages serve, con stato 404, quando un indirizzo non
+  esiste. Prima di lei ogni indirizzo inventato tornava **200 con la
+  homepage**: `/​.git/HEAD`, `/​.env`, `/admin` rispondevano tutti «200 OK» con
+  52 KB di HTML. Non era un repository esposto -- il corpo era la homepage --
+  ma qualunque scanner lo segnala come critico, e chi legge il rapporto in
+  fretta ci crede.
+
+  Due vincoli, e sono la ragione per cui questa pagina e' cosi' spoglia:
+
+  * **niente `<style>` e niente `<script>` qui dentro.** La CSP del sito
+    ammette gli inline solo per impronta, e le impronte le calcola
+    `_rebuild.py` per le due pagine principali: un inline qui verrebbe
+    bloccato dal browser, e la pagina d'errore comparirebbe senza stile.
+    Lo stile sta in `404.css`, che e' `'self'` e passa;
+  * **due lingue in una pagina sola.** Il ripiego non sa quale lingua
+    cercasse chi e' arrivato qui, e una pagina d'errore non e' il posto dove
+    indovinare.
+-->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 — Mr. Rao</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/404.css">
+</head>
+<body>
+  <main class="scatola">
+    <img class="marchio" src="/assets/logo.svg" alt="Mr. Rao" width="72" height="72">
+    <p class="codice">404</p>
+    <h1>Questa pagina non c'è.</h1>
+    <p class="riga">L'indirizzo non corrisponde a niente su questo sito.</p>
+    <p class="riga en">This page does not exist. The address matches nothing on this site.</p>
+    <p class="azioni">
+      <a href="/">Mr. Rao</a> ·
+      <a href="/plus/">Mr. Rao Plus</a> ·
+      <a href="/mobile/">Android</a> ·
+      <a href="/en/">English</a>
+    </p>
+  </main>
+</body>
+</html>

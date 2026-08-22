@@ -10,7 +10,7 @@ corretta, committata e pushata; online c'era ancora la vecchia. Se n'e'
 accorto l'utente guardando il sito, e non c'e' niente che glielo avrebbe
 detto: il progetto Cloudflare Pages e' a **caricamento diretto**, non
 collegato al repository, quindi `git push` non pubblica niente. Finche' non
-girano `docs/landing/publish/_rebuild.py` e `wrangler pages deploy`, il
+girano `docs/landing/rigenera_pubblicato.py` e `wrangler pages deploy`, il
 pubblicato resta indietro rispetto a git **in silenzio**.
 
 E' lo stesso modo di rompersi che `scripts/check_docs.py` esiste per
@@ -145,7 +145,7 @@ USCITE = {ALLINEATO: 0, DISALLINEATO: 1, IRRAGGIUNGIBILE: 2, CIECO: 3}
 GRAVITA = {CIECO: 3, DISALLINEATO: 2, IRRAGGIUNGIBILE: 1, ALLINEATO: 0}
 
 RIMEDIO = (
-    "rigenera con 'python docs/landing/publish/_rebuild.py' e pubblica la "
+    "rigenera con 'python docs/landing/rigenera_pubblicato.py' e pubblica la "
     "cartella docs/landing/publish con 'wrangler pages deploy' (il progetto "
     "Cloudflare Pages e' a caricamento diretto: il push su GitHub non "
     "pubblica niente)"

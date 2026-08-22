@@ -23,7 +23,7 @@ muore senza che nessuno lo noti), e improbabile per caso. Il filtro qui sotto e'
 severo: un candidato scartato e' un'occasione persa, un candidato debole e' un falso positivo che
 fa perdere tempo -- o peggio, una ricerca che punta il dito su un innocente.
 
-Fuori dalla raccolta l'output rigenerato (`docs/landing/publish/`, prodotto da `_rebuild.py`: non
+Fuori dalla raccolta l'output rigenerato (`docs/landing/publish/`, prodotto da `docs/landing/rigenera_pubblicato.py`: non
 e' dove il testo vive, e' dove finisce) e fuori l'intestazione SPDX stessa: e' uguale in centinaia
 di file, non distingue nulla.
 
@@ -55,7 +55,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CATALOGO = ROOT / "provenance" / "impronte.json"
 
 # Non c'e' vendorizzato in questo repository (le dipendenze arrivano da pip, vedi THIRD_PARTY.md).
-# L'unica esclusione reale e' l'output rigenerato -- i due file che _rebuild.py scrive, non l'intera
+# L'unica esclusione reale e' l'output rigenerato -- i due file che il rigeneratore scrive, non l'intera
 # cartella: dentro docs/landing/publish/ vivono anche pagine vere non generate (impresa/, plus/).
 # In pratica qui non cambia niente (questo script guarda solo .py/.js, e li' non ce ne sono), ma il
 # filtro resta lo stesso di marca_copyright.py per lo stesso motivo, non per prudenza spicciola.

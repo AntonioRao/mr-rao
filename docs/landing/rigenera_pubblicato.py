@@ -30,7 +30,17 @@ import shutil
 import hashlib
 import base64
 
-root = Path(__file__).resolve().parent
+# Lo script sta **fuori** dalla cartella che pubblica, e non e' un dettaglio
+# di ordine: `wrangler pages deploy` spedisce tutto quello che trova in
+# `publish/`, e finche' questo file stava li' dentro veniva servito dal sito
+# come `https://rao.valor-cyber.com/_rebuild.py` -- misurato il 22/08/2026,
+# 8423 byte identici a quelli su disco. Non conteneva segreti; era la
+# macchina che costruisce il sito, pubblicata sul sito.
+#
+# `.assetsignore` non risolve: Pages lo ignora, e anzi pubblica anche quello
+# (provato lo stesso giorno). L'unico modo di non pubblicare un file e' non
+# tenerlo nella cartella.
+root = Path(__file__).resolve().parent / "publish"
 sorgenti = root.parent
 
 # (sorgente, file pubblicato, riscritture). Le riscritture sono coppie

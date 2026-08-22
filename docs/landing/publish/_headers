@@ -5,6 +5,14 @@
 # Recompute with: python docs/landing/publish/_rebuild.py
 
 /*
+  # Cloudflare Pages mette `Access-Control-Allow-Origin: *` su ogni risposta,
+  # di suo: non e' scritto qui e non c'e' nessuna regola di zona che lo
+  # aggiunga (verificato nel pannello il 22/08/2026: la lista delle regole e'
+  # vuota). Questa riga lo **stacca**: su un sito senza API e senza cookie
+  # `*` non fa danno, ma dice «qualsiasi origine puo' leggere questa
+  # risposta», ed e' il messaggio sbagliato per un prodotto che vende «i dati
+  # non escono dalla tua macchina».
+  ! Access-Control-Allow-Origin
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin

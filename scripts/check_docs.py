@@ -78,7 +78,7 @@ CRONOLOGIE = {"docs/CHANGELOG.md"}
 RIGENERATE = {
     "docs/landing/publish/index.html": (
         "docs/landing/01-protocollo-zero.html",
-        "python docs/landing/publish/_rebuild.py",
+        "python docs/landing/rigenera_pubblicato.py",
     ),
     # Senza questa voce, un problema sulla pagina inglese pubblicata sarebbe
     # segnalato con «aggiorna il numero nella pagina»: cioe' un invito a

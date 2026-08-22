@@ -181,7 +181,7 @@ def test_sito_indietro_viene_detto():
 def test_il_messaggio_dice_cosa_fare():
     """Un rosso che non dice il comando da lanciare si impara a rimandare."""
     esito = confronta_pagina(URL, APP_VERSION, _lettore(_pagina(f"v{VECCHIA}")))
-    assert "_rebuild.py" in esito.dettaglio
+    assert "rigenera_pubblicato.py" in esito.dettaglio
     assert "wrangler pages deploy" in esito.dettaglio
 
 

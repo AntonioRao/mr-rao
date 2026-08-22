@@ -1541,7 +1541,7 @@ arriva dal documento convertito — è un dato, non presentazione.
 ### Il sito pubblicato adesso lo dice, quando è indietro (P3.17)
 
 Il progetto Cloudflare Pages è a **caricamento diretto**: `git push` non
-pubblica niente. Finché non girano `_rebuild.py` e `wrangler pages deploy`,
+pubblica niente. Finché non girano il rigeneratore e `wrangler pages deploy`,
 online resta la versione di prima **in silenzio**. È successo il 2026-08-09:
 la landing inglese era corretta, committata e pushata, e online c'era ancora
 la vecchia. Se n'è accorto l'utente guardando il sito.

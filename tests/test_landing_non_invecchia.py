@@ -201,7 +201,7 @@ def test_per_l_artefatto_rigenerato_il_messaggio_indica_il_sorgente(monkeypatch)
     )
     problemi = landing_invecchiate(880)
     assert len(problemi) == 1, problemi
-    assert "_rebuild.py" in problemi[0]
+    assert "rigenera_pubblicato.py" in problemi[0]
     assert "01-protocollo-zero.html" in problemi[0]
 
 
@@ -213,7 +213,7 @@ def test_per_una_pagina_scritta_a_mano_il_messaggio_dice_di_correggerla(monkeypa
     )
     problemi = landing_invecchiate(880)
     assert len(problemi) == 1, problemi
-    assert "_rebuild.py" not in problemi[0]
+    assert "rigenera_pubblicato.py" not in problemi[0]
     assert "Aggiorna il numero" in problemi[0]
 
 
