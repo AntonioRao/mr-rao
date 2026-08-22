@@ -35,7 +35,7 @@ Report gemelli:
 4. Non nuclei/ZAP sull'origine. HEAD/GET di path pubblici sì. Non scaricare l'APK in un report.
 5. **Non fermarsi allo status code, e non fermarsi al file.** Le due lezioni di questa revisione: un `_headers` che dichiara `max-age=3600` non garantisce che il browser lo riceva (§5/MR-L3), e una cartella che contiene un file lo **pubblica** (§5/MR-M3).
 6. Per ogni finding MR-M* / MR-L*: file:riga o comando, confermato / smentito / corretto.
-7. **La cache di bordo mente a chi verifica.** Un file appena tolto dal deploy continua a rispondere 200 per un po': interrogare con `Cache-Control: no-cache` **e** un parametro di cache-busting, altrimenti si misura la risposta di prima. Successo durante questa revisione.
+7. **La cache di bordo mente a chi verifica — in tutte e due le direzioni.** Un file appena tolto dal deploy continua a rispondere 200 per un po'. Con un parametro di cache-busting si misura **il deploy**; senza, si misura **il servizio**, cioè quello che riceve una persona. Sono due domande diverse e vanno fatte **entrambe**: rispondere solo alla prima e scrivere «chiuso» è l'errore di §5/MR-M3-bis. Un `Cache-Control: no-cache` mandato dal client non serve a niente: Cloudflare lo ignora.
 
 ---
 
@@ -185,9 +185,9 @@ Nessuno dei due conteneva segreti: il primo è AGPL e sta già su GitHub, il sec
 
 **Verificato:** entrambi i path → 404. `.wrangler/` (che contiene l'id dell'account) **non** era servito nemmeno prima: Pages salta le cartelle che cominciano per punto, e anche questo è stato misurato invece che dedotto.
 
-### MR-M3-bis — «chiuso» misurato sul deploy invece che sul servizio — Media — **il difetto è chiuso, la copia servita no**
+### MR-M3-bis — «chiuso» misurato sul deploy invece che sul servizio — Media — **CHIUSO 22/08, ma non nel modo previsto**
 
-Segnalato dall'utente poche ore dopo aver letto «CHIUSO» qui sopra: `/_rebuild.py` → 200, 8 423 byte; `/test-results/.last-run.json` → 200. Aveva ragione, e la voce MR-M3 era stata dichiarata chiusa con una misura che rispondeva a **un'altra domanda**.
+Segnalato dall'utente poche ore dopo aver letto «CHIUSO» qui sopra: `/_rebuild.py` → 200, 8 423 byte; `/test-results/.last-run.json` → 200 (e, cercando meglio, anche `/.assetsignore` → 200, 769 byte). Aveva ragione, e la voce MR-M3 era stata dichiarata chiusa con una misura che rispondeva a **un'altra domanda**.
 
 **Le due domande, che non sono la stessa:**
 
@@ -200,9 +200,22 @@ Verificare la prima e scrivere «chiuso» è l'errore. Un `Cache-Control: no-cac
 
 **Dove sta la copia, misurato:** non nella cache di zona. Una `Purge Everything` **confermata dal pannello** («Purge request successfully received») non ha azzerato l'`Age`, che continua a crescere dal momento del deploy in cui quei file c'erano ancora. La risposta porta `cf-cache-status: DYNAMIC`, `Cache-Control: public, s-maxage=604800`, `x-robots-tag: noindex` e le **impronte CSP di un deploy vecchio**. L'alias di produzione `mr-rao.pages.dev` risponde 404 sugli stessi percorsi: è quindi qualcosa legato al **nome host**, davanti a Pages.
 
-**Cosa non l'ha risolto** (tutto provato e misurato): quattro deploy successivi; `Purge Everything`; purga per hostname; purga per URL; tre regole `404` esplicite in `_redirects` — che non vengono nemmeno consultate, perché la copia viene servita prima.
+**Cosa non l'ha risolto** (tutto provato e misurato): quattro deploy successivi; `Purge Everything`; purga per hostname; purga per URL; tre regole `404` esplicite in `_redirects` — che non vengono nemmeno consultate, perché la copia viene servita prima; e **ripuntare il dominio**, cioè togliere `rao.valor-cyber.com` dal progetto Pages e riaggiungerlo (sito irraggiungibile per circa due minuti, DNS ricreato, certificato riemesso). Dopo la riassegnazione i tre percorsi rispondevano ancora 200, con lo stesso `Age` di prima: la copia non è legata né al deploy, né al record DNS, né all'associazione dominio-progetto.
 
-**Cosa resta da fare:** ripuntare il dominio personalizzato sul progetto Pages (toglierlo e rimetterlo), che è l'unico rimedio rimasto e va fatto sapendo che il sito resta irraggiungibile per il tempo della riassegnazione. In alternativa la copia scade da sola: `s-maxage` dichiara sette giorni.
+Due misure inchiodano il punto. `Age` cresce in tempo reale ed è **diverso per ogni percorso**, e ogni valore coincide con il momento in cui *quel* percorso era stato interrogato la prima volta senza query: le voci sono indipendenti, una per URL. E `/` non porta `Age` affatto, perché l'HTML non è memorizzabile. È una memoria per URL, con la scadenza di sette giorni che l'header dichiara, che nessuna leva del pannello raggiunge.
+
+**Come è stato chiuso davvero:** con una regola WAF di zona, `rao: niente attrezzi di build`, che **sta davanti** a quella memoria e quindi non la interroga nemmeno:
+
+```
+(http.host eq "rao.valor-cyber.com" and (http.request.uri.path eq "/_rebuild.py"
+  or http.request.uri.path eq "/rigenera_pubblicato.py"
+  or http.request.uri.path eq "/.assetsignore"
+  or starts_with(http.request.uri.path, "/test-results/")))
+```
+
+Azione `Block` → i quattro percorsi rispondono **403**; `/`, `/mobile/`, `/robots.txt` e `/.well-known/security.txt` restano 200 (misurato subito dopo il deploy della regola). Non è la risposta più elegante — un 404 direbbe meglio la verità, «qui non c'è niente» — ma il piano gratuito non permette di scegliere il codice di risposta, e un 403 è comunque una porta chiusa invece di un file servito.
+
+Vale la pena dire cosa **non** è questa regola: non è la correzione del difetto. Il difetto (i file nella cartella) era già corretto, e resta corretto; la regola serve a spegnere una copia che sopravvive a tutto e che altrimenti sarebbe scaduta da sola in sette giorni. Si può togliere dopo il 29/08/2026 — ma tenerla non costa niente ed è difesa in profondità: se domani un file simile rifinisse lì, sarebbe già chiuso.
 
 **Cosa è cambiato perché non ricapiti:** `scripts/check_sito_non_espone.py` interroga il sito **come un visitatore** — nessuna query, nessuna intestazione — su un elenco di percorsi vietati che comprende *i file che ci sono finiti davvero*, non solo i classici da scanner. Gira ogni giorno insieme al controllo delle versioni (`.github/workflows/sito-pubblicato.yml`) e distingue due guasti opposti: «serve ciò che non deve» e «non serve ciò che deve» — perché un sito spento risponde 404 a tutto, e un controllo che cerca solo i 200 di troppo lo chiamerebbe pulito.
 
