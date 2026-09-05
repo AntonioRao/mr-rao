@@ -334,3 +334,60 @@ def test_nessuna_pagina_pubblicata_usa_style_inline():
         + "\nSpostalo in un foglio di stile: la CSP blocca gli attributi, e in "
         "locale la cosa non si vede."
     )
+
+
+def test_ogni_foglio_di_stile_porta_l_impronta_del_proprio_contenuto():
+    """Un foglio cambiato e un indirizzo uguale = quattro ore di pagina rotta.
+
+    I fogli sono serviti con `max-age=14400, must-revalidate`: dentro quelle
+    quattro ore il browser usa la copia che ha **senza chiedere**. Se il
+    markup comincia a dipendere da una classe nuova e l'indirizzo del foglio
+    non cambia, chi è passato di recente vede la pagina nuova con lo stile
+    vecchio — cioè elementi senza stile, e nessun errore da nessuna parte.
+
+    Misurato il 05/09/2026: aggiunte quattro classi a `plus/stile.css` e
+    pubblicato, il nome del prodotto restava del colore sbagliato perché il
+    browser serviva ancora il foglio di prima.
+
+    La regola c'era già per `sito-nav.css` (il caso qui sopra) ed è la stessa:
+    qui vale per **tutti** i fogli locali, con l'impronta del contenuto
+    nell'indirizzo — la stessa convenzione degli asset in
+    `rigenera_pubblicato.py`.
+    """
+    import hashlib
+
+    sbagliati = []
+    for pagina in sorted(PUBBLICA.rglob("*.html")):
+        testo = pagina.read_text(encoding="utf-8")
+        for href in re.findall(r'<link[^>]+href="([^"]+\.css[^"]*)"', testo):
+            if href.startswith("http"):
+                continue
+            percorso, _, query = href.partition("?")
+            foglio = (
+                PUBBLICA / percorso.lstrip("/")
+                if percorso.startswith("/")
+                else (pagina.parent / percorso).resolve()
+            )
+            if not foglio.is_file():
+                sbagliati.append(f"{pagina.relative_to(PUBBLICA).as_posix()}: {href} non esiste")
+                continue
+            # `sito-nav.css` ha una sua numerazione a mano, verificata dal caso
+            # qui sopra: qui basta che una versione ci sia.
+            if foglio.name == "sito-nav.css":
+                if not query:
+                    sbagliati.append(
+                        f"{pagina.relative_to(PUBBLICA).as_posix()}: {href} senza ?v="
+                    )
+                continue
+            attesa = hashlib.sha256(foglio.read_bytes()).hexdigest()[:10]
+            if query != f"v={attesa}":
+                sbagliati.append(
+                    f"{pagina.relative_to(PUBBLICA).as_posix()}: {href} "
+                    f"dovrebbe chiedere ?v={attesa}"
+                )
+    assert sbagliati == [], (
+        "questi fogli di stile hanno un indirizzo che non cambia col contenuto:\n  "
+        + "\n  ".join(sbagliati)
+        + "\nChi è passato nelle ultime quattro ore vedrebbe lo stile vecchio "
+        "sul markup nuovo."
+    )
