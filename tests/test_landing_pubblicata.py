@@ -301,3 +301,36 @@ def test_il_foglio_condiviso_e_la_sua_versione_vanno_insieme():
         if VERSIONE not in p.read_text(encoding="utf-8")
     ]
     assert sbagliate == [], f"queste pagine non chiedono {VERSIONE}:\n  " + "\n  ".join(sbagliate)
+
+
+def test_nessuna_pagina_pubblicata_usa_style_inline():
+    """Un `style=` in una pagina pubblicata **non viene applicato**.
+
+    La CSP di questo sito ha impronte e non `unsafe-inline`, e le impronte
+    non valgono per gli attributi: il browser blocca la regola e l'elemento
+    resta senza. In locale non si vede — aprendo il file la CSP non c'e' —
+    quindi la pagina e' giusta sul disco e sbagliata online, che e' il modo
+    peggiore di sbagliare.
+
+    Il generatore delle due pagine principali questo controllo ce l'ha
+    (`rigenera_pubblicato.py` si ferma se trova un `style=`), ma le pagine di
+    Plus, impresa e mobile non passano di li' e nessuno le guardava. Misurato
+    il 05/09/2026 sulla pagina pubblicata di Plus: cinque errori in console,
+    «Applying inline style violates the following Content Security Policy
+    directive», e il nome del prodotto che doveva essere bianco non lo era.
+
+    Qui si guarda **tutto** cio' che finisce online, generato o scritto a
+    mano: e' l'unica versione del controllo che non ha un angolo cieco.
+    """
+    colpevoli = [
+        pagina.relative_to(PUBBLICA).as_posix()
+        for pagina in sorted(PUBBLICA.rglob("*.html"))
+        if 'style="' in pagina.read_text(encoding="utf-8")
+        or "style='" in pagina.read_text(encoding="utf-8")
+    ]
+    assert colpevoli == [], (
+        "queste pagine portano uno `style=` che il browser non applichera' mai:\n  "
+        + "\n  ".join(colpevoli)
+        + "\nSpostalo in un foglio di stile: la CSP blocca gli attributi, e in "
+        "locale la cosa non si vede."
+    )

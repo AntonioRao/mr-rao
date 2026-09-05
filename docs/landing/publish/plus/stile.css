@@ -304,3 +304,24 @@ p { margin-bottom: 0.95rem; color: var(--white); }
 }
 .footer a { color: var(--fog); text-decoration: none; }
 .footer a:hover { color: var(--phosphor); }
+
+/* Quattro classi al posto di altrettanti `style=` scritti a mano.
+ *
+ * La CSP di questo sito ha impronte, non `unsafe-inline`, e le impronte
+ * **non valgono per gli attributi**: un `style="..."` viene bloccato dal
+ * browser e la regola non si applica. Misurato il 05/09/2026 sulla pagina
+ * pubblicata: cinque errori in console, «Applying inline style violates the
+ * following Content Security Policy directive», e il nome del prodotto nel
+ * confronto con il desktop restava del colore del testo normale invece che
+ * bianco.
+ *
+ * Non si vedeva perche' in locale, aprendo il file, la CSP non c'e': la
+ * pagina e' corretta sul disco e sbagliata online. Il generatore delle due
+ * pagine principali questo controllo ce l'ha da sempre (`rigenera_pubblicato.py`
+ * si ferma se trova un `style=`); queste pagine non passano di li', quindi
+ * nessuno guardava. Adesso lo guarda un banco.
+ */
+.parola-chiave { font-style: normal; color: var(--phosphor); }
+.nome-prodotto { color: var(--white); }
+.mono { font-family: var(--mono); }
+.mono-piccolo { font-family: var(--mono); font-size: 0.9em; }
