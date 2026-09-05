@@ -115,7 +115,7 @@ certificazione. Un limite dichiarato in un solo posto è un limite nascosto.
   cosa in cima alla lista delle prossime, e fino ad allora non deve sembrare
   coperta.
 - **Sui nomi stranieri il riconoscimento è più debole.** Gli elenchi sono
-  italiani: 2181 cognomi, nessun cognome inglese. «Mario Rossi» ferma il
+  italiani: 2266 cognomi, nessun cognome inglese. «Mario Rossi» ferma il
   messaggio; «John Smith» arriva a un riscontro solo e diventa un indizio
   debole. Sui codici con un conto dietro — SSN, NINO, NHS, ABN, TFN — questa
   differenza non c'è.
