@@ -58,7 +58,12 @@ from mr_rao.user_folders import (
     describe_default_folders,
     ensure_default_watch_folders,
 )
-from mr_rao.watch_service import get_watch_state, start_watch, stop_watch
+from mr_rao.watch_service import (
+    CartelleAnnidate,
+    get_watch_state,
+    start_watch,
+    stop_watch,
+)
 
 # Il logger del modulo. Serve dove `current_app` non c'e': i lavori girano
 # in un thread loro, fuori dal contesto dell'applicazione.
@@ -1100,12 +1105,18 @@ def watch_start():
         state = start_watch(
             inbox, outbox, options=options, interval=interval, move_done=move_done
         )
-    except ValueError as scelta_impossibile:
+    except CartelleAnnidate:
         # Una configurazione che non ha nessun uso sensato — l'uscita dentro la
         # cartella sorvegliata — non e' un guasto del programma: e' una scelta
         # da correggere, e il messaggio dice come. Un 500 la farebbe sembrare
         # colpa nostra e non direbbe niente.
-        return jsonify({"error": str(scelta_impossibile)}), 400
+        #
+        # La frase la scrive **questa** rotta, nella lingua di questa richiesta:
+        # rimandare il testo di un'eccezione e' la strada da cui un giorno esce
+        # una traccia di esecuzione, e l'analisi statica lo segnalava.
+        return jsonify(
+            {"error": t("watch_err_stessa_cartella", lingua_richiesta(data.get("lang")))}
+        ), 400
     return jsonify(state)
 
 

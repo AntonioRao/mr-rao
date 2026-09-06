@@ -46,10 +46,16 @@ def _spegni():
 def test_stessa_cartella_viene_rifiutata(tmp_path):
     cartella = tmp_path / "documenti"
     cartella.mkdir()
-    with pytest.raises(ValueError) as errore:
+    from mr_rao.watch_service import CartelleAnnidate
+
+    # Un tipo proprio, non un `ValueError` con dentro la frase da mostrare: la
+    # frase la scrive chi risponde, nella lingua di quella richiesta. Il testo
+    # di un'eccezione rimandato all'utente e' la strada da cui un giorno esce
+    # una traccia di esecuzione, e l'analisi statica lo segnalava.
+    with pytest.raises(CartelleAnnidate):
         start_watch(cartella, cartella)
-    # Il messaggio deve dire cosa fare: «errore» da solo non e' un messaggio.
-    assert "cartella" in str(errore.value).lower(), errore.value
+    # Ma resta un `ValueError`: chi lo prendeva prima continua a prenderlo.
+    assert issubclass(CartelleAnnidate, ValueError)
 
 
 def test_uscita_dentro_la_sorvegliata_viene_rifiutata(tmp_path):

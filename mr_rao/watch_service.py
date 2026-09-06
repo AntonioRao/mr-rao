@@ -125,6 +125,22 @@ def output_path_for(outbox: Path, source: Path) -> Path:
     return with_ext
 
 
+class CartelleAnnidate(ValueError):
+    """L'uscita sta dentro la cartella sorvegliata: sarebbe un ciclo.
+
+    Un tipo proprio invece di un `ValueError` con dentro la frase da mostrare,
+    e la ragione non e' di stile. Chi la prende — una rotta HTTP — deve
+    rispondere con **la propria** stringa tradotta, nella lingua di quella
+    richiesta: mettendo il testo dentro l'eccezione, la rotta finiva per
+    rimandare all'utente il messaggio di un'eccezione, che e' la strada da cui
+    un giorno esce una traccia di esecuzione. L'analisi statica lo segnalava, e
+    aveva ragione a chiederlo.
+
+    Qui resta **cosa** e' successo; **come dirlo** lo decide chi ha in mano la
+    lingua.
+    """
+
+
 def start_watch(
     inbox: str | Path,
     outbox: str | Path,
@@ -161,9 +177,7 @@ def start_watch(
     # nessuno li rilegge. Rifiutarlo sarebbe prudenza a spese di una
     # configurazione legittima, e una guardia cosi' si impara ad aggirarla.
     if outbox_p == inbox_p or inbox_p in outbox_p.parents:
-        raise ValueError(
-            t("watch_err_stessa_cartella", (options or ConvertOptions()).lingua)
-        )
+        raise CartelleAnnidate()
 
     inbox_p.mkdir(parents=True, exist_ok=True)
     outbox_p.mkdir(parents=True, exist_ok=True)

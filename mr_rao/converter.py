@@ -697,13 +697,36 @@ def _butta_la_copia(percorso: str) -> None:
     except OSError as primo:
         errore = primo
 
+    # **Si scrive solo dentro una copia di lavoro nostra.** Questa funzione
+    # riceve sempre un percorso che ha generato `tempfile.mkstemp` due righe
+    # sopra, quindi la condizione e' gia' vera; scritta qui diventa vera **per
+    # costruzione** invece che per ragionamento, e un chiamante futuro che le
+    # passasse un percorso qualunque non le fa troncare un file dell'utente.
+    #
+    # E' anche la risposta all'allarme `py/path-injection`: il controllo
+    # statico non puo' sapere da dove viene un percorso che attraversa una
+    # chiamata di funzione, e aveva ragione a chiederlo — qui si apre un file
+    # in scrittura, che e' un'operazione distruttiva.
+    cartella = os.path.realpath(tempfile.gettempdir())
+    vero = os.path.realpath(percorso)
+    nostro = (
+        os.path.commonpath([cartella, vero]) == cartella
+        and os.path.basename(vero).startswith("mrrao_")
+    )
+    if not nostro:
+        logger.warning(
+            "copia di lavoro fuori dalla cartella temporanea, non la tocco: %s",
+            percorso,
+        )
+        return
+
     try:
         # Prima si svuota, poi si riprova: se la seconda rimozione riesce non
         # e' cambiato niente, se fallisce e' rimasto un file vuoto invece di
         # una copia in chiaro.
-        with open(percorso, "wb") as f:
+        with open(vero, "wb") as f:
             f.truncate(0)
-        os.remove(percorso)
+        os.remove(vero)
     except OSError:
         logger.warning(
             "copia di lavoro non cancellata (%s): %s. Il file e' stato "
