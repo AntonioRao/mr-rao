@@ -284,14 +284,21 @@ def test_il_foglio_condiviso_e_la_sua_versione_vanno_insieme():
     L'impronta qui sotto è la sola cosa che lega le due modifiche: se il
     foglio cambia e questa non viene aggiornata, il banco si ferma e ricorda
     di alzare anche il numero nelle pagine.
+
+    **Si guardano i fine riga normalizzati**, come in `impronta_di`. L'ha
+    trovato la costruzione per macOS: il runner fa il checkout con LF, sul
+    disco di Windows il file sta con CRLF, e la stessa identica riga di CSS
+    dava due impronte diverse. Un banco che passa su una macchina e non su
+    un'altra non sta guardando il contenuto, sta guardando il sistema
+    operativo.
     """
     import hashlib
 
-    IMPRONTA = "f84522513f40c52568eff5e05c9df258a3241e24329334baed80c0c54716f2d0"
+    IMPRONTA = "754e40242e51bb8d708672eb5bf72cb78ac9745ea9dcea398004f73385f5fd6c"
     VERSIONE = "sito-nav.css?v=4"
 
     foglio = PUBBLICA / "sito-nav.css"
-    reale = hashlib.sha256(foglio.read_bytes()).hexdigest()
+    reale = hashlib.sha256(foglio.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
     assert reale == IMPRONTA, (
         "sito-nav.css è cambiato: alza il `?v=` nelle pagine che lo linkano e "
         "aggiorna IMPRONTA qui sopra. Senza il bump, chi è passato di recente "
