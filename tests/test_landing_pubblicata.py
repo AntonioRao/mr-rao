@@ -40,6 +40,21 @@ import pytest
 RADICE = Path(__file__).resolve().parents[1]
 LANDING = RADICE / "docs" / "landing"
 PUBBLICA = LANDING / "publish"
+
+
+def impronta_di(foglio: Path) -> str:
+    """L'impronta del **contenuto** di un foglio di stile, fine riga a parte.
+
+    Il `\\r\\n` sparisce prima dell'hash: in locale su Windows i `.css` stanno
+    sul disco con CRLF, sul runner arrivano con LF, e senza questa riga lo
+    stesso identico foglio dava due impronte diverse — controllo verde in casa
+    e rosso in integrazione continua, che e' il modo piu' inutile di essere
+    rossi.
+    """
+    import hashlib
+
+    dati = foglio.read_bytes().replace(b"\r\n", b"\n")
+    return hashlib.sha256(dati).hexdigest()[:10]
 # Il rigeneratore sta **fuori** dalla cartella pubblicata: finche' stava
 # dentro, `wrangler pages deploy` lo spediva online insieme al sito.
 RIGENERATORE = LANDING / "rigenera_pubblicato.py"
@@ -353,9 +368,18 @@ def test_ogni_foglio_di_stile_porta_l_impronta_del_proprio_contenuto():
     qui vale per **tutti** i fogli locali, con l'impronta del contenuto
     nell'indirizzo — la stessa convenzione degli asset in
     `rigenera_pubblicato.py`.
-    """
-    import hashlib
 
+    **L'impronta si calcola sui fine riga normalizzati**, e la ragione l'ha
+    trovata l'integrazione continua: in locale, su Windows, i `.css` stanno sul
+    disco con CRLF; sul runner arrivano con LF, quindi gli stessi identici fogli
+    davano due impronte diverse e questo controllo era rosso solo di là. Un
+    controllo verde in casa e rosso altrove non dice niente su nessuno dei due.
+
+    Normalizzare e' anche piu' giusto nel merito: l'impronta serve a distinguere
+    **versioni di contenuto**, non a certificare i byte serviti. Un foglio in cui
+    e' cambiato solo il fine riga non ha bisogno di svuotare la cache di
+    nessuno.
+    """
     sbagliati = []
     for pagina in sorted(PUBBLICA.rglob("*.html")):
         testo = pagina.read_text(encoding="utf-8")
@@ -379,7 +403,7 @@ def test_ogni_foglio_di_stile_porta_l_impronta_del_proprio_contenuto():
                         f"{pagina.relative_to(PUBBLICA).as_posix()}: {href} senza ?v="
                     )
                 continue
-            attesa = hashlib.sha256(foglio.read_bytes()).hexdigest()[:10]
+            attesa = impronta_di(foglio)
             if query != f"v={attesa}":
                 sbagliati.append(
                     f"{pagina.relative_to(PUBBLICA).as_posix()}: {href} "
