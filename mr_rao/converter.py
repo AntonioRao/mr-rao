@@ -658,9 +658,15 @@ def convert_bytes(
     # `a...` da' un suffisso di solo punto, `a.` + 300 caratteri da' un nome
     # troppo lungo per il filesystem. Vale anche per chi chiama questa
     # funzione senza passare dai controlli di `routes.py`.
-    ext = Path(filename).suffix.lower()
-    if ext not in ALLOWED_EXTENSIONS:
-        ext = ".bin"
+    chiesta = Path(filename).suffix.lower()
+    # **L'estensione si prende dall'elenco, non dalla stringa dell'utente.**
+    # Il testo che ne esce e' identico, ma la sua *provenienza* no: e' un
+    # elemento di `ALLOWED_EXTENSIONS`, cioe' una costante del programma, e non
+    # un pezzo di un nome arrivato da fuori. Il confronto qui sopra rendeva la
+    # cosa gia' sicura, ma solo per chi legge: l'analisi statica vedeva un
+    # valore dell'utente finire dentro un percorso, e aveva ragione a
+    # chiederselo — quel percorso poi si apre in scrittura.
+    ext = next((a for a in sorted(ALLOWED_EXTENSIONS) if a == chiesta), ".bin")
     fd, tmp = tempfile.mkstemp(suffix=ext, prefix="mrrao_")
     try:
         with os.fdopen(fd, "wb") as f:
