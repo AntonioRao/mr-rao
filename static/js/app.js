@@ -380,8 +380,13 @@
       return;
     }
     els.attachmentsBar.style.display = "flex";
+    // L'avviso sta **accanto ai bottoni**, non in fondo alla pagina: questi
+    // file non passano dal filtro, e chi li scarica da qui ha tutte le ragioni
+    // di crederli trattati come il resto del documento. Un limite si nomina
+    // dove lo si incontra, o non lo si è nominato.
     els.attachmentsBar.innerHTML =
       `<span class="muted">${escapeHtml(t("js_allegati_email"))}</span>` +
+      `<span class="fmt-badge avviso-allegati">⚠ ${escapeHtml(t("js_allegati_non_redatti"))}</span>` +
       list
         .map((a, i) => {
           if (a.skipped) {
@@ -965,10 +970,38 @@
       // ripiego non e' stata redatta, e chi consegna quel file deve saperlo
       // prima, non scoprirlo dopo.
       const fuori = dati.pagine_non_trattate || [];
+      // E con loro i due esiti del **segno**: il rettangolo ridisegnato sopra
+      // (il segnaposto si copia due volte) e il rettangolo che non si vede
+      // affatto (il dato è tolto, ma sulla pagina non resta traccia). Il
+      // motore li calcolava da versioni e non usciva da lì: un rapporto che
+      // guarda una cosa e non la dice sembra averla guardata per chi legge.
+      const doppio = dati.pagine_riquadro_doppio || [];
+      const senzaSegno = dati.pagine_senza_segno || [];
+      const elenco = (p) => p.map((n) => n + 1).join(", ");
+      const righe = [];
       if (fuori.length) {
-        els.pdfAvviso.textContent = t("pdf_non_trattate")
-          .replace("{n}", fuori.length)
-          .replace("{elenco}", fuori.map((p) => p + 1).join(", "));
+        righe.push(
+          t("pdf_non_trattate")
+            .replace("{n}", fuori.length)
+            .replace("{elenco}", elenco(fuori)),
+        );
+      }
+      if (senzaSegno.length) {
+        righe.push(
+          t("pdf_senza_segno")
+            .replace("{n}", senzaSegno.length)
+            .replace("{elenco}", elenco(senzaSegno)),
+        );
+      }
+      if (doppio.length) {
+        righe.push(
+          t("pdf_riquadro_doppio")
+            .replace("{n}", doppio.length)
+            .replace("{elenco}", elenco(doppio)),
+        );
+      }
+      if (righe.length) {
+        els.pdfAvviso.textContent = righe.join(" ");
         els.pdfAvviso.hidden = false;
       } else {
         els.pdfAvviso.hidden = true;

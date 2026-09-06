@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import re
 import threading
 from pathlib import Path
@@ -58,6 +59,10 @@ from mr_rao.user_folders import (
     ensure_default_watch_folders,
 )
 from mr_rao.watch_service import get_watch_state, start_watch, stop_watch
+
+# Il logger del modulo. Serve dove `current_app` non c'e': i lavori girano
+# in un thread loro, fuori dal contesto dell'applicazione.
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("main", __name__)
 
@@ -369,7 +374,17 @@ def profiles():
 
 def _fail_job(job, exc: Exception, lingua: str = LINGUA_PREDEFINITA) -> None:
     """Never leave a job in 'running': the UI would poll it forever."""
-    print(f"job {job.id} crashed: {exc!r}")
+    # Nel registro, non su stdout: nel portable e nell'eseguibile con l'icona
+    # nel vassoio non c'e' nessuna console, quindi un `print` qui non arrivava
+    # a nessuno — ed era l'unica traccia di un lavoro andato storto. Con
+    # `exception` viene anche la pila, che e' meta' della diagnosi.
+    #
+    # **Il logger del modulo, non `current_app`.** Questa funzione gira nel
+    # thread del lavoro, fuori dal contesto dell'applicazione: `current_app`
+    # solleva, e sollevando qui il lavoro restava «in corso» per sempre — cioe'
+    # proprio il difetto che questa funzione esiste per non avere. L'ha preso
+    # `test_job_non_resta_appeso_se_il_worker_esplode`.
+    logger.exception("job %s crashed: %r", job.id, exc)
     with job.lock:
         if job.status in ("done", "cancelled"):
             return
@@ -728,6 +743,26 @@ def export_docx():
 _SCALA_ANTEPRIMA = 1.4
 
 
+def _pdf_apribile(percorso: Path) -> bool:
+    """Il motore PDF riesce ad aprirlo, si' o no.
+
+    Serve a dividere due risposte che prima erano una sola: «il tuo file non si
+    legge» (400, e si cambia file) e «qualcosa qui dentro si e' rotto» (500, e
+    tocca a noi). Si chiede al motore invece di guardare i primi byte, perche'
+    un'intestazione `%PDF` giusta non dice niente sul resto del file.
+    """
+    try:
+        import pypdfium2 as pdfium
+
+        documento = pdfium.PdfDocument(str(percorso))
+        try:
+            return len(documento) > 0
+        finally:
+            documento.close()
+    except Exception:
+        return False
+
+
 def _redigi_pdf_caricato(lingua: str):
     """Legge il PDF dalla richiesta e lo redige. Ritorna (bytes, esito, errore)."""
     if "file" not in request.files:
@@ -756,6 +791,14 @@ def _redigi_pdf_caricato(lingua: str):
         try:
             esito = redigi_pdf(dentro, fuori, opzioni)
         except Exception:
+            # **Un file che non si apre non e' un guasto del programma.** Il
+            # 500 diceva «si e' rotto Mr. Rao» per un PDF danneggiato, vuoto o
+            # protetto da password, e chi lo leggeva non aveva modo di capire
+            # che bastava cambiare documento. Si distingue provando ad aprirlo:
+            # se non si apre, la colpa e' del file e la risposta lo dice.
+            if not _pdf_apribile(dentro):
+                current_app.logger.info("pdf non apribile: %s", file.filename)
+                return None, None, (t("err_pdf_illeggibile", lingua), 400)
             current_app.logger.exception("redazione pdf")
             return None, None, (t("err_pdf_fallita", lingua), 500)
         if esito.scansione:
@@ -840,6 +883,18 @@ def anteprima_pdf():
     except ValueError:
         numero = 0
 
+    # Il disegno delle due pagine puo' fallire su un PDF storto: la redazione
+    # non ha sollevato — non c'era niente da togliere — ma il motore di
+    # rendering non trova nessuna pagina da disegnare. E' colpa del file, e la
+    # risposta deve dirlo: un 500 significa «si e' rotto il programma», e chi
+    # lo riceve non capisce che deve cambiare documento.
+    try:
+        prima = _pagina_in_png(dati_originali, numero)
+        dopo = _pagina_in_png(redatto, numero)
+    except Exception:
+        current_app.logger.exception("anteprima pdf")
+        return jsonify({"error": t("err_pdf_illeggibile", lingua)}), 400
+
     return jsonify({
         "pagine": esito.pagine,
         "pagina": numero,
@@ -848,8 +903,18 @@ def anteprima_pdf():
         # una pagina finita nel ripiego NON e' stata redatta, e presentarla
         # come tale sarebbe il modo peggiore di sbagliare.
         "pagine_non_trattate": sorted(esito.pagine_in_ripiego),
-        "prima": _pagina_in_png(dati_originali, numero),
-        "dopo": _pagina_in_png(redatto, numero),
+        # Il **segno** che il dato c'era: due esiti diversi del secondo
+        # passaggio, calcolati con cura e finora mai usciti da qui.
+        #
+        # `doppio`: il rettangolo e' stato ridisegnato sopra perche' sotto non
+        # si vedeva, quindi copiando il testo il segnaposto compare due volte.
+        # `senza_segno`: non e' stato possibile rimediare — il dato e' tolto lo
+        # stesso, ma sulla pagina non resta nessuna traccia che li' ci fosse
+        # qualcosa, e chi legge non ha modo di chiedere cosa c'era.
+        "pagine_riquadro_doppio": sorted(esito.pagine_riquadro_sopra),
+        "pagine_senza_segno": sorted(esito.pagine_senza_riquadro),
+        "prima": prima,
+        "dopo": dopo,
     })
 
 
@@ -1031,7 +1096,16 @@ def watch_start():
         # Anche la cartella sorvegliata scrive documenti: la lingua gliela fissa
         # chi accende il monitoraggio, perche' poi lavora senza nessuna richiesta.
         options.lingua = lingua_richiesta(data.get("lang"))
-    state = start_watch(inbox, outbox, options=options, interval=interval, move_done=move_done)
+    try:
+        state = start_watch(
+            inbox, outbox, options=options, interval=interval, move_done=move_done
+        )
+    except ValueError as scelta_impossibile:
+        # Una configurazione che non ha nessun uso sensato — l'uscita dentro la
+        # cartella sorvegliata — non e' un guasto del programma: e' una scelta
+        # da correggere, e il messaggio dice come. Un 500 la farebbe sembrare
+        # colpa nostra e non direbbe niente.
+        return jsonify({"error": str(scelta_impossibile)}), 400
     return jsonify(state)
 
 

@@ -148,6 +148,23 @@ def start_watch(
     # va riaperto: l'assunzione sarebbe cambiata.
     inbox_p = Path(inbox).expanduser().resolve()
     outbox_p = Path(outbox).expanduser().resolve()
+
+    # **L'uscita non puo' stare dentro la cartella guardata.** `.md` e' un
+    # formato d'ingresso ammesso, quindi ogni file prodotto sarebbe un file
+    # nuovo da convertire: si converte, produce `nota-md.md`, che viene visto,
+    # convertito, e via cosi'. `output_path_for` non sovrascrive mai e quindi
+    # frena il danno, ma non il ciclo: la cartella si riempie di documenti
+    # generati, e ogni giro ripassa dal motore un testo gia' redatto.
+    #
+    # Il verso opposto — la cartella guardata **dentro** quella di uscita — non
+    # e' un ciclo e resta permesso: i `.md` finiscono fuori da dove si guarda e
+    # nessuno li rilegge. Rifiutarlo sarebbe prudenza a spese di una
+    # configurazione legittima, e una guardia cosi' si impara ad aggirarla.
+    if outbox_p == inbox_p or inbox_p in outbox_p.parents:
+        raise ValueError(
+            t("watch_err_stessa_cartella", (options or ConvertOptions()).lingua)
+        )
+
     inbox_p.mkdir(parents=True, exist_ok=True)
     outbox_p.mkdir(parents=True, exist_ok=True)
 

@@ -178,7 +178,12 @@ def test_un_markdown_vero_si_converte_e_si_redige(tmp_path):
         "# Verbale\n\nPresenti: Mario Rossi (mario.rossi@esempio.it).\n",
         encoding="utf-8",
     )
-    r = convert_file(p, ConvertOptions())
+    # `options=`, non posizionale: il secondo parametro di `convert_file` e'
+    # `original_name`. Scritta senza nome, questa riga passava le opzioni come
+    # nome del file e il test girava con i predefiniti — verde, ma non per il
+    # motivo che credeva. L'ha scoperto la 1.29.0, quando il nome del file ha
+    # cominciato a essere trattato come testo.
+    r = convert_file(p, options=ConvertOptions())
     assert "{{NAME" in r.markdown
     assert "{{EMAIL" in r.markdown
     assert "mario.rossi@esempio.it" not in r.markdown

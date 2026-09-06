@@ -85,6 +85,14 @@ import pikepdf
 import pypdfium2 as pdfium
 
 from .privacy import PrivacyOptions, apply_privacy_filter
+# L'allineamento fra il testo redatto e quello di partenza sta in un modulo
+# suo dalla 1.29.0: lo usa anche il nome del file, e due copie di questo
+# codice sarebbero due modi diversi di tagliare lo stesso dato.
+from .posizioni import (
+    ANCORE_DA_PROVARE,
+    MINIMO_CERCABILE,
+    intervalli_da_togliere,
+)
 
 # ---------------------------------------------------------------------------
 # Dai byte del flusso al testo: il ponte
@@ -122,10 +130,6 @@ NOME_RISORSA_STANDARD = "/MrRaoSegnaposto"
 
 #: I caratteri che nessuna delle due parti e' riuscita a decodificare.
 IGNOTI = "�￾"
-
-#: Un valore piu' corto di cosi' non si cerca: si ritroverebbe ovunque, e
-#: tagliare in mezzo a un'altra parola e' peggio che non tagliare.
-MINIMO_CERCABILE = 3
 
 #: Il colore del rettangolo, in RGB da 0 a 1. Verde scuro: si vede a colpo
 #: d'occhio su una pagina bianca, e sopra ci sta il bianco con un contrasto
@@ -524,110 +528,6 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
 # ---------------------------------------------------------------------------
 # Cosa togliere, e dove sta
 # ---------------------------------------------------------------------------
-
-
-def intervalli_da_togliere(
-        testo: str, opzioni: PrivacyOptions) -> list[tuple[int, int, str]]:
-    """(inizio, fine, segnaposto) per ogni sostituzione, sul testo dato.
-
-    Il motore restituisce il testo redatto, non le posizioni. **Non si allinea
-    con un diff, si legge la struttura**: il testo redatto e' l'originale con
-    dei segnaposto al posto dei valori, quindi i pezzi *fra* i segnaposto sono
-    copie letterali e servono da ancora. Cio' che sta fra due ancore e'
-    esattamente il valore tolto.
-
-    Con `difflib` non funzionava, e il modo in cui falliva era subdolo:
-    `CAFIERO` sostituito da `{{NAME_1}}` condivide con il segnaposto la «A» e
-    la «E», quindi l'allineamento restituiva tre tratti — «C», «FI», «RO» —
-    invece di uno. Tre frammenti troppo corti per essere cercati, quindi
-    scartati: **il cognome restava intero nel documento**, e nessun conteggio
-    se ne accorgeva.
-    """
-    redatto, rapporto = apply_privacy_filter(testo, opzioni)
-    if rapporto.total == 0:
-        return []
-
-    pezzi = [p for p in re.split(r"(\{\{[A-Z_]+(?:_\d+)?\}\})", redatto) if p]
-    tratti: list[tuple[int, int, str]] = []
-    cursore = 0
-    in_attesa = ""
-    for pezzo in pezzi:
-        if pezzo.startswith("{{") and pezzo.endswith("}}"):
-            in_attesa = pezzo
-            continue
-        posizione = _ancora(testo, pezzo, cursore, in_attesa, opzioni)
-        if posizione < 0:
-            # L'ancora non si ritrova: l'allineamento e' perso, e tagliare a
-            # naso e' peggio che non tagliare. Il chiamante lo vede come una
-            # pagina senza tratti, e la manda nel ripiego.
-            return []
-        if posizione > cursore and in_attesa:
-            tratti.append((cursore, posizione, in_attesa))
-        in_attesa = ""
-        cursore = posizione + len(pezzo)
-    if in_attesa and cursore < len(testo):
-        tratti.append((cursore, len(testo), in_attesa))
-    return tratti
-
-
-#: Quante occorrenze di un'ancora si provano prima di arrendersi alla prima.
-#: Oltre questo numero il testo e' fatto di ancore ripetute, e insistere costa
-#: piu' di quanto renda.
-ANCORE_DA_PROVARE = 12
-
-
-def _ancora(testo: str, pezzo: str, da: int, in_attesa: str,
-            opzioni: PrivacyOptions) -> int:
-    """Dove ricomincia il testo copiato, dopo un valore tolto.
-
-    **La prima occorrenza non basta, e costava una fuga.** Su
-    «Scrivi a mario.rossi@example.it.» l'ancora dopo l'e-mail e' un punto
-    solo, e il primo punto sta *dentro* l'e-mail: il tratto da tagliare
-    diventava «mario», e nel PDF redatto restava
-    `{{EMAIL_1}}.rossi@example.it`. La verifica non poteva accorgersene,
-    perche' cerca il valore **intero** e quello, spezzato, non c'e' piu'.
-
-    Qui si provano le prime occorrenze e si prende la prima che regge una
-    domanda in piu': **il pezzo che verrebbe tagliato e' davvero quel dato?**
-    Lo si chiede al motore, che e' l'unico a saperlo. Se nessuna regge -- un
-    recapito che si riconosce solo dal contesto, per esempio, da solo non si
-    riconosce piu' -- si torna alla prima, cioe' al comportamento di prima:
-    questa e' una rete, non un cambio di regola.
-    """
-    if not in_attesa:
-        # Nessun valore tolto in mezzo: l'ancora comincia esattamente qui.
-        return da if testo.startswith(pezzo, da) else testo.find(pezzo, da)
-
-    prima = testo.find(pezzo, da)
-    if prima < 0:
-        return -1
-    posizione = prima
-    for _ in range(ANCORE_DA_PROVARE):
-        if posizione > da and _valore_coerente(testo[da:posizione], in_attesa, opzioni):
-            return posizione
-        successiva = testo.find(pezzo, posizione + 1)
-        if successiva < 0:
-            break
-        posizione = successiva
-    return prima
-
-
-def _valore_coerente(valore: str, segnaposto: str, opzioni: PrivacyOptions) -> bool:
-    """Il motore, rimesso davanti a quel solo pezzo, ci rivede lo stesso dato?
-
-    Serve a scegliere fra due allineamenti possibili, non a decidere se un
-    dato e' un dato: chiede se il pezzo candidato, da solo, viene sostituito
-    **per intero** e con la **stessa etichetta**.
-    """
-    valore = valore.strip()
-    if not valore:
-        return False
-    fuori, rapporto = apply_privacy_filter(valore, opzioni)
-    if rapporto.total != 1:
-        return False
-    senza_numero = re.sub(r"\{\{([A-Z_]+?)(?:_\d+)?\}\}", r"{{\1}}", fuori).strip()
-    atteso = re.sub(r"\{\{([A-Z_]+?)(?:_\d+)?\}\}", r"{{\1}}", segnaposto)
-    return senza_numero == atteso
 
 
 def _senza_spazi(testo: str) -> tuple[str, list[int]]:
@@ -1062,7 +962,13 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
     opzioni = opzioni or PrivacyOptions()
     esito = EsitoRedazione()
     per_pagina = testo_per_pagina(sorgente)
-    if not any(t.strip() for t in per_pagina):
+    # **Il testo delle annotazioni conta come testo.** Un modulo in cui tutto
+    # sta nei campi — nessuna riga disegnata nel flusso — usciva dichiarato
+    # «scansione»: qui si guardava solo il testo estratto dalle pagine, e le
+    # annotazioni non le contava nessuno. Il file redatto non veniva nemmeno
+    # scritto, e la rotta mandava l'utente a cercare l'OCR per un documento
+    # che invece si poteva trattare benissimo.
+    if not any(t.strip() for t in per_pagina) and not _ha_annotazioni_con_testo(sorgente):
         esito.pagine = len(per_pagina)
         esito.scansione = True
         return esito
@@ -1351,7 +1257,68 @@ def _ripiego(esito: EsitoRedazione, pagina: int, motivo: str) -> None:
 #: cliccandola, `/RC` la sua versione formattata, `/V` il valore di un campo
 #: modulo. Sono **stringhe**, non flussi di contenuto: non passano dalla
 #: chirurgia dei glifi, ed e' il motivo per cui restavano intere.
-_CHIAVI_TESTO_ANNOTAZIONE = ("/Contents", "/RC", "/V")
+#:
+#: Le altre tre le ha aggiunte l'audit del 6 settembre 2026, e hanno tutte
+#: dentro il valore vero:
+#:
+#: * `/DV` e' il valore predefinito, quello a cui il campo torna col comando
+#:   «azzera». In un modulo precompilato e' una seconda copia del dato;
+#: * `/TU` e' il suggerimento che il lettore mostra passandoci sopra il mouse.
+#:   Nei moduli veri contiene spesso un esempio gia' compilato;
+#: * `/Opt` e' l'elenco delle scelte di una tendina, che in un modulo uscito da
+#:   un gestionale sono i nomi dei clienti. E' l'unica **array**, non stringa.
+_CHIAVI_TESTO_ANNOTAZIONE = ("/Contents", "/RC", "/V", "/DV", "/TU")
+
+#: Le chiavi il cui valore e' un elenco di stringhe, non una stringa sola.
+_CHIAVI_ELENCO_ANNOTAZIONE = ("/Opt",)
+
+
+def _ha_annotazioni_con_testo(sorgente: Path) -> bool:
+    """C'e' del testo dentro le annotazioni, anche se le pagine sono mute?
+
+    Distingue un **modulo** (tutto nei campi, redigibile) da una **scansione**
+    (pixel, e non c'e' niente da togliere). Le due meritano risposte opposte, e
+    finora ricevevano la stessa.
+    """
+    try:
+        with pikepdf.open(str(sorgente)) as pdf:
+            for pagina in pdf.pages:
+                annotazioni = pagina.get("/Annots")
+                if not isinstance(annotazioni, pikepdf.Array):
+                    continue
+                for annotazione in annotazioni:
+                    if not isinstance(annotazione, pikepdf.Dictionary):
+                        continue
+                    for chiave in _CHIAVI_TESTO_ANNOTAZIONE:
+                        valore = annotazione.get(chiave)
+                        if isinstance(valore, pikepdf.String) and str(valore).strip():
+                            return True
+                    genitore = annotazione.get("/Parent")
+                    if isinstance(genitore, pikepdf.Dictionary):
+                        for chiave in _CHIAVI_TESTO_ANNOTAZIONE:
+                            valore = genitore.get(chiave)
+                            if isinstance(valore, pikepdf.String) and str(valore).strip():
+                                return True
+    except Exception:
+        return False
+    return False
+
+
+def _stringa_redatta(voce, opzioni: PrivacyOptions):
+    """Una voce di elenco, redatta. Torna (voce, quanti valori tolti).
+
+    Cio' che non e' una stringa torna com'era: dentro un `/Opt` puo' esserci di
+    tutto, e trasformarlo sarebbe rompere il documento per prudenza.
+    """
+    if not isinstance(voce, pikepdf.String):
+        return voce, 0
+    testo = str(voce)
+    if not testo.strip():
+        return voce, 0
+    redatto, rapporto = apply_privacy_filter(testo, opzioni)
+    if rapporto.total == 0:
+        return voce, 0
+    return pikepdf.String(redatto), rapporto.total
 
 
 def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
@@ -1395,10 +1362,21 @@ def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
         # Il valore puo' stare sul campo padre invece che sul widget: sono lo
         # stesso dato scritto in due posti, e guardarne uno solo vuol dire
         # ripulire quello sbagliato.
+        #
+        # **Tutta la catena, non il primo genitore.** In un modulo con i campi
+        # raggruppati il `/Parent` ha a sua volta un `/Parent`, e il valore sta
+        # due livelli sopra: guardandone uno solo restava dov'era. Il limite di
+        # profondita' e' contro i documenti storti con una catena circolare,
+        # non contro i moduli veri, che di livelli ne hanno due o tre.
         oggetti = [annotazione]
         genitore = annotazione.get("/Parent")
-        if isinstance(genitore, pikepdf.Dictionary):
+        for _ in range(8):
+            if not isinstance(genitore, pikepdf.Dictionary):
+                break
+            if any(g is genitore for g in oggetti):
+                break  # catena circolare: si e' gia' passati di qui
             oggetti.append(genitore)
+            genitore = genitore.get("/Parent")
 
         toccata = False
         for oggetto in oggetti:
@@ -1415,6 +1393,34 @@ def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
                 oggetto[chiave] = pikepdf.String(redatto)
                 tolti += rapporto.total
                 toccata = True
+
+            for chiave in _CHIAVI_ELENCO_ANNOTAZIONE:
+                elenco = oggetto.get(chiave)
+                if not isinstance(elenco, pikepdf.Array):
+                    continue
+                nuovo = []
+                cambiato = False
+                for voce in elenco:
+                    # Una tendina puo' avere coppie [valore, etichetta]: si
+                    # scende di un livello, o si ripulisce solo meta' elenco.
+                    if isinstance(voce, pikepdf.Array):
+                        dentro = []
+                        for pezzo in voce:
+                            pulito, quanti = _stringa_redatta(pezzo, opzioni)
+                            dentro.append(pulito)
+                            if quanti:
+                                tolti += quanti
+                                cambiato = True
+                        nuovo.append(pikepdf.Array(dentro))
+                        continue
+                    pulito, quanti = _stringa_redatta(voce, opzioni)
+                    nuovo.append(pulito)
+                    if quanti:
+                        tolti += quanti
+                        cambiato = True
+                if cambiato:
+                    oggetto[chiave] = pikepdf.Array(nuovo)
+                    toccata = True
 
         if toccata:
             if "/AP" in annotazione:

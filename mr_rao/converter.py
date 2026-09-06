@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import re
 import tempfile
@@ -19,12 +20,15 @@ from typing import Callable
 from config import ALLOWED_EXTENSIONS, APP_NAME, APP_VERSION, IMAGE_EXTENSIONS
 from mr_rao.i18n import LINGUA_PREDEFINITA, t
 from mr_rao.ocr_service import extract_pdf_tables, ocr_image, ocr_pdf_fallback
+from mr_rao.posizioni import redigi_nome_file
 from mr_rao.privacy import (
     DETECTOR_FIELDS,
     PrivacyOptions,
     RedactionReport,
     apply_privacy_filter,
 )
+
+logger = logging.getLogger(__name__)
 
 ProgressCb = Callable[[int, int, str], None]
 CancelCb = Callable[[], bool]
@@ -84,6 +88,14 @@ class ConvertResult:
     error: str | None = None
     markdown_raw: str | None = None  # before privacy (for diff)
     attachments: list[dict] = field(default_factory=list)
+    #: Il nome del file **come entra dentro il documento** (frontmatter,
+    #: intestazioni del merge), passato dallo stesso filtro del testo.
+    #:
+    #: `source_name` resta il nome vero, perche' serve all'utente sulla sua
+    #: macchina: e' quello che l'interfaccia mostra e che i messaggi d'errore
+    #: nominano. La differenza fra i due campi e' la differenza fra cio' che
+    #: sta **intorno** al documento e cio' che ci viaggia **dentro**.
+    source_name_redatto: str = ""
 
 
 def _file_sha256(path: Path) -> str:
@@ -585,8 +597,18 @@ def convert_file(
             if markdown_raw:
                 markdown_raw = _strip_noise(markdown_raw)
 
+        # **Anche il nome del file e' testo che viaggia col documento.** Un
+        # documento si chiama come il suo contenuto — `Rossi_Mario_referto.pdf`
+        # e' la regola in uno studio, non l'eccezione — e quel nome finisce nel
+        # frontmatter e nelle intestazioni del merge. Ripulire il corpo e
+        # lasciare il cognome nel primo rigo e' la stessa forma dei metadati
+        # del PDF: testo che non passa dalla strada dove vive il filtro.
+        nome_nel_documento = original_name
+        if privacy_on:
+            nome_nel_documento = redigi_nome_file(original_name, opts.privacy)
+
         if opts.include_frontmatter and final_text and not empty:
-            fm = _frontmatter(original_name, ext, engine_used, file_hash, redaction)
+            fm = _frontmatter(nome_nel_documento, ext, engine_used, file_hash, redaction)
             final_text = fm + final_text
             if markdown_raw is not None:
                 markdown_raw = fm + markdown_raw
@@ -600,6 +622,7 @@ def convert_file(
             empty=empty,
             markdown_raw=markdown_raw,
             attachments=attachments,
+            source_name_redatto=nome_nel_documento,
         )
     except Cancelled:
         return ConvertResult(
@@ -650,10 +673,44 @@ def convert_bytes(
             should_cancel=should_cancel,
         )
     finally:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
+        _butta_la_copia(tmp)
+
+
+def _butta_la_copia(percorso: str) -> None:
+    """Cancella la copia di lavoro, e se non ci riesce almeno la svuota.
+
+    **Cosa non si promette.** Non la cancellazione sicura: sovrascrivere non
+    garantisce che i byte spariscano da un disco a stato solido, dove il
+    livellamento dell'usura decide per conto suo, ne' da un filesystem che
+    tiene un giornale. Prometterlo qui sarebbe la bugia peggiore che questo
+    programma possa dire.
+
+    **Cosa si promette**, ed e' piu' piccolo e vero: se la rimozione fallisce
+    — file aperto da un antivirus, permessi cambiati, disco pieno — il file che
+    resta in una cartella condivisa da ogni programma dell'utente **non
+    contiene piu' il documento**. E il fallimento si dice, invece di essere
+    ingoiato da un `except` muto: prima non era successo per nessuno.
+    """
+    try:
+        os.remove(percorso)
+        return
+    except OSError as primo:
+        errore = primo
+
+    try:
+        # Prima si svuota, poi si riprova: se la seconda rimozione riesce non
+        # e' cambiato niente, se fallisce e' rimasto un file vuoto invece di
+        # una copia in chiaro.
+        with open(percorso, "wb") as f:
+            f.truncate(0)
+        os.remove(percorso)
+    except OSError:
+        logger.warning(
+            "copia di lavoro non cancellata (%s): %s. Il file e' stato "
+            "svuotato, ma resta sul disco.",
+            percorso,
+            errore,
+        )
 
 
 def merge_markdowns(
@@ -692,10 +749,15 @@ def merge_markdowns(
         labels = [t("doc_documento_a", lingua), t("doc_documento_b", lingua)]
         parts.append("> " + t("doc_confronto_nota", lingua) + "\n")
     for i, r in enumerate(results, 1):
+        # Il nome redatto se c'e', quello vero se il filtro era spento o se il
+        # risultato viene da un chiamante che non lo riempie. Questa riga sta
+        # *dentro* il documento unificato, quindi vale la stessa regola del
+        # frontmatter.
+        nome = r.source_name_redatto or r.source_name
         if labels:
-            heading = f"## {labels[i - 1]} — `{r.source_name}`\n"
+            heading = f"## {labels[i - 1]} — `{nome}`\n"
         else:
-            heading = f"## {i}. {r.source_name}\n"
+            heading = f"## {i}. {nome}\n"
         parts.append(f"\n---\n\n{heading}")
         if r.error:
             parts.append("> " + t("doc_errore", lingua, motivo=r.error) + "\n")

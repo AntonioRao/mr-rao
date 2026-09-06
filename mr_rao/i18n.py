@@ -152,6 +152,13 @@ TESTI: dict[str, dict[str, str]] = {
               "è stato toccato.",
         "en": "Redacting the PDF failed. The original document was not touched.",
     },
+    "err_pdf_illeggibile": {
+        "it": "Questo PDF non si riesce ad aprire: potrebbe essere "
+              "danneggiato, vuoto o protetto da password. Il documento "
+              "originale non è stato toccato.",
+        "en": "This PDF cannot be opened: it may be damaged, empty or "
+              "password-protected. The original document was not touched.",
+    },
     "err_pdf_verifica": {
         "it": "Il controllo finale ha ritrovato nel PDF redatto dei dati che "
               "dovevano essere spariti, su pagine che il rapporto dava per "
@@ -184,6 +191,26 @@ TESTI: dict[str, dict[str, str]] = {
     "pdf_tutte_trattate": {
         "it": "Tutte le pagine sono state trattate.",
         "en": "Every page was processed.",
+    },
+    "pdf_riquadro_doppio": {
+        "it": "Su {n} pagine ({elenco}) il fondo colorato è stato ridisegnato "
+              "sopra, perché sotto non si sarebbe visto. Il dato è tolto; "
+              "copiando il testo il segnaposto compare due volte, una nella "
+              "frase e una in fondo alla pagina.",
+        "en": "On {n} pages ({elenco}) the coloured box had to be redrawn on "
+              "top, because underneath it would not have shown. The data is "
+              "gone; when you copy the text the placeholder appears twice, "
+              "once in the sentence and once at the foot of the page.",
+    },
+    "pdf_senza_segno": {
+        "it": "⚠ Su {n} pagine ({elenco}) il dato è stato tolto ma non resta "
+              "nessun segno visibile che lì ci fosse qualcosa. Chi legge il "
+              "documento non può accorgersi della redazione: dillo tu, se il "
+              "destinatario deve saperlo.",
+        "en": "⚠ On {n} pages ({elenco}) the data was removed but no visible "
+              "mark is left where it was. A reader cannot tell the document "
+              "was redacted there: say so yourself, if the recipient needs to "
+              "know.",
     },
     "tip_pdf": {
         "it": "Il documento che esce è **ancora un PDF di testo** — "
@@ -1228,6 +1255,16 @@ TESTI: dict[str, dict[str, str]] = {
         "it": "ORIGINALE (pre-privacy)", "en": "ORIGINAL (before redaction)",
     },
     "js_allegati_email": {"it": "Allegati email:", "en": "Email attachments:"},
+    "js_allegati_non_redatti": {
+        "it": "Questi file escono come sono entrati: non sono stati "
+              "anonimizzati. Il filtro lavora sul testo del messaggio, non "
+              "dentro un allegato di formato qualsiasi. Se devi consegnarli, "
+              "passali prima da Mr. Rao uno per uno.",
+        "en": "These files come out exactly as they went in: they have not "
+              "been redacted. The filter works on the message text, not "
+              "inside an attachment of arbitrary format. If you have to hand "
+              "them over, run them through Mr. Rao one by one first.",
+    },
     "js_allegato_saltato": {
         "it": "{nome} (saltato: {motivo})", "en": "{nome} (skipped: {motivo})",
     },
@@ -1531,6 +1568,17 @@ TESTI: dict[str, dict[str, str]] = {
     },
     "watch_msg_cartella_non_valida": {
         "it": "cartella da monitorare non valida", "en": "watched folder not valid",
+    },
+    "watch_err_stessa_cartella": {
+        "it": "La cartella di uscita non può essere quella sorvegliata, né "
+              "starci dentro: i Markdown prodotti verrebbero riletti e "
+              "riconvertiti all'infinito. Scegli una cartella di uscita "
+              "separata, o mettila accanto a quella sorvegliata invece che "
+              "dentro.",
+        "en": "The output folder cannot be the watched one, nor sit inside "
+              "it: the Markdown files produced would be read back and "
+              "converted again forever. Pick a separate output folder, or "
+              "put it beside the watched one instead of inside it.",
     },
     "watch_err_cartella_sparita": {
         "it": "La cartella da monitorare non esiste piu'",

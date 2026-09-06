@@ -818,7 +818,10 @@ def test_quando_il_pezzo_da_solo_non_si_riconosce_si_torna_alla_prima():
     dell'ancora torna a essere quella di prima, e il taglio resta quello che
     era. E' un ripiego dichiarato, non un caso da far fallire.
     """
-    from mr_rao.redazione_pdf import _valore_coerente
+    # Dalla 1.29.0 l'allineamento sta in `mr_rao/posizioni.py`: lo usa anche il
+    # nome del file, e tenerne due copie sarebbe tenere due modi diversi di
+    # tagliare lo stesso dato.
+    from mr_rao.posizioni import _valore_coerente
 
     opzioni = PrivacyOptions()
     assert _valore_coerente("mario.rossi@example.it", "{{EMAIL_1}}", opzioni)
