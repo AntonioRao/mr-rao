@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.29.1 — Due impronte che guardavano il sistema operativo
+
+Nessun cambiamento nel prodotto: due controlli sui fogli di stile pubblicati
+calcolavano l'impronta sui **byte**, e i `.css` stanno sul disco di Windows con
+`\r\n` e sui runner con `\n`. Lo stesso identico foglio dava due impronte
+diverse, quindi il primo controllo era rosso solo in integrazione continua e il
+secondo solo sulla costruzione per macOS — che è il modo più inutile di essere
+rossi, perché non dice niente su nessuna delle due macchine.
+
+Adesso i fine riga si normalizzano prima dell'hash. È anche più giusto nel
+merito: quell'impronta serve a distinguere **versioni di contenuto**, non a
+certificare i byte serviti, e un foglio in cui è cambiato solo il fine riga non
+deve svuotare la cache di nessuno.
+
+L'impronta dello zip in `tests/test_release_zip.py` resta invece sui byte veri,
+ed è giusto così: lì serve a verificare un file scaricato, non a distinguere
+versioni.
+
+**Perché una versione nuova e non una correzione della 1.29.0.** Il tag
+`v1.29.0` era già pubblicato, e spostarlo avrebbe riscritto un riferimento che
+qualcuno poteva già avere in mano. La storia non si tocca: si va avanti.
+
 ## 1.29.0 — Il nome del file, gli allegati, e le altre voci dell'audit
 
 Il secondo giro sull'audit del 6 settembre 2026: le voci che nella prima
