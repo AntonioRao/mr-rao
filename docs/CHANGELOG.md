@@ -1,5 +1,72 @@
 # Changelog
 
+## 1.28.0 — Quattro cose che uscivano da un file chiamato «-redatto.pdf»
+
+Un audit del 6 settembre 2026, cercato apposta nei posti dove il **rapporto
+diceva di si' e il documento diceva di no**. Tutte e quattro misurate
+eseguendo il codice prima di scrivere una riga di correzione.
+
+### Le proprieta' del documento uscivano intere
+
+Titolo, autore, oggetto, parole chiave e il blocco XMP non stanno nel flusso
+di contenuto della pagina, quindi la chirurgia dei glifi non li vedeva. Un PDF
+il cui oggetto era `CF RSSMRA85M01H501Z` consegnava il codice fiscale a
+chiunque aprisse le proprieta' del documento, in due click, da un file che si
+chiamava `-redatto.pdf`.
+
+E' la stessa classe del difetto delle annotazioni chiuso nella 1.24.0: **testo
+che non e' nel flusso**. Ora quei campi passano dal filtro come il resto. Il
+blocco XMP invece si butta, se conteneva qualcosa: e' XML, e riscriverne il
+contenuto a sostituzioni testuali vuol dire prima o poi produrre un file rotto
+— e siccome duplica le proprieta', toglierlo non toglie niente al documento.
+
+`verifica_redazione` non poteva accorgersene: guardava il flusso e le
+annotazioni, cioe' due posti in cui quel dato non e' mai stato. Adesso i
+metadati entrano nel confronto come una pagina in piu', in coda.
+
+### La scansione gia' passata da un OCR usciva «trattata»
+
+Una pagina scansionata a cui qualcuno ha gia' passato un OCR porta **due**
+copie del testo: i pixel, che si vedono, e uno strato di caratteri invisibili
+(`3 Tr`) che si seleziona e si cerca. Il testo estraibile c'e', quindi il
+rifiuto delle scansioni non scattava; la redazione toglieva i caratteri
+invisibili — l'unica delle due copie che nessuno legge — e dichiarava la
+pagina trattata. Il nome restava a schermo, dentro l'immagine.
+
+Misurato prima della correzione: due segnaposto inseriti, nessuna pagina
+dichiarata non trattata, l'immagine ancora nel file.
+
+Adesso, quando tutto cio' che c'e' da togliere sta in caratteri invisibili
+**e** la pagina ha un'immagine, la pagina finisce fra quelle non trattate col
+motivo scritto; se **tutte** le pagine sono cosi', il documento viene
+rifiutato come la scansione che e'. Una pagina digitale con un logo — meta'
+della carta intestata — resta trattata come prima: il testo li' si vede.
+
+### «Nascondi sempre» veniva ignorata con i riconoscitori spenti
+
+Chi spegneva ogni casella, perche' il documento non ha dati italiani, e
+scriveva il nome del cliente in «nascondi sempre» otteneva il contrario di
+quel che chiedeva: zero redazioni, termine in chiaro, nessun avviso. Il filtro
+partiva solo se un **riconoscitore** era acceso, e quella lista non e' un
+riconoscitore: e' la richiesta piu' esplicita che questo programma riceva.
+
+Ora la lista accende il filtro da sola. L'interruttore generale resta sopra a
+tutto: quando e' spento le due liste non arrivano nemmeno al motore.
+
+### Il controllo finale girava solo in CI
+
+`verifica_redazione` esisteva da versioni, era buona, e la chiamavano soltanto
+i test. Le rotte spedivano il file appena la redazione non sollevava. Un
+controllo che gira solo in integrazione continua non protegge nessun documento
+vero.
+
+Adesso gira prima di consegnare. Se ritrova un dato su una pagina che il
+rapporto da' per **trattata**, il file non parte: un PDF che dice una cosa non
+vera su quello che contiene e' peggio di un errore. Se il dato e' rimasto su
+una pagina gia' dichiarata non trattata, il file esce come sempre — li'
+l'avviso c'e' gia', ed e' quello che conta. Nel registro finiscono il numero e
+le pagine, mai i valori.
+
 ## 1.27.5 — Mezza e-mail restava nel PDF, e il motore toglieva parole che non erano dati
 
 Quattro correzioni alla redazione dei PDF, tutte trovate su documenti veri.

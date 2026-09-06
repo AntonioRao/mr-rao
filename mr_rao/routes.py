@@ -746,7 +746,7 @@ def _redigi_pdf_caricato(lingua: str):
 
     import tempfile
 
-    from mr_rao.redazione_pdf import redigi_pdf
+    from mr_rao.redazione_pdf import redigi_pdf, verifica_redazione
 
     opzioni = _privacy_dalla_richiesta(request.form)
     with tempfile.TemporaryDirectory() as cartella:
@@ -762,6 +762,34 @@ def _redigi_pdf_caricato(lingua: str):
             return None, esito, (t("err_pdf_scansione", lingua), 422)
         if not fuori.exists():
             return None, esito, (t("err_pdf_fallita", lingua), 500)
+
+        # **La verifica gira qui, prima di consegnare.** Esisteva da versioni,
+        # era buona, e la chiamavano soltanto i test: un controllo che gira
+        # solo in CI non protegge nessun documento vero. Cerca i valori
+        # dell'originale dentro il redatto, pagina contro pagina.
+        #
+        # Un superstite su una pagina che il rapporto dichiara **non trattata**
+        # non ferma niente: e' gia' scritto nell'elenco, e chi riceve il file
+        # sa quali pagine guardare. Un superstite su una pagina dichiarata a
+        # posto invece si': li' il documento direbbe una cosa non vera, e un
+        # PDF che mente su cosa contiene e' peggio di un errore.
+        try:
+            controllo = verifica_redazione(dentro, fuori, opzioni)
+        except Exception:
+            current_app.logger.exception("verifica redazione pdf")
+            controllo = None
+        if controllo and controllo["sopravvissuti"]:
+            dichiarate = set(esito.pagine_in_ripiego)
+            taciute = [p for p in controllo["pagine_con_superstiti"]
+                       if p not in dichiarate]
+            if taciute:
+                # Nel registro il **numero** e le pagine, mai i valori: sono
+                # dati personali, ed e' il motivo per cui `esempi` resta dov'e'.
+                current_app.logger.error(
+                    "verifica redazione: %d valori ancora presenti, pagine %s",
+                    controllo["sopravvissuti"], taciute,
+                )
+                return None, esito, (t("err_pdf_verifica", lingua), 500)
         return fuori.read_bytes(), esito, None
 
 

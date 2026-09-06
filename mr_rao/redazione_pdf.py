@@ -93,6 +93,20 @@ from .privacy import PrivacyOptions, apply_privacy_filter
 #: Gli operatori che mostrano testo.
 MOSTRA = {b"Tj", b"TJ", b"'", b'"'}
 
+#: I due motivi di ripiego che vogliono dire «questa pagina e' una scansione».
+#: Sono costanti e non stringhe scritte due volte perche' `redigi_pdf` ci
+#: ragiona sopra: se **ogni** pagina e' finita in ripiego per uno di questi, il
+#: documento e' una scansione e va rifiutato come tale, non consegnato con un
+#: elenco di pagine non trattate lungo quanto il documento.
+MOTIVO_SCANSIONE = "nessun testo estraibile: pagina scansionata"
+MOTIVO_OCR = "scansione con testo OCR sovrapposto: il dato resta nell'immagine"
+
+#: I modi di rendering del testo (`Tr`) in cui i glifi **non si disegnano**:
+#: 3 e' «ne' riempimento ne' contorno», 7 e' «solo ritaglio». Sono i due modi
+#: con cui ogni motore OCR mette il testo riconosciuto sopra una scansione:
+#: si seleziona e si cerca, ma cio' che si vede sono i pixel sotto.
+MODI_INVISIBILI = {3, 7}
+
 #: Sotto questo arretramento (millesimi di em) due parole sono attaccate
 #: davvero; sopra, in mezzo c'e' uno spazio che nessun carattere rappresenta.
 SOGLIA_SPAZIO = 150
@@ -182,6 +196,10 @@ class Emissione:
     #: viene scritto in bianco: senza, il resto della riga proseguirebbe
     #: bianco su bianco, e sparirebbe del testo che non doveva sparire.
     colore: tuple | None = None
+    #: Questi glifi erano in modo di rendering invisibile (`3 Tr` o `7 Tr`).
+    #: Togliere del testo che non si vede non e' una redazione se cio' che si
+    #: vede resta: vedi `_solo_glifi_invisibili`.
+    invisibile: bool = False
 
 
 @dataclass
@@ -204,6 +222,11 @@ class EsitoRedazione:
     #: possibile rimediare: il dato e' tolto lo stesso, ma chi guarda la
     #: pagina non ha nessun segno che li' ci fosse qualcosa.
     pagine_senza_riquadro: list[int] = field(default_factory=list)
+    #: Quanti valori sono stati tolti dalle **proprieta' del documento** --
+    #: titolo, autore, oggetto, e il blocco XMP. Non stanno in nessuna pagina,
+    #: quindi non entrano nei conti per pagina, ma sono dati usciti da un file
+    #: che si chiama «-redatto.pdf» e vanno contati da qualche parte.
+    metadati_tolti: int = 0
 
 
 class _Contenitore:
@@ -401,6 +424,12 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
     ultima_y = None
     colore = None
     spazio_colore = None
+    # Il modo di rendering del testo (`Tr`). Serve a una domanda sola, ed e'
+    # una domanda che decide se una redazione e' vera: **questi glifi si
+    # vedono?** Sopra una scansione passata dall'OCR il testo c'e' ed e' in
+    # modo 3, cioe' invisibile — toglierlo non toglie niente a chi guarda la
+    # pagina. Vedi `_solo_glifi_invisibili`.
+    modo_testo = 0
     cache: dict[str, Font] = {}
 
     for i, istruzione in enumerate(contenitore.istruzioni):
@@ -423,6 +452,12 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
             # ogni documento che non sia nero su bianco.
             colore = (list(operandi), str(istruzione.operator),
                       spazio_colore if op in (b"sc", b"scn") else None)
+
+        elif op == b"Tr" and len(operandi) >= 1:
+            try:
+                modo_testo = int(operandi[0])
+            except Exception:
+                modo_testo = 0
 
         elif op == b"Tf" and len(operandi) >= 2:
             risorsa = str(operandi[0])
@@ -452,7 +487,8 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
                         sum(len(p) for p in pezzi),
                         [Glifo(k * passo, passo, c)
                          for k, c in enumerate(caratteri_glifo)],
-                        risorsa, corpo, colore))
+                        risorsa, corpo, colore,
+                        modo_testo in MODI_INVISIBILI))
                     pezzi.extend(caratteri_glifo)
                 elif isinstance(operando, (int, float)) and operando < -SOGLIA_SPAZIO:
                     # **Lo spazio fra due parole spesso non e' un carattere**:
@@ -1034,6 +1070,10 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
     pdf = pikepdf.open(str(sorgente))
     try:
         esito.pagine = len(pdf.pages)
+        # Prima delle pagine, perche' non dipende dalle pagine: le proprieta'
+        # del documento sono testo che nessun flusso di contenuto contiene.
+        esito.metadati_tolti = _redigi_metadati(pdf, opzioni)
+        esito.valori_da_togliere += esito.metadati_tolti
         for numero, pagina in enumerate(pdf.pages):
             testo_estratto = per_pagina[numero] if numero < len(per_pagina) else ""
 
@@ -1042,7 +1082,7 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
             esito.valori_da_togliere += _redigi_annotazioni(pdf, pagina, opzioni)
 
             if not testo_estratto.strip() and _pagina_e_una_scansione(pagina):
-                _ripiego(esito, numero, "nessun testo estraibile: pagina scansionata")
+                _ripiego(esito, numero, MOTIVO_SCANSIONE)
                 continue
 
             tratti_estratti = intervalli_da_togliere(testo_estratto, opzioni)
@@ -1063,6 +1103,10 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
             tratti = _dove_stanno(testo_flusso, valori)
             if not tratti:
                 _ripiego(esito, numero, "nessun valore ritrovato nel flusso")
+                continue
+
+            if _solo_glifi_invisibili(tratti, emissioni) and _pagina_ha_un_immagine(pagina):
+                _ripiego(esito, numero, MOTIVO_OCR)
                 continue
 
             lavori: dict[int, dict[int, list]] = {}
@@ -1115,6 +1159,18 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         pdf.save(str(destinazione))
     finally:
         pdf.close()
+
+    # **Un documento fatto di sole scansioni e' una scansione**, anche quando
+    # ha uno strato OCR che rende estraibile il testo. Senza questa riga il
+    # rifiuto — che esiste da sempre e che le rotte traducono in un messaggio
+    # chiaro — sarebbe scavalcato dal solo fatto che qualcuno ha passato un
+    # OCR sul PDF prima di noi: il documento uscirebbe «redatto» con l'elenco
+    # delle pagine non trattate lungo quanto il documento intero.
+    if (esito.pagine
+            and len(esito.pagine_in_ripiego) == esito.pagine
+            and all(m in (MOTIVO_SCANSIONE, MOTIVO_OCR)
+                    for m in esito.motivi_ripiego)):
+        esito.scansione = True
 
     _dipingi_rettangoli(destinazione, esito)
     return esito
@@ -1372,6 +1428,67 @@ def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
     return tolti
 
 
+#: Le chiavi del dizionario delle informazioni del documento che contengono
+#: testo scritto da una persona. `/Producer` e `/CreationDate` non ci sono di
+#: proposito: dicono con che programma e quando, non di chi.
+_CHIAVI_TESTO_DOCINFO = ("/Title", "/Author", "/Subject", "/Keywords", "/Creator")
+
+
+def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
+    """Le proprieta' del documento sono testo come tutto il resto.
+
+    E' la stessa classe del difetto delle annotazioni chiuso nella 1.24.0, e
+    per la stessa ragione: **questo testo non sta nel flusso di contenuto**,
+    quindi la chirurgia dei glifi non lo tocca. Un PDF con
+    `/Subject: CF RSSMRA85M01H501Z` usciva da un file chiamato «-redatto.pdf»
+    con il codice fiscale intero, leggibile in due click nelle proprieta' del
+    documento di qualunque lettore.
+
+    Perche' l'XMP si **butta** invece di riscriverlo
+    ------------------------------------------------
+
+    Il blocco XMP e' XML, e riscriverne il contenuto a colpi di sostituzione
+    testuale vuol dire prima o poi produrre XML rotto: i valori stanno dentro i
+    tag ma i nomi delle persone compaiono anche in `dc:creator` insieme a
+    strutture RDF, e un segnaposto messo nel posto sbagliato rompe il file per
+    tutti i lettori. Il blocco inoltre **duplica** il dizionario delle
+    informazioni: buttarlo non toglie niente al documento redatto, e lasciarlo
+    a meta' sarebbe la sola opzione davvero pericolosa.
+
+    Si butta **solo se conteneva qualcosa**: un XMP innocuo resta dov'e', e un
+    documento senza dati personali nei metadati esce identico a com'e' entrato.
+    """
+    tolti = 0
+    for chiave in _CHIAVI_TESTO_DOCINFO:
+        try:
+            valore = pdf.docinfo.get(chiave)
+        except Exception:
+            continue
+        if valore is None or not isinstance(valore, pikepdf.String):
+            continue
+        testo = str(valore)
+        if not testo.strip():
+            continue
+        redatto, rapporto = apply_privacy_filter(testo, opzioni)
+        if rapporto.total == 0:
+            continue
+        pdf.docinfo[chiave] = pikepdf.String(redatto)
+        tolti += rapporto.total
+
+    metadati = pdf.Root.get("/Metadata")
+    if metadati is not None:
+        try:
+            grezzo = bytes(metadati.read_bytes()).decode("utf-8", "replace")
+        except Exception:
+            grezzo = ""
+        if grezzo:
+            _, rapporto = apply_privacy_filter(grezzo, opzioni)
+            if rapporto.total:
+                del pdf.Root["/Metadata"]
+                tolti += rapporto.total
+    return tolti
+
+
 def _pagina_e_una_scansione(pagina) -> bool:
     """Pagina senza testo: e' una scansione o e' bianca?
 
@@ -1388,16 +1505,56 @@ def _pagina_e_una_scansione(pagina) -> bool:
     Si distinguono per la presenza di un'immagine, che e' il motivo per cui
     non c'e' testo.
     """
+    return _pagina_ha_un_immagine(pagina)
+
+
+def _solo_glifi_invisibili(tratti, emissioni: list[Emissione]) -> bool:
+    """Tutto cio' che c'e' da togliere in questa pagina e' testo che non si vede.
+
+    E' il segnale della **scansione gia' passata dall'OCR**, che e' il caso in
+    cui questo modulo poteva fare il danno peggiore che sa fare: togliere i
+    glifi invisibili — l'unica delle due copie del dato che non si legge — e
+    dichiarare la pagina trattata mentre il nome resta a schermo, dentro
+    l'immagine. Misurato prima della correzione: due segnaposto inseriti,
+    `pagine_in_ripiego` vuoto, e il codice fiscale ancora visibile.
+
+    Non basta da sola a decidere: la usa `redigi_pdf` **in and** con la
+    presenza di un'immagine. Un testo invisibile su una pagina senza immagini
+    non e' una scansione, e li' togliere i glifi e' esattamente il lavoro
+    giusto — il dato e' nel file e ne esce.
+    """
+    if not tratti:
+        return False
+    visto = False
+    for inizio, fine, _segnaposto in tratti:
+        for emissione in emissioni:
+            if emissione.inizio < fine and emissione.inizio + len(emissione.glifi) > inizio:
+                if not emissione.invisibile:
+                    return False
+                visto = True
+    return visto
+
+
+def _pagina_ha_un_immagine(pagina) -> bool:
+    """C'e' un'immagine fra le risorse della pagina?
+
+    Da sola non vuol dire niente — meta' della carta intestata ha un logo — e
+    infatti non decide mai da sola: chi la chiama la mette **in and** con
+    un'altra condizione (nessun testo, oppure testo tutto invisibile).
+    """
     risorse = pagina.get("/Resources")
     if risorse is None:
         return False
     xobject = risorse.get("/XObject")
     if xobject is None:
         return False
-    return any(
-        oggetto.get("/Subtype") == pikepdf.Name("/Image")
-        for oggetto in xobject.values()
-    )
+    try:
+        return any(
+            oggetto.get("/Subtype") == pikepdf.Name("/Image")
+            for oggetto in xobject.values()
+        )
+    except Exception:
+        return False
 
 
 def valore_ancora_presente(valore: str, testo: str) -> bool:
@@ -1444,6 +1601,32 @@ def _annotazioni_per_pagina(sorgente: Path) -> list[str]:
         return []
 
 
+def _metadati_come_testo(percorso: Path) -> str:
+    """Le proprieta' del documento e l'XMP, come una stringa sola.
+
+    Serve alla verifica: senza questo, un codice fiscale rimasto nell'oggetto
+    del documento usciva **verde**, perche' la verifica guardava il flusso e le
+    annotazioni, cioe' due posti in cui quel dato non era mai stato.
+    """
+    try:
+        with pikepdf.open(str(percorso)) as pdf:
+            pezzi = []
+            for chiave in _CHIAVI_TESTO_DOCINFO:
+                valore = pdf.docinfo.get(chiave)
+                if isinstance(valore, pikepdf.String):
+                    pezzi.append(str(valore))
+            metadati = pdf.Root.get("/Metadata")
+            if metadati is not None:
+                try:
+                    pezzi.append(
+                        bytes(metadati.read_bytes()).decode("utf-8", "replace"))
+                except Exception:
+                    pass
+            return "\n".join(pezzi)
+    except Exception:
+        return ""
+
+
 def verifica_redazione(sorgente: Path, destinazione: Path,
                        opzioni: PrivacyOptions | None = None) -> dict:
     """**I valori veri ci sono ancora, si' o no.** Un conto non e' una prova.
@@ -1478,17 +1661,29 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
     # Non `zip`: `zip` si ferma alla lista piu' corta, quindi se le
     # annotazioni non si leggessero la verifica si ridurrebbe a zero pagine
     # e uscirebbe verde senza aver guardato niente.
+    # I metadati vanno in coda come se fossero **una pagina in piu'**, e non
+    # dentro le pagine vere: appartengono al documento, non a un foglio, e
+    # sommarli a ciascuna pagina li farebbe contare tante volte quante sono.
+    # La coda tiene allineati gli indici delle due liste, che e' cio' su cui
+    # regge il confronto pagina contro pagina.
     def _unite(percorso: Path) -> list[str]:
         flusso = testo_per_pagina(percorso)
         note = _annotazioni_per_pagina(percorso)
-        return [t + "\n" + (note[i] if i < len(note) else "")
-                for i, t in enumerate(flusso)]
+        pagine = [t + "\n" + (note[i] if i < len(note) else "")
+                  for i, t in enumerate(flusso)]
+        return pagine + [_metadati_come_testo(percorso)]
 
     prima = _unite(sorgente)
     dopo = _unite(destinazione)
 
     dichiarati = individuati = 0
     rimasti: list[str] = []
+    # **Su quali pagine**, non solo quanti. Chi chiama deve poter distinguere
+    # un valore rimasto su una pagina che il rapporto dichiara **non trattata**
+    # — dove l'utente e' gia' avvisato e il file si consegna lo stesso — da uno
+    # rimasto su una pagina dichiarata a posto, che e' il caso in cui il
+    # prodotto direbbe una cosa non vera.
+    pagine_con_superstiti: set[int] = set()
     for numero, testo in enumerate(prima):
         _, rapporto = apply_privacy_filter(testo, opzioni)
         dichiarati += rapporto.total
@@ -1497,10 +1692,15 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
             individuati += 1
             if valore_ancora_presente(testo[a:b], stessa_pagina):
                 rimasti.append(testo[a:b])
+                pagine_con_superstiti.add(numero)
     return {
         "dichiarati_dal_motore": dichiarati,
         "individuati_nel_testo": individuati,
         "persi_prima_di_tagliare": dichiarati - individuati,
         "sopravvissuti": len(rimasti),
         "esempi": rimasti[:5],
+        # L'ultimo indice e' la «pagina» dei metadati (vedi `_unite`): non e'
+        # un foglio, e non puo' mai essere in ripiego. Un superstite li' vale
+        # come uno su una pagina dichiarata trattata.
+        "pagine_con_superstiti": sorted(pagine_con_superstiti),
     }

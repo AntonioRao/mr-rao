@@ -132,19 +132,35 @@ TESTI: dict[str, dict[str, str]] = {
         "en": "A redacted PDF can only be made from a PDF.",
     },
     "err_pdf_scansione": {
-        "it": "Questo PDF è una scansione: non contiene testo, quindi non c'è "
-              "nessun glifo da togliere. Disegnarci sopra dei rettangoli "
-              "sembrerebbe una redazione e non lo sarebbe. Converti il "
-              "documento con l'OCR acceso e usa il Markdown o il .docx.",
-        "en": "This PDF is a scan: it holds no text, so there are no glyphs to "
-              "remove. Drawing boxes over it would look like redaction and "
-              "would not be. Convert it with OCR on and use the Markdown or "
-              "the .docx instead.",
+        "it": "Questo PDF è una scansione: quello che si legge sono pixel, non "
+              "testo, quindi non c'è nessun glifo da togliere. Vale anche se "
+              "il documento è già passato da un OCR: lì i caratteri ci sono ma "
+              "sono invisibili, sopra l'immagine — toglierli lascerebbe il "
+              "dato a schermo. Disegnarci sopra dei rettangoli sembrerebbe una "
+              "redazione e non lo sarebbe. Converti il documento con l'OCR "
+              "acceso e usa il Markdown o il .docx.",
+        "en": "This PDF is a scan: what you read are pixels, not text, so "
+              "there are no glyphs to remove. That holds even if it has "
+              "already been through OCR: there the characters exist but are "
+              "invisible, laid over the image — removing them would leave the "
+              "data on screen. Drawing boxes over it would look like "
+              "redaction and would not be. Convert it with OCR on and use the "
+              "Markdown or the .docx instead.",
     },
     "err_pdf_fallita": {
         "it": "La redazione del PDF non è riuscita. Il documento originale non "
               "è stato toccato.",
         "en": "Redacting the PDF failed. The original document was not touched.",
+    },
+    "err_pdf_verifica": {
+        "it": "Il controllo finale ha ritrovato nel PDF redatto dei dati che "
+              "dovevano essere spariti, su pagine che il rapporto dava per "
+              "trattate. Il file non ti viene consegnato: sarebbe un documento "
+              "che dice una cosa non vera su quello che contiene.",
+        "en": "The final check found data still present in the redacted PDF, "
+              "on pages the report called processed. The file is not handed "
+              "over: it would be a document that says something untrue about "
+              "what it holds.",
     },
     "pdf_titolo": {"it": "PDF redatto", "en": "Redacted PDF"},
     "pdf_prima": {"it": "Prima", "en": "Before"},

@@ -535,9 +535,24 @@ def convert_file(
         # Un campo alla volta, non "almeno uno": aggiungendo un
         # riconoscitore nuovo ci si dimentica sempre di questo elenco, e il
         # sintomo e' un filtro che sembra spento quando e' acceso.
+        #
+        # **`sempre` accende il filtro da sola**, e per un motivo che vale piu'
+        # di ogni interruttore: non e' un riconoscitore, e' un elenco di
+        # termini che l'utente ha scritto a mano. E' la richiesta piu'
+        # esplicita che questo programma riceva. Chi spegneva ogni casella
+        # perche' il documento non ha dati italiani e metteva il nome del
+        # cliente in «nascondi sempre» otteneva il contrario di quel che
+        # chiedeva: zero redazioni, termine in chiaro, e nessun avviso.
+        #
+        # L'interruttore **principale** resta sopra a tutto: quando e' spento
+        # le rotte passano `no_redaction()`, che le due liste non ce le ha, e
+        # qui non arriva niente da togliere.
         privacy_on = bool(
             final_text
-            and any(getattr(opts.privacy, name) for name in DETECTOR_FIELDS)
+            and (
+                any(getattr(opts.privacy, name) for name in DETECTOR_FIELDS)
+                or opts.privacy.sempre
+            )
         )
         if privacy_on and final_text:
             if opts.include_raw:

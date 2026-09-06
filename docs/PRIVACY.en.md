@@ -681,6 +681,16 @@ silent loss, by definition, appears in none of the three numbers.
     is the typical case, and it used to be counted among the pages treated. A
     **blank** page, on the other hand, is not an alarm: it has nothing to
     remove, and it stays silent;
+  - **a scan that has already been through OCR is refused too, since 1.28.0.**
+    This is the case that fooled the check above: such a page carries **two**
+    copies of the text, the pixels you can see and a layer of invisible
+    characters you can select and search. Extractable text is there, so the
+    page did not look like a scan; redaction removed the invisible characters
+    — the one copy nobody reads — and called the page treated while the name
+    stayed on screen, inside the image. Now, when everything there is to
+    remove sits in invisible characters and the page holds an image, the page
+    goes among the untreated ones; if **every** page is like that, the
+    document is refused as the scan it is;
   - **pages that fall back are not redacted.** When the extracted text cannot
     be found in the content stream, or a span cannot be traced to any glyph,
     the page comes out **as it was**. Those pages appear in
@@ -707,6 +717,27 @@ silent loss, by definition, appears in none of the three numbers.
   (`/AP`) is discarded and `NeedAppearances` is turned on: without that, the
   old name would still be drawn on screen, with the data removed only
   underneath.
+
+  **Document properties are in since 1.28.0**, and they were the same class of
+  defect: title, author, subject, keywords and the XMP block do not live in the
+  page's content stream, so they came out intact. A PDF whose subject read
+  `CF RSSMRA85M01H501Z` handed the tax code to anyone who opened its
+  properties, in two clicks. Those fields now go through the filter like the
+  rest of the text; the XMP block is **discarded** instead if it held
+  anything, because it is XML and rewriting its content by text substitution
+  means producing a broken file sooner or later — and that block duplicates
+  the properties, so dropping it takes nothing away from the redacted
+  document.
+
+  **The final check runs before handing the file over, since 1.28.0.**
+  `verifica_redazione` looks for the original's real values inside the
+  redacted file, page against page. It had existed for versions, it was good,
+  and only the tests ever called it: a check that runs only in continuous
+  integration protects no document. If it finds data on a page the report
+  calls **treated**, the file is not handed over: a PDF that says something
+  untrue about what it holds is worse than an error. If the data is left on a
+  page already declared untreated, the file goes out as always — there the
+  warning is already in place, and that is what counts.
 - **The formats covered are Italian and Anglo.** Italian tax code, VAT
   number, IBAN and BBAN; NHS number, National Insurance number, SSN, ITIN,
   ABA routing number, Canadian SIN, Australian ABN and TFN, UK postcode,
