@@ -673,6 +673,17 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     l'allegato firmato a mano — è il caso tipico, e prima usciva contata fra
     quelle trattate. Una pagina **bianca** invece non è un allarme: non ha
     niente da togliere, e resta silenziosa;
+  - **anche la scansione già passata da un OCR si rifiuta, dalla 1.28.0.** È
+    il caso che ingannava il controllo qui sopra: una pagina di questo tipo ha
+    **due** copie del testo, i pixel che si vedono e uno strato di caratteri
+    invisibili che si seleziona e si cerca. Il testo estraibile c'è, quindi la
+    pagina non sembrava una scansione; la redazione toglieva i caratteri
+    invisibili — cioè l'unica delle due copie che nessuno legge — e dichiarava
+    la pagina trattata mentre il nome restava a schermo, dentro l'immagine.
+    Adesso, quando tutto ciò che c'è da togliere sta in caratteri invisibili e
+    la pagina ha un'immagine, la pagina finisce fra quelle non trattate; se
+    **tutte** le pagine sono così, il documento viene rifiutato come la
+    scansione che è;
   - **le pagine in ripiego non sono redatte.** Quando il testo estratto non si
     ritrova nel flusso di contenuto, o un tratto non si riconduce a nessun
     glifo, la pagina esce **com'era**. Compaiono in `pagine_in_ripiego` con il
@@ -697,6 +708,26 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
   valore viene buttato l'aspetto memorizzato del campo (`/AP`) e si accende
   `NeedAppearances`: senza, sullo schermo resterebbe disegnato il nome di
   prima, con il dato tolto solo sotto.
+
+  **Le proprietà del documento ci sono dalla 1.28.0**, ed erano la stessa
+  classe di difetto: titolo, autore, oggetto, parole chiave e il blocco XMP
+  non stanno nel flusso della pagina, quindi uscivano interi. Un PDF il cui
+  oggetto era `CF RSSMRA85M01H501Z` consegnava il codice fiscale a chiunque
+  aprisse le proprietà, in due click. Ora quei campi passano dal filtro come
+  il resto del testo; l'XMP invece si **butta** se conteneva qualcosa, perché
+  è XML e riscriverne il contenuto a sostituzioni testuali significa prima o
+  poi produrre un file rotto — e quel blocco duplica le proprietà, quindi
+  toglierlo non toglie niente al documento redatto.
+
+  **Il controllo finale gira prima di consegnare, dalla 1.28.0.**
+  `verifica_redazione` cerca nel file redatto i valori veri dell'originale,
+  pagina contro pagina. Esisteva da versioni, era buona, e la chiamavano
+  soltanto i test: un controllo che gira solo in integrazione continua non
+  protegge nessun documento. Se ritrova un dato su una pagina che il rapporto
+  dà per **trattata**, il file non viene consegnato: un PDF che dice una cosa
+  non vera su quello che contiene è peggio di un errore. Se il dato è rimasto
+  su una pagina già dichiarata non trattata, il file esce come sempre — lì
+  l'avviso c'è già, ed è quello che conta.
 - **I formati coperti sono italiani e anglosassoni.** Codice fiscale, partita
   IVA, IBAN e BBAN italiani; NHS number, National Insurance number, SSN, ITIN,
   routing ABA, SIN canadese, ABN e TFN australiani, codice postale britannico,

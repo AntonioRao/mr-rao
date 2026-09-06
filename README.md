@@ -12,8 +12,8 @@
 [![Mac](https://img.shields.io/badge/macOS-Apple%20Silicon%20.dmg-111111?style=for-the-badge)](https://github.com/AntonioRao/mr-rao/releases/latest/download/MrRao-macos-arm64.dmg)
 
 [![CI](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml/badge.svg)](https://github.com/AntonioRao/mr-rao/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.27.5-3b82f6)](docs/CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-2312%20passing-10b981)](tests/)
+[![Version](https://img.shields.io/badge/version-1.29.0-3b82f6)](docs/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-2355%20passing-10b981)](tests/)
 [![Network](https://img.shields.io/badge/network-no%20outbound%20calls-8b5cf6)](#how-it-actually-stays-local)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-f59e0b)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-portable%2C%20no%20Python-06b6d4)](docs/PORTABLE.md)
@@ -160,6 +160,8 @@ The rules hold for everyone, but the names that come up in **every** one of your
 - **Never touch** — internal designations, product names, your own company name.
 
 The second is not the opposite of the first: it is **stronger**. A term written there is shielded from *every* recogniser — including the ones you would not know to switch off — it outranks "always hide", and it is not even flagged as a suspect, because you have already decided.
+
+"Always hide" **is enough on its own**, since 1.28.0: switch off every recogniser because the document holds no Italian data, write the client's name in that box, and the name still goes. It did not before — the filter only ran with at least one recogniser on, and the hand-written list was ignored in silence. The master redaction switch still sits above everything: turn that off and the lists do not bite, because you have said no to the whole document.
 
 Both lists survive between conversions, on your own disk. They are the only thing Mr. Rao stores: documents and results live only while the page is open.
 
@@ -446,7 +448,7 @@ Dependencies each remain under their own licence — see [THIRD_PARTY.md](THIRD_
 scripts\quality_gate.bat
 ```
 
-Six steps: compilation, importing every module one by one, dependency health, licence alignment, **2312 tests**, published-docs alignment.
+Six steps: compilation, importing every module one by one, dependency health, licence alignment, **2355 tests**, published-docs alignment.
 
 The tests do not just cover the happy path. They cover the defects that cost the most: the profile × format matrix that uncovered broken OCR on PDFs, option isolation between files of the same batch, the busy-port behaviour on Windows, the GET request that wrote to disk, the folders that ended up in the cloud. Every regression test was verified **failing against the old code** first — a test that passes with the bug in place proves nothing.
 

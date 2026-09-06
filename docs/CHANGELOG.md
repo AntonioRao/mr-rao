@@ -1,5 +1,182 @@
 # Changelog
 
+## 1.29.0 — Il nome del file, gli allegati, e le altre voci dell'audit
+
+Il secondo giro sull'audit del 6 settembre 2026: le voci che nella prima
+passata erano state solo lette, qui misurate e chiuse. Nessuna e' una fuga come
+quelle della 1.28.0; due sono promesse mancate, il resto sono risposte che non
+aiutavano chi le riceveva.
+
+### Il nome del file entrava in chiaro dentro il documento
+
+Un documento si chiama come il suo contenuto — `Rossi_Mario_cartella_clinica.pdf`
+e' la regola in uno studio, non l'eccezione — e quel nome finisce in due posti
+che **viaggiano insieme al documento redatto**: la riga `source:` del
+frontmatter e le intestazioni del merge. Il corpo veniva ripulito e il nome no,
+quindi il Markdown consegnato diceva il cognome nel primo rigo dopo averlo
+tolto da ogni riga sotto.
+
+Il nome passa adesso dallo **stesso** filtro del testo, con le stesse opzioni.
+Non era immediato: il motore legge testo, e in `Rossi_Mario_referto.pdf` non
+vede nessun nome finche' non si mettono gli spazi al posto dei separatori —
+misurato, zero sostituzioni con gli underscore. Si normalizza conservando le
+posizioni, si chiedono le posizioni a chi le sa gia' calcolare (lo stesso codice
+che serve al PDF, ora in `mr_rao/posizioni.py` invece che in due copie) e si
+rimettono i separatori: esce `{{NAME_1}}_referto.pdf`, non
+`{{NAME_1}} referto pdf`.
+
+Il nome del `.md` sul disco non cambia: quello e' un file dell'utente sulla sua
+macchina. Il confine e' fra cio' che sta **dentro** il documento e cio' che sta
+intorno.
+
+### Gli allegati delle email escono come sono entrati, e adesso lo dicono
+
+Un `.eml` porta con se' i suoi allegati, e l'interfaccia li offre in scarico.
+Quei file non passano dal filtro — sono binari di ogni formato, e Mr. Rao non
+sa redigere un `.xlsx` senza convertirlo — e fin qui e' un limite, non un
+difetto. Il difetto era non dirlo: escono dallo stesso pannello dello stesso
+programma, e chi li prende ha tutte le ragioni di crederli trattati come il
+resto. Adesso l'avviso sta accanto ai bottoni.
+
+E il nome dell'allegato viene ripulito: lo scrive chi manda la mail, e ci puo'
+essere un percorso o dei caratteri di controllo. Finiva nell'attributo
+`download` di un link — i browser si difendono da soli, ma «si difende il
+browser» non e' una difesa nostra.
+
+### Il rimedio del riquadro si dichiara
+
+Il rettangolo colorato sotto un segnaposto serve a far vedere che li' c'era
+qualcosa. Su certe pagine non si vede, e c'e' un secondo passaggio che rimedia;
+l'esito di quel rimedio veniva calcolato con cura — compreso un controllo per
+non dichiarare rimedi che non hanno funzionato — e si fermava dentro un oggetto
+Python. Ora l'anteprima lo dice, in due frasi diverse: il segnaposto che si
+copia due volte, e la pagina su cui non resta **nessun segno** che li' ci fosse
+un dato.
+
+### Un modulo di soli campi non e' una scansione
+
+Trovato scrivendo i banchi delle annotazioni. Un PDF le cui pagine non hanno
+testo disegnato — tutto nei campi — usciva dichiarato «scansione»: il controllo
+guardava solo il testo estratto dalle pagine. Il file redatto non veniva
+nemmeno scritto, e l'utente veniva mandato a cercare l'OCR per un documento che
+si poteva trattare benissimo.
+
+Con lui, tre chiavi di annotazione che restavano fuori e hanno tutte dentro il
+valore vero: `/DV` (il valore predefinito, in un modulo precompilato una
+seconda copia del dato), `/TU` (il suggerimento che il lettore mostra col
+mouse) e `/Opt` (le scelte di una tendina, che in un modulo uscito da un
+gestionale sono i nomi dei clienti). E la catena dei genitori, che si fermava
+al primo: in un modulo con i campi raggruppati il valore sta due livelli sopra.
+
+### La copia di lavoro, quando la cancellazione non riesce
+
+`convert_bytes` scrive i byte caricati in un file temporaneo e cancella. La
+rimozione era avvolta in un `try/except` muto: file aperto da un antivirus,
+permessi cambiati, e il documento in chiaro restava in una cartella condivisa
+da ogni programma dell'utente, per sempre, senza che nessuno lo sapesse.
+
+Non si promette la cancellazione sicura — sovrascrivere non garantisce niente
+su un disco a stato solido, e prometterlo sarebbe la bugia peggiore qui dentro.
+Si promette che il file rimasto **non contiene piu' il documento**, e che il
+fallimento si dice.
+
+### La cartella sorvegliata non puo' essere anche quella di uscita
+
+`.md` e' un formato d'ingresso ammesso, quindi ogni file prodotto era un file
+nuovo da convertire: `nota.md` produce `nota-md.md`, che viene visto,
+convertito, e via cosi'. Adesso la configurazione viene rifiutata quando la si
+chiede, con un messaggio che dice cosa fare. Il verso opposto — la cartella
+guardata dentro quella di uscita — non e' un ciclo e resta permesso.
+
+### Risposte che adesso aiutano chi le riceve
+
+- un PDF danneggiato, vuoto o protetto da password dava **500**, cioe' «si e'
+  rotto il programma», per un file che semplicemente non si apre. Ora e' un 400
+  che dice cosa e' successo;
+- gli errori di un lavoro finivano su `print()`, e nel portable o
+  nell'eseguibile con l'icona nel vassoio non c'e' nessuna console: si
+  perdevano. Ora vanno nel registro, con la pila;
+- `//host` non e' un percorso relativo, e' un altro sito: nell'anteprima del
+  `.docx` passava insieme a `/pagina` e `#ancora`;
+- la riga di comando sovrascriveva un `.md` esistente senza una parola. Non si
+  rifiuta e non si rinomina — un percorso chiesto a mano e' una scelta — ma si
+  dice.
+
+### Un sospetto misurato, e infondato
+
+L'audit aveva segnato le espressioni regolari delle citazioni email come
+possibile esplosione combinatoria su corpi pieni di spazi. Misurate su tre
+forme patologiche prima di toccarle: il costo cresce **in modo lineare**,
+16 000 spazi in mezzo millisecondo. Nessun cambiamento, e la misura sta nel
+codice perche' «l'ho provato a mano» dura una sessione.
+
+## 1.28.0 — Quattro cose che uscivano da un file chiamato «-redatto.pdf»
+
+Un audit del 6 settembre 2026, cercato apposta nei posti dove il **rapporto
+diceva di si' e il documento diceva di no**. Tutte e quattro misurate
+eseguendo il codice prima di scrivere una riga di correzione.
+
+### Le proprieta' del documento uscivano intere
+
+Titolo, autore, oggetto, parole chiave e il blocco XMP non stanno nel flusso
+di contenuto della pagina, quindi la chirurgia dei glifi non li vedeva. Un PDF
+il cui oggetto era `CF RSSMRA85M01H501Z` consegnava il codice fiscale a
+chiunque aprisse le proprieta' del documento, in due click, da un file che si
+chiamava `-redatto.pdf`.
+
+E' la stessa classe del difetto delle annotazioni chiuso nella 1.24.0: **testo
+che non e' nel flusso**. Ora quei campi passano dal filtro come il resto. Il
+blocco XMP invece si butta, se conteneva qualcosa: e' XML, e riscriverne il
+contenuto a sostituzioni testuali vuol dire prima o poi produrre un file rotto
+— e siccome duplica le proprieta', toglierlo non toglie niente al documento.
+
+`verifica_redazione` non poteva accorgersene: guardava il flusso e le
+annotazioni, cioe' due posti in cui quel dato non e' mai stato. Adesso i
+metadati entrano nel confronto come una pagina in piu', in coda.
+
+### La scansione gia' passata da un OCR usciva «trattata»
+
+Una pagina scansionata a cui qualcuno ha gia' passato un OCR porta **due**
+copie del testo: i pixel, che si vedono, e uno strato di caratteri invisibili
+(`3 Tr`) che si seleziona e si cerca. Il testo estraibile c'e', quindi il
+rifiuto delle scansioni non scattava; la redazione toglieva i caratteri
+invisibili — l'unica delle due copie che nessuno legge — e dichiarava la
+pagina trattata. Il nome restava a schermo, dentro l'immagine.
+
+Misurato prima della correzione: due segnaposto inseriti, nessuna pagina
+dichiarata non trattata, l'immagine ancora nel file.
+
+Adesso, quando tutto cio' che c'e' da togliere sta in caratteri invisibili
+**e** la pagina ha un'immagine, la pagina finisce fra quelle non trattate col
+motivo scritto; se **tutte** le pagine sono cosi', il documento viene
+rifiutato come la scansione che e'. Una pagina digitale con un logo — meta'
+della carta intestata — resta trattata come prima: il testo li' si vede.
+
+### «Nascondi sempre» veniva ignorata con i riconoscitori spenti
+
+Chi spegneva ogni casella, perche' il documento non ha dati italiani, e
+scriveva il nome del cliente in «nascondi sempre» otteneva il contrario di
+quel che chiedeva: zero redazioni, termine in chiaro, nessun avviso. Il filtro
+partiva solo se un **riconoscitore** era acceso, e quella lista non e' un
+riconoscitore: e' la richiesta piu' esplicita che questo programma riceva.
+
+Ora la lista accende il filtro da sola. L'interruttore generale resta sopra a
+tutto: quando e' spento le due liste non arrivano nemmeno al motore.
+
+### Il controllo finale girava solo in CI
+
+`verifica_redazione` esisteva da versioni, era buona, e la chiamavano soltanto
+i test. Le rotte spedivano il file appena la redazione non sollevava. Un
+controllo che gira solo in integrazione continua non protegge nessun documento
+vero.
+
+Adesso gira prima di consegnare. Se ritrova un dato su una pagina che il
+rapporto da' per **trattata**, il file non parte: un PDF che dice una cosa non
+vera su quello che contiene e' peggio di un errore. Se il dato e' rimasto su
+una pagina gia' dichiarata non trattata, il file esce come sempre — li'
+l'avviso c'e' gia', ed e' quello che conta. Nel registro finiscono il numero e
+le pagine, mai i valori.
+
 ## 1.27.5 — Mezza e-mail restava nel PDF, e il motore toglieva parole che non erano dati
 
 Quattro correzioni alla redazione dei PDF, tutte trovate su documenti veri.

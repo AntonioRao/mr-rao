@@ -1,6 +1,6 @@
 {
   "motore": {
-    "app": "1.27.5",
+    "app": "1.29.0",
     "sorgenti": {
       "mr_rao/privacy.py": "182b396ac283066ae8912ff0c35300bee8e32dc9cbde78bb2a0d737e015e5087",
       "mr_rao/en_formats.py": "427e302cfce8844046847e11a4522f02b4ffddc9ddaa32d6e9b279533fbc4ea6",

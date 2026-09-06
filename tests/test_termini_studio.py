@@ -229,6 +229,91 @@ def test_senza_le_caselle_non_cambia_niente(client):
     assert "{{EMAIL_1}}" in md
 
 
+# ------------------------------ «sempre» quando ogni riconoscitore e' spento
+
+
+def test_sempre_vale_anche_con_tutti_i_riconoscitori_spenti():
+    """Il caso trovato dall'audit del 6 settembre 2026, misurato.
+
+    `converter.py` accendeva il filtro solo se **un riconoscitore** era acceso.
+    Ma «nascondi sempre» non e' un riconoscitore: e' un elenco di termini che
+    l'utente ha scritto a mano, ed e' la forma piu' esplicita di richiesta che
+    questo programma riceva. Chi spegne ogni casella perche' il documento non
+    ha dati italiani e mette il nome del cliente nella lista otteneva il
+    contrario di quel che chiedeva: zero redazioni, termine in chiaro, e
+    nessun avviso.
+
+    Non e' in contraddizione con `test_a_filtro_spento_le_liste_non_tolgono_niente`:
+    li' l'interruttore **principale** e' spento, e la rotta scarta le due liste
+    alla fonte (`no_redaction()` non ha `sempre`). Qui il filtro e' acceso e
+    sono i singoli riconoscitori a essere spenti — una scelta diversa, con una
+    risposta diversa.
+    """
+    from dataclasses import replace
+
+    from mr_rao.converter import ConvertOptions, convert_bytes
+    from mr_rao.privacy import no_redaction
+
+    opzioni = ConvertOptions(
+        privacy=replace(no_redaction(), sempre=termini_da("ACME Rossi e Figli")),
+        include_frontmatter=False,
+    )
+    esito = convert_bytes(
+        "La pratica di ACME Rossi e Figli prosegue.".encode("utf-8"),
+        "nota.txt",
+        options=opzioni,
+    )
+    assert not esito.error, esito.error
+    assert "ACME Rossi e Figli" not in esito.markdown, esito.markdown
+    assert esito.redaction.total >= 1, esito.redaction.counts
+
+
+def test_con_tutto_spento_e_liste_vuote_non_si_tocca_niente():
+    """La riga che impedisce di «correggere» accendendo il filtro sempre.
+
+    Senza termini in lista e senza riconoscitori il documento deve uscire
+    identico: e' la promessa di «tutto spento», e vale ancora.
+    """
+    from mr_rao.converter import ConvertOptions, convert_bytes
+    from mr_rao.privacy import no_redaction
+
+    testo = "Il cliente Mario Rossi, mario.rossi@example.it."
+    esito = convert_bytes(
+        testo.encode("utf-8"), "nota.txt",
+        options=ConvertOptions(privacy=no_redaction(), include_frontmatter=False),
+    )
+    assert not esito.error, esito.error
+    assert "Mario Rossi" in esito.markdown
+    assert "mario.rossi@example.it" in esito.markdown
+    assert esito.redaction.total == 0, esito.redaction.counts
+
+
+def test_dall_interfaccia_e_lo_stesso(client):
+    """Parita' GUI: la stessa scelta, fatta dal pannello, deve fare lo stesso.
+
+    Ogni casella spenta, un termine in «nascondi sempre»: e' il percorso vero
+    dell'utente che ha trovato il difetto.
+
+    **Le caselle non si elencano a mano.** La prima stesura ne nominava otto su
+    dodici: `atti`, `quasi_id`, `amounts` e `urls` restavano accesi, il filtro
+    partiva per colpa loro e il test usciva verde senza provare niente. Si
+    spengono tutte quelle che il motore dichiara, cosi' un riconoscitore nuovo
+    entra da solo nella prova invece di forarla in silenzio.
+    """
+    from mr_rao.privacy import FIELD_DEFAULTS
+
+    spente = {"privacy_" + k: "false" for k in FIELD_DEFAULTS}
+    md = converti(
+        client,
+        b"La pratica di ACME Rossi e Figli prosegue.",
+        profile="default",
+        privacy_filter="true",
+        privacy_sempre="ACME Rossi e Figli",
+        **spente,
+    )
+    assert "ACME Rossi e Figli" not in md, md
+
+
 # ------------------------------------------------------------ parita' GUI
 
 

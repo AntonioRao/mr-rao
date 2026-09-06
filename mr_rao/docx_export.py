@@ -304,6 +304,15 @@ def _indirizzo_innocuo(valore: str) -> bool:
     if not isinstance(valore, str):
         return False
     pulito = re.sub(r"[\s\x00-\x1f]+", "", valore).lower()
+    # **`//host` non e' un percorso relativo: e' un altro sito.** Si chiama
+    # protocollo-relativo, e il lettore lo apre con lo schema della pagina.
+    # Cadeva nel ramo qui sotto insieme a `/pagina` e `#ancora`, che invece non
+    # portano da nessuna parte. Non esegue codice — quindi non e' un buco di
+    # esecuzione — ma e' una navigazione fuori dal documento, e un'anteprima
+    # che gira in locale non deve poterla proporre. La barra rovesciata per la
+    # stessa ragione: i browser la trattano come una barra.
+    if pulito.startswith(("//", "/\\", "\\/", "\\\\")):
+        return False
     if pulito.startswith(("#", "/")):
         return True
     if ":" not in pulito.split("/")[0]:

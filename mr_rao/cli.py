@@ -414,8 +414,21 @@ def cmd_convert(args: argparse.Namespace) -> int:
                 out = Path(args.output)
             else:
                 out = out_dir / (path.stem + ".md")
+        # **Sovrascrivere si dice.** Chi converte due volte la stessa cartella
+        # con opzioni diverse perdeva il primo giro senza una parola. La
+        # cartella sorvegliata non lo fa da versioni — `output_path_for` numera
+        # invece di sovrascrivere — e qui il comportamento era l'opposto sulla
+        # stessa operazione.
+        #
+        # Non si rifiuta e non si rinomina: un percorso chiesto a mano con
+        # `-o` e' una scelta, e cambiarla di nascosto sarebbe peggio. Si dice,
+        # e chi legge decide.
+        esisteva = out.exists()
         out.write_text(r.markdown, encoding="utf-8")
-        _scrivi(f"Salvato: {out}")
+        if esisteva:
+            _scrivi(f"Salvato (sovrascritto): {out}")
+        else:
+            _scrivi(f"Salvato: {out}")
     _attendi_se_serve(args, da_guardare)
     return 0
 

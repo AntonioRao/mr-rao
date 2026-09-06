@@ -16,6 +16,14 @@ from bs4 import BeautifulSoup
 from mr_rao.i18n import LINGUA_PREDEFINITA, t
 
 # Reply / quote start patterns (IT + EN)
+# **Il sospetto sul costo e' stato misurato, ed era infondato.** L'audit del
+# 6 settembre 2026 aveva segnato questi `^\s*` in MULTILINE come possibile
+# esplosione combinatoria su corpi pieni di spazi. Misurato prima di toccarli,
+# su tre forme patologiche (righe di soli spazi, «On» ripetuto senza chiusura,
+# spazi seguiti da un prefisso che apre il pattern): il tempo cresce **in modo
+# lineare** con la lunghezza — 16 000 spazi in mezzo millisecondo, 8 000 righe
+# «On …» in quattro. Nessun cambiamento, e la nota resta qui perche' «l'ho
+# provato a mano» dura una sessione.
 _REPLY_PATTERNS = [
     re.compile(r"^\s*On .+wrote:\s*$", re.IGNORECASE | re.MULTILINE),
     re.compile(r"^\s*Il giorno .+ha scritto:\s*$", re.IGNORECASE | re.MULTILINE),
@@ -182,6 +190,29 @@ def list_attachments(msg, lingua: str = LINGUA_PREDEFINITA) -> list[tuple[str, i
     return attachments
 
 
+def nome_allegato_sicuro(nome: str | None) -> str:
+    """Il nome di un allegato, ripulito di cio' che non e' un nome.
+
+    Quel nome lo scrive chi manda la mail, e chi manda la mail non e' dalla
+    nostra parte: dentro puo' esserci un percorso (`../../etc/passwd`), dei
+    separatori, dei caratteri di controllo. Finisce nell'attributo `download`
+    di un link, e i browser si difendono da soli — ma «si difende il browser»
+    non e' una difesa nostra, e vale solo finche' quel nome resta li'. Il
+    giorno che passa per una cartella o per un registro, non c'e' piu' niente.
+
+    Si tiene **l'ultimo pezzo** del percorso, che e' il nome vero, e si tolgono
+    i caratteri di controllo. Non si tocca altro: uno spazio o una parentesi in
+    un nome di file sono normali, e riscriverli renderebbe irriconoscibili i
+    tre allegati che l'utente sta cercando di distinguere.
+    """
+    grezzo = (nome or "").strip()
+    # Entrambi i separatori, sempre: una mail scritta su Windows arriva su
+    # Linux e viceversa, e guardarne uno solo vuol dire non guardare.
+    ultimo = grezzo.replace("\\", "/").split("/")[-1]
+    pulito = "".join(c for c in ultimo if c.isprintable()).strip().strip(".")
+    return pulito or "allegato.bin"
+
+
 def extract_attachments(
     filepath: str | Path,
     max_bytes: int | None = None,
@@ -207,7 +238,7 @@ def extract_attachments(
         content_disposition = str(part.get("Content-Disposition", ""))
         if "attachment" not in content_disposition:
             continue
-        fname = part.get_filename() or "allegato.bin"
+        fname = nome_allegato_sicuro(part.get_filename())
         raw = part.get_payload(decode=True) or b""
         mime = part.get_content_type() or "application/octet-stream"
         entry = {
