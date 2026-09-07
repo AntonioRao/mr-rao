@@ -1,8 +1,8 @@
 {
   "motore": {
-    "app": "1.29.1",
+    "app": "1.30.0",
     "sorgenti": {
-      "mr_rao/privacy.py": "182b396ac283066ae8912ff0c35300bee8e32dc9cbde78bb2a0d737e015e5087",
+      "mr_rao/privacy.py": "78b9503edbcb6de4526433191baf1d85dacaad80205a35b9498b67a567a6c75e",
       "mr_rao/en_formats.py": "427e302cfce8844046847e11a4522f02b4ffddc9ddaa32d6e9b279533fbc4ea6",
       "mr_rao/it_names.py": "d5ef38d9b14748a8345aaf3124abd4a82c3c4d9205f45738877be23dc138a87a"
     }
@@ -2983,9 +2983,16 @@
           }
         ],
         "suspects_total": 1,
-        "detected": [],
-        "detected_counts": {},
-        "detected_total": 0
+        "detected": [
+          {
+            "kind": "organizzazione",
+            "sample": "Be••••••••••••••••••A."
+          }
+        ],
+        "detected_counts": {
+          "organizzazione": 1
+        },
+        "detected_total": 1
       }
     },
     "nomi-cf-etichetta-estesa": {
@@ -3105,9 +3112,16 @@
         "total": 0,
         "suspects": [],
         "suspects_total": 0,
-        "detected": [],
-        "detected_counts": {},
-        "detected_total": 0
+        "detected": [
+          {
+            "kind": "organizzazione",
+            "sample": "Be••••••••••••••••••A."
+          }
+        ],
+        "detected_counts": {
+          "organizzazione": 1
+        },
+        "detected_total": 1
       }
     },
     "negativi-ruolo-ltd": {
@@ -3118,9 +3132,16 @@
         "total": 0,
         "suspects": [],
         "suspects_total": 0,
-        "detected": [],
-        "detected_counts": {},
-        "detected_total": 0
+        "detected": [
+          {
+            "kind": "organizzazione",
+            "sample": "De•••••••••••••td"
+          }
+        ],
+        "detected_counts": {
+          "organizzazione": 1
+        },
+        "detected_total": 1
       }
     },
     "negativi-ruolo-ente": {

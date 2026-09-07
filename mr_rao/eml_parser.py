@@ -182,7 +182,20 @@ def list_attachments(msg, lingua: str = LINGUA_PREDEFINITA) -> list[tuple[str, i
                 # Il nome dell'allegato lo dichiara il mittente dentro il
                 # Content-Disposition: puo' contenere un a capo e spezzare
                 # l'elenco in due voci, una delle quali senza nome.
-                fname = intestazione_su_una_riga(part.get_filename() or "") or t(
+                #
+                # E puo' contenere un **percorso**. `nome_allegato_sicuro` lo
+                # toglieva gia' sulla strada che *estrae* l'allegato, e non
+                # qui, dove il nome finisce scritto nel Markdown: due righe
+                # dello stesso programma mostravano lo stesso campo in due modi
+                # diversi. Il pericolo vero sta di la' ed era gia' chiuso;
+                # questa e' coerenza, e vale il costo di una chiamata — il
+                # giorno che qualcuno copia quel nome dall'elenco per creare un
+                # file, la differenza smette di essere estetica.
+                #
+                # Trovato dalla batteria dal vivo del 07/09/2026, che si e'
+                # vista uscire `../../etc/passwd.txt` nell'elenco.
+                grezzo = intestazione_su_una_riga(part.get_filename() or "")
+                fname = (nome_allegato_sicuro(grezzo) if grezzo else "") or t(
                     "doc_allegato_senza_nome", lingua
                 )
                 size = len(part.get_payload(decode=True) or b"")

@@ -65,6 +65,7 @@ invented by us.
 | Type | Placeholder | How it is decided |
 |------|-------------|-------------------|
 | Email | `{{EMAIL}}` | Address shape, including obfuscated forms (`[at]`, `chiocciola`, `punto`) and the **spaced at sign** (`mario @ esempio.it`). For that last one the final part of the domain must be letters: without that constraint, `10 @ 4.50` on an invoice would become an address |
+| Usernames | `{{HANDLE}}` | `@username` **inside a sentence**: `(@mariorossi)`, `write to me at @mariorossi`, `Telegram: @mrossi_74`. GitHub's rules — 3 to 39 characters of letters, digits, `-` and `_` — and **no dot followed by more text**, which is what tells a username apart from `@app.route` and from `@example.com`. One at the **start of a line is left alone**: that is where code decorators (`@property`) and stylesheet rules (`@media`) live, and the shape separates them better than any word list ever would. The stated cost: the handle in a pasted post (“@mariorossi wrote…”) is not picked up |
 | Web addresses | `{{URL}}` | An explicit scheme — `http`, `https`, `ftp`, `ftps` — or `www.`. A bare `name.it` in running text is not enough |
 | Phone numbers | `{{PHONE}}` | **Any** international prefix (`+39`, `+44`, `0033`: one to three digits after `+` or `00`), Italian `3xx` mobiles, a context word (`cell`, `tel`, `fax`), or a landline with separators. The **slash** form (`011/7323929`) counts only with a contact word or an international prefix in front |
 | Italian tax code | `{{CODICE_FISCALE}}` | 16-character structure. The **check character** does not reject, it flags |
@@ -118,6 +119,28 @@ document cleaner, it makes it quieter. Anyone who really wants them gone
 already has the **«always hide»** list, which removes them — no capability is
 lost, and that is what makes the choice not to offer substitution an honest
 one.
+
+### Company names, since 1.30.0: same channel, same reason
+
+`Alfa Costruzioni S.r.l.`, `Nordwind GmbH`: recognised as **one to four
+capitalised words followed by a company suffix**, and reported in the same
+block as age and sex. The text comes out unchanged.
+
+They are not substituted, and that is not an omission. A company is not a
+natural person and the GDPR does not protect it; in a legal document the
+company name is often the subject of the sentence, and removing it would make
+the document unreadable while protecting nobody. There is more: the engine has
+a **shield** whose whole purpose is to stop «the client Beta Consulting
+S.p.A.» from becoming «the client {{NAME}} S.p.A.» — a detector substituting
+here would be rowing against it.
+
+It stays true that a company name **re-identifies**: «Alfa Costruzioni S.r.l.
+of Santhià» leads to a person in two searches. Counting them is the only
+answer that holds both true things together.
+
+The suffix is **required**: without it, `Alfa Costruzioni` on its own could be
+a company, a street or a project, and guessing would mean flagging half the
+document.
 
 ### «Report instead of replace»: the third state, and it is not only about those two
 
