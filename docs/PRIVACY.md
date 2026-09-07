@@ -66,6 +66,7 @@ inventato da noi.
 | Tipo | Segnaposto | Come viene deciso |
 |------|-----------|-------------------|
 | Email | `{{EMAIL}}` | Forma dell'indirizzo, comprese quelle offuscate (`[at]`, `chiocciola`, `punto`) e la **chiocciola spaziata** (`mario @ esempio.it`). Su quest'ultima l'ultimo pezzo del dominio dev'essere di lettere: senza quel vincolo, `10 @ 4.50` su una fattura diventerebbe un indirizzo |
+| Nomi utente | `{{HANDLE}}` | `@nomeutente` **dentro una frase**: `(@mariorossi)`, `scrivimi su @mariorossi`, `Telegram: @mrossi_74`. Regole di GitHub — da 3 a 39 caratteri fra lettere, cifre, `-` e `_` — e **nessun punto seguito da altro testo**, che è ciò che separa un nome utente da `@app.route` e da `@example.com`. Uno a **inizio riga resta in chiaro**: lì stanno i decoratori del codice (`@property`) e le regole dei fogli di stile (`@media`), e la forma li separa meglio di qualunque elenco di parole. Il prezzo, dichiarato: l'handle del post copiato («@mariorossi ha scritto…») non viene preso |
 | Indirizzi web | `{{URL}}` | Schema esplicito — `http`, `https`, `ftp`, `ftps` — oppure `www.`. Non basta un `nome.it` in mezzo al testo |
 | Telefoni | `{{PHONE}}` | Prefisso internazionale **qualunque** (`+39`, `+44`, `0033`: da una a tre cifre dopo `+` o `00`), cellulari italiani `3xx`, parola di contesto (`cell`, `tel`, `fax`), oppure fisso con separatori. La **barra** (`011/7323929`) vale solo con la parola di contatto o il prefisso internazionale davanti |
 | Codice fiscale | `{{CODICE_FISCALE}}` | Struttura a 16 caratteri. Il **carattere di controllo** non rifiuta, segnala |
@@ -118,6 +119,28 @@ stato: acceso li segnala, spento non li cerca. Spegnerlo non rende il documento
 più pulito, lo rende più silenzioso. Chi li vuole togliere davvero ha già
 l'elenco **«nascondi sempre»**, che li toglie — nessuna capacità è perduta, ed
 è questo a rendere onesta la scelta di non offrire la sostituzione.
+
+### Le ragioni sociali, dalla 1.30.0: stesso canale, stessa ragione
+
+`Alfa Costruzioni S.r.l.`, `Nordwind GmbH`: si riconoscono da **una a quattro
+parole con l'iniziale maiuscola seguite da una sigla societaria**, e finiscono
+nello stesso blocco di età e sesso. Il testo esce identico.
+
+Non si sostituiscono, e non è una mancanza. Una società non è una persona
+fisica e il GDPR non la protegge; in un atto la ragione sociale è spesso il
+soggetto della frase, e toglierla renderebbe il documento illeggibile senza
+proteggere nessuno. C'è di più: il motore ha uno **scudo** che esiste apposta
+per impedire che «il cliente Beta Consulting S.p.A.» diventi «il cliente
+{{NAME}} S.p.A.» — un riconoscitore che qui sostituisse remerebbe contro
+quello scudo.
+
+Resta vero che in un atto una ragione sociale **reidentifica**: «la Alfa
+Costruzioni S.r.l. di Santhià» porta a una persona con due ricerche. Contarle
+è l'unica risposta che tiene insieme le due cose vere.
+
+La sigla è **obbligatoria**: senza, `Alfa Costruzioni` da solo può essere
+un'azienda, una via o un progetto, e indovinare vorrebbe dire segnalare mezzo
+documento.
 
 ### «Segnala anziché sostituisci»: il terzo stato, e non riguarda solo questi due
 

@@ -496,6 +496,35 @@ TESTI: dict[str, dict[str, str]] = {
     },
     "opt_emails_titolo": {"it": "Email", "en": "Email"},
     "opt_emails_desc": {"it": "Indirizzi di posta", "en": "Email addresses"},
+    "tip_handle": {
+        "it": "Nomi utente preceduti da @ dentro una frase — «(@mariorossi)», "
+              "«scrivimi su @mariorossi». Un handle porta a un profilo, cioe' a "
+              "una persona sola. Restano in chiaro quelli a inizio riga, perche' "
+              "li' stanno i decoratori del codice (@property) e le regole dei "
+              "fogli di stile (@media).",
+        "en": "Usernames written with a leading @ inside a sentence — "
+              "“(@mariorossi)”, “write to me at @mariorossi”. A handle leads to a "
+              "profile, that is, to one person. Ones at the start of a line are "
+              "left alone: that is where code decorators (@property) and "
+              "stylesheet rules (@media) live.",
+    },
+    "opt_handle_titolo": {"it": "Nomi utente", "en": "Usernames"},
+    "opt_handle_desc": {"it": "@nomeutente nei social", "en": "@handles on social media"},
+    "tip_organizzazioni": {
+        "it": "Ragioni sociali — «Alfa Costruzioni S.r.l.», «Nordwind GmbH». "
+              "Le trova e le **conta nel rapporto**, non le toglie: una societa' "
+              "non e' una persona fisica, e in un atto e' spesso il soggetto "
+              "della frase. Serve a sapere che il documento reidentifica anche "
+              "senza i nomi.",
+        "en": "Company names — “Alfa Costruzioni S.r.l.”, “Nordwind GmbH”. They "
+              "are found and **counted in the report**, not removed: a company "
+              "is not a natural person, and in a legal document it is often the "
+              "subject of the sentence. It tells you the document can still "
+              "identify people even with the names gone.",
+    },
+    "opt_organizzazioni_titolo": {"it": "Ragioni sociali", "en": "Company names"},
+    "opt_organizzazioni_desc": {"it": "Le segnala, non le toglie",
+                                "en": "Reported, not removed"},
     "tip_phones": {
         "it": "Numeri di telefono fissi e cellulari. I numeri che non sembrano "
               "telefoni (protocolli, codici) vengono lasciati stare.",

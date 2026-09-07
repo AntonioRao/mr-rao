@@ -918,6 +918,16 @@ def anteprima_pdf():
         # qualcosa, e chi legge non ha modo di chiedere cosa c'era.
         "pagine_riquadro_doppio": sorted(esito.pagine_riquadro_sopra),
         "pagine_senza_segno": sorted(esito.pagine_senza_riquadro),
+        # Le pagine in cui il dato stava nei **pixel** di una scansione e il
+        # rettangolo e' stato messo dove lo strato OCR dice che sta la parola.
+        # Sono trattate — non entrano in `pagine_non_trattate` — ma la
+        # copertura vale quanto l'allineamento di quello strato, che dal file
+        # non si puo' verificare: chi consegna il documento le guarda.
+        "pagine_coperte_sull_ocr": sorted(esito.pagine_coperte_sull_ocr),
+        # Gli allegati incorporati sono documenti interi che non abbiamo
+        # redatto: escono dal file, e chi lo consegna deve sapere che il PDF
+        # ha un pezzo in meno di quello che aveva caricato.
+        "allegati_rimossi": esito.allegati_tolti,
         "prima": prima,
         "dopo": dopo,
     })

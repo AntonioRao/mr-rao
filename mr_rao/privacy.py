@@ -1342,6 +1342,16 @@ PACCHETTI_NOTI: tuple[str, ...] = (CORE, IT, EN, ATTI)
 @dataclass
 class PrivacyOptions:
     emails: bool = True
+    #: `@nomeutente` dentro una frase. Acceso come le email: un handle porta a
+    #: un profilo, cioe' a una persona sola. La regola e il suo limite -- un
+    #: handle a inizio riga resta in chiaro, per non redigere i decoratori del
+    #: codice -- stanno in `_apre_la_riga`.
+    handle: bool = True
+    #: Ragioni sociali. Acceso, e **non sostituisce mai**: le trova e le conta
+    #: nel rapporto. Una societa' non e' una persona fisica, e lo scudo che
+    #: impedisce di redigerla come nome esiste apposta -- vedi
+    #: `_scrub_organizzazioni` per il perche' per esteso.
+    organizzazioni: bool = True
     phones: bool = True
     names: bool = True
     fiscal: bool = True  # CF, P.IVA, IBAN, carte di pagamento
@@ -2836,6 +2846,58 @@ def _scrub_eta_sesso(text: str, report: RedactionReport) -> str:
     return text
 
 
+#: Una ragione sociale: da una a quattro parole con l'iniziale maiuscola,
+#: seguite da una sigla societaria.
+#:
+#: E' la **stessa** lista di sigle che serve allo scudo dei nomi
+#: (`_RE_SIGLA_DOPO`), e non una copia: se un giorno si aggiunge una sigla,
+#: il riconoscitore e lo scudo restano d'accordo per costruzione. Due elenchi
+#: separati diventerebbero due opinioni diverse su cos'e' una societa'.
+#:
+#: La sigla e' **obbligatoria** e sta in coda, che e' come sono scritte le
+#: ragioni sociali in un atto. Senza la sigla non c'e' niente da riconoscere:
+#: «Alfa Costruzioni» da solo puo' essere un'azienda, una via o un progetto, e
+#: indovinare qui vorrebbe dire segnalare mezzo documento.
+#:
+#: **L'insensibilita' alle maiuscole vale solo per la sigla**, ed e' una
+#: lezione pagata: con `re.IGNORECASE` su tutto il pattern, `_TOK` smetteva di
+#: pretendere l'iniziale maiuscola e il riconoscitore si mangiava la parola
+#: prima -- «il cliente Beta Consulting S.p.A.» veniva contato a partire da
+#: «cliente». L'ha trovato il corpus di conformita', che su tre casi ha visto
+#: comparire una segnalazione che non doveva esserci.
+_RE_ORGANIZZAZIONE = re.compile(
+    rf"(?<![\wÀ-ÿ])(?:{_TOK}[ \t]+){{0,3}}{_TOK}[ \t,]+"
+    rf"(?:(?i:{_SIGLE_SOCIETARIE}))(?![\wÀ-ÿ])"
+)
+
+
+def _scrub_organizzazioni(text: str, report: RedactionReport) -> str:
+    """Le ragioni sociali: si trovano, si dicono, **non si tolgono**.
+
+    Come eta' e sesso, il testo esce da qui identico a com'e' entrato, e
+    l'unico effetto e' una riga nel rapporto.
+
+    Perche' non si sostituiscono. Una societa' non e' una persona fisica e il
+    GDPR non la protegge; in un atto la ragione sociale e' spesso il soggetto
+    della frase, e toglierla rende il documento illeggibile senza proteggere
+    nessuno. Peggio: `_SIGLE_SOCIETARIE` esiste proprio per **impedire** che
+    «il cliente Beta Consulting S.p.A.» diventi «il cliente {{NAME}} S.p.A.»,
+    e un riconoscitore che sostituisse qui remerebbe contro quello scudo.
+
+    Perche' allora si contano. In un atto la ragione sociale **reidentifica**:
+    «la Alfa Costruzioni S.r.l. di Santhia'» porta a una persona con due
+    ricerche. Chi consegna il documento deve saperlo, e finora non c'era
+    nessuna riga che glielo dicesse.
+
+    Idea presa da `rizzo-pii`, che ha un tag `ORG` e lo **sostituisce**: qui
+    la stessa osservazione porta a una risposta diversa, perche' i due
+    prodotti fanno cose diverse con il documento.
+    """
+    for m in _RE_ORGANIZZAZIONE.finditer(text):
+        report.rilevata("organizzazione", m.group(0))
+    return text
+
+
 def _scrub_documenti_id(text: str, report: RedactionReport) -> str:
     """Numeri di carta d'identita', patente e passaporto.
 
@@ -3774,6 +3836,100 @@ def _scrub_emails(text: str, report: RedactionReport, opts: PrivacyOptions) -> s
     return _replace_all(out, _RE_EMAIL_OFFUSCATA, "{{EMAIL}}", report, "emails")
 
 
+#: Il nome utente preceduto da `@`. Le regole sono quelle di GitHub, fra le
+#: piu' strette delle piattaforme diffuse: lettere, cifre, trattino e trattino
+#: basso, da tre a trentanove caratteri.
+#:
+#: **Niente punti dentro**, e nessun punto seguito da altro testo: e' cio' che
+#: separa un nome utente da un decoratore qualificato (`@app.route`) e da un
+#: dominio (`@example.com`). Non e' un'euristica nostra, e' una regola delle
+#: piattaforme.
+#:
+#: Il punto **che chiude la frase** invece deve passare: vietare qualunque
+#: punto dopo il nome lasciava in chiaro «Telegram: @mrossi_74.», cioe' la
+#: forma piu' comune di tutte -- un recapito a fine riga. Percio' il divieto
+#: guarda cosa viene **dopo** il punto: `.com` e' un dominio, `. ` e' una
+#: frase che finisce.
+#:
+#: Davanti non ci puo' essere una lettera, una cifra, un'altra chiocciola, un
+#: punto o una barra: escludono rispettivamente una parola incollata, la
+#: seconda meta' di un indirizzo di posta e la coda di un URL.
+_RE_HANDLE = re.compile(
+    r"(?<![\w@./\-])@([A-Za-z0-9][A-Za-z0-9_\-]{2,38})(?![\w@\-])(?!\.[A-Za-z0-9])"
+)
+
+
+#: Parole che dopo una chiocciola non sono un nome utente, ma un decoratore di
+#: un linguaggio o una regola di un foglio di stile.
+#:
+#: **Non sostituisce la regola della riga, la completa.** La forma separa i due
+#: casi quando il decoratore apre la riga, che e' come sta nel codice; questo
+#: elenco copre il caso che la forma non vede -- il decoratore **nominato
+#: dentro una frase**, «vedi `@property` qui sotto», che in un manuale tecnico
+#: e' frequente quanto l'altro. Trovato dalla batteria dal vivo del 07/09/2026,
+#: che su un documento con `Nota @property qui` si e' vista uscire
+#: `Nota {{HANDLE_1}} qui`.
+#:
+#: L'elenco e' corto di proposito e contiene solo parole **riservate** dei
+#: linguaggi e del CSS, cioe' quelle che in un documento tecnico compaiono per
+#: forza e come nome utente non compaiono mai. Il prezzo, che va detto: se una
+#: persona si chiamasse davvero `@property`, il suo handle resterebbe in
+#: chiaro. E' il verso giusto in cui sbagliare qui — l'altro riempie di
+#: segnaposto ogni manuale — ed e' l'unico punto del riconoscitore in cui una
+#: parola conta piu' della forma.
+_HANDLE_RISERVATI = frozenset("""
+property staticmethod classmethod abstractmethod cachedproperty cached_property
+dataclass override deprecated functools wraps contextmanager
+pytest fixture mark parametrize patch mock
+media import charset keyframes supports page font namespace layer container
+override entity table column service component autowired bean test before after
+""".split())
+
+
+def _apre_la_riga(text: str, posizione: int) -> bool:
+    """Prima di `posizione`, sulla stessa riga, c'e' solo spazio bianco?
+
+    E' il discrimine fra un decoratore e un nome utente, e regge su una
+    differenza di **forma** invece che su un elenco di parole da saltare:
+    `@property`, `@Override` e `@media` aprono la riga; `(@mariorossi)`,
+    «scrivimi su @mariorossi» e «Telegram: @mrossi» stanno dentro una frase.
+
+    Un elenco di parole andrebbe aggiornato per sempre — ogni linguaggio ha i
+    suoi decoratori, ogni foglio di stile le sue regole — e sbaglierebbe lo
+    stesso il giorno in cui un nome utente coincide con una di quelle parole.
+
+    Il prezzo va detto: **un handle a inizio riga resta in chiaro.** E' la
+    forma del post copiato («@mariorossi ha scritto…»), non quella dei
+    documenti che questo programma converte, dove gli handle stanno negli
+    elenchi dei contributori e nei recapiti.
+    """
+    inizio_riga = text.rfind("\n", 0, posizione) + 1
+    return not text[inizio_riga:posizione].strip()
+
+
+def _scrub_handle(text: str, report: RedactionReport) -> str:
+    """`@nomeutente`: un identificativo diretto quanto un indirizzo di posta.
+
+    Trovato convertendo un documento vero — il rapporto tecnico di
+    `rizzo-pii`, il 7 settembre 2026. L'elenco dei contributori ha la forma
+    «Alessandro Betti (@bettialessandro)»: i nomi uscivano redatti e gli
+    handle no, e nessuno dei due prodotti li riconosceva.
+
+    E' il caso peggiore, non uno dei tanti: il documento **sembra** trattato.
+    Chi lo rilegge vede i segnaposto al posto dei nomi e non ha ragione di
+    cercare oltre, mentre accanto e' rimasto cio' che porta al profilo — foto,
+    datore di lavoro, cronologia di tutto quello che quella persona ha scritto.
+    """
+    def _sub(m: re.Match) -> str:
+        if _apre_la_riga(text, m.start()):
+            return m.group(0)
+        if m.group(1).lower() in _HANDLE_RISERVATI:
+            return m.group(0)
+        return report.segnaposto("handle", "{{HANDLE}}", m.group(0))
+
+    return _RE_HANDLE.sub(_sub, text)
+
+
 def _scrub_cf(text: str, report: RedactionReport, opts: PrivacyOptions) -> str:
     def _sub(m: re.Match) -> str:
         # Si sostituisce comunque: su un dato personale l'errore va fatto
@@ -4476,6 +4632,11 @@ SEQUENZA: tuple[Passo, ...] = (
     Passo("secrets", CORE, "secrets", 10, lambda t, r, o: _scrub_secrets(t, r)),
     Passo("urls", CORE, "urls", 20, lambda t, r, o: _scrub_urls(t, r)),
     Passo("emails", CORE, "emails", 30, _scrub_emails),
+    # **Dopo** le email e non prima: un indirizzo contiene una chiocciola, e
+    # invertire l'ordine lo farebbe smontare in «nome + {{HANDLE}}» invece di
+    # toglierlo intero. Nel pacchetto core perche' un nome utente non ha
+    # nazionalita'.
+    Passo("handle", CORE, "handle", 32, lambda t, r, o: _scrub_handle(t, r)),
     # La riga MRZ di un passaporto contiene cognome, nome, cittadinanza,
     # data di nascita e scadenza tutti insieme: va tolta intera, prima che
     # gli altri riconoscitori la smontino a pezzi e ne lascino meta'.
@@ -4518,6 +4679,13 @@ SEQUENZA: tuple[Passo, ...] = (
     # pacchetto italiano perche' sono le parole italiane a dichiararli.
     Passo("eta_sesso", IT, "quasi_id", 58,
           lambda t, r, o: _scrub_eta_sesso(t, r)),
+    # Come `eta_sesso`: non tocca il testo, l'unico effetto e' una riga di
+    # rapporto. Nel pacchetto core perche' l'elenco delle sigle contiene sia
+    # quelle italiane sia `ltd`, `llc`, `gmbh`: una societa' e' una societa'
+    # in qualunque documento. **Prima dei nomi** (60 in su), cosi' la ragione
+    # sociale si legge ancora intera quando la si conta.
+    Passo("organizzazioni", CORE, "organizzazioni", 59,
+          lambda t, r, o: _scrub_organizzazioni(t, r)),
     Passo("phones", CORE, "phones", 60, _scrub_phones),
     # Euro e parole italiane: "importo", "imponibile", "canone".
     Passo("amounts", IT, "amounts", 65, _scrub_amounts),
@@ -4783,6 +4951,12 @@ def prosa_da(valore) -> bool | None:
 
 FIELD_DEFAULTS: dict[str, bool] = {
     "emails": True,
+    # `@nomeutente`. Acceso come le email, e per la stessa ragione: porta a una
+    # persona sola. Vedi `_scrub_handle` per la regola e il suo prezzo.
+    "handle": True,
+    # Acceso, e non sostituisce **mai**: come `quasi_id`, segnala e basta.
+    # Spegnerlo non rende il documento piu' pulito, lo rende piu' silenzioso.
+    "organizzazioni": True,
     "phones": True,
     "names": True,
     "fiscal": True,
@@ -4833,7 +5007,7 @@ CATEGORIE: tuple[str, ...] = (
     # Vivono in `detected_counts`, che e' un altro conto e un'altra frase.
     # Metterle qui offrirebbe una casella «segnala anziche' sostituire» che
     # non e' attaccata a niente.
-    "codice_fiscale", "dates", "documenti", "emails", "iban", "itin", "mrz",
+    "codice_fiscale", "dates", "documenti", "emails", "handle", "iban", "itin", "mrz",
     "names", "nhs_number", "nino", "partita_iva", "phones", "pratica",
     "routing_number", "secrets", "sin", "ssn", "targa", "termini", "tfn",
     "urls",

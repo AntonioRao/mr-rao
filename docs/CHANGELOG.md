@@ -1,5 +1,162 @@
 # Changelog
 
+## 1.30.0 — Le altre stanze del PDF, e due cose che nessuno guardava
+
+Nato da un confronto: il 7 settembre 2026 abbiamo messo Mr. Rao accanto a
+[`rizzo-pii`](https://github.com/Rizzo-AI-Academy/rizzo-pii) — l'altro
+progetto italiano che anonimizza documenti in locale — e misurato invece di
+leggerci le brochure a vicenda. Ne sono usciti **due buchi veri nostri**, una
+risposta migliore di quella che davamo, e un'idea loro che qui porta a una
+conclusione diversa.
+
+### 1. Un codice fiscale poteva uscire dal segnalibro o da un allegato
+
+Il difetto, misurato su un PDF con lo stesso codice fiscale in tre posti:
+
+    esito: valori_da_togliere 1, pagine_in_ripiego []
+    segnalibri nel PDF redatto : ['Scheda di RSSMRA85M01H501Z']
+    allegati nel PDF redatto   : {'nota.txt': contiene il codice fiscale}
+    verifica_redazione         : sopravvissuti 0
+
+Il flusso della pagina era pulito, il motore dichiarava il lavoro fatto, e la
+rete di sicurezza diceva **zero superstiti** guardando due posti in cui quel
+dato non era mai stato. È la stessa forma dei metadati (1.29.0) e delle
+annotazioni (1.24.0): testo che non sta nel flusso di contenuto, quindi la
+chirurgia dei glifi non lo vede — e nemmeno il controllo che dovrebbe
+accorgersene.
+
+Adesso **i titoli dei segnalibri si redigono** con lo stesso motore delle
+proprietà del documento, il sommario resta navigabile e un titolo senza dati
+personali esce identico. **Gli allegati si tolgono tutti**, e si contano.
+
+Perché tolti e non redatti: un allegato è *un altro documento* — può essere un
+`.docx`, un `.jpg`, un PDF a sua volta. Il ripiego ovvio, «guardo dentro solo
+se è testo», lascerebbe passare intero proprio il caso peggiore. Il PDF che
+esce ha un pezzo in meno di quello entrato: è una perdita vera, e sta scritta
+nel rapporto (`allegati_rimossi`) invece di essere nascosta.
+
+La verifica adesso legge anche segnalibri e allegati. Un limite dichiarato: un
+allegato binario lì dentro diventa byte illeggibili e la ricerca del valore non
+lo trova — non è un buco, perché a monte gli allegati sono già stati rimossi
+tutti, ma è l'unico punto in cui la rete di sicurezza è più debole della
+correzione che sorveglia, e chi legge «verifica verde» deve saperlo.
+
+### 2. Le scansioni con OCR: coprire i pixel invece di arrendersi
+
+Dalla 1.29.0 una pagina fatta di immagine più testo OCR invisibile veniva
+**rifiutata**. Era onesto — togliere glifi invisibili non toglie niente da
+un'immagine — ed era una risposta scarsa: l'utente restava con un documento in
+mano e nessun modo di trattarlo.
+
+`rizzo-pii` dà la risposta migliore, ed è ovvia una volta detta: **lo strato
+OCR sa dove sono le parole**. È il suo mestiere, sta lì apposta perché il testo
+si selezioni sopra l'immagine. Quelle coordinate sono la mappa dei pixel da
+coprire.
+
+Adesso la pagina si tratta: si toglie il testo invisibile **e** si dipinge il
+rettangolo sopra l'immagine. Il riquadro si misura sui valori **originali** e
+non sul segnaposto — l'ha imposto una mutazione: coprendo con il solo riquadro
+del segnaposto il banco restava verde, perché `{{CODICE_FISCALE_1}}` è più
+lungo di un codice fiscale. Con un nome lungo si capovolge, `{{NAME_1}}` sono
+dieci caratteri contro trentasei, e metà del nome resterebbe leggibile nei
+pixel sotto un rettangolo che sembra aver fatto il suo lavoro.
+
+**Il limite, dichiarato.** Il rettangolo sta dove lo strato OCR dice che sta la
+parola. Se quello strato è disallineato rispetto all'immagine — capita, e dal
+file non c'è modo di accorgersene — copre i pixel sbagliati. Per questo la
+pagina finisce in `pagine_coperte_sull_ocr` e la rotta di anteprima la nomina:
+non è una pagina come le altre, e chi consegna il documento deve guardarla.
+
+Il rifiuto resta dov'è ancora l'unica risposta vera: la scansione **senza**
+strato OCR, dove non c'è nessuna mappa da seguire.
+
+### 3. `@nomeutente`: trentadue in chiaro su un documento vero
+
+Trovato convertendo il rapporto tecnico di `rizzo-pii` con la 1.29.1. L'elenco
+dei contributori ha la forma «Alessandro Betti (@bettialessandro)»: i nomi
+uscivano redatti, **gli handle no** — trentadue, tutti in chiaro. Non li
+riconosceva nessuno dei due prodotti.
+
+È il caso peggiore, non uno dei tanti: il documento **sembra** trattato. Chi lo
+rilegge vede i segnaposto al posto dei nomi e non ha ragione di cercare oltre,
+mentre accanto è rimasto ciò che porta al profilo.
+
+La regola non è un elenco di parole da saltare — ogni linguaggio ha i suoi
+decoratori, ogni foglio di stile le sue regole, e un elenco andrebbe aggiornato
+per sempre. È una differenza di forma: **un decoratore apre la riga, un handle
+sta dentro una frase.** Si redige `(@mariorossi)`, `scrivimi su @mariorossi`,
+`Telegram: @mrossi_74`; restano intatti `@property`, `@Override`, `@media` a
+inizio riga, e le forme col punto seguito da testo (`@app.route`,
+`@example.com`), che un nome utente non ha mai.
+
+Il prezzo è dichiarato: l'handle a inizio riga — la forma del post copiato —
+resta in chiaro. Sullo stesso documento di prima: **32 in chiaro prima, 0
+dopo.**
+
+### 4. Le ragioni sociali: si trovano, si dicono, non si tolgono
+
+`rizzo-pii` ha un tag `ORG` e le **sostituisce**. Qui la stessa osservazione
+porta a una conclusione opposta, e vale la pena scriverla per esteso: una
+società non è una persona fisica, il GDPR non la protegge, e in un atto la
+ragione sociale è spesso il soggetto della frase. C'è di più: il motore ha uno
+scudo che esiste apposta per impedire che «il cliente Beta Consulting S.p.A.»
+diventi «il cliente {{NAME}} S.p.A.» — il commento nel codice lo chiama «il
+falso positivo peggiore possibile».
+
+Resta vero che una ragione sociale **reidentifica**. Quindi finisce nel terzo
+canale del rapporto, quello di età e sesso: trovata, contata, lasciata. Il
+testo esce identico. Sulle cinque società delle fixture di `rizzo-pii`: **0
+dichiarate prima, 5 dopo.**
+
+### Cosa è cambiato per chi usava la 1.29.1
+
+Il corpus di conformità — 298 casi congelati — cambia in **tre punti**, e in
+tutti e tre solo per l'aggiunta di una riga `detected: organizzazione`. Nessun
+testo prodotto è diverso, nessun conto di sostituzioni è cambiato. Le due
+caselle nuove («Nomi utente», «Ragioni sociali») sono accese di serie e si
+spengono dal pannello come tutte le altre.
+
+Due banchi che pretendevano il rifiuto delle scansioni OCR sono stati
+riscritti: pretendevano il comportamento di ieri, e lasciarli avrebbe voluto
+dire tenere fermo il prodotto per non toccare un test. Quello che continuano a
+pretendere è la sostanza — il dato non si legge nel documento consegnato.
+
+### Due cose trovate provando dal vivo, non in CI
+
+La batteria sul server vero — cinquantadue prove sulle rotte che l'utente usa —
+ne ha trovate due che la suite non vedeva.
+
+**`@property` nominato dentro una frase diventava un segnaposto.** La regola
+della riga separa il decoratore che *apre* la riga; non vede quello *citato in
+un discorso*, «vedi `@property` qui sotto», che in un manuale tecnico è
+frequente quanto l'altro — e `Nota @property qui` ha la stessa forma di
+`Scrivimi su @mariorossi`. Da qui un elenco corto di parole riservate dei
+linguaggi e del CSS, che **completa** la regola invece di sostituirla. Il
+prezzo: se una persona si chiamasse davvero `@property`, il suo handle
+resterebbe in chiaro. È il verso giusto in cui sbagliare, qui.
+
+**Il nome di un allegato email era ripulito su una strada e non sull'altra.**
+`nome_allegato_sicuro` girava dove l'allegato viene *estratto* — dove il
+pericolo è vero, e resta chiuso — e non dove il nome viene *scritto
+nell'elenco* del Markdown: nel documento usciva `../../etc/passwd.txt` mentre
+lo stesso allegato, scaricato, si chiamava `passwd`. Due righe dello stesso
+programma mostravano lo stesso campo in due modi. Adesso una sola.
+
+### Un falso positivo che resta, e non è di questa versione
+
+`Vedi @app.route nel manuale` esce `{{EMAIL_1}} nel manuale`. Non è il
+riconoscitore dei nomi utente — quella forma la rifiuta — ma la regola della
+**chiocciola spaziata**, che sul banco del richiamo recupera 609 indirizzi su
+64.886 che altrimenti si perderebbero in silenzio. Il suo vincolo dichiarato è
+«l'ultimo pezzo del dominio dev'essere di lettere», e `route` lo è.
+
+Non è stato toccato qui di proposito: cambiarlo vuol dire rimisurare quei 609,
+ed è un lavoro con la sua misura, non una riga da infilare il giorno prima di
+un caricamento.
+
+2.391 test (erano 2.355), dodici mutazioni verificate rosse, cinquantadue
+prove dal vivo sul server.
+
 ## 1.29.1 — Due impronte che guardavano il sistema operativo
 
 Nessun cambiamento nel prodotto: due controlli sui fogli di stile pubblicati

@@ -87,6 +87,8 @@
   // c'e', ma non comanda niente.
   const PRIVACY_FIELDS = [
     "emails",
+    "handle",
+    "organizzazioni",
     "phones",
     "names",
     "addresses",

@@ -231,6 +231,21 @@ class EsitoRedazione:
     #: quindi non entrano nei conti per pagina, ma sono dati usciti da un file
     #: che si chiama «-redatto.pdf» e vanno contati da qualche parte.
     metadati_tolti: int = 0
+    #: Quanti valori sono stati tolti dai **titoli dei segnalibri**. Come i
+    #: metadati: testo del documento che non sta in nessun flusso di pagina.
+    segnalibri_tolti: int = 0
+    #: Quanti **allegati** sono stati rimossi. Non e' un conto di valori ma di
+    #: file: un allegato e' un documento intero che non abbiamo redatto, e
+    #: viene tolto senza guardarci dentro (vedi `_togli_allegati`). Va detto,
+    #: perche' il PDF che esce ha un pezzo in meno di quello che e' entrato.
+    allegati_tolti: int = 0
+    #: Le pagine in cui il dato stava **nei pixel di una scansione** e il
+    #: rettangolo e' stato messo sulle coordinate che lo strato OCR dichiara.
+    #: Sono trattate, non in ripiego — ma il rettangolo sta dove l'OCR dice che
+    #: sta la parola, e se quello strato e' disallineato rispetto all'immagine
+    #: copre i pixel sbagliati. Non e' verificabile dal file: si nomina la
+    #: pagina e la si fa guardare.
+    pagine_coperte_sull_ocr: list[int] = field(default_factory=list)
 
 
 class _Contenitore:
@@ -699,6 +714,32 @@ def _riscrivi(contenitore: _Contenitore, per_istruzione: dict,
     return rimossi, inseriti
 
 
+def _riquadri_originali(sorgente: Path, numero: int, tratti):
+    """I riquadri dei valori sulla pagina **di partenza**.
+
+    Si apre il documento originale perche' e' l'unico posto dove quei
+    caratteri esistono ancora: sul risultato sono gia' stati tolti. Serve solo
+    per le scansioni con strato OCR, quindi si apre alla bisogna e non a ogni
+    documento.
+
+    Se qualcosa va storto si torna a mani vuote e il chiamante rifiuta la
+    pagina come faceva prima: meglio nessuna copertura di una copertura
+    disegnata su coordinate inventate.
+    """
+    try:
+        documento = pdfium.PdfDocument(str(sorgente))
+    except Exception:
+        return []
+    try:
+        if numero >= len(documento):
+            return []
+        return riquadri_dei_valori(documento[numero], tratti)
+    except Exception:
+        return []
+    finally:
+        documento.close()
+
+
 def riquadri_dei_valori(pagina_pdfium, tratti) -> list[tuple[float, float, float, float, str]]:
     """Dove sta ogni valore sulla pagina, **prima** di toglierlo.
 
@@ -973,6 +1014,12 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         esito.scansione = True
         return esito
 
+    # Le pagine in cui il rettangolo va messo sulle coordinate dei valori
+    # **originali** e non su quelle del segnaposto: sono le scansioni con
+    # strato OCR, dove il dato vero sta nei pixel sotto (vedi il ramo
+    # `MOTIVO_OCR` qui sotto).
+    riquadri_ocr: dict[int, list] = {}
+
     pdf = pikepdf.open(str(sorgente))
     try:
         esito.pagine = len(pdf.pages)
@@ -980,6 +1027,15 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         # del documento sono testo che nessun flusso di contenuto contiene.
         esito.metadati_tolti = _redigi_metadati(pdf, opzioni)
         esito.valori_da_togliere += esito.metadati_tolti
+        # Le altre due stanze fuori dalle pagine: il sommario e gli allegati.
+        # Stessa ragione dei metadati -- testo che nessun flusso contiene -- e
+        # stessa collocazione, prima del giro sulle pagine.
+        esito.segnalibri_tolti = _redigi_segnalibri(pdf, opzioni)
+        esito.valori_da_togliere += esito.segnalibri_tolti
+        # Gli allegati **non** entrano in `valori_da_togliere`: quello conta
+        # valori di testo, questo conta file interi. Sommarli farebbe un
+        # numero che non significa niente.
+        esito.allegati_tolti = _togli_allegati(pdf)
         for numero, pagina in enumerate(pdf.pages):
             testo_estratto = per_pagina[numero] if numero < len(per_pagina) else ""
 
@@ -1012,8 +1068,27 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                 continue
 
             if _solo_glifi_invisibili(tratti, emissioni) and _pagina_ha_un_immagine(pagina):
-                _ripiego(esito, numero, MOTIVO_OCR)
-                continue
+                # **Il dato sta nei pixel, e lo strato OCR dice dove.** Fino
+                # alla 1.29.1 qui si rinunciava, ed era onesto: togliere glifi
+                # invisibili non toglie niente da un'immagine. Ma le
+                # coordinate di quei glifi sono, per come l'OCR le scrive, la
+                # mappa delle parole sul foglio: bastano a dipingere il
+                # rettangolo **sopra** l'immagine, che e' la redazione vera.
+                #
+                # Il riquadro si misura sui valori **originali** e non sul
+                # segnaposto: e' il segnaposto a essere messo dopo, e puo'
+                # essere piu' corto del valore che sostituisce -- un
+                # `{{NAME_1}}` al posto di un nome lungo lascerebbe scoperta
+                # la coda dei pixel.
+                riquadri = _riquadri_originali(sorgente, numero, tratti)
+                if riquadri:
+                    riquadri_ocr[numero] = riquadri
+                    esito.pagine_coperte_sull_ocr.append(numero)
+                else:
+                    # Senza coordinate non c'e' niente da coprire: si torna
+                    # alla risposta di prima, che e' l'unica vera.
+                    _ripiego(esito, numero, MOTIVO_OCR)
+                    continue
 
             lavori: dict[int, dict[int, list]] = {}
             fallito = None
@@ -1078,11 +1153,11 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                     for m in esito.motivi_ripiego)):
         esito.scansione = True
 
-    _dipingi_rettangoli(destinazione, esito)
+    _dipingi_rettangoli(destinazione, esito, riquadri_ocr)
     return esito
 
 
-def _dipingi_rettangoli(documento: Path, esito=None) -> None:
+def _dipingi_rettangoli(documento: Path, esito=None, riquadri_ocr=None) -> None:
     """Il secondo passaggio: il fondo colorato sotto i segnaposto.
 
     **Deve venire dopo il taglio, e in un file gia' scritto.** Il segnaposto e'
@@ -1103,6 +1178,16 @@ def _dipingi_rettangoli(documento: Path, esito=None) -> None:
                 per_pagina.append(segnaposto_sulla_pagina(pagina))
         finally:
             letto.close()
+        # Sulle scansioni con strato OCR ai riquadri del segnaposto si
+        # aggiungono quelli dei **valori originali**, misurati sul documento di
+        # partenza: li' sotto ci sono i pixel del dato, e il segnaposto da solo
+        # non li copre per intero. Si sommano invece di sostituirli perche' non
+        # sono alternativi -- uno dice dove si legge il segnaposto, l'altro
+        # dove stava il dato -- e coprire un po' di piu' e' l'unico errore
+        # accettabile qui.
+        for numero, riquadri in (riquadri_ocr or {}).items():
+            if numero < len(per_pagina):
+                per_pagina[numero] = list(per_pagina[numero]) + list(riquadri)
         if not any(per_pagina):
             return
 
@@ -1495,6 +1580,81 @@ def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
     return tolti
 
 
+def _voci_del_sommario(voci):
+    """Tutte le voci dell'indice, anche quelle annidate.
+
+    Un sommario e' un albero: fermarsi al primo livello vorrebbe dire redigere
+    i capitoli e lasciare in chiaro i paragrafi, che e' proprio dove stanno i
+    titoli specifici -- «Posizione di Mario Rossi» sta sotto «Allegati», non
+    accanto.
+    """
+    for voce in voci:
+        yield voce
+        yield from _voci_del_sommario(voce.children)
+
+
+def _redigi_segnalibri(pdf, opzioni: PrivacyOptions) -> int:
+    """I titoli dei segnalibri sono testo come le proprieta' del documento.
+
+    Il sommario si apre con un click in qualunque lettore, e prima usciva
+    intero: un PDF con un segnalibro «Scheda di RSSMRA85M01H501Z» consegnava
+    il codice fiscale a chi non apriva nemmeno una pagina.
+
+    Si redige e **non** si cancella. Buttare via il sommario chiuderebbe il
+    buco e romperebbe la navigazione di ogni documento lungo, che e' un
+    prezzo che nessuno ha chiesto di pagare: i titoli sono stringhe corte,
+    esattamente come titolo e oggetto del documento, e lo stesso motore che
+    tratta quelli tratta questi.
+    """
+    try:
+        sommario = pdf.open_outline()
+    except Exception:
+        return 0
+    tolti = 0
+    try:
+        with sommario as indice:
+            for voce in _voci_del_sommario(indice.root):
+                titolo = voce.title
+                if not isinstance(titolo, str) or not titolo.strip():
+                    continue
+                redatto, rapporto = apply_privacy_filter(titolo, opzioni)
+                if rapporto.total == 0:
+                    continue
+                voce.title = redatto
+                tolti += rapporto.total
+    except Exception:
+        return tolti
+    return tolti
+
+
+def _togli_allegati(pdf) -> int:
+    """Gli allegati escono dal documento, senza guardarci dentro.
+
+    Un allegato **e' un altro documento**, non un pezzo di questo: puo' essere
+    un `.docx`, un `.jpg`, un PDF a sua volta. Redigerlo vorrebbe dire far
+    girare tutto il motore dentro un file che in generale non sappiamo aprire,
+    e il ripiego ovvio -- «guardo dentro solo se e' testo» -- lascerebbe
+    passare intero proprio il caso peggiore, cioe' l'allegato binario.
+
+    Quindi si tolgono tutti e si contano. Il PDF che esce ha un pezzo in meno
+    di quello che e' entrato, ed e' una perdita vera: la si dichiara nel
+    rapporto invece di nasconderla, perche' l'alternativa era consegnare un
+    file chiamato «-redatto.pdf» con dentro un secondo documento intatto.
+    """
+    try:
+        nomi = list(pdf.attachments)
+    except Exception:
+        return 0
+    tolti = 0
+    for nome in nomi:
+        try:
+            del pdf.attachments[nome]
+            tolti += 1
+        except Exception:
+            continue
+    return tolti
+
+
 def _pagina_e_una_scansione(pagina) -> bool:
     """Pagina senza testo: e' una scansione o e' bianca?
 
@@ -1607,12 +1767,25 @@ def _annotazioni_per_pagina(sorgente: Path) -> list[str]:
         return []
 
 
-def _metadati_come_testo(percorso: Path) -> str:
-    """Le proprieta' del documento e l'XMP, come una stringa sola.
+def _fuori_dalle_pagine_come_testo(percorso: Path) -> str:
+    """Tutto il testo del documento che **non sta in nessuna pagina**.
 
-    Serve alla verifica: senza questo, un codice fiscale rimasto nell'oggetto
-    del documento usciva **verde**, perche' la verifica guardava il flusso e le
-    annotazioni, cioe' due posti in cui quel dato non era mai stato.
+    Le proprieta' e l'XMP, i titoli dei segnalibri, il contenuto degli
+    allegati leggibili come testo.
+
+    Serve alla verifica, e ogni voce di questo elenco e' arrivata dopo un
+    difetto: senza i metadati un codice fiscale rimasto nell'oggetto del
+    documento usciva **verde**; senza segnalibri e allegati usciva verde uno
+    rimasto nel sommario o dentro un file appeso. La verifica guardava flusso
+    e annotazioni, cioe' posti in cui quel dato non era mai stato.
+
+    Gli allegati si leggono **con la migliore approssimazione possibile**: un
+    `.docx` o un `.jpg` qui diventano byte illeggibili e la ricerca del valore
+    non li trova. Non e' un buco della verifica, perche' `_togli_allegati` li
+    ha gia' rimossi tutti a monte: questa lettura serve a dire di no se un
+    domani quella rimozione smettesse di funzionare, ed e' l'unico caso in cui
+    la rete di sicurezza e' piu' debole della correzione che sorveglia. Sta
+    scritto qui perche' chi legge «verifica verde» sappia cosa ha guardato.
     """
     try:
         with pikepdf.open(str(percorso)) as pdf:
@@ -1628,6 +1801,22 @@ def _metadati_come_testo(percorso: Path) -> str:
                         bytes(metadati.read_bytes()).decode("utf-8", "replace"))
                 except Exception:
                     pass
+            try:
+                with pdf.open_outline() as indice:
+                    pezzi.extend(voce.title for voce in _voci_del_sommario(indice.root)
+                                 if isinstance(voce.title, str))
+            except Exception:
+                pass
+            try:
+                for nome, spec in pdf.attachments.items():
+                    pezzi.append(str(nome))
+                    try:
+                        pezzi.append(bytes(spec.get_file().read_bytes())
+                                     .decode("utf-8", "replace"))
+                    except Exception:
+                        continue
+            except Exception:
+                pass
             return "\n".join(pezzi)
     except Exception:
         return ""
@@ -1667,17 +1856,18 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
     # Non `zip`: `zip` si ferma alla lista piu' corta, quindi se le
     # annotazioni non si leggessero la verifica si ridurrebbe a zero pagine
     # e uscirebbe verde senza aver guardato niente.
-    # I metadati vanno in coda come se fossero **una pagina in piu'**, e non
-    # dentro le pagine vere: appartengono al documento, non a un foglio, e
-    # sommarli a ciascuna pagina li farebbe contare tante volte quante sono.
-    # La coda tiene allineati gli indici delle due liste, che e' cio' su cui
-    # regge il confronto pagina contro pagina.
+    # Cio' che sta fuori dalle pagine -- proprieta', XMP, segnalibri, allegati
+    # -- va in coda come se fosse **una pagina in piu'**, e non dentro le
+    # pagine vere: appartiene al documento, non a un foglio, e sommarlo a
+    # ciascuna pagina lo farebbe contare tante volte quante sono. La coda
+    # tiene allineati gli indici delle due liste, che e' cio' su cui regge il
+    # confronto pagina contro pagina.
     def _unite(percorso: Path) -> list[str]:
         flusso = testo_per_pagina(percorso)
         note = _annotazioni_per_pagina(percorso)
         pagine = [t + "\n" + (note[i] if i < len(note) else "")
                   for i, t in enumerate(flusso)]
-        return pagine + [_metadati_come_testo(percorso)]
+        return pagine + [_fuori_dalle_pagine_come_testo(percorso)]
 
     prima = _unite(sorgente)
     dopo = _unite(destinazione)

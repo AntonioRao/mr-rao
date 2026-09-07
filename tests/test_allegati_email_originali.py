@@ -83,6 +83,44 @@ def test_il_nome_dell_allegato_non_porta_un_percorso(tmp_path):
     assert nome, "il nome non deve restare vuoto: serve un ripiego"
 
 
+def test_anche_l_elenco_nel_markdown_mostra_il_nome_ripulito(tmp_path):
+    """Due strade per lo stesso campo, e una sola era pulita.
+
+    `nome_allegato_sicuro` girava su `extract_attachments` — la strada che
+    **estrae** l'allegato, dove il pericolo e' vero — e non su
+    `list_attachments`, che scrive l'elenco nel Markdown. Nel documento usciva
+    `../../etc/passwd.txt` mentre lo stesso allegato, scaricato, si chiamava
+    `passwd`.
+
+    Il pericolo resta di la' e resta chiuso: questo caso tiene ferma la
+    **coerenza**, perche' due righe dello stesso programma non devono mostrare
+    lo stesso campo in due modi. Trovato dalla batteria dal vivo del 7
+    settembre 2026, non da questo file.
+    """
+    import email
+
+    from mr_rao.eml_parser import list_attachments
+
+    with open(_eml(tmp_path, "../../../etc/passwd"), encoding="utf-8") as f:
+        messaggio = email.message_from_file(f)
+    elenco = list_attachments(messaggio)
+    assert len(elenco) == 1, elenco
+    nome = elenco[0][0]
+    assert ".." not in nome and "/" not in nome and "\\" not in nome, nome
+    assert nome, "il nome non deve restare vuoto: serve un ripiego"
+
+
+def test_anche_l_elenco_tiene_un_nome_normale(tmp_path):
+    """La riga gemella: la coerenza non si ottiene svuotando l'elenco."""
+    import email
+
+    from mr_rao.eml_parser import list_attachments
+
+    with open(_eml(tmp_path, "contratto firmato.pdf"), encoding="utf-8") as f:
+        messaggio = email.message_from_file(f)
+    assert list_attachments(messaggio)[0][0] == "contratto firmato.pdf"
+
+
 def test_un_nome_normale_resta_quello_che_e(tmp_path):
     """La riga che impedisce di «correggere» buttando via ogni nome.
 

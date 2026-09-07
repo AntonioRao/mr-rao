@@ -35,6 +35,17 @@ la pagina trattata. Il dato restava a schermo, dentro l'immagine.
 senza testo, e questa il testo ce l'ha. Misurato prima della correzione: due
 segnaposto inseriti, `pagine_in_ripiego` vuoto, `/Im0` ancora nel file.
 
+**Aggiornato il 07/09/2026.** La prima risposta fu il **rifiuto**: la pagina
+fra le non trattate, col motivo scritto. Onesta, e scarsa — l'utente restava
+con un documento in mano e nessun modo di trattarlo. Adesso la pagina si
+**copre**: lo strato OCR sa dove stanno le parole, e' il suo mestiere, e
+quelle coordinate bastano a dipingere il rettangolo sopra l'immagine. Il
+rifiuto resta dov'e' ancora l'unica risposta vera: la scansione **senza**
+strato OCR, dove non c'e' nessuna mappa da seguire.
+
+La prova che i pixel vengono davvero coperti sta in
+`test_scansione_ocr_coperta.py`. Qui restano i casi al contorno.
+
 3. La verifica che il prodotto non chiamava
 -------------------------------------------
 
@@ -196,12 +207,17 @@ def test_la_verifica_guarda_anche_i_metadati(tmp_path):
 # --------------------------------------------- 2. la scansione con l'OCR sopra
 
 
-def test_una_scansione_gia_passata_dall_ocr_non_e_una_pagina_trattata(tmp_path):
-    """I glifi invisibili si tolgono, i pixel restano: non e' una redazione.
+def test_una_scansione_gia_passata_dall_ocr_si_copre_e_si_dichiara(tmp_path):
+    """I glifi invisibili si tolgono **e** i pixel si coprono.
 
-    La pagina deve finire fra quelle **non trattate**, col motivo scritto.
-    Dichiararla redatta e' il modo peggiore di sbagliare in questo prodotto:
-    chi la consegna crede che il dato non ci sia, e il dato si legge a schermo.
+    Fino alla 1.29.1 questa pagina veniva rifiutata, e il caso qui sopra
+    pretendeva il rifiuto. Adesso si tratta, perche' lo strato OCR dice dove
+    stanno le parole: la pagina non e' piu' in ripiego, ma **non e' una pagina
+    come le altre** e deve dirlo, perche' la copertura vale quanto
+    l'allineamento di quello strato.
+
+    Quello che non e' cambiato, ed e' la sostanza: il dato non si legge nel
+    documento consegnato.
     """
     dentro = _pdf_scansione_con_ocr(
         tmp_path / "scan.pdf",
@@ -210,12 +226,32 @@ def test_una_scansione_gia_passata_dall_ocr_non_e_una_pagina_trattata(tmp_path):
     fuori = tmp_path / "scan-redatto.pdf"
     esito = redigi_pdf(dentro, fuori, PrivacyOptions())
 
-    assert esito.pagine_in_ripiego == [0], (
-        f"pagina dichiarata trattata: ripiego={esito.pagine_in_ripiego} "
-        f"segnaposto={esito.segnaposto_inseriti}"
-    )
-    assert any("ocr" in m.lower() or "scansion" in m.lower()
-               for m in esito.motivi_ripiego), esito.motivi_ripiego
+    assert esito.pagine_in_ripiego == [], (
+        f"pagina rifiutata invece che coperta: {esito.motivi_ripiego}")
+    assert esito.pagine_coperte_sull_ocr == [0], (
+        "la pagina e' stata coperta sulle coordinate dell'OCR e non lo dice: "
+        f"{esito.pagine_coperte_sull_ocr}")
+    assert CF not in "\n".join(_testo_per_pagina(fuori))
+
+
+def test_una_scansione_senza_strato_ocr_resta_un_rifiuto(tmp_path):
+    """La riga che impedisce di scambiare la copertura per una cura di tutto.
+
+    Senza strato OCR non ci sono coordinate: non c'e' niente da coprire e
+    niente da togliere, e l'unica risposta vera resta «questa pagina non l'ho
+    trattata».
+    """
+    pdf = pikepdf.Pdf.new()
+    _pagina_di_testo(pdf, [], invisibile=False, con_immagine=True)
+    dentro = tmp_path / "solo-immagine.pdf"
+    pdf.save(str(dentro))
+    pdf.close()
+
+    fuori = tmp_path / "solo-immagine-redatta.pdf"
+    esito = redigi_pdf(dentro, fuori, PrivacyOptions())
+
+    assert esito.scansione, f"scansione pura non riconosciuta: {esito}"
+    assert esito.pagine_coperte_sull_ocr == []
 
 
 def test_una_pagina_digitale_con_un_logo_resta_trattata(tmp_path):
@@ -260,12 +296,13 @@ def _bytes_con_metadati(righe: list[str], **metadati: str) -> bytes:
     return fuori.getvalue()
 
 
-def test_lo_scaricamento_non_consegna_un_file_con_un_superstite(tmp_path):
-    """La verifica gira **prima** di consegnare, non solo in CI.
+def test_lo_scaricamento_di_una_scansione_ocr_consegna_un_file_senza_il_dato(tmp_path):
+    """Il percorso vero, quello che l'utente usa.
 
-    Si prova sul percorso vero — la rotta che l'utente usa — con un file la cui
-    scansione OCR non e' redigibile: la pagina finisce in ripiego, il dato resta
-    a schermo, e il file non deve partire come se fosse a posto.
+    Fino alla 1.29.1 questa rotta rispondeva 422 su una scansione con strato
+    OCR, ed era l'unica risposta possibile: il dato restava nei pixel. Adesso
+    i pixel si coprono, quindi il file **parte** — e cio' che va provato e'
+    che parta pulito, non che parta.
     """
     pdf = pikepdf.Pdf.new()
     _pagina_di_testo(pdf, [f"Il cliente Mario Rossi, codice fiscale {CF}."],
@@ -279,10 +316,13 @@ def test_lo_scaricamento_non_consegna_un_file_con_un_superstite(tmp_path):
         "lang": "it",
     }, content_type="multipart/form-data")
 
-    assert r.status_code != 200, (
-        "un PDF la cui unica copia leggibile del dato resta nell'immagine "
-        "e' stato consegnato come redatto"
-    )
+    assert r.status_code == 200, (
+        f"la scansione con OCR si puo' trattare e non e' stata consegnata: "
+        f"{r.status_code} {r.get_data(as_text=True)[:200]}")
+    consegnato = tmp_path / "consegnato.pdf"
+    consegnato.write_bytes(r.get_data())
+    assert CF not in "\n".join(_testo_per_pagina(consegnato)), (
+        "il file consegnato contiene ancora il codice fiscale")
 
 
 def test_la_verifica_gira_davvero_prima_di_consegnare(monkeypatch, tmp_path):
