@@ -763,6 +763,30 @@ def test_la_verifica_non_scambia_l_eco_di_un_jpeg_per_un_dato(tmp_path):
     assert verifica_redazione(dentro, male, PrivacyOptions())["nei_pixel"] >= 2
 
 
+def test_senza_la_domanda_a_pdfium_la_verifica_ripiega_e_sa_ancora_dire_di_no(
+        tmp_path, monkeypatch):
+    """Un pdfium vecchio non sa dire in che modo e' scritto un carattere.
+
+    Li' la verifica ripiega sul lettore del flusso di questo modulo: e' lo
+    stesso righello della redazione, quindi vale meno, ma una verifica che
+    davanti a una domanda senza risposta dicesse «tutto a posto» varrebbe
+    zero. Si toglie la funzione a pdfium e si guarda che il file redatto male
+    venga ancora fermato.
+    """
+    dentro = _scansione_con_ocr(tmp_path / "dentro.pdf")
+    male = tmp_path / "male.pdf"
+    pdf = pikepdf.Pdf.new()
+    _aggiungi_pagina(pdf, IMMAGINE_PIENA,
+                     xobject={"/Im0": _incorpora(pdf, _foglio(RIGHE))})
+    pdf.save(str(male))
+    pdf.close()
+
+    monkeypatch.delattr(modulo.pdfium.raw, "FPDFText_GetTextObject")
+    esito = verifica_redazione(dentro, male, PrivacyOptions())
+    assert esito["nei_pixel"] >= 2, esito
+    assert esito["sopravvissuti"] >= 2, esito
+
+
 def test_un_immagine_che_la_verifica_non_riesce_a_estrarre_e_un_no(tmp_path, monkeypatch):
     """«Non ho potuto guardare» non e' «non c'era niente».
 

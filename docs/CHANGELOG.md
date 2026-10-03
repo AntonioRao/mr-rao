@@ -82,7 +82,7 @@ Quello che la 1.30.1 elencava, meno questo: l'autore delle note (`/T`),
 che non arriva sullo schermo. E lo stesso limite: **tutto questo è misurato
 su PDF sintetici**, e gli strati OCR veri non sono stati provati.
 
-2.430 test (erano 2.423), quarantuno mutazioni verificate rosse. Un banco mio
+2.431 test (erano 2.423), quarantadue mutazioni verificate rosse. Un banco mio
 era rosso a ragione: lo «sfondo sotto il testo» aveva un indirizzo
 nell'intestazione, scritta prima dello sfondo — cioè davvero sotto.
 
