@@ -726,6 +726,19 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     testo dell'albero di struttura — `/ActualText`, `/Alt`, `/E`, `/T`, cioè
     quello che legge uno screen reader — passa dal filtro come le proprietà
     del documento;
+  - **chi ha scritto il documento, dalla 1.30.3.** L'autore nelle proprietà
+    (`/Author`) e l'autore di ogni nota (`/T`) escono col segnaposto, **per
+    intero e qualunque forma abbiano**: un nome utente come `mario.rossi`
+    non è una forma che il motore riconosce, e non serve che lo sia — quel
+    campo dice *chi*, e lì qualunque valore è un'identità. Vale con la
+    casella «Nomi» accesa; spenta, restano. Il nome di un **campo modulo**
+    non si tocca: lì `/T` è il nome del campo, non una persona;
+  - **i dati privati delle applicazioni si tolgono, dalla 1.30.3.**
+    `/PieceInfo` è lo spazio in cui un programma tiene le sue cose dentro il
+    PDF, e alcuni programmi di grafica ci tengono una copia di lavoro
+    dell'intero documento. Si tolgono tutti senza guardarci dentro, come gli
+    allegati, e il pannello dice quanti: il file redatto non si riapre più
+    com'era nel programma che l'ha fatto;
   - **le pagine in ripiego non sono redatte.** Quando il testo estratto non si
     ritrova nel flusso di contenuto, o un tratto non si riconduce a nessun
     glifo, la pagina esce **com'era**. Compaiono in `pagine_in_ripiego` con il
@@ -733,12 +746,12 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     zero, nella tinta dei sospetti — che qui vuol dire «tocca a te guardare».
     Chiamarle redatte sarebbe il modo peggiore di sbagliare;
   - restano fuori, dichiarati, gli operatori di testo `'` e `"`;
-  - **restano fuori anche due cose misurate il 3 ottobre 2026 e non ancora
-    chiuse**, che qui stanno scritte perché tacerle sarebbe peggio che
-    averle: l'**autore di una nota** (`/T`), che esce in chiaro, e i **dati
-    privati delle applicazioni** (`/PieceInfo`), dove alcuni programmi
-    tengono una copia di lavoro del documento. Sono in `docs/BACKLOG.md`,
-    P6.13.
+  - **tutto ciò che qui sopra riguarda immagini, miniature, struttura, autore
+    e dati privati è misurato su PDF costruiti apposta**, non su un corpus di
+    documenti veri. In particolare gli strati OCR veri usano spesso un font
+    senza glifi, e non è stato verificato che se ne ricavi il riquadro di
+    ogni parola: se non si ricava, la pagina finisce fra le non trattate. È
+    in `docs/BACKLOG.md`, P6.13.
 
   **Il PDF segue le stesse opzioni del Markdown, profilo compreso** — e dalla
   1.24.0 anche il profilo. Prima no: le rotte del PDF costruivano le opzioni

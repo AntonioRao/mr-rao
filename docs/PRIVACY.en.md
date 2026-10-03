@@ -733,6 +733,20 @@ silent loss, by definition, appears in none of the three numbers.
     text in the structure tree — `/ActualText`, `/Alt`, `/E`, `/T`, what a
     screen reader reads out — goes through the filter like the document
     properties;
+  - **who wrote the document, since 1.30.3.** The author in the properties
+    (`/Author`) and the author of every note (`/T`) come out as a
+    placeholder, **whole and whatever shape they have**: a username like
+    `mario.rossi` is not a shape the engine recognises, and it does not need
+    to be — that field says *who*, and any value there is an identity. This
+    applies with the "Names" box ticked; unticked, they stay. The name of a
+    **form field** is not touched: there `/T` is the field's name, not a
+    person;
+  - **application private data is removed, since 1.30.3.** `/PieceInfo` is
+    where a program keeps its own things inside the PDF, and some graphics
+    programs keep a working copy of the whole document there. All of it is
+    removed without looking inside, like attachments, and the panel says how
+    many: the redacted file no longer reopens as it was in the program that
+    made it;
   - **pages that fall back are not redacted.** When the extracted text cannot
     be found in the content stream, or a span cannot be traced to any glyph,
     the page comes out **as it was**. Those pages appear in
@@ -741,12 +755,12 @@ silent loss, by definition, appears in none of the three numbers.
     here means "your turn to look". Calling them redacted would be the worst
     possible way to be wrong;
   - the `'` and `"` text operators are declared out of scope;
-  - **two things measured on 3 October 2026 are also still out, and not yet
-    closed** — written here because keeping quiet about them would be worse
-    than having them: the **author of a note** (`/T`), which comes out in
-    clear, and **application private data** (`/PieceInfo`), where some
-    programs keep a working copy of the document. They are in
-    `docs/BACKLOG.md`, P6.13.
+  - **everything above about images, thumbnails, structure, author and
+    private data is measured on PDFs built for the purpose**, not on a corpus
+    of real documents. In particular, real OCR layers often use a font with
+    no glyphs, and it has not been verified that the box of each word can be
+    derived from one: if it cannot, the page goes among the untreated ones.
+    It is in `docs/BACKLOG.md`, P6.13.
 
   **The PDF follows the same options as the Markdown, profile included** — and
   since 1.24.0 the profile too. It did not before: the PDF routes built their

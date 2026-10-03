@@ -212,6 +212,39 @@ TESTI: dict[str, dict[str, str]] = {
               "was redacted there: say so yourself, if the recipient needs to "
               "know.",
     },
+    # Le tre frasi qui sotto non accordano niente col numero, di proposito:
+    # «1 allegati» e' sbagliato quanto «1 attachments», e scritte cosi' valgono
+    # per uno e per molti senza una seconda chiave.
+    "pdf_coperte_sull_ocr": {
+        "it": "⚠ Pagine da guardare prima di consegnare il file: {elenco}. Lì "
+              "il dato stava nei pixel di una scansione, ed è stato tolto "
+              "dall'immagine nel punto in cui lo strato OCR dice che sta la "
+              "parola. Se quello strato è spostato rispetto all'immagine, il "
+              "dato può essere rimasto accanto.",
+        "en": "⚠ Pages to look at before handing the file over: {elenco}. "
+              "There the data was in the pixels of a scan, and it was removed "
+              "from the image where the OCR layer says the word is. If that "
+              "layer is shifted against the image, the data may still be "
+              "there beside it.",
+    },
+    "pdf_allegati_rimossi": {
+        "it": "Allegati tolti dal PDF: {n}. Erano documenti interi, che qui "
+              "non si possono redigere: il file che consegni ha un pezzo in "
+              "meno dell'originale.",
+        "en": "Attachments taken out of the PDF: {n}. They were whole "
+              "documents, which cannot be redacted here: the file you hand "
+              "over has a piece less than the original.",
+    },
+    "pdf_dati_privati_rimossi": {
+        "it": "Blocchi di dati privati tolti dal PDF: {n}. Li lascia il "
+              "programma con cui il file è stato fatto, e possono contenere "
+              "una copia di lavoro del documento: il file redatto non si "
+              "riapre più com'era in quel programma.",
+        "en": "Private-data blocks taken out of the PDF: {n}. The program "
+              "that made the file leaves them there, and they can hold a "
+              "working copy of the document: the redacted file no longer "
+              "reopens as it was in that program.",
+    },
     "tip_pdf": {
         "it": "Il documento che esce è **ancora un PDF di testo** — "
               "selezionabile, ricercabile, dello stesso peso. I dati non sono "

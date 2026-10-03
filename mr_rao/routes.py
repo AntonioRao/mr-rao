@@ -929,6 +929,11 @@ def anteprima_pdf():
         # redatto: escono dal file, e chi lo consegna deve sapere che il PDF
         # ha un pezzo in meno di quello che aveva caricato.
         "allegati_rimossi": esito.allegati_tolti,
+        # Stessa ragione per i dati privati delle applicazioni: fra quelli
+        # puo' esserci una copia di lavoro del documento, e si tolgono senza
+        # guardarci dentro. Il PDF redatto non si riapre piu' «com'era» nel
+        # programma che l'ha fatto.
+        "dati_privati_rimossi": esito.dati_privati_tolti,
         "prima": prima,
         "dopo": dopo,
     })

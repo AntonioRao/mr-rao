@@ -1,5 +1,132 @@
 # Changelog
 
+## 1.30.3 — Chi ha scritto, e ciò che il programma ha lasciato dentro
+
+Le ultime tre cose uscite cercando, il 3 ottobre 2026, lo stesso dato su tutti
+i canali di un PDF. Più due che con il PDF non c'entrano e che stavano già su
+`main`.
+
+### 1. L'autore è un campo, non un testo
+
+    /Author (mario.rossi)        →  /Author (mario.rossi), metadati_tolti 0
+    nota con /T (Mario Rossi)    →  /T (Mario Rossi)
+
+`mario.rossi` non è una forma che il motore riconosce. La strada ovvia era
+insegnargliela, ed era sbagliata: nel testo libero `nome.cognome` è anche un
+file, un modulo, un dominio, e un riconoscitore così avrebbe redatto mezza
+documentazione tecnica per chiudere un campo solo.
+
+Ma `/Author` **non è testo libero**. È il campo che dice chi ha scritto, e lì
+qualunque valore è un'identità: non c'è niente da riconoscere, c'è da sapere
+che campo è. Lo stesso per `/T` di una nota, che per convenzione è il nome di
+chi l'ha messa.
+
+Adesso i due campi escono col segnaposto, **per intero**. Anche quando il
+motore ne riconoscerebbe un pezzo: `m.rossi (Mario Rossi)` redatto a metà
+lascerebbe fuori proprio il nome utente. E l'XMP si butta anche quando nomina
+un autore, perché lì c'è la stessa stringa una seconda volta — con le opzioni
+di default usciva già, ma con gli URL spenti restava.
+
+Tre scelte, e chi le legge può non essere d'accordo:
+
+- **il segnaposto è quello dei nomi** (`{{NAME_1}}`), non uno nuovo. Dice
+  «qui c'era chi ha scritto», che è vero anche quando era un ufficio;
+- **dipende dalla casella «Nomi»**. Spenta, i due campi restano: chi ha
+  scelto di tenere i nomi ha scelto anche questo;
+- **`/Creator` resta fuori**, anche se il nome inganna: è il programma con
+  cui il documento è stato scritto, non la persona.
+
+`/T` non era fra le chiavi di testo delle annotazioni, e la ragione era
+buona: su un **campo modulo** è il nome del campo, e cambiarlo rompe il
+modulo. Continua a non toccarsi lì. Con lui entra `/Subj`, l'argomento di una
+nota, che è testo scritto da una persona e passa dal filtro come `/Contents`.
+
+La verifica su questi campi non poteva fare la sua domanda di sempre: cerca
+nel redatto i valori che il motore riconosce nell'originale, e un nome utente
+il motore non lo riconosce. Un autore rimasto usciva verde **per
+costruzione**. Adesso confronta campo con campo: uno rimasto identico è un
+superstite.
+
+### 2. I dati privati delle applicazioni
+
+`/PieceInfo` è lo spazio che il formato lascia a ogni programma per tenere
+nel PDF le sue cose. Alcuni programmi di grafica ci tengono **una copia di
+lavoro dell'intero documento**, per poterlo riaprire com'era. Nessun lettore
+lo mostra, e nessuna parte del modulo lo leggeva: il file redatto usciva con
+l'originale accanto.
+
+Si toglie sempre, come gli allegati e per la stessa ragione — redigerlo
+vorrebbe dire capire il formato privato di ogni programma — e si conta. Lo si
+cerca su **ogni oggetto del file**, non su un elenco di posti: pagina,
+catalogo, Form XObject, e un elenco di posti è un elenco di posti dimenticati.
+Su un file di cinquantamila oggetti costa un terzo di secondo.
+
+Il prezzo è vero e sta scritto nel pannello: il PDF redatto non si riapre più
+com'era nel programma che l'ha fatto.
+
+### 3. Gli avvisi che non arrivavano
+
+`pagine_coperte_sull_ocr` e `allegati_rimossi` uscivano dalla rotta di
+anteprima dalla 1.30.0, con accanto il commento «chi consegna il documento le
+guarda». L'interfaccia non li leggeva. L'avviso esisteva nel JSON e non sullo
+schermo, cioè non esisteva.
+
+Adesso il pannello li mostra, con i dati privati tolti, e **una frase per
+riga**: finché gli avvisi erano due stavano bene di fila, con sei diventano
+un muro in cui quello che conta non si distingue. Verificato nel browser, in
+italiano e in inglese.
+
+### 4. Due minimi che non reggevano
+
+`requirements.txt` diceva `pikepdf>=9.0.0`. In un venv pulito, su ogni
+versione sotto la 10.6.0, **la redazione di qualunque PDF falliva al primo
+font**: 72 banchi rossi su 107. La causa era una riga: si chiedeva
+`/Differences` a «qualunque cosa abbia un metodo `get`», e in pikepdf ce l'ha
+anche un nome — e la codifica di un font è quasi sempre un nome. Dalla 10.6.0
+quel `get` risponde «non c'è»; prima solleva. Il codice funzionava per questo,
+non perché fosse giusto.
+
+Corretta la riga, il minimo vero è la 10.3.0. Per pypdfium2 è la 5.0.0:
+sotto, pdfium non sa dire a quale oggetto appartiene un carattere, e la
+verifica non vede il testo coperto da un'immagine. I due minimi adesso sono
+quelli, con il motivo accanto, e sono **misurati**: verdi al pavimento, rossi
+appena sotto.
+
+Cosa non è stato fatto: gli altri. Di due minimi provati, due non reggevano.
+
+### 5. Le licenze di ciò che c'è nel prodotto, non nel venv
+
+Il passo delle licenze del quality gate era rosso sulla macchina di sviluppo.
+Non per una dipendenza cambiata: nel venv c'erano sedici pacchetti rimasti da
+uno strumento di audit provato e poi disinstallato. Lo script elencava tutto
+ciò che trovava installato, quindi per lui erano terze parti di Mr. Rao — e
+il messaggio diceva «rigenerare», cioè metterli in un file che si distribuisce
+e che dichiara licenze.
+
+Adesso l'elenco parte da ciò che Mr. Rao **dichiara** e segue ciò che quei
+pacchetti richiedono. `THIRD_PARTY.md` passa da 73 a 72: esce `pip`, che
+c'era per la stessa ragione e che nessun pacchetto distribuito contiene.
+Nessuna versione e nessuna licenza è cambiata.
+
+### Cosa cambia per chi usava la 1.30.2
+
+- l'autore di un PDF redatto è sempre `{{NAME_1}}`, anche quando era un
+  ufficio o un nome generico. È un campo di metadati, e si sbaglia dalla
+  parte di togliere;
+- un PDF redatto non porta più i dati privati del programma che l'ha fatto:
+  riaperto lì, non è più modificabile com'era;
+- `verifica_redazione` ha due chiavi in più, `identita_rimaste` e
+  `dati_privati_rimasti`, e tutte e due entrano in `sopravvissuti`.
+
+### Cosa resta fuori
+
+Tre cose, in `docs/BACKLOG.md` (P6.13): gli strati OCR veri non sono stati
+misurati, e tutto ciò che questa serie ha chiuso è provato su PDF costruiti
+apposta; una verifica che solleva lascia passare il file; gli altri minimi di
+`requirements.txt`.
+
+2.461 test (erano 2.431), venticinque mutazioni nuove verificate rosse.
+
 ## 1.30.2 — Il testo sotto l'immagine
 
 La 1.30.1 lo aveva misurato e lasciato aperto, scrivendolo: un programma di

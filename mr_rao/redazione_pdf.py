@@ -80,8 +80,10 @@ Cosa fa oltre il flusso
 
 Il dato non sta solo nei glifi. Si redigono anche le **annotazioni** e i
 campi modulo, le **proprieta'** del documento, i titoli dei **segnalibri** e
-il **testo di struttura**; si tolgono gli **allegati** e le **miniature di
-pagina**. E sulle scansioni con strato OCR si azzerano i **pixel dentro
+il **testo di struttura**; l'**autore** del documento e delle note esce col
+segnaposto per intero, perche' e' un campo che dice chi e non un testo da
+leggere; si tolgono gli **allegati**, le **miniature di pagina** e i **dati
+privati delle applicazioni**. E sulle scansioni con strato OCR si azzerano i **pixel dentro
 l'immagine**, sulle coordinate che quello strato dichiara: il rettangolo
 disegnato sopra e' un segno per chi legge, non la redazione. Vale per i due
 modi in cui un OCR lascia il suo testo: invisibile sopra l'immagine, oppure
@@ -333,6 +335,12 @@ class EsitoRedazione:
     #: documento a chi lo legge con uno screen reader. Come metadati e
     #: segnalibri: testo che non sta in nessun flusso di pagina.
     struttura_tolti: int = 0
+    #: Quanti blocchi di **dati privati delle applicazioni** (`/PieceInfo`)
+    #: sono stati tolti. Come gli allegati: non un conto di valori ma di
+    #: pezzi del file, tolti senza guardarci dentro (vedi
+    #: `_togli_dati_privati`). Il PDF che esce non si riapre piu' «com'era»
+    #: nel programma che l'ha fatto, ed e' una perdita che va detta.
+    dati_privati_tolti: int = 0
 
 
 class _Contenitore:
@@ -1235,6 +1243,9 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         # valori di testo, questo conta file interi. Sommarli farebbe un
         # numero che non significa niente.
         esito.allegati_tolti = _togli_allegati(pdf)
+        # Stessa regola e stesso conto a parte per i dati privati delle
+        # applicazioni: pezzi interi del file, tolti senza aprirli.
+        esito.dati_privati_tolti = _togli_dati_privati(pdf)
         # La quarta: il testo di struttura, che sta nell'albero del documento
         # e non in una pagina.
         esito.struttura_tolti = _redigi_struttura(pdf, opzioni)
@@ -1610,10 +1621,58 @@ def _ripiego(esito: EsitoRedazione, pagina: int, motivo: str) -> None:
 #:   Nei moduli veri contiene spesso un esempio gia' compilato;
 #: * `/Opt` e' l'elenco delle scelte di una tendina, che in un modulo uscito da
 #:   un gestionale sono i nomi dei clienti. E' l'unica **array**, non stringa.
-_CHIAVI_TESTO_ANNOTAZIONE = ("/Contents", "/RC", "/V", "/DV", "/TU")
+#:
+#: `/Subj` e' arrivata il 3 ottobre 2026: e' l'argomento di una nota, una
+#: riga scritta da chi l'ha messa («Posizione di Mario Rossi»).
+#:
+#: **`/T` qui non c'e', e non per dimenticanza.** Su una nota e' l'autore; su
+#: un campo modulo e' il **nome del campo**, e cambiarlo rompe il modulo. Non
+#: e' testo da far passare dal filtro: e' un campo d'identita', e lo tratta
+#: `_identita_redatta`, solo dove e' un autore.
+_CHIAVI_TESTO_ANNOTAZIONE = ("/Contents", "/RC", "/V", "/DV", "/TU", "/Subj")
 
 #: Le chiavi il cui valore e' un elenco di stringhe, non una stringa sola.
 _CHIAVI_ELENCO_ANNOTAZIONE = ("/Opt",)
+
+#: Un valore fatto **solo** di segnaposto: e' gia' stato redatto. Serve a non
+#: contare come dato nuovo l'autore di un file che esce da qui per la seconda
+#: volta.
+_RE_SOLO_SEGNAPOSTO = re.compile(r"\s*(?:\{\{[A-Z_]+(?:_\d+)?\}\}\s*)+")
+
+#: Dove un blocco XMP dice chi ha scritto il documento: `dc:creator` e' il
+#: gemello di `/Author`, `pdf:Author` lo scrivono alcuni programmi. Non
+#: `xmp:CreatorTool`, che e' il programma e sta in ogni blocco.
+_RE_AUTORE_XMP = re.compile(r"\b(?:dc:creator|pdf:Author)\b")
+
+
+def _identita_redatta(valore, opzioni: PrivacyOptions) -> str | None:
+    """Il segnaposto da mettere in un **campo d'identita'**, o `None` se resta com'e'.
+
+    Un campo d'identita' e' un campo che dice *chi*: `/Author` nelle
+    proprieta' del documento, `/T` su una nota. Li' non si cerca un nome
+    dentro un testo — **il campo intero e' il nome**, comunque sia scritto.
+
+    E' la risposta a un caso misurato: `/Author (mario.rossi)` usciva
+    intatto, perche' `mario.rossi` non e' una forma che il motore riconosce.
+    E non deve diventarlo nel testo libero, dove `nome.cognome` e' anche un
+    file, un modulo, un dominio: insegnarlo al motore avrebbe redatto mezza
+    documentazione tecnica per chiudere un campo solo. Qui non serve
+    riconoscere niente, serve sapere che campo e'.
+
+    Si sostituisce **tutto** il valore, anche quando il motore ne
+    riconoscerebbe un pezzo: `m.rossi (Mario Rossi)` redatto a meta'
+    lascerebbe fuori proprio il nome utente.
+
+    Tre casi in cui non si tocca: la casella «Nomi» e' spenta, e chi ha
+    scelto di tenere i nomi ha scelto anche questo; il campo e' vuoto; il
+    campo contiene gia' soltanto segnaposto.
+    """
+    if not opzioni.names or not isinstance(valore, pikepdf.String):
+        return None
+    testo = str(valore)
+    if not testo.strip() or _RE_SOLO_SEGNAPOSTO.fullmatch(testo):
+        return None
+    return "{{NAME_1}}" if opzioni.numerati else "{{NAME}}"
 
 
 def _ha_annotazioni_con_testo(sorgente: Path) -> bool:
@@ -1664,6 +1723,20 @@ def _stringa_redatta(voce, opzioni: PrivacyOptions):
     return pikepdf.String(redatto), rapporto.total
 
 
+def _e_una_nota(annotazione) -> bool:
+    """Un'annotazione che non e' un campo modulo: una nota, un timbro, un evidenziatore.
+
+    E' la distinzione che decide cosa vuol dire `/T`. Si guardano due cose,
+    perche' ne basta una: il sottotipo `/Widget`, e il tipo di campo `/FT`,
+    che c'e' anche quando il campo e' scritto in modo irregolare.
+    """
+    try:
+        return (annotazione.get("/Subtype") != pikepdf.Name("/Widget")
+                and "/FT" not in annotazione)
+    except Exception:
+        return False
+
+
 def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
     """Toglie i dati dalle annotazioni e dai campi modulo di una pagina.
 
@@ -1701,6 +1774,16 @@ def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
         # sbagliata.
         if not isinstance(annotazione, pikepdf.Dictionary):
             continue
+
+        # **L'autore della nota.** Solo dove `/T` e' un autore: su un campo
+        # modulo e' il nome del campo. Non fa buttare l'aspetto memorizzato,
+        # perche' il nome di chi ha scritto non e' nel disegno della nota: e'
+        # nella finestrella che il lettore apre, e quella la compone lui.
+        if _e_una_nota(annotazione):
+            autore = _identita_redatta(annotazione.get("/T"), opzioni)
+            if autore is not None:
+                annotazione["/T"] = pikepdf.String(autore)
+                tolti += 1
 
         # Il valore puo' stare sul campo padre invece che sul widget: sono lo
         # stesso dato scritto in due posti, e guardarne uno solo vuol dire
@@ -1782,6 +1865,11 @@ def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
 #: proposito: dicono con che programma e quando, non di chi.
 _CHIAVI_TESTO_DOCINFO = ("/Title", "/Author", "/Subject", "/Keywords", "/Creator")
 
+#: Fra quelle, le chiavi che dicono **chi**: campi d'identita', non testo.
+#: Solo `/Author`. `/Creator` no, anche se il nome inganna: e' il programma
+#: con cui il documento e' stato scritto, non la persona.
+_CHIAVI_IDENTITA_DOCINFO = ("/Author",)
+
 
 def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
     """Le proprieta' del documento sono testo come tutto il resto.
@@ -1806,6 +1894,16 @@ def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
 
     Si butta **solo se conteneva qualcosa**: un XMP innocuo resta dov'e', e un
     documento senza dati personali nei metadati esce identico a com'e' entrato.
+
+    L'autore non e' testo: e' un campo
+    ----------------------------------
+
+    `/Author` non passa dal filtro come le altre proprieta': vedi
+    `_identita_redatta`. E l'XMP si butta anche quando nomina un autore,
+    perche' li' c'e' la stessa stringa una seconda volta. Con le opzioni di
+    default non cambia niente — ogni blocco XMP porta gli indirizzi dei suoi
+    spazi dei nomi, il filtro li riconosce come URL e il blocco esce comunque
+    — ma con gli URL spenti restava, con il nome utente dentro.
     """
     tolti = 0
     for chiave in _CHIAVI_TESTO_DOCINFO:
@@ -1818,6 +1916,12 @@ def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
         testo = str(valore)
         if not testo.strip():
             continue
+        if chiave in _CHIAVI_IDENTITA_DOCINFO:
+            autore = _identita_redatta(valore, opzioni)
+            if autore is not None:
+                pdf.docinfo[chiave] = pikepdf.String(autore)
+                tolti += 1
+                continue
         redatto, rapporto = apply_privacy_filter(testo, opzioni)
         if rapporto.total == 0:
             continue
@@ -1832,9 +1936,10 @@ def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
             grezzo = ""
         if grezzo:
             _, rapporto = apply_privacy_filter(grezzo, opzioni)
-            if rapporto.total:
+            nomina_un_autore = opzioni.names and _RE_AUTORE_XMP.search(grezzo) is not None
+            if rapporto.total or nomina_un_autore:
                 del pdf.Root["/Metadata"]
-                tolti += rapporto.total
+                tolti += rapporto.total or 1
     return tolti
 
 
@@ -1880,6 +1985,49 @@ def _redigi_segnalibri(pdf, opzioni: PrivacyOptions) -> int:
                     continue
                 voce.title = redatto
                 tolti += rapporto.total
+    except Exception:
+        return tolti
+    return tolti
+
+
+def _oggetti_con_dati_privati(pdf):
+    """Ogni oggetto del file che porta un `/PieceInfo`.
+
+    Si guardano **tutti** gli oggetti e non solo le pagine: la chiave puo'
+    stare sulla pagina, sul catalogo, su un Form XObject, e un elenco di
+    posti in cui cercare e' un elenco di posti dimenticati. Su un file di
+    cinquantamila oggetti costa un terzo di secondo.
+    """
+    for oggetto in pdf.objects:
+        if (isinstance(oggetto, (pikepdf.Dictionary, pikepdf.Stream))
+                and "/PieceInfo" in oggetto):
+            yield oggetto
+
+
+def _togli_dati_privati(pdf) -> int:
+    """I dati privati delle applicazioni escono dal documento, senza guardarci dentro.
+
+    `/PieceInfo` e' lo spazio che il formato lascia a ogni programma per
+    tenere nel PDF le sue cose: i livelli di un disegno, lo stato
+    dell'impaginazione, e in certi programmi di grafica **una copia di lavoro
+    dell'intero documento**, per poterlo riaprire com'era. Nessun lettore lo
+    mostra, e nessuna parte di questo modulo lo leggeva: il file redatto
+    usciva con dentro l'originale, in un formato che non sappiamo aprire.
+
+    Stessa regola degli allegati, per la stessa ragione: redigerlo vorrebbe
+    dire capire il formato privato di ogni programma, e «guardo dentro solo
+    se lo capisco» lascerebbe passare proprio quelli che non capiamo. Si
+    toglie tutto e si conta.
+
+    Il prezzo e' vero: il PDF redatto non si riapre piu' «com'era» nel
+    programma che l'ha fatto. Per un documento che esce redatto e' quello
+    che si vuole, e sta scritto nel rapporto.
+    """
+    tolti = 0
+    try:
+        for oggetto in list(_oggetti_con_dati_privati(pdf)):
+            del oggetto["/PieceInfo"]
+            tolti += 1
     except Exception:
         return tolti
     return tolti
@@ -3052,9 +3200,44 @@ def _cio_che_non_e_testo(sorgente: Path, destinazione: Path,
         for numero, pagina in enumerate(pdf.pages):
             if "/Thumb" in pagina.obj:
                 miniature.append(numero)
+        dati_privati = sum(1 for _oggetto in _oggetti_con_dati_privati(pdf))
 
     return {"nei_pixel": nei_pixel, "miniature": miniature,
-            "pagine_immagine": pagine_immagine}
+            "pagine_immagine": pagine_immagine, "dati_privati": dati_privati}
+
+
+def _campi_d_identita(percorso: Path) -> dict[tuple, str]:
+    """Ogni campo che dice **chi**, con il posto in cui sta.
+
+    L'autore del documento sotto `("/Author",)`, l'autore di ogni nota sotto
+    `(pagina, posto fra le annotazioni)`. Serve alla verifica, che su questi
+    campi non puo' fare la sua domanda di sempre: lei cerca nel redatto i
+    valori che il motore riconosce nell'originale, e un nome utente il
+    motore non lo riconosce. Qui la domanda e' un'altra — **il campo e'
+    rimasto uguale?** — e per farla bisogna sapere quale campo e' quale.
+    """
+    try:
+        with pikepdf.open(str(percorso)) as pdf:
+            campi: dict[tuple, str] = {}
+            for chiave in _CHIAVI_IDENTITA_DOCINFO:
+                valore = pdf.docinfo.get(chiave)
+                if isinstance(valore, pikepdf.String):
+                    campi[(chiave,)] = str(valore)
+            for numero, pagina in enumerate(pdf.pages):
+                annotazioni = pagina.get("/Annots")
+                if not isinstance(annotazioni, pikepdf.Array):
+                    continue
+                for indice, annotazione in enumerate(annotazioni):
+                    if not isinstance(annotazione, pikepdf.Dictionary):
+                        continue
+                    if not _e_una_nota(annotazione):
+                        continue
+                    valore = annotazione.get("/T")
+                    if isinstance(valore, pikepdf.String):
+                        campi[(numero, indice)] = str(valore)
+            return campi
+    except Exception:
+        return {}
 
 
 def _resta_nei_pixel(immagini, estratte: dict, riquadri) -> bool:
@@ -3186,15 +3369,37 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
         pagine_con_superstiti.add(numero)
     pagine_con_superstiti.update(altro["miniature"])
     pagine_con_superstiti.update(altro["pagine_immagine"])
+    # Cio' che non sta su nessun foglio vale come la «pagina» dei metadati,
+    # l'ultima di `_unite`: non e' mai in ripiego, quindi ferma il file.
+    fuori_dai_fogli = len(flusso_prima)
+    if altro["dati_privati"]:
+        pagine_con_superstiti.add(fuori_dai_fogli)
+
+    # **I campi d'identita'.** L'autore del documento e quello delle note non
+    # sono valori che il motore riconosce: sono campi che, a «Nomi» accesi,
+    # devono uscire cambiati. Si confronta campo con campo, e un campo rimasto
+    # identico e' un superstite. Vedi `_identita_redatta`.
+    identita = 0
+    if opzioni.names:
+        dopo_identita = _campi_d_identita(destinazione)
+        for posto, valore in _campi_d_identita(sorgente).items():
+            if not valore.strip() or _RE_SOLO_SEGNAPOSTO.fullmatch(valore):
+                continue
+            if dopo_identita.get(posto) == valore:
+                identita += 1
+                rimasti.append(valore)
+                pagine_con_superstiti.add(
+                    posto[0] if isinstance(posto[0], int) else fuori_dai_fogli)
     return {
         "dichiarati_dal_motore": dichiarati,
         "individuati_nel_testo": individuati,
         "persi_prima_di_tagliare": dichiarati - individuati,
-        # Valori rimasti nel testo o nei pixel, piu' una voce per ogni
-        # miniatura e per ogni pagina-immagine: non sono valori, e sono cose
-        # che nel file redatto non dovevano esserci senza essere dichiarate.
+        # Valori rimasti nel testo, nei pixel o in un campo d'identita', piu'
+        # una voce per ogni miniatura, per ogni pagina-immagine e per ogni
+        # blocco di dati privati: non sono valori, e sono cose che nel file
+        # redatto non dovevano esserci senza essere dichiarate.
         "sopravvissuti": (len(rimasti) + len(altro["miniature"])
-                          + len(altro["pagine_immagine"])),
+                          + len(altro["pagine_immagine"]) + altro["dati_privati"]),
         "esempi": rimasti[:5],
         # L'ultimo indice e' la «pagina» dei metadati (vedi `_unite`): non e'
         # un foglio, e non puo' mai essere in ripiego. Un superstite li' vale
@@ -3203,4 +3408,6 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
         "nei_pixel": len(altro["nei_pixel"]),
         "miniature_rimaste": altro["miniature"],
         "pagine_immagine": altro["pagine_immagine"],
+        "identita_rimaste": identita,
+        "dati_privati_rimasti": altro["dati_privati"],
     }
