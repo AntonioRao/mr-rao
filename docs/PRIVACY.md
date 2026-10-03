@@ -704,7 +704,11 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     l'immagine incorporata**, nel riquadro che lo strato OCR dichiara per
     ogni valore. Sopra resta il rettangolo colorato, che è un segno per chi
     legge e non la redazione. Nella 1.30.0 il rettangolo era l'unica cosa:
-    estraendo l'immagine dal file il dato si leggeva intero. **Il limite,
+    estraendo l'immagine dal file il dato si leggeva intero. Dalla 1.30.2 vale
+    anche per l'altro modo in cui un OCR lascia il suo testo — scritto normale
+    e poi **coperto dall'immagine**, cioè sotto invece che sopra: si guarda
+    l'ordine in cui le cose sono dipinte, e un glifo con un'immagine dipinta
+    sopra dopo di lui conta come uno che non si vede. **Il limite,
     dichiarato:** la zona tolta sta dove lo strato OCR dice che sta la parola;
     se quello strato è disallineato rispetto all'immagine si tolgono i pixel
     sbagliati, e dal file non c'è modo di accorgersene. Se l'immagine non si
@@ -729,13 +733,12 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     zero, nella tinta dei sospetti — che qui vuol dire «tocca a te guardare».
     Chiamarle redatte sarebbe il modo peggiore di sbagliare;
   - restano fuori, dichiarati, gli operatori di testo `'` e `"`;
-  - **restano fuori anche tre cose misurate il 3 ottobre 2026 e non ancora
+  - **restano fuori anche due cose misurate il 3 ottobre 2026 e non ancora
     chiuse**, che qui stanno scritte perché tacerle sarebbe peggio che
-    averle: lo strato OCR messo **sotto** l'immagine invece che invisibile
-    sopra (la pagina viene trattata come digitale, e i pixel restano);
-    l'**autore di una nota** (`/T`), che esce in chiaro; i **dati privati
-    delle applicazioni** (`/PieceInfo`), dove alcuni programmi tengono una
-    copia di lavoro del documento. Sono in `docs/BACKLOG.md`, P6.13.
+    averle: l'**autore di una nota** (`/T`), che esce in chiaro, e i **dati
+    privati delle applicazioni** (`/PieceInfo`), dove alcuni programmi
+    tengono una copia di lavoro del documento. Sono in `docs/BACKLOG.md`,
+    P6.13.
 
   **Il PDF segue le stesse opzioni del Markdown, profilo compreso** — e dalla
   1.24.0 anche il profilo. Prima no: le rotte del PDF costruivano le opzioni

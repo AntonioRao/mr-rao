@@ -712,7 +712,11 @@ silent loss, by definition, appears in none of the three numbers.
     the embedded image**, in the box the OCR layer declares for each value.
     The coloured box stays on top, as a mark for the reader and not as the
     redaction. In 1.30.0 the box was all there was: extracting the image from
-    the file gave the data back whole. **The limit, declared:** the zone
+    the file gave the data back whole. Since 1.30.2 this also covers the
+    other way an OCR tool leaves its text — written normally and then
+    **painted over by the image**, under it instead of on top: paint order is
+    checked, and a glyph with an image painted over it afterwards counts as
+    one that cannot be seen. **The limit, declared:** the zone
     removed sits where the OCR layer says the word is; if that layer is
     misaligned with the image the wrong pixels go, and the file gives no way
     to notice. If the image cannot be rewritten (JBIG2, an inline image, a
@@ -737,13 +741,12 @@ silent loss, by definition, appears in none of the three numbers.
     here means "your turn to look". Calling them redacted would be the worst
     possible way to be wrong;
   - the `'` and `"` text operators are declared out of scope;
-  - **three things measured on 3 October 2026 are also still out, and not yet
+  - **two things measured on 3 October 2026 are also still out, and not yet
     closed** — written here because keeping quiet about them would be worse
-    than having them: an OCR layer placed **under** the image instead of
-    invisible on top of it (the page is treated as digital, and the pixels
-    stay); the **author of a note** (`/T`), which comes out in clear; and
-    **application private data** (`/PieceInfo`), where some programs keep a
-    working copy of the document. They are in `docs/BACKLOG.md`, P6.13.
+    than having them: the **author of a note** (`/T`), which comes out in
+    clear, and **application private data** (`/PieceInfo`), where some
+    programs keep a working copy of the document. They are in
+    `docs/BACKLOG.md`, P6.13.
 
   **The PDF follows the same options as the Markdown, profile included** — and
   since 1.24.0 the profile too. It did not before: the PDF routes built their

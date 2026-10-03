@@ -33,6 +33,13 @@ flusso. Le due numerazioni differiscono di un carattere per ogni a capo, e
 alla terza riga il rettangolo lasciava scoperta la coda dell'IBAN. I banchi
 esistenti avevano tutti una riga sola, dove le due numerazioni coincidono.
 
+1 ter. Il testo sotto l'immagine
+--------------------------------
+
+Lasciato aperto dalla 1.30.1, chiuso nella 1.30.2: lo strato OCR scritto in
+modo normale e poi coperto dall'immagine, invece che invisibile sopra. Sta in
+fondo al file, con la sua misura.
+
 2. La miniatura di pagina
 -------------------------
 
@@ -1090,6 +1097,259 @@ def test_una_scansione_dentro_un_form_xobject_e_una_scansione(tmp_path):
     esito = redigi_pdf(dentro, tmp_path / "fuori.pdf", PrivacyOptions())
     assert esito.pagine_in_ripiego == [1], esito
     assert esito.motivi_ripiego == [modulo.MOTIVO_SCANSIONE], esito.motivi_ripiego
+
+
+# ------------------------------------------- 1 ter. il testo SOTTO l'immagine
+#
+# Lasciato aperto dalla 1.30.1 e chiuso nella 1.30.2. Alcuni programmi di OCR
+# non scrivono il testo riconosciuto in modo invisibile sopra la scansione:
+# lo scrivono normale e **poi ci dipingono sopra l'immagine**. Per chi guarda
+# la pagina e' la stessa cosa; per il modulo quei glifi «si vedevano», e la
+# pagina prendeva la strada delle pagine digitali:
+#
+#     pagine_in_ripiego [], pagine_coperte_sull_ocr []
+#     pixel del codice fiscale ancora nell'immagine estratta
+#     verifica_redazione: sopravvissuti 0
+
+
+def _scansione_con_testo_sotto(percorso, righe=RIGHE):
+    """Prima il testo, **visibile**; poi l'immagine a tutta pagina, sopra."""
+    pdf = pikepdf.Pdf.new()
+    _aggiungi_pagina(pdf, _comandi_di_testo(righe, invisibile=False) + IMMAGINE_PIENA,
+                     xobject={"/Im0": _incorpora(pdf, _foglio(righe))})
+    pdf.save(str(percorso))
+    pdf.close()
+    return percorso
+
+
+def test_il_testo_sotto_l_immagine_vale_come_quello_invisibile(tmp_path):
+    """Un glifo coperto da un'immagine dipinta dopo non si vede: il dato e' nei pixel."""
+    dentro = _scansione_con_testo_sotto(tmp_path / "dentro.pdf")
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori, PrivacyOptions())
+
+    assert esito.pagine_coperte_sull_ocr == [0], (
+        f"la pagina e' stata trattata come digitale: {esito}")
+    dove = _riquadri(RIGHE, [CF, IBAN, RIGHE[0]])
+    dopo = _immagine_estratta(fuori)
+    for valore in (CF, IBAN):
+        assert _escursione(dopo, _dritta(dove[valore])) <= PIATTO, (
+            f"{valore[:4]}... ancora nei pixel: il testo stava sotto l'immagine")
+    assert _escursione(dopo, _dritta(dove[RIGHE[0]])) > INCHIOSTRO
+    assert CF not in "\n".join(_testo_per_pagina(fuori))
+    assert verifica_redazione(dentro, fuori, PrivacyOptions())["sopravvissuti"] == 0
+
+
+def test_la_verifica_dice_di_no_sul_testo_sotto_l_immagine(tmp_path):
+    """Il file «redatto male» della 1.30.1: testo tolto, immagine intatta.
+
+    La verifica chiedeva a pdfium soltanto il modo di rendering: questi glifi
+    sono in modo normale, quindi «si vedevano», e dei pixel non si guardava
+    niente.
+    """
+    dentro = _scansione_con_testo_sotto(tmp_path / "dentro.pdf")
+    male = tmp_path / "male.pdf"
+    pdf = pikepdf.Pdf.new()
+    _aggiungi_pagina(pdf, IMMAGINE_PIENA,
+                     xobject={"/Im0": _incorpora(pdf, _foglio(RIGHE))})
+    pdf.save(str(male))
+    pdf.close()
+
+    esito = verifica_redazione(dentro, male, PrivacyOptions())
+    assert esito["nei_pixel"] >= 2, esito
+    assert esito["sopravvissuti"] >= 2, esito
+    assert any(IBAN in e for e in esito["esempi"]), esito
+
+
+def test_un_valore_scritto_sopra_lo_sfondo_resta_una_pagina_digitale(tmp_path):
+    """La riga che impedisce di trattare da scansione ogni pagina con uno sfondo.
+
+    Un'intestazione, poi lo sfondo a tutta pagina, poi la lettera con i
+    valori: qui un'immagine e' disegnata **dopo** del testo, e copre il punto
+    in cui stanno i valori. Ma i valori sono scritti dopo di lei, quindi le
+    stanno sopra e si vedono: e' l'ordine fra quel valore e quell'immagine
+    che conta, non il fatto che nella pagina ci sia del testo prima.
+
+    Nell'intestazione non c'e' nessun dato, ed e' voluto. La prima stesura ci
+    metteva un indirizzo, e il banco diventava rosso a ragione: un indirizzo
+    scritto prima di uno sfondo opaco **sta sotto lo sfondo**, e quella
+    pagina va trattata come le altre di questa sezione.
+    """
+    lettera = [f"Riga {n} della lettera, scritta per esteso e fino in fondo."
+               for n in range(1, 25)] + [f"Codice fiscale {CF}"]
+    # Uno sfondo **a righe**, non a tinta unita: sotto i valori dev'esserci
+    # qualcosa che non e' piatto, o una verifica che andasse a guardare quei
+    # pixel per sbaglio non troverebbe niente da ridire e il banco tacerebbe.
+    sfondo = Image.new("L", (LARGO, ALTO), 245)
+    disegno = ImageDraw.Draw(sfondo)
+    for x in range(0, LARGO, 6):
+        disegno.rectangle((x, 0, x + 2, ALTO - 1), fill=215)
+    pdf = pikepdf.Pdf.new()
+    _aggiungi_pagina(
+        pdf,
+        ["BT /F1 9 Tf 1 0 0 1 60 800 Tm (Pagina 1 di 3 - copia per il cliente) Tj ET"]
+        + IMMAGINE_PIENA
+        + _comandi_di_testo(lettera, invisibile=False, corpo=12),
+        xobject={"/Im0": _incorpora(pdf, sfondo)})
+    dentro = tmp_path / "dentro.pdf"
+    pdf.save(str(dentro))
+    pdf.close()
+
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori, PrivacyOptions())
+    assert esito.pagine_coperte_sull_ocr == [], (
+        "pagina digitale con uno sfondo trattata come una scansione")
+    assert esito.pagine_in_ripiego == [], esito.motivi_ripiego
+    assert _immagine_estratta(fuori).tobytes() == sfondo.tobytes(), (
+        "lo sfondo e' stato toccato: sotto i valori non c'era niente da togliere")
+    assert CF not in "\n".join(_testo_per_pagina(fuori))
+    assert verifica_redazione(dentro, fuori, PrivacyOptions())["sopravvissuti"] == 0
+
+
+def test_un_logo_dipinto_dopo_il_testo_non_fa_una_scansione(tmp_path):
+    """Dipinta dopo non vuol dire dipinta **sopra**.
+
+    Molti programmi disegnano il marchio a pie' di pagina per ultimo, dopo
+    tutto il testo. Viene dopo i valori, e non li copre: sta da un'altra
+    parte del foglio. Senza guardare dove sta, ogni pagina di carta intestata
+    finirebbe fra le scansioni da controllare.
+    """
+    marchio = Image.new("L", (120, 60), 255)
+    disegno = ImageDraw.Draw(marchio)
+    for x in range(0, 120, 8):
+        disegno.rectangle((x, 0, x + 3, 59), fill=0)
+    pdf = pikepdf.Pdf.new()
+    _aggiungi_pagina(
+        pdf,
+        _comandi_di_testo(RIGHE, invisibile=False)
+        + ["q", "120 0 0 60 400 40 cm", "/Im0 Do", "Q"],
+        xobject={"/Im0": _incorpora(pdf, marchio)})
+    dentro = tmp_path / "dentro.pdf"
+    pdf.save(str(dentro))
+    pdf.close()
+
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori, PrivacyOptions())
+    assert esito.pagine_coperte_sull_ocr == [], (
+        "pagina digitale con un marchio in fondo trattata come una scansione")
+    assert esito.pagine_in_ripiego == [], esito.motivi_ripiego
+    assert _immagine_estratta(fuori).tobytes() == marchio.tobytes(), "marchio toccato"
+    assert CF not in "\n".join(_testo_per_pagina(fuori))
+    assert verifica_redazione(dentro, fuori, PrivacyOptions())["sopravvissuti"] == 0
+
+
+def _form(pdf, contenuto: str, risorse) -> "pikepdf.Stream":
+    oggetto = pdf.make_stream(contenuto.encode("latin-1"))
+    oggetto.Type = pikepdf.Name("/XObject")
+    oggetto.Subtype = pikepdf.Name("/Form")
+    oggetto.BBox = pikepdf.Array([0, 0, LARGO, ALTO])
+    oggetto.Resources = risorse
+    return oggetto
+
+
+@pytest.mark.parametrize("dove_sta_il_testo", ["pagina", "form"])
+def test_l_ordine_si_segue_anche_attraverso_un_form(tmp_path, dove_sta_il_testo):
+    """Chi viene prima si decide **nel flusso intero**, form compresi.
+
+    Due impaginazioni che si incontrano davvero: il testo sulla pagina e la
+    scansione dentro un form disegnato dopo; oppure il testo dentro un form,
+    e la scansione sulla pagina dopo di lui. Contando le istruzioni solo
+    dentro il proprio contenitore, in tutti e due i casi il confronto si
+    farebbe fra numeri che non hanno niente a che vedere l'uno con l'altro.
+    """
+    pdf = pikepdf.Pdf.new()
+    immagine = _incorpora(pdf, _foglio(RIGHE))
+    font = pikepdf.Dictionary(F1=_font(pdf))
+    testo = "\n".join(_comandi_di_testo(RIGHE, invisibile=False))
+    disegna = " ".join(IMMAGINE_PIENA)
+    if dove_sta_il_testo == "pagina":
+        # Il form con l'immagine e' la terza istruzione di pagina, dopo molte
+        # di testo: dentro il form l'immagine e' all'istruzione 1.
+        form = _form(pdf, disegna, pikepdf.Dictionary(XObject=pikepdf.Dictionary(Im0=immagine)))
+        comandi = _comandi_di_testo(RIGHE, invisibile=False) + ["q", "/Fm0 Do", "Q"]
+        xobject = {"/Fm0": form}
+        dentro_il_form = "/Fm0"
+    else:
+        # Il testo sta in un form disegnato per primo, con molte istruzioni;
+        # l'immagine e' la terza istruzione di pagina.
+        form = _form(pdf, testo, pikepdf.Dictionary(Font=font))
+        comandi = ["/Fm0 Do"] + IMMAGINE_PIENA
+        xobject = {"/Fm0": form, "/Im0": immagine}
+        dentro_il_form = None
+    _aggiungi_pagina(pdf, comandi, xobject=xobject)
+    dentro = tmp_path / "dentro.pdf"
+    pdf.save(str(dentro))
+    pdf.close()
+
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori, PrivacyOptions())
+    assert esito.pagine_coperte_sull_ocr == [0], esito
+
+    dove = _riquadri(RIGHE, [CF, IBAN])
+    dopo = _immagine_estratta(fuori, dentro=dentro_il_form)
+    for valore in (CF, IBAN):
+        assert _escursione(dopo, _dritta(dove[valore])) <= PIATTO, (
+            f"{valore[:4]}... ancora nei pixel (testo nel contenitore «{dove_sta_il_testo}»)")
+    assert verifica_redazione(dentro, fuori, PrivacyOptions())["sopravvissuti"] == 0
+
+    # E la verifica segue lo stesso ordine con il suo righello: sul file con
+    # il testo tolto e l'immagine intatta dice di no.
+    male = tmp_path / "male.pdf"
+    with pikepdf.open(str(dentro)) as redatto_male:
+        pagina = redatto_male.pages[0].obj
+        if dove_sta_il_testo == "pagina":
+            pagina["/Contents"] = redatto_male.make_stream(b"q /Fm0 Do Q")
+        else:
+            pagina["/Resources"]["/XObject"]["/Fm0"].write(b"")
+        redatto_male.save(str(male))
+    assert verifica_redazione(dentro, male, PrivacyOptions())["nei_pixel"] >= 2
+
+
+def test_una_firma_sopra_il_nome_si_buca_solo_li(tmp_path):
+    """Un'immagine piccola dipinta sopra un valore: il caso della firma.
+
+    Non e' una scansione e non copre la pagina, ma sotto quel pezzo di
+    immagine c'e' un valore che non si vede, e in quel pezzo puo' esserci
+    scritto lui. Si toglie **quel pezzo**: il resto dell'immagine resta
+    com'era, e la pagina si dichiara fra quelle da guardare.
+    """
+    righe = ["Il sottoscritto dichiara quanto segue.", f"Codice fiscale {CF}"]
+    dove = _riquadri(righe, [CF])
+    sinistra, basso, destra, alto = dove[CF]
+    # La «firma»: 200 x 60 punti, a cavallo della seconda meta' del valore.
+    x0, y0, larga, alta = (sinistra + destra) / 2, basso - 20, 200.0, 60.0
+    firma = Image.new("L", (int(larga * SCALA), int(alta * SCALA)), 255)
+    disegno = ImageDraw.Draw(firma)
+    for x in range(0, firma.width, 8):
+        disegno.rectangle((x, 0, x + 3, firma.height - 1), fill=0)
+
+    pdf = pikepdf.Pdf.new()
+    _aggiungi_pagina(
+        pdf,
+        _comandi_di_testo(righe, invisibile=False)
+        + ["q", f"{larga} 0 0 {alta} {x0:.2f} {y0:.2f} cm", "/Im0 Do", "Q"],
+        xobject={"/Im0": _incorpora(pdf, firma)})
+    dentro = tmp_path / "dentro.pdf"
+    pdf.save(str(dentro))
+    pdf.close()
+
+    fuori = tmp_path / "fuori.pdf"
+    esito = redigi_pdf(dentro, fuori, PrivacyOptions())
+    assert esito.pagine_coperte_sull_ocr == [0], esito
+    assert CF not in "\n".join(_testo_per_pagina(fuori))
+
+    dopo = _immagine_estratta(fuori)
+    # Il pezzo di firma che sta sopra il valore, nei pixel della firma: la
+    # firma comincia a meta' valore, quindi a sinistra c'e' il suo bordo.
+    sopra_il_valore = (0, int((y0 + alta - alto) * SCALA),
+                       int((destra - x0) * SCALA), int((y0 + alta - basso) * SCALA) + 1)
+    assert _escursione(dopo, sopra_il_valore) <= PIATTO, (
+        "il pezzo di immagine sopra il valore e' rimasto com'era")
+    # E lontano dal valore la firma e' quella di prima.
+    lontano = (int(150 * SCALA), 0, firma.width, int(10 * SCALA))
+    assert dopo.crop(lontano).tobytes() == firma.crop(lontano).tobytes(), (
+        "bucata l'immagine anche dove non c'era nessun valore sotto")
+    assert verifica_redazione(dentro, fuori, PrivacyOptions())["sopravvissuti"] == 0
 
 
 # --------------------------------------------------------- dal prodotto, non da qui

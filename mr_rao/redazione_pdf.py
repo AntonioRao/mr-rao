@@ -83,7 +83,9 @@ campi modulo, le **proprieta'** del documento, i titoli dei **segnalibri** e
 il **testo di struttura**; si tolgono gli **allegati** e le **miniature di
 pagina**. E sulle scansioni con strato OCR si azzerano i **pixel dentro
 l'immagine**, sulle coordinate che quello strato dichiara: il rettangolo
-disegnato sopra e' un segno per chi legge, non la redazione.
+disegnato sopra e' un segno per chi legge, non la redazione. Vale per i due
+modi in cui un OCR lascia il suo testo: invisibile sopra l'immagine, oppure
+scritto normale e poi coperto da lei.
 
 Il ripiego non e' implementato qui: `EsitoRedazione.pagine_in_ripiego` dice
 quali pagine non sono state trattate, e sta al chiamante decidere cosa farne.
@@ -92,6 +94,7 @@ sarebbe il modo peggiore di sbagliare.
 """
 from __future__ import annotations
 
+import ctypes
 import io
 import math
 import re
@@ -335,10 +338,16 @@ class EsitoRedazione:
 class _Contenitore:
     """Una pagina o un Form XObject, con le sue istruzioni da riscrivere."""
 
-    def __init__(self, oggetto):
+    def __init__(self, oggetto, percorso: tuple[int, ...] = ()):
         self.oggetto = oggetto
         self.istruzioni = list(pikepdf.parse_content_stream(oggetto))
         self.modificato = False
+        #: Da dove, nel flusso della pagina, si arriva a questo contenitore:
+        #: vuoto per la pagina, e per un form i numeri delle istruzioni `Do`
+        #: attraversate per raggiungerlo. Con il numero dell'istruzione in
+        #: coda dice **quando** una cosa viene dipinta rispetto alle altre:
+        #: vedi `_qualche_valore_sotto_un_immagine`.
+        self.percorso = percorso
 
 
 def _da_utf16be(esadecimale: str) -> str:
@@ -507,11 +516,12 @@ def _ordinata(op: bytes, operandi, ultima):
 
 
 def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
-           pezzi: list[str], profondita: int) -> None:
+           pezzi: list[str], profondita: int,
+           percorso: tuple[int, ...] = ()) -> None:
     if profondita > 6:
         return
     try:
-        contenitore = _Contenitore(oggetto)
+        contenitore = _Contenitore(oggetto, percorso)
     except Exception:
         return
     contenitori.append(contenitore)
@@ -576,7 +586,7 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
             chiave = str(operandi[0])
             if chiave in forme and str(forme[chiave].get("/Subtype", "")) == "/Form":
                 _leggi(forme[chiave], contenitori, emissioni, pezzi,
-                       profondita + 1)
+                       profondita + 1, percorso + (i,))
 
         elif op in MOSTRA and font is not None:
             for posizione, operando in enumerate(_elementi(operandi)):
@@ -798,12 +808,39 @@ def _riscrivi(contenitore: _Contenitore, per_istruzione: dict,
     return rimossi, inseriti
 
 
-def _riquadri_originali(sorgente: Path, numero: int, tratti):
+class _Originale:
+    """Il documento di partenza aperto con pdfium: **una volta, e solo se serve**.
+
+    Serve a misurare i riquadri dei valori com'erano prima di toglierli. Sulle
+    pagine digitali non serve mai, quindi non si apre finche' qualcuno non lo
+    chiede; e una volta aperto resta aperto, perche' un fascicolo di mille
+    scansioni lo chiederebbe mille volte.
+    """
+
+    def __init__(self, percorso: Path):
+        self._percorso = percorso
+        self._documento = None
+
+    def documento(self):
+        if self._documento is None:
+            self._documento = pdfium.PdfDocument(str(self._percorso))
+        return self._documento
+
+    def chiudi(self) -> None:
+        if self._documento is not None:
+            try:
+                self._documento.close()
+            except Exception:
+                pass
+            self._documento = None
+
+
+def _riquadri_originali(originale: _Originale, numero: int, tratti):
     """I riquadri dei valori sulla pagina **di partenza**.
 
-    Si apre il documento originale perche' e' l'unico posto dove quei
+    Si guarda il documento originale perche' e' l'unico posto dove quei
     caratteri esistono ancora: sul risultato sono gia' stati tolti. Serve solo
-    per le scansioni con strato OCR, quindi si apre alla bisogna e non a ogni
+    dove il dato sta nei pixel, quindi si apre alla bisogna e non a ogni
     documento.
 
     Se qualcosa va storto si torna a mani vuote e il chiamante rifiuta la
@@ -825,10 +862,7 @@ def _riquadri_originali(sorgente: Path, numero: int, tratti):
     dichiarata coperta.
     """
     try:
-        documento = pdfium.PdfDocument(str(sorgente))
-    except Exception:
-        return []
-    try:
+        documento = originale.documento()
         if numero >= len(documento):
             return []
         testo = documento[numero].get_textpage()
@@ -844,8 +878,6 @@ def _riquadri_originali(sorgente: Path, numero: int, tratti):
             testo.close()
     except Exception:
         return []
-    finally:
-        documento.close()
 
 
 def _allargati(riquadri) -> list[tuple[float, float, float, float, str]]:
@@ -1180,6 +1212,7 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
     # `MOTIVO_OCR` qui sotto).
     riquadri_ocr: dict[int, list] = {}
 
+    originale = _Originale(sorgente)
     pdf = pikepdf.open(str(sorgente))
     try:
         esito.pagine = len(pdf.pages)
@@ -1246,7 +1279,30 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                 _ripiego(esito, numero, "nessun valore ritrovato nel flusso")
                 continue
 
-            if _qualche_glifo_invisibile(tratti, emissioni) and _pagina_ha_un_immagine(pagina):
+            # **Il dato sta nei pixel?** Due modi di accorgersene, perche' sono
+            # due i modi in cui un OCR lascia il suo testo su una scansione:
+            # invisibile **sopra** l'immagine, oppure scritto normale e poi
+            # coperto dall'immagine, cioe' **sotto**. Il secondo fino alla
+            # 1.30.1 non lo vedeva nessuno: quei glifi sono in modo normale,
+            # quindi «si vedevano», e la pagina prendeva la strada delle
+            # pagine digitali con i pixel intatti.
+            riquadri = None
+            nei_pixel = False
+            if _pagina_ha_un_immagine(pagina):
+                nei_pixel = _qualche_glifo_invisibile(tratti, emissioni)
+                if not nei_pixel:
+                    dipinte_dopo = _immagini_dipinte_dopo(
+                        tratti, emissioni, contenitori, pagina)
+                    # I riquadri si misurano solo se un'immagine dipinta dopo
+                    # c'e' davvero: sulle pagine digitali, che sono quasi
+                    # tutte, qui non si apre niente.
+                    if dipinte_dopo:
+                        riquadri = _allargati(
+                            _riquadri_originali(originale, numero, tratti_estratti))
+                        nei_pixel = any(_zone_nell_immagine(matrice, riquadri, 0.0)
+                                        for matrice in dipinte_dopo)
+
+            if nei_pixel:
                 # **Il dato sta nei pixel, e lo strato OCR dice dove.** Fino
                 # alla 1.29.1 qui si rinunciava, ed era onesto: togliere glifi
                 # invisibili non toglie niente da un'immagine. Ma le
@@ -1265,8 +1321,9 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                 # Prima i pixel, poi i glifi, e i glifi solo se i pixel sono
                 # andati: una pagina con il testo tolto e l'immagine intatta
                 # e' il difetto, non una via di mezzo.
-                riquadri = _allargati(
-                    _riquadri_originali(sorgente, numero, tratti_estratti))
+                if riquadri is None:
+                    riquadri = _allargati(
+                        _riquadri_originali(originale, numero, tratti_estratti))
                 if riquadri and _azzera_i_pixel(pagina, riquadri):
                     riquadri_ocr[numero] = riquadri
                     esito.pagine_coperte_sull_ocr.append(numero)
@@ -1334,6 +1391,7 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         pdf.save(str(destinazione))
     finally:
         pdf.close()
+        originale.chiudi()
 
     # **Un documento fatto di sole scansioni e' una scansione**, anche quando
     # ha uno strato OCR che rende estraibile il testo. Senza questa riga il
@@ -1899,6 +1957,45 @@ def _qualche_glifo_invisibile(tratti, emissioni: list[Emissione]) -> bool:
     return False
 
 
+def _immagini_dipinte_dopo(tratti, emissioni: list[Emissione],
+                           contenitori: list[_Contenitore], pagina) -> list[tuple[float, ...]]:
+    """Le matrici delle immagini dipinte **dopo** il testo di almeno un valore.
+
+    E' la domanda che il modo di rendering non sa fare. Un programma di OCR
+    puo' scrivere il testo riconosciuto in modo normale e poi dipingerci sopra
+    la scansione: i glifi «si vedono» per chi legge il flusso un'istruzione
+    alla volta, e non si vedono per chi guarda la pagina. In un PDF cio' che
+    viene dopo copre cio' che viene prima, e basta l'ordine a dirlo.
+
+    L'ordine e' quello dei percorsi (vedi `_immagini_disegnate`). Qui si
+    torna cio' che viene dopo il **primo glifo** di un valore, il primo in
+    tutta la pagina: basta che un'immagine arrivi dopo una sola lettera di un
+    dato perche' quella lettera possa esserle finita sotto. Se le stia sopra
+    davvero — cioe' se la copra — lo decide chi chiama, con i riquadri.
+
+    «Il primo glifo» e non «l'ultimo», ed e' voluto: la verifica guarda
+    carattere per carattere, e una redazione piu' larga di manica di lei
+    lascerebbe passare pagine che lei poi ferma.
+
+    Una pagina con lo sfondo dipinto prima del testo torna a mani vuote, ed
+    e' il caso di quasi tutte: li' il testo sta sopra, e si vede.
+    """
+    primo = None
+    for inizio, fine, _segnaposto in tratti:
+        for e in emissioni:
+            if e.inizio < fine and e.inizio + len(e.glifi) > inizio:
+                percorso = contenitori[e.contenitore].percorso + (e.istruzione,)
+                if primo is None or percorso < primo:
+                    primo = percorso
+    if primo is None:
+        return []
+    try:
+        return [matrice for _immagine, matrice, percorso in _immagini_disegnate(pagina)
+                if percorso > primo]
+    except Exception:
+        return []
+
+
 def _pagina_ha_un_immagine(pagina) -> bool:
     """La pagina disegna un'immagine?
 
@@ -1922,7 +2019,8 @@ def _pagina_ha_un_immagine(pagina) -> bool:
     try:
         if not _forse_un_immagine_in_linea(pagina):
             return False
-        return any(immagine is None for immagine, _matrice in _immagini_disegnate(pagina))
+        return any(immagine is None
+                   for immagine, _matrice, _percorso in _immagini_disegnate(pagina))
     except Exception:
         return False
 
@@ -2011,15 +2109,24 @@ def _risorse(oggetto):
     return None
 
 
-def _immagini_disegnate(oggetto, matrice=_IDENTITA, ereditate=None, profondita: int = 0):
-    """Ogni immagine che il contenuto disegna, con la matrice che la posiziona.
+def _immagini_disegnate(oggetto, matrice=_IDENTITA, ereditate=None, profondita: int = 0,
+                        percorso: tuple[int, ...] = ()):
+    """Ogni immagine che il contenuto disegna: dov'e', e **quando** viene dipinta.
 
-    Restituisce coppie `(immagine, matrice)`: la matrice porta il quadrato
-    unitario dell'immagine nello **spazio pagina**, ed e' il prodotto di tutti
-    i `cm` incontrati per arrivarci, dentro e fuori dai form. Per
-    un'**immagine in linea** — scritta dentro il flusso, non un oggetto a
-    parte — al posto dell'immagine c'e' `None`: si sa dov'e', non la si puo'
-    riscrivere.
+    Restituisce terne `(immagine, matrice, percorso)`.
+
+    La matrice porta il quadrato unitario dell'immagine nello **spazio
+    pagina**, ed e' il prodotto di tutti i `cm` incontrati per arrivarci,
+    dentro e fuori dai form. Per un'**immagine in linea** — scritta dentro il
+    flusso, non un oggetto a parte — al posto dell'immagine c'e' `None`: si
+    sa dov'e', non la si puo' riscrivere.
+
+    Il percorso sono i numeri delle istruzioni attraversate per arrivarci: uno
+    solo per un'immagine disegnata dalla pagina, due per una dentro un form
+    (l'istruzione che disegna il form, poi quella dentro di lui). Due
+    percorsi si confrontano come si confrontano due numeri di paragrafo, e chi
+    viene dopo e' dipinto sopra. Sono gli stessi numeri che usa `_leggi` per
+    il testo, perche' le istruzioni sono le stesse lette nello stesso ordine.
 
     E' una lettura a parte da `_leggi`, che segue il testo: qui servono le
     matrici, la' i font, e tenerle insieme vorrebbe dire una funzione che fa
@@ -2033,10 +2140,10 @@ def _immagini_disegnate(oggetto, matrice=_IDENTITA, ereditate=None, profondita: 
     forme = risorse.get("/XObject") if risorse is not None else None
     pila: list[tuple[float, ...]] = []
     corrente = matrice
-    for istruzione in pikepdf.parse_content_stream(oggetto):
+    for numero, istruzione in enumerate(pikepdf.parse_content_stream(oggetto)):
         operatore = str(istruzione.operator)
         if operatore == "INLINE IMAGE":
-            yield None, corrente
+            yield None, corrente, percorso + (numero,)
         elif operatore == "q":
             pila.append(corrente)
         elif operatore == "Q":
@@ -2052,11 +2159,12 @@ def _immagini_disegnate(oggetto, matrice=_IDENTITA, ereditate=None, profondita: 
                 continue
             sottotipo = str(bersaglio.get("/Subtype", ""))
             if sottotipo == "/Image":
-                yield bersaglio, corrente
+                yield bersaglio, corrente, percorso + (numero,)
             elif sottotipo == "/Form":
                 propria = _matrice(bersaglio.get("/Matrix", [])) or _IDENTITA
                 yield from _immagini_disegnate(
-                    bersaglio, _componi(propria, corrente), risorse, profondita + 1)
+                    bersaglio, _componi(propria, corrente), risorse, profondita + 1,
+                    percorso + (numero,))
 
 
 def _riquadro_della_pagina(pagina) -> tuple[float, float, float, float]:
@@ -2102,7 +2210,7 @@ def _area_coperta(matrici, riquadro) -> float:
 def _quota_di_immagine(pagina) -> float:
     """Quanta parte della pagina e' coperta da immagini, da 0 a 1."""
     return _area_coperta(
-        [matrice for _immagine, matrice in _immagini_disegnate(pagina)],
+        [matrice for _immagine, matrice, _percorso in _immagini_disegnate(pagina)],
         _riquadro_della_pagina(pagina))
 
 
@@ -2240,7 +2348,7 @@ def _azzera_i_pixel(pagina, riquadri) -> bool:
         return False
 
     per_immagine: dict[tuple[int, int], tuple] = {}
-    for immagine, matrice in disegnate:
+    for immagine, matrice, _percorso in disegnate:
         zone = _zone_nell_immagine(matrice, riquadri, MARGINE_RETTANGOLO)
         if not zone:
             continue
@@ -2690,13 +2798,30 @@ def _fuori_dalle_pagine_come_testo(percorso: Path) -> str:
         return ""
 
 
-def _tratto_invisibile(testo_pdfium, inizio: int, fine: int) -> bool | None:
-    """I caratteri di questo tratto sono scritti in modo invisibile?
+def _tratto_nascosto(testo_pdfium, inizio: int, fine: int, ordine) -> bool | None:
+    """Qualche carattere di questo tratto c'e' nel file e **non si vede** sulla pagina?
+
+    Due modi di non vedersi, e sono i due modi in cui un OCR lascia il suo
+    testo su una scansione: scritto in modo **invisibile**, oppure scritto
+    normale e poi **coperto da un'immagine** dipinta dopo. In tutti e due il
+    dato vero sta nei pixel, e la verifica deve andare a guardarli. Fino alla
+    1.30.1 qui si chiedeva solo il modo di rendering: il testo messo sotto
+    l'immagine «si vedeva», e dei pixel non si guardava niente.
 
     Lo si chiede a **pdfium**, carattere per carattere, e non al lettore del
     flusso che sta in questo modulo: quello e' lo stesso righello con cui si
     e' deciso cosa azzerare, e una verifica che lo riusasse sbaglierebbe
-    insieme alla redazione, nello stesso punto e nello stesso verso.
+    insieme alla redazione, nello stesso punto e nello stesso verso. La
+    redazione conta le istruzioni del flusso; qui si guarda l'ordine degli
+    oggetti di pagina come li ha letti un altro motore.
+
+    **Ne basta uno.** E' la stessa regola della redazione, ed e' piu' severa
+    di «tutti»: un valore coperto a meta' ha meta' delle sue lettere nei
+    pixel.
+
+    `ordine` e' una funzione che torna `_ordine_di_pittura` della pagina: si
+    chiama solo quando serve, perche' elencare gli oggetti di una pagina
+    costa, e sulle scansioni con testo invisibile non serve mai.
 
     `None` se la versione di pdfium installata non sa rispondere: chi chiama
     ripiega sull'altro righello, che e' peggio di uno indipendente e meglio
@@ -2707,19 +2832,47 @@ def _tratto_invisibile(testo_pdfium, inizio: int, fine: int) -> bool | None:
     if oggetto_del_carattere is None or modo_del_testo is None:
         return None
     grezzo = getattr(testo_pdfium, "raw", testo_pdfium)
-    visto = False
     for k in range(inizio, min(fine, testo_pdfium.count_chars())):
         oggetto = oggetto_del_carattere(grezzo, k)
         if not oggetto:
             continue  # carattere generato: uno spazio, un a capo
-        if int(modo_del_testo(oggetto)) not in MODI_INVISIBILI:
-            return False
-        visto = True
-    return visto
+        if int(modo_del_testo(oggetto)) in MODI_INVISIBILI:
+            return True
+        posizioni, immagini = ordine()
+        if not immagini:
+            continue
+        try:
+            sinistra, basso, destra, alto = testo_pdfium.get_charbox(k)
+        except Exception:
+            continue
+        centro = ((sinistra + destra) / 2, (basso + alto) / 2)
+        # Un oggetto di testo che non si ritrova nell'elenco non ha un
+        # «prima» e un «dopo»: si considera coperto da qualunque immagine gli
+        # stia sopra. E' l'errore dalla parte giusta — al peggio si va a
+        # guardare dei pixel che non serviva guardare.
+        posizione = posizioni.get(ctypes.addressof(oggetto.contents))
+        for posizione_immagine, _immagine, matrice in immagini:
+            if posizione is not None and posizione_immagine < posizione:
+                continue  # dipinta prima del carattere: gli sta sotto
+            if _dentro_l_immagine(matrice, centro):
+                return True
+    return False
+
+
+def _dentro_l_immagine(matrice, punto) -> bool:
+    """Il punto, in spazio pagina, cade dentro l'immagine messa con quella matrice."""
+    a, b, c, d, e, f = matrice
+    determinante = a * d - b * c
+    if abs(determinante) < 1e-9:
+        return False
+    x, y = punto
+    u = (d * (x - e) - c * (y - f)) / determinante
+    v = (-b * (x - e) + a * (y - f)) / determinante
+    return 0.0 <= u <= 1.0 and 0.0 <= v <= 1.0
 
 
 def _pagina_tutta_invisibile(percorso: Path, numero: int) -> bool:
-    """Il ripiego di `_tratto_invisibile`: tutto il testo della pagina e' invisibile."""
+    """Il ripiego di `_tratto_nascosto`: tutto il testo della pagina e' invisibile."""
     try:
         with pikepdf.open(str(percorso)) as pdf:
             emissioni: list[Emissione] = []
@@ -2729,8 +2882,12 @@ def _pagina_tutta_invisibile(percorso: Path, numero: int) -> bool:
         return False
 
 
-def _immagini_secondo_pdfium(pagina_pdfium) -> list[tuple]:
-    """Le immagini della pagina come le vede pdfium: `(oggetto, matrice)`.
+def _ordine_di_pittura(pagina_pdfium) -> tuple[dict[int, int], list[tuple]]:
+    """Gli oggetti della pagina nell'ordine in cui pdfium li dipinge.
+
+    Torna due cose: per ogni oggetto il suo posto nella fila, e l'elenco delle
+    immagini come `(posto, oggetto, matrice)`. Cio' che ha un posto piu' alto
+    viene dipinto dopo, quindi sta sopra.
 
     E' la stessa domanda di `_immagini_disegnate`, fatta a **un altro
     motore**: pdfium legge il contenuto per conto suo, segue i form per conto
@@ -2739,15 +2896,23 @@ def _immagini_secondo_pdfium(pagina_pdfium) -> list[tuple]:
     verifica direbbe di si' a qualunque cosa la redazione abbia fatto.
 
     La matrice di un oggetto dentro un form e' relativa al form: si compone
-    scendendo, come si fa con i `cm`.
+    scendendo, come si fa con i `cm`. Si chiede solo per immagini e form: su
+    una pagina dove ogni parola e' un oggetto, chiederla a tutti vorrebbe
+    dire migliaia di chiamate per sapere una cosa che non serve.
     """
     grezzo = pdfium.raw
-    fuori: list[tuple] = []
+    posizioni: dict[int, int] = {}
+    immagini: list[tuple] = []
 
     def scendi(conta, prendi, contenitore, matrice, livello):
         for indice in range(max(0, conta(contenitore))):
             oggetto = prendi(contenitore, indice)
             if not oggetto:
+                continue
+            posizione = len(posizioni)
+            posizioni[ctypes.addressof(oggetto.contents)] = posizione
+            tipo = grezzo.FPDFPageObj_GetType(oggetto)
+            if tipo not in (grezzo.FPDF_PAGEOBJ_IMAGE, grezzo.FPDF_PAGEOBJ_FORM):
                 continue
             propria = grezzo.FS_MATRIX()
             if not grezzo.FPDFPageObj_GetMatrix(oggetto, propria):
@@ -2755,16 +2920,21 @@ def _immagini_secondo_pdfium(pagina_pdfium) -> list[tuple]:
             composta = _componi(
                 (propria.a, propria.b, propria.c, propria.d, propria.e, propria.f),
                 matrice)
-            tipo = grezzo.FPDFPageObj_GetType(oggetto)
             if tipo == grezzo.FPDF_PAGEOBJ_IMAGE:
-                fuori.append((oggetto, composta))
-            elif tipo == grezzo.FPDF_PAGEOBJ_FORM and livello < 6:
+                immagini.append((posizione, oggetto, composta))
+            elif livello < 6:
                 scendi(grezzo.FPDFFormObj_CountObjects, grezzo.FPDFFormObj_GetObject,
                        oggetto, composta, livello + 1)
 
     scendi(grezzo.FPDFPage_CountObjects, grezzo.FPDFPage_GetObject,
            getattr(pagina_pdfium, "raw", pagina_pdfium), _IDENTITA, 0)
-    return fuori
+    return posizioni, immagini
+
+
+def _immagini_secondo_pdfium(pagina_pdfium) -> list[tuple]:
+    """Le immagini della pagina come le vede pdfium: `(oggetto, matrice)`."""
+    return [(oggetto, matrice)
+            for _posizione, oggetto, matrice in _ordine_di_pittura(pagina_pdfium)[1]]
 
 
 def _zona_piatta(immagine, rettangolo) -> bool:
@@ -2825,25 +2995,34 @@ def _cio_che_non_e_testo(sorgente: Path, destinazione: Path,
                 testo = pagina.get_textpage()
                 try:
                     tratti = tratti_per_pagina[numero] if numero < len(tratti_per_pagina) else []
-                    invisibili = []
+                    # L'ordine di pittura si calcola una volta per pagina, e
+                    # solo se qualcuno lo chiede.
+                    calcolato: list = []
+
+                    def ordine(pagina=pagina, calcolato=calcolato):
+                        if not calcolato:
+                            calcolato.append(_ordine_di_pittura(pagina))
+                        return calcolato[0]
+
+                    nascosti = []
                     for tratto in tratti:
-                        risposta = _tratto_invisibile(testo, tratto[0], tratto[1])
+                        risposta = _tratto_nascosto(testo, tratto[0], tratto[1], ordine)
                         if risposta is None:
                             risposta = _pagina_tutta_invisibile(sorgente, numero)
                         if risposta:
-                            invisibili.append(tratto)
+                            nascosti.append(tratto)
 
-                    if (not invisibili
+                    if (not nascosti
                             and _quota_di_testo(pagina, testo) < QUOTA_MINIMA_DI_TESTO):
                         larghezza, altezza = pagina.get_size()
                         ritaglio = pagina.get_cropbox() or (0.0, 0.0, larghezza, altezza)
                         quota = _area_coperta(
-                            [m for _o, m in _immagini_secondo_pdfium(pagina)],
+                            [matrice for _posizione, _oggetto, matrice in ordine()[1]],
                             tuple(float(v) for v in ritaglio))
                         if quota >= QUOTA_IMMAGINE_PAGINA_VERIFICA:
                             pagine_immagine.append(numero)
 
-                    if not invisibili or numero >= len(dopo):
+                    if not nascosti or numero >= len(dopo):
                         continue
                     contenuto = testo.get_text_range()
                     # La pagina resta in una variabile fino in fondo al giro:
@@ -2851,7 +3030,7 @@ def _cio_che_non_e_testo(sorgente: Path, destinazione: Path,
                     pagina_dopo = dopo[numero]
                     immagini = _immagini_secondo_pdfium(pagina_dopo)
                     estratte: dict[int, object] = {}
-                    for tratto in invisibili:
+                    for tratto in nascosti:
                         riquadri = _riquadri_del_tratto(testo, tratto)
                         if _resta_nei_pixel(immagini, estratte, riquadri):
                             nei_pixel.append((numero, contenuto[tratto[0]:tratto[1]]))

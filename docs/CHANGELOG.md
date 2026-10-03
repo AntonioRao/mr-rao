@@ -1,5 +1,91 @@
 # Changelog
 
+## 1.30.2 — Il testo sotto l'immagine
+
+La 1.30.1 lo aveva misurato e lasciato aperto, scrivendolo: un programma di
+OCR può lasciare il suo testo su una scansione in **due** modi, e ne
+riconoscevamo uno solo.
+
+Il primo è scriverlo invisibile **sopra** l'immagine. Il secondo è scriverlo
+normale e poi **dipingerci sopra l'immagine**. Per chi guarda la pagina sono
+la stessa cosa. Per il modulo no: quei glifi erano in modo di rendering
+normale, quindi «si vedevano», e la pagina prendeva la strada delle pagine
+digitali.
+
+    pagine_in_ripiego [], pagine_coperte_sull_ocr []
+    pixel del codice fiscale ancora nell'immagine estratta
+    verifica_redazione: sopravvissuti 0
+
+È il difetto della 1.30.1 su un altro canale: testo tolto, rettangolo
+disegnato, immagine intatta, rapporto che dice di sì.
+
+### Quello che conta è l'ordine
+
+In un PDF ciò che viene dopo copre ciò che viene prima. Un glifo coperto da
+un'immagine dipinta dopo di lui non si vede, comunque sia scritto, e il dato
+sta nei pixel. Adesso lo si chiede: se dopo il testo di un valore viene
+dipinta un'immagine, e quell'immagine sta sopra un valore, la pagina prende la
+strada delle scansioni — pixel azzerati dentro l'immagine, poi i glifi.
+
+Due cose che non bastano, e che hanno ognuna il suo banco:
+
+- **«nella pagina c'è del testo prima dell'immagine».** Un'intestazione, poi
+  lo sfondo a tutta pagina, poi la lettera: i valori sono scritti *dopo* lo
+  sfondo, gli stanno sopra e si vedono. Conta l'ordine fra *quel* valore e
+  *quell'*immagine;
+- **«l'immagine è dipinta dopo il valore».** Il marchio a piè di pagina molti
+  programmi lo disegnano per ultimo: viene dopo tutto il testo, e sta da
+  un'altra parte del foglio. Dipinta dopo non vuol dire dipinta sopra.
+
+L'ordine si segue nel flusso intero, form compresi: il testo sulla pagina e la
+scansione dentro un form disegnato dopo, o il contrario. Contando le
+istruzioni dentro il proprio contenitore soltanto si confronterebbero numeri
+che non hanno niente a che vedere l'uno con l'altro.
+
+### La verifica lo chiede a un altro motore
+
+`verifica_redazione` chiedeva a pdfium il modo di rendering di ogni carattere.
+Adesso chiede anche **in che ordine sono dipinti gli oggetti della pagina**, e
+se dopo il carattere ce n'è uno che è un'immagine e gli sta sopra. La
+redazione conta le istruzioni del flusso; la verifica guarda la fila degli
+oggetti come l'ha letta pdfium. Due righelli, come nella 1.30.1 e per la
+stessa ragione.
+
+Basta **un** carattere nascosto perché si vadano a guardare i pixel di tutto
+il valore: prima servivano tutti. Un valore coperto a metà ha metà delle sue
+lettere nei pixel.
+
+### Cosa cambia per chi usava la 1.30.1
+
+- una scansione con il testo OCR messo sotto l'immagine esce con i pixel
+  azzerati, fra le pagine da guardare (`pagine_coperte_sull_ocr`), invece che
+  fra quelle a posto;
+- **un'immagine piccola dipinta sopra un valore si buca in quel punto.** È il
+  caso della firma apposta sopra il nome a stampa: sotto quel pezzo di
+  immagine c'è un valore che non si vede, e dentro può esserci scritto lui.
+  Si toglie quel pezzo, il resto dell'immagine resta com'era, e la pagina
+  finisce fra quelle da guardare. Vale anche per una filigrana trasparente:
+  da qui non si distingue da un'immagine che copre, e si sbaglia dalla parte
+  di togliere;
+- se quell'immagine non si può riscrivere, la pagina è **non trattata** —
+  anche se è una pagina digitale con sopra un timbro in un formato che qui
+  non si sa aprire. Prima se ne toglieva il testo e la si chiamava a posto.
+
+Il documento di partenza si apre con pdfium una volta sola, e solo se serve:
+la domanda nuova si fa a ogni pagina con un'immagine dipinta dopo un valore,
+e riaprirlo ogni volta sarebbe costato a ogni fascicolo di carta intestata.
+
+### Cosa resta fuori
+
+Quello che la 1.30.1 elencava, meno questo: l'autore delle note (`/T`),
+`/PieceInfo`, `/Author` con un nome utente, l'avviso sulle pagine da guardare
+che non arriva sullo schermo. E lo stesso limite: **tutto questo è misurato
+su PDF sintetici**, e gli strati OCR veri non sono stati provati.
+
+2.430 test (erano 2.423), quarantuno mutazioni verificate rosse. Un banco mio
+era rosso a ragione: lo «sfondo sotto il testo» aveva un indirizzo
+nell'intestazione, scritta prima dello sfondo — cioè davvero sotto.
+
 ## 1.30.1 — Coprire non è cancellare
 
 Il 3 ottobre 2026, misurando `redigi_pdf` su PDF sintetici, sono usciti quattro
