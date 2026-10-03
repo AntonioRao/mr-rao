@@ -696,24 +696,46 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     l'allegato firmato a mano — è il caso tipico, e prima usciva contata fra
     quelle trattate. Una pagina **bianca** invece non è un allarme: non ha
     niente da togliere, e resta silenziosa;
-  - **anche la scansione già passata da un OCR si rifiuta, dalla 1.28.0.** È
-    il caso che ingannava il controllo qui sopra: una pagina di questo tipo ha
-    **due** copie del testo, i pixel che si vedono e uno strato di caratteri
-    invisibili che si seleziona e si cerca. Il testo estraibile c'è, quindi la
-    pagina non sembrava una scansione; la redazione toglieva i caratteri
-    invisibili — cioè l'unica delle due copie che nessuno legge — e dichiarava
-    la pagina trattata mentre il nome restava a schermo, dentro l'immagine.
-    Adesso, quando tutto ciò che c'è da togliere sta in caratteri invisibili e
-    la pagina ha un'immagine, la pagina finisce fra quelle non trattate; se
-    **tutte** le pagine sono così, il documento viene rifiutato come la
-    scansione che è;
+  - **la scansione già passata da un OCR si tratta togliendo i pixel
+    dall'immagine, dalla 1.30.1.** Una pagina di questo tipo ha **due** copie
+    del testo: i pixel che si vedono e uno strato di caratteri invisibili che
+    si seleziona e si cerca. Toglierne una sola non è una redazione. Si
+    tolgono tutte e due: i caratteri invisibili dal flusso, e i **pixel dentro
+    l'immagine incorporata**, nel riquadro che lo strato OCR dichiara per
+    ogni valore. Sopra resta il rettangolo colorato, che è un segno per chi
+    legge e non la redazione. Nella 1.30.0 il rettangolo era l'unica cosa:
+    estraendo l'immagine dal file il dato si leggeva intero. **Il limite,
+    dichiarato:** la zona tolta sta dove lo strato OCR dice che sta la parola;
+    se quello strato è disallineato rispetto all'immagine si tolgono i pixel
+    sbagliati, e dal file non c'è modo di accorgersene. Se l'immagine non si
+    riesce a riscrivere (JBIG2, immagine in linea, JPEG in quadricromia) la
+    pagina **non** si copre: finisce fra le non trattate. Se **tutte** le
+    pagine sono così, il documento viene rifiutato come la scansione che è;
+  - **una pagina fatta di un'immagine con poco testo sopra si dichiara non
+    trattata, dalla 1.30.1.** Un cedolino incollato come immagine, con un piè
+    di pagina di sette parole: il testo non è vuoto, quindi non era una
+    «scansione», e non contiene dati, quindi si passava oltre. Adesso, quando
+    le immagini coprono almeno metà della pagina e il testo ne occupa meno
+    dell'1%, la pagina finisce fra le non trattate;
+  - **miniature di pagina e testo di struttura, dalla 1.30.1.** Le miniature
+    (`/Thumb`) sono immagini della pagina originale e si tolgono sempre. Il
+    testo dell'albero di struttura — `/ActualText`, `/Alt`, `/E`, `/T`, cioè
+    quello che legge uno screen reader — passa dal filtro come le proprietà
+    del documento;
   - **le pagine in ripiego non sono redatte.** Quando il testo estratto non si
     ritrova nel flusso di contenuto, o un tratto non si riconduce a nessun
     glifo, la pagina esce **com'era**. Compaiono in `pagine_in_ripiego` con il
     motivo accanto, e il pannello le mostra **sempre**, anche quando sono
     zero, nella tinta dei sospetti — che qui vuol dire «tocca a te guardare».
     Chiamarle redatte sarebbe il modo peggiore di sbagliare;
-  - restano fuori, dichiarati, gli operatori di testo `'` e `"`.
+  - restano fuori, dichiarati, gli operatori di testo `'` e `"`;
+  - **restano fuori anche tre cose misurate il 3 ottobre 2026 e non ancora
+    chiuse**, che qui stanno scritte perché tacerle sarebbe peggio che
+    averle: lo strato OCR messo **sotto** l'immagine invece che invisibile
+    sopra (la pagina viene trattata come digitale, e i pixel restano);
+    l'**autore di una nota** (`/T`), che esce in chiaro; i **dati privati
+    delle applicazioni** (`/PieceInfo`), dove alcuni programmi tengono una
+    copia di lavoro del documento. Sono in `docs/BACKLOG.md`, P6.13.
 
   **Il PDF segue le stesse opzioni del Markdown, profilo compreso** — e dalla
   1.24.0 anche il profilo. Prima no: le rotte del PDF costruivano le opzioni

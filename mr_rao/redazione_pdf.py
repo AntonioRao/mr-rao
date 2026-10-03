@@ -61,14 +61,29 @@ quanto il valore che ha sostituito. Si vede, e non nasconde niente.
 Cosa non fa, dichiarato
 -----------------------
 
-  * **le scansioni**. Un PDF senza testo estraibile qui non si tocca: non c'e'
-    nessun glifo da togliere, e disegnarci sopra dei rettangoli sarebbe
-    esattamente la redazione finta che questo modulo esiste per evitare;
+  * **le scansioni senza strato OCR**. Un PDF senza testo estraibile qui non
+    si tocca: non c'e' nessun glifo da togliere e nessuna mappa di dove stiano
+    le parole, e disegnarci sopra dei rettangoli sarebbe esattamente la
+    redazione finta che questo modulo esiste per evitare;
+  * **le pagine fatte di un'immagine con poco testo sopra** — un pie' di
+    pagina, un timbro. Il testo si legge, l'immagine no: la pagina si
+    dichiara non trattata (`MOTIVO_IMMAGINE`);
+  * le scansioni con strato OCR la cui immagine **non si riesce a riscrivere**
+    (JBIG2, immagini in linea, JPEG in quadricromia): senza poter togliere i
+    pixel la pagina si dichiara, non si copre;
   * gli operatori `'` e `"`, che mostrano il testo **e** vanno a capo:
     spezzarli richiederebbe di replicare l'a capo. Sono rari, e quando
-    compaiono la pagina finisce nel ripiego invece di essere tagliata a meta';
-  * il testo dentro le **annotazioni** e i campi modulo, che non sta nel flusso
-    della pagina.
+    compaiono la pagina finisce nel ripiego invece di essere tagliata a meta'.
+
+Cosa fa oltre il flusso
+-----------------------
+
+Il dato non sta solo nei glifi. Si redigono anche le **annotazioni** e i
+campi modulo, le **proprieta'** del documento, i titoli dei **segnalibri** e
+il **testo di struttura**; si tolgono gli **allegati** e le **miniature di
+pagina**. E sulle scansioni con strato OCR si azzerano i **pixel dentro
+l'immagine**, sulle coordinate che quello strato dichiara: il rettangolo
+disegnato sopra e' un segno per chi legge, non la redazione.
 
 Il ripiego non e' implementato qui: `EsitoRedazione.pagine_in_ripiego` dice
 quali pagine non sono state trattate, e sta al chiamante decidere cosa farne.
@@ -77,7 +92,10 @@ sarebbe il modo peggiore di sbagliare.
 """
 from __future__ import annotations
 
+import io
+import math
 import re
+import zlib
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -108,6 +126,62 @@ MOSTRA = {b"Tj", b"TJ", b"'", b'"'}
 #: elenco di pagine non trattate lungo quanto il documento.
 MOTIVO_SCANSIONE = "nessun testo estraibile: pagina scansionata"
 MOTIVO_OCR = "scansione con testo OCR sovrapposto: il dato resta nell'immagine"
+#: Il terzo: la pagina e' un'immagine con sopra **poco** testo vero -- un pie'
+#: di pagina, un timbro, un numero di protocollo. Il testo c'e', quindi non e'
+#: una «scansione» nel senso di `MOTIVO_SCANSIONE`; ma cio' che la pagina dice
+#: sta nei pixel, e i pixel qui non li legge nessuno.
+MOTIVO_IMMAGINE = ("immagine a tutta pagina con poco testo: "
+                   "il contenuto dell'immagine non e' stato esaminato")
+
+#: Quanta parte della pagina deve occupare un'immagine perche' la pagina **sia**
+#: quell'immagine. Meta' e non «tutta»: una scansione incollata in un documento
+#: di testo ed esportata in PDF arriva con i margini del documento attorno, e
+#: su un A4 con due centimetri per lato copre il 70% del foglio.
+QUOTA_IMMAGINE_PAGINA = 0.5
+
+#: La stessa soglia, per la **verifica**, che la misura con un altro righello
+#: (gli oggetti di pagina di pdfium invece del flusso letto qui). Piu' alta di
+#: proposito: due misure indipendenti attorno a una soglia secca finiscono per
+#: dare risposte diverse sulla pagina che ci sta a cavallo, e li' la verifica
+#: fermerebbe un file che la redazione ha giudicato a posto per mezzo punto
+#: percentuale. Cosi' la verifica dice di no solo dove non c'e' da discutere.
+QUOTA_IMMAGINE_PAGINA_VERIFICA = 0.75
+
+#: Sotto questa quota di pagina il testo e' «poco»: la somma dei riquadri dei
+#: glifi divisa per l'area del foglio. Una riga di pie' di pagina in corpo 8
+#: sta sullo 0,2%, tre righe di timbro sullo 0,9%; una lettera di cinque righe
+#: sta sul 3%, una pagina piena sul 20%. L'1% separa il timbro dalla lettera.
+QUOTA_MINIMA_DI_TESTO = 0.01
+
+#: Di quanto puo' variare un canale dentro una zona azzerata, su 255. Zero
+#: quando l'immagine e' riscritta senza perdita; qualche unita' quando e' un
+#: JPEG. Sopra, li' dentro c'e' ancora qualcosa da leggere.
+TOLLERANZA_ZONA_PIATTA = 8
+
+#: Di quanto si allarga, a destra e a sinistra, il riquadro di un valore su
+#: una scansione: una frazione dell'altezza della riga. Lo strato OCR dice
+#: dove sta la parola con la precisione con cui l'ha misurata, e alle due
+#: estremita' mezza lettera fuori dal riquadro e' mezza lettera che resta nei
+#: pixel. Un quarto dell'altezza e' meno dello spazio fra due parole: si
+#: mangia il bianco, non la parola accanto.
+QUOTA_MARGINE_OCR = 0.25
+
+#: Il lato del blocco di un JPEG con i colori sottocampionati. Una zona
+#: azzerata si allarga fino a questo passo: un blocco meta' nero e meta'
+#: scritto, ricompresso, sporca la parte nera con l'eco di quella scritta.
+BLOCCO_JPEG = 16
+
+#: Le chiavi di un elemento di struttura che contengono testo scritto per
+#: essere letto: il testo sostitutivo, la descrizione alternativa, la forma
+#: estesa di un'abbreviazione, il titolo dell'elemento.
+_CHIAVI_TESTO_STRUTTURA = ("/ActualText", "/Alt", "/E", "/T")
+
+#: Quanti elementi di struttura si visitano al massimo. Un documento vero ne
+#: ha qualche migliaio; il tetto e' contro un albero costruito per non finire.
+_MASSIMO_ELEMENTI_STRUTTURA = 500_000
+
+#: La matrice che non sposta niente, come sei numeri `a b c d e f`.
+_IDENTITA = (1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 
 #: I modi di rendering del testo (`Tr`) in cui i glifi **non si disegnano**:
 #: 3 e' «ne' riempimento ne' contorno», 7 e' «solo ritaglio». Sono i due modi
@@ -202,7 +276,7 @@ class Emissione:
     colore: tuple | None = None
     #: Questi glifi erano in modo di rendering invisibile (`3 Tr` o `7 Tr`).
     #: Togliere del testo che non si vede non e' una redazione se cio' che si
-    #: vede resta: vedi `_solo_glifi_invisibili`.
+    #: vede resta: vedi `_qualche_glifo_invisibile`.
     invisibile: bool = False
 
 
@@ -239,13 +313,23 @@ class EsitoRedazione:
     #: viene tolto senza guardarci dentro (vedi `_togli_allegati`). Va detto,
     #: perche' il PDF che esce ha un pezzo in meno di quello che e' entrato.
     allegati_tolti: int = 0
-    #: Le pagine in cui il dato stava **nei pixel di una scansione** e il
-    #: rettangolo e' stato messo sulle coordinate che lo strato OCR dichiara.
-    #: Sono trattate, non in ripiego — ma il rettangolo sta dove l'OCR dice che
-    #: sta la parola, e se quello strato e' disallineato rispetto all'immagine
-    #: copre i pixel sbagliati. Non e' verificabile dal file: si nomina la
-    #: pagina e la si fa guardare.
+    #: Le pagine in cui il dato stava **nei pixel di una scansione**: li' i
+    #: pixel sono stati azzerati dentro l'immagine e sopra c'e' il rettangolo,
+    #: tutti e due sulle coordinate che lo strato OCR dichiara.
+    #: Sono trattate, non in ripiego — ma la zona azzerata sta dove l'OCR dice
+    #: che sta la parola, e se quello strato e' disallineato rispetto
+    #: all'immagine toglie i pixel sbagliati. Non e' verificabile dal file: si
+    #: nomina la pagina e la si fa guardare.
     pagine_coperte_sull_ocr: list[int] = field(default_factory=list)
+    #: Quante **miniature di pagina** (`/Thumb`) sono state tolte. Sono
+    #: immagini della pagina com'era prima: si tolgono tutte, senza guardarci
+    #: dentro, per la stessa ragione degli allegati.
+    miniature_tolte: int = 0
+    #: Quanti valori sono stati tolti dal **testo di struttura** -- le
+    #: stringhe `/ActualText`, `/Alt`, `/E` e `/T` dell'albero che descrive il
+    #: documento a chi lo legge con uno screen reader. Come metadati e
+    #: segnalibri: testo che non sta in nessun flusso di pagina.
+    struttura_tolti: int = 0
 
 
 class _Contenitore:
@@ -447,7 +531,7 @@ def _leggi(oggetto, contenitori: list[_Contenitore], emissioni: list[Emissione],
     # una domanda che decide se una redazione e' vera: **questi glifi si
     # vedono?** Sopra una scansione passata dall'OCR il testo c'e' ed e' in
     # modo 3, cioe' invisibile — toglierlo non toglie niente a chi guarda la
-    # pagina. Vedi `_solo_glifi_invisibili`.
+    # pagina. Vedi `_qualche_glifo_invisibile`.
     modo_testo = 0
     cache: dict[str, Font] = {}
 
@@ -725,6 +809,20 @@ def _riquadri_originali(sorgente: Path, numero: int, tratti):
     Se qualcosa va storto si torna a mani vuote e il chiamante rifiuta la
     pagina come faceva prima: meglio nessuna copertura di una copertura
     disegnata su coordinate inventate.
+
+    **I tratti sono quelli del testo estratto da pdfium, non quelli del
+    flusso.** Fino alla 1.30.0 qui arrivavano gli indici del testo
+    ricostruito dal flusso, e si chiedevano a pdfium i riquadri di *quei*
+    numeri: le due numerazioni coincidono sulla prima riga e poi divergono di
+    un carattere a ogni a capo, perche' per pdfium un a capo sono due
+    caratteri e per il flusso uno. Su un cedolino di quattro righe il
+    rettangolo dell'IBAN partiva due caratteri prima e finiva due caratteri
+    prima, lasciando scoperta la coda. I banchi avevano tutti una riga sola.
+
+    **Tutti o nessuno.** Un valore di cui non si trova nemmeno un riquadro e'
+    un valore di cui non si sa dove stiano i pixel: si torna a mani vuote
+    anche per gli altri, perche' una pagina coperta a meta' uscirebbe
+    dichiarata coperta.
     """
     try:
         documento = pdfium.PdfDocument(str(sorgente))
@@ -733,11 +831,35 @@ def _riquadri_originali(sorgente: Path, numero: int, tratti):
     try:
         if numero >= len(documento):
             return []
-        return riquadri_dei_valori(documento[numero], tratti)
+        testo = documento[numero].get_textpage()
+        try:
+            fuori = []
+            for tratto in tratti:
+                righe = _riquadri_del_tratto(testo, tratto)
+                if not righe:
+                    return []
+                fuori.extend(righe)
+            return fuori
+        finally:
+            testo.close()
     except Exception:
         return []
     finally:
         documento.close()
+
+
+def _allargati(riquadri) -> list[tuple[float, float, float, float, str]]:
+    """I riquadri con un po' di margine ai due lati: vedi `QUOTA_MARGINE_OCR`.
+
+    Si allarga il riquadro e non la sola zona da azzerare, cosi' il
+    rettangolo disegnato sopra e i pixel tolti sotto hanno gli stessi bordi:
+    altrimenti dal rettangolo spunterebbe una cornice nera.
+    """
+    fuori = []
+    for sinistra, basso, destra, alto, etichetta in riquadri:
+        di_piu = QUOTA_MARGINE_OCR * (alto - basso)
+        fuori.append((sinistra - di_piu, basso, destra + di_piu, alto, etichetta))
+    return fuori
 
 
 def riquadri_dei_valori(pagina_pdfium, tratti) -> list[tuple[float, float, float, float, str]]:
@@ -756,33 +878,46 @@ def riquadri_dei_valori(pagina_pdfium, tratti) -> list[tuple[float, float, float
     testo = pagina_pdfium.get_textpage()
     fuori = []
     try:
-        totale = testo.count_chars()
-        for inizio, fine, etichetta in tratti:
-            sinistra = basso = None
-            destra = alto = None
-            for k in range(inizio, min(fine, totale)):
-                try:
-                    l, b, r, t = testo.get_charbox(k)
-                except Exception:
-                    continue
-                if l == r or b == t:
-                    continue  # carattere senza area: spazio o a capo
-                sinistra = l if sinistra is None else min(sinistra, l)
-                basso = b if basso is None else min(basso, b)
-                destra = r if destra is None else max(destra, r)
-                alto = t if alto is None else max(alto, t)
-            if sinistra is None:
-                continue
-            # **Un valore a cavallo di due righe darebbe un rettangolo alto
-            # quanto le due**, coprendo il testo in mezzo. Si riconosce
-            # dall'altezza: piu' del doppio della larghezza di un carattere
-            # medio vuol dire che ha scavalcato una riga.
-            if (alto - basso) > 3.2 * (destra - sinistra) / max(1, fine - inizio):
-                continue
-            fuori.append((sinistra, basso, destra, alto, etichetta))
+        for tratto in tratti:
+            fuori.extend(_riquadri_del_tratto(testo, tratto))
     finally:
         testo.close()
     return fuori
+
+
+def _riquadri_del_tratto(testo_pdfium, tratto) -> list[tuple[float, float, float, float, str]]:
+    """I riquadri di un valore: **uno per riga**, non uno solo.
+
+    Un valore a cavallo di due righe -- un indirizzo, un nome lungo -- con un
+    riquadro solo darebbe un rettangolo alto quanto le due, che copre anche il
+    testo in mezzo. Prima lo si riconosceva dall'altezza e lo si **saltava**:
+    andava bene finche' il rettangolo era un segno per chi legge, e non va
+    piu' bene adesso che dice dove azzerare i pixel. Un valore saltato e' un
+    valore rimasto nell'immagine, su una pagina dichiarata coperta.
+
+    Si apre una riga nuova quando il centro del carattere esce dall'altezza
+    della riga in corso.
+    """
+    inizio, fine, etichetta = tratto
+    totale = testo_pdfium.count_chars()
+    righe: list[list[float]] = []
+    for k in range(inizio, min(fine, totale)):
+        try:
+            sinistra, basso, destra, alto = testo_pdfium.get_charbox(k)
+        except Exception:
+            continue
+        if sinistra == destra or basso == alto:
+            continue  # carattere senza area: spazio o a capo
+        centro = (basso + alto) / 2
+        if righe and righe[-1][1] <= centro <= righe[-1][3]:
+            riga = righe[-1]
+            riga[0] = min(riga[0], sinistra)
+            riga[1] = min(riga[1], basso)
+            riga[2] = max(riga[2], destra)
+            riga[3] = max(riga[3], alto)
+        else:
+            righe.append([sinistra, basso, destra, alto])
+    return [(r[0], r[1], r[2], r[3], etichetta) for r in righe]
 
 
 def _rettangoli(riquadri) -> bytes:
@@ -997,12 +1132,37 @@ def testo_per_pagina(sorgente: Path) -> list[str]:
     return fuori
 
 
+def _testo_e_poco_testo(sorgente: Path) -> tuple[list[str], list[bool]]:
+    """Il testo di ogni pagina, e per ognuna se quel testo e' «poco».
+
+    Gemella di `testo_per_pagina`, con una misura in piu' presa **mentre la
+    pagina e' gia' aperta**: riaprire il documento pagina per pagina, dopo,
+    per chiedere la stessa cosa costerebbe a un fascicolo di mille pagine
+    mille aperture.
+    """
+    documento = pdfium.PdfDocument(str(sorgente))
+    testi: list[str] = []
+    poco: list[bool] = []
+    for pagina in documento:
+        pagina_testo = pagina.get_textpage()
+        testi.append(pagina_testo.get_text_range())
+        try:
+            poco.append(_quota_di_testo(pagina, pagina_testo) < QUOTA_MINIMA_DI_TESTO)
+        except Exception:
+            # Non si e' potuto dimostrare che la pagina sia testo: se ha
+            # anche un'immagine che la copre, va dichiarata.
+            poco.append(True)
+        pagina_testo.close()
+    documento.close()
+    return testi, poco
+
+
 def redigi_pdf(sorgente: Path, destinazione: Path,
                opzioni: PrivacyOptions | None = None) -> EsitoRedazione:
     """Scrive in `destinazione` il PDF redatto. Vedi il docstring del modulo."""
     opzioni = opzioni or PrivacyOptions()
     esito = EsitoRedazione()
-    per_pagina = testo_per_pagina(sorgente)
+    per_pagina, poco_testo = _testo_e_poco_testo(sorgente)
     # **Il testo delle annotazioni conta come testo.** Un modulo in cui tutto
     # sta nei campi — nessuna riga disegnata nel flusso — usciva dichiarato
     # «scansione»: qui si guardava solo il testo estratto dalle pagine, e le
@@ -1036,8 +1196,19 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         # valori di testo, questo conta file interi. Sommarli farebbe un
         # numero che non significa niente.
         esito.allegati_tolti = _togli_allegati(pdf)
+        # La quarta: il testo di struttura, che sta nell'albero del documento
+        # e non in una pagina.
+        esito.struttura_tolti = _redigi_struttura(pdf, opzioni)
+        esito.valori_da_togliere += esito.struttura_tolti
         for numero, pagina in enumerate(pdf.pages):
             testo_estratto = per_pagina[numero] if numero < len(per_pagina) else ""
+
+            # **Prima di tutto, e su ogni pagina**: anche su quelle che qui
+            # sotto escono con un `continue`. La miniatura e' un ritratto
+            # della pagina originale, e una pagina non trattata che se la
+            # porta dietro e' non trattata due volte.
+            if _togli_miniatura(pagina):
+                esito.miniature_tolte += 1
 
             # Prima del flusso, perche' non dipende dal flusso: una pagina
             # senza una riga di testo puo' avere un campo modulo pieno.
@@ -1047,9 +1218,17 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                 _ripiego(esito, numero, MOTIVO_SCANSIONE)
                 continue
 
+            # **Si chiede prima di sapere se ci sono valori**, perche' la
+            # risposta serve in tutti e due i casi: senza valori la pagina
+            # usciva in silenzio, con un valore nel timbro usciva «trattata».
+            pagina_immagine = _pagina_quasi_solo_immagine(
+                pagina, poco_testo[numero] if numero < len(poco_testo) else True)
+
             tratti_estratti = intervalli_da_togliere(testo_estratto, opzioni)
             valori = [(testo_estratto[a:b], s) for a, b, s in tratti_estratti]
             if not valori:
+                if pagina_immagine:
+                    _ripiego(esito, numero, MOTIVO_IMMAGINE)
                 continue
             esito.valori_da_togliere += len(valori)
 
@@ -1067,28 +1246,43 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
                 _ripiego(esito, numero, "nessun valore ritrovato nel flusso")
                 continue
 
-            if _solo_glifi_invisibili(tratti, emissioni) and _pagina_ha_un_immagine(pagina):
+            if _qualche_glifo_invisibile(tratti, emissioni) and _pagina_ha_un_immagine(pagina):
                 # **Il dato sta nei pixel, e lo strato OCR dice dove.** Fino
                 # alla 1.29.1 qui si rinunciava, ed era onesto: togliere glifi
                 # invisibili non toglie niente da un'immagine. Ma le
                 # coordinate di quei glifi sono, per come l'OCR le scrive, la
-                # mappa delle parole sul foglio: bastano a dipingere il
-                # rettangolo **sopra** l'immagine, che e' la redazione vera.
+                # mappa delle parole sul foglio: bastano a sapere **quali
+                # pixel** togliere dall'immagine, che e' la redazione vera.
                 #
                 # Il riquadro si misura sui valori **originali** e non sul
                 # segnaposto: e' il segnaposto a essere messo dopo, e puo'
                 # essere piu' corto del valore che sostituisce -- un
                 # `{{NAME_1}}` al posto di un nome lungo lascerebbe scoperta
-                # la coda dei pixel.
-                riquadri = _riquadri_originali(sorgente, numero, tratti)
-                if riquadri:
+                # la coda dei pixel. E si misura su **tutti** i valori che il
+                # motore ha trovato nel testo estratto, non solo su quelli
+                # ritrovati nel flusso: sotto ognuno di loro ci sono pixel.
+                #
+                # Prima i pixel, poi i glifi, e i glifi solo se i pixel sono
+                # andati: una pagina con il testo tolto e l'immagine intatta
+                # e' il difetto, non una via di mezzo.
+                riquadri = _allargati(
+                    _riquadri_originali(sorgente, numero, tratti_estratti))
+                if riquadri and _azzera_i_pixel(pagina, riquadri):
                     riquadri_ocr[numero] = riquadri
                     esito.pagine_coperte_sull_ocr.append(numero)
                 else:
-                    # Senza coordinate non c'e' niente da coprire: si torna
-                    # alla risposta di prima, che e' l'unica vera.
+                    # Senza coordinate, o con un'immagine che non si riesce a
+                    # riscrivere, non c'e' niente di vero da fare: si torna
+                    # alla risposta di prima, che e' l'unica onesta.
                     _ripiego(esito, numero, MOTIVO_OCR)
                     continue
+            elif pagina_immagine:
+                # Un valore c'e', ma sta nel poco testo vero sopra
+                # un'immagine che nessuno ha letto. Toglierlo e chiamare la
+                # pagina trattata sarebbe vero per sette parole e falso per
+                # tutto il resto del foglio.
+                _ripiego(esito, numero, MOTIVO_IMMAGINE)
+                continue
 
             lavori: dict[int, dict[int, list]] = {}
             fallito = None
@@ -1149,7 +1343,7 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
     # delle pagine non trattate lungo quanto il documento intero.
     if (esito.pagine
             and len(esito.pagine_in_ripiego) == esito.pagine
-            and all(m in (MOTIVO_SCANSIONE, MOTIVO_OCR)
+            and all(m in (MOTIVO_SCANSIONE, MOTIVO_OCR, MOTIVO_IMMAGINE)
                     for m in esito.motivi_ripiego)):
         esito.scansione = True
 
@@ -1674,8 +1868,8 @@ def _pagina_e_una_scansione(pagina) -> bool:
     return _pagina_ha_un_immagine(pagina)
 
 
-def _solo_glifi_invisibili(tratti, emissioni: list[Emissione]) -> bool:
-    """Tutto cio' che c'e' da togliere in questa pagina e' testo che non si vede.
+def _qualche_glifo_invisibile(tratti, emissioni: list[Emissione]) -> bool:
+    """Fra cio' che c'e' da togliere in questa pagina c'e' testo che non si vede.
 
     E' il segnale della **scansione gia' passata dall'OCR**, che e' il caso in
     cui questo modulo poteva fare il danno peggiore che sa fare: togliere i
@@ -1684,43 +1878,707 @@ def _solo_glifi_invisibili(tratti, emissioni: list[Emissione]) -> bool:
     l'immagine. Misurato prima della correzione: due segnaposto inseriti,
     `pagine_in_ripiego` vuoto, e il codice fiscale ancora visibile.
 
+    **Ne basta uno, non servono tutti.** Fino alla 1.30.0 la domanda era «sono
+    *tutti* invisibili?», e una scansione con OCR su cui qualcuno aveva
+    stampato un timbro di testo vero — «Firmato digitalmente da Mario Rossi»
+    — rispondeva di no per via del nome nel timbro: la pagina prendeva la
+    strada delle pagine digitali, e il codice fiscale dello strato OCR
+    restava intero nei pixel. Un valore visibile accanto non dice niente sui
+    pixel sotto gli altri.
+
     Non basta da sola a decidere: la usa `redigi_pdf` **in and** con la
     presenza di un'immagine. Un testo invisibile su una pagina senza immagini
     non e' una scansione, e li' togliere i glifi e' esattamente il lavoro
     giusto — il dato e' nel file e ne esce.
     """
-    if not tratti:
-        return False
-    visto = False
     for inizio, fine, _segnaposto in tratti:
         for emissione in emissioni:
-            if emissione.inizio < fine and emissione.inizio + len(emissione.glifi) > inizio:
-                if not emissione.invisibile:
-                    return False
-                visto = True
-    return visto
+            if (emissione.invisibile and emissione.inizio < fine
+                    and emissione.inizio + len(emissione.glifi) > inizio):
+                return True
+    return False
 
 
 def _pagina_ha_un_immagine(pagina) -> bool:
-    """C'e' un'immagine fra le risorse della pagina?
+    """La pagina disegna un'immagine?
 
     Da sola non vuol dire niente — meta' della carta intestata ha un logo — e
     infatti non decide mai da sola: chi la chiama la mette **in and** con
-    un'altra condizione (nessun testo, oppure testo tutto invisibile).
+    un'altra condizione (nessun testo, oppure testo invisibile).
+
+    Si guarda fra le risorse, **scendendo nei form**: una scansione avvolta in
+    un Form XObject ha l'immagine un livello sotto, e fermandosi alle risorse
+    della pagina quella pagina usciva come una pagina bianca. Resta fuori
+    solo l'immagine in linea, che non e' una risorsa: per quella si legge il
+    contenuto, ma soltanto se nei byte c'e' l'operatore che la apre — la
+    lettura completa di ogni pagina senza immagini costerebbe a tutti i
+    documenti per un caso che non capita quasi mai.
     """
-    risorse = pagina.get("/Resources")
-    if risorse is None:
+    try:
+        if _immagine_fra_le_risorse(_risorse(pagina), 0):
+            return True
+    except Exception:
+        pass
+    try:
+        if not _forse_un_immagine_in_linea(pagina):
+            return False
+        return any(immagine is None for immagine, _matrice in _immagini_disegnate(pagina))
+    except Exception:
+        return False
+
+
+def _immagine_fra_le_risorse(risorse, profondita: int) -> bool:
+    """C'e' un'immagine fra queste risorse, o fra quelle dei form che contengono."""
+    if risorse is None or profondita > 6:
         return False
     xobject = risorse.get("/XObject")
     if xobject is None:
         return False
+    for oggetto in xobject.values():
+        sottotipo = oggetto.get("/Subtype")
+        if sottotipo == pikepdf.Name("/Image"):
+            return True
+        if sottotipo == pikepdf.Name("/Form") and _immagine_fra_le_risorse(
+                oggetto.get("/Resources"), profondita + 1):
+            return True
+    return False
+
+
+def _forse_un_immagine_in_linea(pagina) -> bool:
+    """Nei byte del contenuto compare `BI`, che apre un'immagine in linea.
+
+    «Forse», perche' le due lettere possono stare anche dentro una stringa:
+    serve solo a decidere se vale la pena leggere il contenuto per davvero.
+    """
+    contenuti = getattr(pagina, "obj", pagina).get("/Contents")
+    if contenuti is None:
+        return False
+    pezzi = contenuti if isinstance(contenuti, pikepdf.Array) else [contenuti]
+    for pezzo in pezzi:
+        try:
+            if re.search(rb"(?:^|\s)BI\s", pezzo.read_bytes()):
+                return True
+        except Exception:
+            return True  # non si riesce a guardare: si va a leggere
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Le immagini: dove sono disegnate, e come se ne azzera un pezzo
+# ---------------------------------------------------------------------------
+
+
+def _matrice(valori) -> tuple[float, ...] | None:
+    """Sei numeri, o niente."""
     try:
-        return any(
-            oggetto.get("/Subtype") == pikepdf.Name("/Image")
-            for oggetto in xobject.values()
-        )
+        numeri = tuple(float(v) for v in valori)
+    except Exception:
+        return None
+    return numeri if len(numeri) == 6 else None
+
+
+def _componi(prima, poi) -> tuple[float, ...]:
+    """La matrice che applica `prima` e, al risultato, `poi`.
+
+    E' il conto dell'operatore `cm`: la matrice nuova si applica **prima** di
+    quella corrente, non dopo. Scambiare i due fattori da' lo stesso risultato
+    finche' si scala soltanto, e sposta tutto appena c'e' una rotazione.
+    """
+    a, b, c, d, e, f = prima
+    a2, b2, c2, d2, e2, f2 = poi
+    return (a * a2 + b * c2, a * b2 + b * d2,
+            c * a2 + d * c2, c * b2 + d * d2,
+            e * a2 + f * c2 + e2, e * b2 + f * d2 + f2)
+
+
+def _risorse(oggetto):
+    """Le risorse di una pagina o di un form, anche quando sono ereditate.
+
+    Una pagina puo' non avere `/Resources` e prenderle dal nodo che la
+    contiene: e' raro e legale, e senza risalire quella pagina sembra vuota.
+    """
+    nodo = getattr(oggetto, "obj", oggetto)
+    for _ in range(8):
+        try:
+            risorse = nodo.get("/Resources")
+        except Exception:
+            return None
+        if risorse is not None:
+            return risorse
+        nodo = nodo.get("/Parent")
+        if not isinstance(nodo, pikepdf.Dictionary):
+            return None
+    return None
+
+
+def _immagini_disegnate(oggetto, matrice=_IDENTITA, ereditate=None, profondita: int = 0):
+    """Ogni immagine che il contenuto disegna, con la matrice che la posiziona.
+
+    Restituisce coppie `(immagine, matrice)`: la matrice porta il quadrato
+    unitario dell'immagine nello **spazio pagina**, ed e' il prodotto di tutti
+    i `cm` incontrati per arrivarci, dentro e fuori dai form. Per
+    un'**immagine in linea** — scritta dentro il flusso, non un oggetto a
+    parte — al posto dell'immagine c'e' `None`: si sa dov'e', non la si puo'
+    riscrivere.
+
+    E' una lettura a parte da `_leggi`, che segue il testo: qui servono le
+    matrici, la' i font, e tenerle insieme vorrebbe dire una funzione che fa
+    due mestieri e li sbaglia tutti e due.
+    """
+    if profondita > 6:
+        return
+    risorse = _risorse(oggetto)
+    if risorse is None:
+        risorse = ereditate
+    forme = risorse.get("/XObject") if risorse is not None else None
+    pila: list[tuple[float, ...]] = []
+    corrente = matrice
+    for istruzione in pikepdf.parse_content_stream(oggetto):
+        operatore = str(istruzione.operator)
+        if operatore == "INLINE IMAGE":
+            yield None, corrente
+        elif operatore == "q":
+            pila.append(corrente)
+        elif operatore == "Q":
+            if pila:
+                corrente = pila.pop()
+        elif operatore == "cm":
+            nuova = _matrice(istruzione.operands)
+            if nuova is not None:
+                corrente = _componi(nuova, corrente)
+        elif operatore == "Do" and forme is not None and len(istruzione.operands) >= 1:
+            bersaglio = forme.get(str(istruzione.operands[0]))
+            if bersaglio is None:
+                continue
+            sottotipo = str(bersaglio.get("/Subtype", ""))
+            if sottotipo == "/Image":
+                yield bersaglio, corrente
+            elif sottotipo == "/Form":
+                propria = _matrice(bersaglio.get("/Matrix", [])) or _IDENTITA
+                yield from _immagini_disegnate(
+                    bersaglio, _componi(propria, corrente), risorse, profondita + 1)
+
+
+def _riquadro_della_pagina(pagina) -> tuple[float, float, float, float]:
+    """La parte di foglio che si vede: il ritaglio, o il foglio intero."""
+    for chiave in ("/CropBox", "/MediaBox"):
+        nodo = getattr(pagina, "obj", pagina)
+        for _ in range(8):
+            if not isinstance(nodo, pikepdf.Dictionary):
+                break
+            valore = nodo.get(chiave)
+            if valore is not None:
+                try:
+                    x0, y0, x1, y1 = (float(v) for v in valore)
+                except Exception:
+                    break
+                return (min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1))
+            nodo = nodo.get("/Parent")
+    return (0.0, 0.0, 612.0, 792.0)
+
+
+def _area_coperta(matrici, riquadro) -> float:
+    """Quanta parte del riquadro coprono le immagini messe con quelle matrici.
+
+    Le aree si **sommano**, senza togliere le sovrapposizioni: una scansione
+    spezzata in strisce da' la somma giusta, e tre livelli sovrapposti danno
+    piu' di uno — che qui si ferma a uno, ed e' l'errore dalla parte giusta.
+    """
+    sinistra, basso, destra, alto = riquadro
+    area = (destra - sinistra) * (alto - basso)
+    if area <= 0:
+        return 0.0
+    coperta = 0.0
+    for m in matrici:
+        xs = (m[4], m[0] + m[4], m[2] + m[4], m[0] + m[2] + m[4])
+        ys = (m[5], m[1] + m[5], m[3] + m[5], m[1] + m[3] + m[5])
+        larghezza = min(max(xs), destra) - max(min(xs), sinistra)
+        altezza = min(max(ys), alto) - max(min(ys), basso)
+        if larghezza > 0 and altezza > 0:
+            coperta += larghezza * altezza
+    return min(1.0, coperta / area)
+
+
+def _quota_di_immagine(pagina) -> float:
+    """Quanta parte della pagina e' coperta da immagini, da 0 a 1."""
+    return _area_coperta(
+        [matrice for _immagine, matrice in _immagini_disegnate(pagina)],
+        _riquadro_della_pagina(pagina))
+
+
+def _quota_di_testo(pagina_pdfium, testo_pdfium=None) -> float:
+    """Quanta parte della pagina e' occupata dai glifi, da 0 a 1.
+
+    La somma dei riquadri dei caratteri sull'area del foglio. Si misura
+    l'area e non il numero di caratteri perche' la domanda e' quanto della
+    pagina **e'** testo: venti caratteri in corpo 48 sono un titolo che la
+    riempie, venti in corpo 8 sono un pie' di pagina.
+
+    Si smette di contare appena si supera la soglia: su una pagina piena
+    serve sapere che il testo c'e', non quanto.
+    """
+    larghezza, altezza = pagina_pdfium.get_size()
+    area = float(larghezza) * float(altezza)
+    if area <= 0:
+        return 1.0
+    testo = testo_pdfium if testo_pdfium is not None else pagina_pdfium.get_textpage()
+    try:
+        somma = 0.0
+        for k in range(testo.count_chars()):
+            try:
+                sinistra, basso, destra, alto = testo.get_charbox(k)
+            except Exception:
+                continue
+            somma += abs(destra - sinistra) * abs(alto - basso)
+            if somma >= area * QUOTA_MINIMA_DI_TESTO:
+                break
+        return somma / area
+    finally:
+        if testo_pdfium is None:
+            testo.close()
+
+
+def _pagina_quasi_solo_immagine(pagina, poco_testo: bool) -> bool:
+    """Un'immagine copre la pagina, e il testo estraibile e' una frazione minima.
+
+    E' la pagina che sfuggiva a tutti e due i controlli: non e' una
+    «scansione», perche' il testo estratto non e' vuoto — c'e' il pie' di
+    pagina — e non ha niente da togliere, perche' in quelle sette parole non
+    c'e' un dato. Usciva identica a com'era entrata, contata fra le trattate.
+
+    `poco_testo` arriva gia' misurato (vedi `_testo_e_poco_testo`), ed e' la
+    prima domanda perche' e' quella che costa meno: su una pagina piena di
+    testo qui non si legge nemmeno il contenuto.
+    """
+    if not poco_testo:
+        return False
+    try:
+        return (_pagina_ha_un_immagine(pagina)
+                and _quota_di_immagine(pagina) >= QUOTA_IMMAGINE_PAGINA)
     except Exception:
         return False
+
+
+def _zone_nell_immagine(matrice, riquadri, margine: float) -> list[tuple[float, ...]]:
+    """I riquadri, portati dallo spazio pagina al **quadrato unitario** dell'immagine.
+
+    Un'immagine in un PDF occupa sempre il quadrato da (0, 0) a (1, 1), e la
+    matrice dice dove quel quadrato finisce sul foglio. Per sapere quali pixel
+    stanno sotto un riquadro si fa il viaggio al contrario, con la matrice
+    inversa: cosi' il conto non cambia se l'immagine e' scalata, spostata o
+    messa di traverso.
+
+    Torna `(u0, v0, u1, v1)` con la **v verso l'alto**, come nel PDF; i pixel
+    contano dall'alto, e il ribaltamento lo fa `_in_pixel`. Cio' che cade
+    fuori dall'immagine non torna.
+    """
+    a, b, c, d, e, f = matrice
+    determinante = a * d - b * c
+    if abs(determinante) < 1e-9:
+        return []
+    zone = []
+    for riquadro in riquadri:
+        sinistra, basso, destra, alto = riquadro[:4]
+        us, vs = [], []
+        for x in (sinistra - margine, destra + margine):
+            for y in (basso - margine, alto + margine):
+                us.append((d * (x - e) - c * (y - f)) / determinante)
+                vs.append((-b * (x - e) + a * (y - f)) / determinante)
+        u0, u1 = max(0.0, min(us)), min(1.0, max(us))
+        v0, v1 = max(0.0, min(vs)), min(1.0, max(vs))
+        if u1 > u0 and v1 > v0:
+            zone.append((u0, v0, u1, v1))
+    return zone
+
+
+def _in_pixel(zona, larghezza: int, altezza: int, passo: int = 1) -> tuple[int, int, int, int]:
+    """Dalla zona nel quadrato unitario al rettangolo di pixel che la contiene.
+
+    Si arrotonda sempre **verso fuori**: un pixel toccato a meta' e' un pixel
+    che porta meta' di una lettera. Con `passo` il rettangolo si allarga
+    ancora, fino al multiplo successivo: serve ai JPEG, vedi `BLOCCO_JPEG`.
+    """
+    u0, v0, u1, v1 = zona
+    x0 = math.floor(u0 * larghezza)
+    x1 = math.ceil(u1 * larghezza)
+    y0 = math.floor((1.0 - v1) * altezza)
+    y1 = math.ceil((1.0 - v0) * altezza)
+    if passo > 1:
+        x0 -= x0 % passo
+        y0 -= y0 % passo
+        x1 += -x1 % passo
+        y1 += -y1 % passo
+    return (max(0, x0), max(0, y0), min(larghezza, x1), min(altezza, y1))
+
+
+def _azzera_i_pixel(pagina, riquadri) -> bool:
+    """Toglie dalle immagini della pagina i pixel che stanno sotto i riquadri.
+
+    **Coprire non e' cancellare.** Fino alla 1.30.0 sopra una scansione con
+    strato OCR si toglieva il testo invisibile e si disegnava un rettangolo:
+    a schermo il dato non si vedeva piu', e dentro il file c'era ancora tutto.
+    L'immagine incorporata non la toccava nessuno, e basta estrarla — lo fa
+    qualunque lettore con «salva immagine» — per riavere il foglio intero.
+
+    Qui i pixel si azzerano **dentro** l'immagine, e l'immagine vecchia esce
+    dal file. Il rettangolo sopra resta, ma torna a essere quello che e': un
+    segno per chi legge.
+
+    Falso se **anche una sola** immagine sotto un riquadro non si puo'
+    riscrivere: un'immagine in linea, un formato che qui non si sa aprire, un
+    foglio con le dimensioni che non tornano. In quel caso non si tocca
+    niente — nemmeno le immagini che si sarebbero potute azzerare — e il
+    chiamante dichiara la pagina non trattata. E' la stessa regola dei
+    riquadri: una pagina coperta a meta' uscirebbe dichiarata coperta.
+
+    Vale anche per la maschera dell'immagine, quando c'e': in una scansione
+    compressa a livelli la forma delle lettere sta li', non nei colori.
+    """
+    try:
+        disegnate = list(_immagini_disegnate(pagina))
+    except Exception:
+        return False
+
+    per_immagine: dict[tuple[int, int], tuple] = {}
+    for immagine, matrice in disegnate:
+        zone = _zone_nell_immagine(matrice, riquadri, MARGINE_RETTANGOLO)
+        if not zone:
+            continue
+        if immagine is None:
+            return False  # immagine in linea: non si puo' riscrivere
+        per_immagine.setdefault(immagine.objgen, (immagine, []))[1].extend(zone)
+
+    pronte = []
+    for immagine, zone in per_immagine.values():
+        bersagli = [immagine]
+        for chiave in ("/SMask", "/Mask"):
+            maschera = immagine.get(chiave)
+            if isinstance(maschera, pikepdf.Stream):
+                bersagli.append(maschera)
+        for bersaglio in bersagli:
+            try:
+                nuova = _immagine_azzerata(bersaglio, zone)
+            except Exception:
+                nuova = None
+            if nuova is None:
+                return False
+            pronte.append((bersaglio, nuova))
+
+    # Si scrive solo adesso, quando si sa che si puo' scrivere tutto.
+    for bersaglio, (dati, filtro, chiavi) in pronte:
+        bersaglio.write(dati, filter=filtro)
+        for chiave, valore in chiavi.items():
+            if valore is None:
+                if chiave in bersaglio:
+                    del bersaglio[chiave]
+            else:
+                bersaglio[chiave] = valore
+    return True
+
+
+def _filtri(oggetto) -> list[str]:
+    filtro = oggetto.get("/Filter")
+    if filtro is None:
+        return []
+    if isinstance(filtro, pikepdf.Array):
+        return [str(f) for f in filtro]
+    return [str(filtro)]
+
+
+#: Quante componenti ha un pixel in ogni spazio colore che ha un nome.
+_COMPONENTI = {
+    "/DeviceGray": 1, "/CalGray": 1, "/Indexed": 1, "/Separation": 1,
+    "/DeviceRGB": 3, "/CalRGB": 3, "/Lab": 3,
+    "/DeviceCMYK": 4,
+}
+
+
+def _componenti(oggetto) -> int | None:
+    """Quante componenti per pixel dichiara l'immagine, se lo si capisce."""
+    if bool(oggetto.get("/ImageMask", False)):
+        return 1
+    spazio = oggetto.get("/ColorSpace")
+    if spazio is None:
+        return None
+    if isinstance(spazio, pikepdf.Array):
+        if len(spazio) == 0:
+            return None
+        nome = str(spazio[0])
+        try:
+            if nome == "/ICCBased":
+                return int(spazio[1].get("/N"))
+            if nome == "/DeviceN":
+                return len(spazio[1])
+        except Exception:
+            return None
+    else:
+        nome = str(spazio)
+    return _COMPONENTI.get(nome)
+
+
+def _immagine_azzerata(oggetto, zone):
+    """L'immagine con le zone azzerate, pronta da riscrivere. `None` se non si puo'.
+
+    Torna `(dati, filtro, chiavi)`: i byte gia' compressi, il filtro con cui
+    lo sono, e le chiavi del dizionario da cambiare (`None` vuol dire togliere).
+
+    Tre strade, dalla piu' fedele alla meno:
+
+    1. **i campioni cosi' come sono.** Se il flusso si decomprime — Flate,
+       LZW, RunLength — si azzerano i bit al loro posto e si ricomprime senza
+       perdita. Non si interpreta lo spazio colore: tavolozza, profilo ICC e
+       matrice di decodifica restano quelli, e valgono ancora;
+    2. **il JPEG, da JPEG.** Decomprimerlo e riscriverlo senza perdita
+       moltiplicherebbe per dieci il peso di ogni scansione a colori: si
+       riapre, si azzera e si ricomprime con le stesse tabelle;
+    3. **il resto, passando da un'immagine.** CCITT e JPEG 2000 si aprono con
+       Pillow e si riscrivono come grigio o RGB semplici.
+
+    «Azzerare» vuol dire mettere a zero i campioni, non «dipingere di nero»:
+    in un'immagine a tavolozza lo zero e' il primo colore, in una maschera e'
+    «dipingi». Non importa di che colore esce, importa che li' dentro non ci
+    sia piu' niente: il colore lo mette il rettangolo disegnato sopra.
+    """
+    try:
+        larghezza = int(oggetto.get("/Width"))
+        altezza = int(oggetto.get("/Height"))
+    except Exception:
+        return None
+    if larghezza <= 0 or altezza <= 0:
+        return None
+
+    filtri = _filtri(oggetto)
+    if filtri == ["/DCTDecode"]:
+        return _jpeg_azzerato(oggetto, larghezza, altezza, zone)
+
+    try:
+        dati = bytearray(oggetto.read_bytes(decode_level=pikepdf.StreamDecodeLevel.all))
+    except Exception:
+        return _azzerata_passando_da_pillow(oggetto, larghezza, altezza, zone)
+
+    try:
+        bit = 1 if bool(oggetto.get("/ImageMask", False)) else int(
+            oggetto.get("/BitsPerComponent", 8))
+    except Exception:
+        return None
+    # Le componenti dichiarate per prime; poi le altre plausibili, perche' uno
+    # spazio colore puo' essere un nome che rimanda alle risorse della pagina
+    # e da qui non si legge. Decide la **lunghezza dei dati**: se non torna
+    # con nessuna, non si sa dove stiano i pixel e non si tocca niente.
+    dichiarate = _componenti(oggetto)
+    passo = 0
+    for componenti in ([dichiarate] if dichiarate else []) + [1, 3, 4]:
+        candidato = (larghezza * componenti * bit + 7) // 8
+        if candidato * altezza == len(dati):
+            passo = candidato
+            break
+    if not passo:
+        return None
+
+    bit_per_pixel = componenti * bit
+    for zona in zone:
+        x0, y0, x1, y1 = _in_pixel(zona, larghezza, altezza)
+        _azzera_i_bit(dati, passo, x0 * bit_per_pixel, x1 * bit_per_pixel, y0, y1)
+    return zlib.compress(bytes(dati)), pikepdf.Name("/FlateDecode"), {}
+
+
+def _azzera_i_bit(dati: bytearray, passo: int, da: int, a: int, riga0: int, riga1: int) -> None:
+    """Mette a zero i bit da `da` ad `a` (escluso) di ogni riga fra le due date.
+
+    I bit di una riga si contano dal piu' significativo del primo byte, come
+    li impacchetta il PDF. Un'immagine a un bit per pixel ne ha otto per
+    byte, e un rettangolo che non comincia su un multiplo di otto deve
+    lasciare intatti i vicini nello stesso byte.
+    """
+    if a <= da:
+        return
+    primo, ultimo = da // 8, (a - 1) // 8
+    testa = 0xFF >> (da % 8)
+    coda = (0xFF << (7 - (a - 1) % 8)) & 0xFF
+    for riga in range(riga0, riga1):
+        base = riga * passo
+        if primo == ultimo:
+            dati[base + primo] &= ~(testa & coda) & 0xFF
+            continue
+        dati[base + primo] &= ~testa & 0xFF
+        dati[base + ultimo] &= ~coda & 0xFF
+        if ultimo - primo > 1:
+            dati[base + primo + 1:base + ultimo] = bytes(ultimo - primo - 1)
+
+
+def _jpeg_azzerato(oggetto, larghezza: int, altezza: int, zone):
+    """Il JPEG riaperto, azzerato e ricompresso **con le sue tabelle**.
+
+    `quality="keep"` riusa le tabelle di quantizzazione dell'originale: i
+    blocchi che non si toccano tornano quasi identici, invece di perdere un
+    altro po' di qualita' a ogni redazione.
+
+    Le zone si allargano al blocco (`BLOCCO_JPEG`) perche' un blocco meta'
+    nero e meta' scritto, ricompresso, lascia nella parte nera un'eco della
+    parte scritta. Allineato al blocco, cio' che e' azzerato e' piatto.
+
+    Solo grigio e RGB. Un JPEG in quadricromia ha le convenzioni di Adobe
+    sull'inversione dei canali, e riscriverlo sbagliando darebbe una pagina
+    in negativo: si rinuncia, e la pagina viene dichiarata.
+    """
+    try:
+        from PIL import Image, ImageDraw
+    except Exception:
+        return None
+    immagine = Image.open(io.BytesIO(oggetto.read_raw_bytes()))
+    immagine.load()
+    if immagine.size != (larghezza, altezza) or immagine.mode not in ("L", "RGB"):
+        return None
+    disegno = ImageDraw.Draw(immagine)
+    for zona in zone:
+        x0, y0, x1, y1 = _in_pixel(zona, larghezza, altezza, BLOCCO_JPEG)
+        if x1 > x0 and y1 > y0:
+            disegno.rectangle((x0, y0, x1 - 1, y1 - 1), fill=0)
+    buffer = io.BytesIO()
+    try:
+        immagine.save(buffer, "JPEG", quality="keep", subsampling="keep")
+    except Exception:
+        buffer = io.BytesIO()
+        immagine.save(buffer, "JPEG", quality=90)
+    return buffer.getvalue(), pikepdf.Name("/DCTDecode"), {}
+
+
+def _azzerata_passando_da_pillow(oggetto, larghezza: int, altezza: int, zone):
+    """L'ultima strada: aprire l'immagine come immagine, e riscriverla semplice.
+
+    Serve ai formati che il motore PDF non decomprime da solo — il fax (CCITT)
+    delle scansioni in bianco e nero, il JPEG 2000. Si perde lo spazio colore
+    originale, che diventa grigio o RGB: e' il prezzo per poter riscrivere.
+
+    Si rinuncia davanti a una maschera o a una matrice di decodifica: li' i
+    campioni non vogliono dire «colore», e riscriverli come grigio
+    cambierebbe la pagina.
+    """
+    if bool(oggetto.get("/ImageMask", False)) or "/Decode" in oggetto:
+        return None
+    try:
+        from PIL import ImageDraw
+        immagine = pikepdf.PdfImage(oggetto).as_pil_image()
+        immagine.load()
+    except Exception:
+        return None
+    if immagine.size != (larghezza, altezza) or immagine.mode not in ("1", "L", "RGB"):
+        return None
+    disegno = ImageDraw.Draw(immagine)
+    for zona in zone:
+        x0, y0, x1, y1 = _in_pixel(zona, larghezza, altezza)
+        if x1 > x0 and y1 > y0:
+            disegno.rectangle((x0, y0, x1 - 1, y1 - 1), fill=0)
+    chiavi = {
+        "/ColorSpace": pikepdf.Name("/DeviceRGB" if immagine.mode == "RGB" else "/DeviceGray"),
+        "/BitsPerComponent": 1 if immagine.mode == "1" else 8,
+    }
+    return zlib.compress(immagine.tobytes()), pikepdf.Name("/FlateDecode"), chiavi
+
+
+# ---------------------------------------------------------------------------
+# Le altre stanze: la miniatura di pagina, il testo di struttura
+# ---------------------------------------------------------------------------
+
+
+def _togli_miniatura(pagina) -> bool:
+    """Toglie `/Thumb` dalla pagina. Vero se c'era.
+
+    La miniatura e' un'immagine della pagina **com'era quando qualcuno l'ha
+    salvata**: piccola, ma abbastanza da leggere un nome in grassetto o
+    un'intestazione, e in ogni caso un ritratto del documento originale
+    dentro un file che si chiama «-redatto.pdf». Sopravviveva intatta, perche'
+    non sta nel flusso e non e' fra le risorse: e' una chiave del dizionario
+    della pagina.
+
+    Si toglie **sempre**, anche dalle pagine senza un solo valore e anche da
+    quelle dichiarate non trattate: non si puo' sapere cosa ritrae senza
+    leggerla, e non vale niente — ogni lettore la rifa' da se' aprendo il file.
+    """
+    oggetto = getattr(pagina, "obj", pagina)
+    try:
+        if "/Thumb" not in oggetto:
+            return False
+        del oggetto["/Thumb"]
+    except Exception:
+        return False
+    return True
+
+
+def _elementi_di_struttura(pdf):
+    """Ogni elemento dell'albero di struttura, a qualunque profondita'.
+
+    L'albero descrive il documento a chi non lo guarda: titoli, paragrafi,
+    figure, e per ognuno il testo da leggere al posto di cio' che e'
+    disegnato. I figli stanno in `/K`, che puo' essere un elemento, un elenco,
+    o un numero che rimanda al contenuto della pagina.
+
+    Non e' ricorsiva: un albero vero puo' essere profondo quanto i livelli di
+    un indice, uno storto puo' esserlo senza fine. Si tiene conto di cio' che
+    si e' gia' visto, e c'e' un tetto.
+    """
+    try:
+        radice = pdf.Root.get("/StructTreeRoot")
+    except Exception:
+        return
+    if not isinstance(radice, pikepdf.Dictionary):
+        return
+    visti: set[tuple[int, int]] = set()
+    da_visitare = [radice.get("/K")]
+    usciti = 0
+    while da_visitare and usciti < _MASSIMO_ELEMENTI_STRUTTURA:
+        nodo = da_visitare.pop()
+        if isinstance(nodo, pikepdf.Array):
+            da_visitare.extend(nodo)
+            continue
+        if not isinstance(nodo, pikepdf.Dictionary):
+            continue
+        chiave = nodo.objgen
+        if chiave != (0, 0):
+            if chiave in visti:
+                continue
+            visti.add(chiave)
+        usciti += 1
+        yield nodo
+        figli = nodo.get("/K")
+        if figli is not None:
+            da_visitare.append(figli)
+
+
+def _redigi_struttura(pdf, opzioni: PrivacyOptions) -> int:
+    """Il testo di struttura e' testo come i metadati e i segnalibri.
+
+    Un PDF accessibile porta, accanto a cio' che disegna, cio' che va **letto
+    al suo posto**: il testo sostitutivo di una parola spezzata
+    (`/ActualText`), la descrizione di una figura (`/Alt`), la forma estesa
+    di una sigla (`/E`), il titolo di una sezione (`/T`). Sono stringhe
+    appese agli elementi dell'albero, fuori da ogni flusso di pagina: la
+    chirurgia dei glifi non le vede, e un cedolino usciva con
+    `/Alt (IBAN IT60X...)` in chiaro accanto alla riga da cui l'IBAN era
+    stato tolto.
+
+    Si redigono e **non** si butta l'albero: e' cio' che rende il documento
+    leggibile a chi usa uno screen reader, e toglierlo per prudenza vorrebbe
+    dire consegnare a quelle persone un file peggiore di quello ricevuto.
+    """
+    tolti = 0
+    try:
+        for elemento in _elementi_di_struttura(pdf):
+            for chiave in _CHIAVI_TESTO_STRUTTURA:
+                valore = elemento.get(chiave)
+                if not isinstance(valore, pikepdf.String):
+                    continue
+                testo = str(valore)
+                if not testo.strip():
+                    continue
+                redatto, rapporto = apply_privacy_filter(testo, opzioni)
+                if rapporto.total == 0:
+                    continue
+                elemento[chiave] = pikepdf.String(redatto)
+                tolti += rapporto.total
+    except Exception:
+        return tolti
+    return tolti
 
 
 def valore_ancora_presente(valore: str, testo: str) -> bool:
@@ -1771,13 +2629,15 @@ def _fuori_dalle_pagine_come_testo(percorso: Path) -> str:
     """Tutto il testo del documento che **non sta in nessuna pagina**.
 
     Le proprieta' e l'XMP, i titoli dei segnalibri, il contenuto degli
-    allegati leggibili come testo.
+    allegati leggibili come testo, il testo di struttura.
 
     Serve alla verifica, e ogni voce di questo elenco e' arrivata dopo un
     difetto: senza i metadati un codice fiscale rimasto nell'oggetto del
     documento usciva **verde**; senza segnalibri e allegati usciva verde uno
-    rimasto nel sommario o dentro un file appeso. La verifica guardava flusso
-    e annotazioni, cioe' posti in cui quel dato non era mai stato.
+    rimasto nel sommario o dentro un file appeso; senza il testo di struttura
+    usciva verde un IBAN rimasto nella descrizione alternativa di una figura.
+    La verifica guardava flusso e annotazioni, cioe' posti in cui quel dato
+    non era mai stato.
 
     Gli allegati si leggono **con la migliore approssimazione possibile**: un
     `.docx` o un `.jpg` qui diventano byte illeggibili e la ricerca del valore
@@ -1817,9 +2677,239 @@ def _fuori_dalle_pagine_come_testo(percorso: Path) -> str:
                         continue
             except Exception:
                 pass
+            try:
+                for elemento in _elementi_di_struttura(pdf):
+                    for chiave in _CHIAVI_TESTO_STRUTTURA:
+                        valore = elemento.get(chiave)
+                        if isinstance(valore, pikepdf.String):
+                            pezzi.append(str(valore))
+            except Exception:
+                pass
             return "\n".join(pezzi)
     except Exception:
         return ""
+
+
+def _tratto_invisibile(testo_pdfium, inizio: int, fine: int) -> bool | None:
+    """I caratteri di questo tratto sono scritti in modo invisibile?
+
+    Lo si chiede a **pdfium**, carattere per carattere, e non al lettore del
+    flusso che sta in questo modulo: quello e' lo stesso righello con cui si
+    e' deciso cosa azzerare, e una verifica che lo riusasse sbaglierebbe
+    insieme alla redazione, nello stesso punto e nello stesso verso.
+
+    `None` se la versione di pdfium installata non sa rispondere: chi chiama
+    ripiega sull'altro righello, che e' peggio di uno indipendente e meglio
+    di nessuno.
+    """
+    oggetto_del_carattere = getattr(pdfium.raw, "FPDFText_GetTextObject", None)
+    modo_del_testo = getattr(pdfium.raw, "FPDFTextObj_GetTextRenderMode", None)
+    if oggetto_del_carattere is None or modo_del_testo is None:
+        return None
+    grezzo = getattr(testo_pdfium, "raw", testo_pdfium)
+    visto = False
+    for k in range(inizio, min(fine, testo_pdfium.count_chars())):
+        oggetto = oggetto_del_carattere(grezzo, k)
+        if not oggetto:
+            continue  # carattere generato: uno spazio, un a capo
+        if int(modo_del_testo(oggetto)) not in MODI_INVISIBILI:
+            return False
+        visto = True
+    return visto
+
+
+def _pagina_tutta_invisibile(percorso: Path, numero: int) -> bool:
+    """Il ripiego di `_tratto_invisibile`: tutto il testo della pagina e' invisibile."""
+    try:
+        with pikepdf.open(str(percorso)) as pdf:
+            emissioni: list[Emissione] = []
+            _leggi(pdf.pages[numero], [], emissioni, [], 0)
+            return bool(emissioni) and all(e.invisibile for e in emissioni)
+    except Exception:
+        return False
+
+
+def _immagini_secondo_pdfium(pagina_pdfium) -> list[tuple]:
+    """Le immagini della pagina come le vede pdfium: `(oggetto, matrice)`.
+
+    E' la stessa domanda di `_immagini_disegnate`, fatta a **un altro
+    motore**: pdfium legge il contenuto per conto suo, segue i form per conto
+    suo e tiene i conti delle matrici per conto suo. Serve alla verifica
+    proprio per questo — se qui e la' si sbagliasse allo stesso modo, la
+    verifica direbbe di si' a qualunque cosa la redazione abbia fatto.
+
+    La matrice di un oggetto dentro un form e' relativa al form: si compone
+    scendendo, come si fa con i `cm`.
+    """
+    grezzo = pdfium.raw
+    fuori: list[tuple] = []
+
+    def scendi(conta, prendi, contenitore, matrice, livello):
+        for indice in range(max(0, conta(contenitore))):
+            oggetto = prendi(contenitore, indice)
+            if not oggetto:
+                continue
+            propria = grezzo.FS_MATRIX()
+            if not grezzo.FPDFPageObj_GetMatrix(oggetto, propria):
+                continue
+            composta = _componi(
+                (propria.a, propria.b, propria.c, propria.d, propria.e, propria.f),
+                matrice)
+            tipo = grezzo.FPDFPageObj_GetType(oggetto)
+            if tipo == grezzo.FPDF_PAGEOBJ_IMAGE:
+                fuori.append((oggetto, composta))
+            elif tipo == grezzo.FPDF_PAGEOBJ_FORM and livello < 6:
+                scendi(grezzo.FPDFFormObj_CountObjects, grezzo.FPDFFormObj_GetObject,
+                       oggetto, composta, livello + 1)
+
+    scendi(grezzo.FPDFPage_CountObjects, grezzo.FPDFPage_GetObject,
+           getattr(pagina_pdfium, "raw", pagina_pdfium), _IDENTITA, 0)
+    return fuori
+
+
+def _zona_piatta(immagine, rettangolo) -> bool:
+    """Dentro il rettangolo non c'e' niente da leggere: e' di un colore solo."""
+    x0, y0, x1, y1 = rettangolo
+    if x1 <= x0 or y1 <= y0:
+        return True
+    estremi = immagine.crop(rettangolo).getextrema()
+    if estremi and isinstance(estremi[0], tuple):
+        return all(massimo - minimo <= TOLLERANZA_ZONA_PIATTA for minimo, massimo in estremi)
+    minimo, massimo = estremi
+    return massimo - minimo <= TOLLERANZA_ZONA_PIATTA
+
+
+def _cio_che_non_e_testo(sorgente: Path, destinazione: Path,
+                         tratti_per_pagina: list[list[tuple[int, int, str]]]) -> dict:
+    """Cio' che puo' restare nel file redatto e che **nessun testo estratto mostra**.
+
+    La verifica cercava i valori nel testo: e' la domanda giusta per i glifi,
+    le annotazioni, i metadati. Non dice niente su tre cose che non sono
+    testo, e su tutte e tre rispondeva zero:
+
+    * **i pixel.** Un valore che nell'originale stava in testo invisibile
+      sopra un'immagine aveva la sua copia vera nei pixel. Qui si prende
+      **l'immagine estratta** dal file redatto — non la pagina resa, dove il
+      rettangolo copre tutto e la prova e' verde per costruzione — e si
+      guarda se sotto il riquadro del valore e' piatta. Se non lo e', li'
+      dentro c'e' ancora qualcosa da leggere. Un'immagine che non si riesce
+      a estrarre vale come un no: non si e' potuto guardare;
+    * **le miniature.** Una pagina del redatto che ha ancora `/Thumb`;
+    * **le pagine-immagine.** Un'immagine che copre la pagina, con poco o
+      niente testo: di quella pagina non si e' letto il contenuto. Fa
+      eccezione quella con uno strato OCR in cui il motore ha trovato dei
+      valori, che e' gia' giudicata sui pixel.
+
+    Delle pagine-immagine la verifica dice soltanto **quali sono**: se siano
+    state dichiarate non trattate lo sa `EsitoRedazione`, non lei, ed e' chi
+    la chiama a fare il confronto — come gia' fa per i valori rimasti nel
+    testo di una pagina in ripiego.
+
+    `tratti_per_pagina` sono i valori che il motore ha trovato nel testo di
+    ogni pagina dell'originale, con gli indici del testo estratto da pdfium:
+    li ha gia' calcolati chi chiama, e rifarli qui vorrebbe dire far girare
+    il motore una terza volta su ogni pagina.
+
+    Le domande sono in ordine di costo: su una pagina piena di testo e senza
+    valori invisibili — quasi tutte — non si elenca nemmeno un oggetto.
+    """
+    nei_pixel: list[tuple[int, str]] = []
+    pagine_immagine: list[int] = []
+
+    prima = pdfium.PdfDocument(str(sorgente))
+    try:
+        dopo = pdfium.PdfDocument(str(destinazione))
+        try:
+            for numero in range(len(prima)):
+                pagina = prima[numero]
+                testo = pagina.get_textpage()
+                try:
+                    tratti = tratti_per_pagina[numero] if numero < len(tratti_per_pagina) else []
+                    invisibili = []
+                    for tratto in tratti:
+                        risposta = _tratto_invisibile(testo, tratto[0], tratto[1])
+                        if risposta is None:
+                            risposta = _pagina_tutta_invisibile(sorgente, numero)
+                        if risposta:
+                            invisibili.append(tratto)
+
+                    if (not invisibili
+                            and _quota_di_testo(pagina, testo) < QUOTA_MINIMA_DI_TESTO):
+                        larghezza, altezza = pagina.get_size()
+                        ritaglio = pagina.get_cropbox() or (0.0, 0.0, larghezza, altezza)
+                        quota = _area_coperta(
+                            [m for _o, m in _immagini_secondo_pdfium(pagina)],
+                            tuple(float(v) for v in ritaglio))
+                        if quota >= QUOTA_IMMAGINE_PAGINA_VERIFICA:
+                            pagine_immagine.append(numero)
+
+                    if not invisibili or numero >= len(dopo):
+                        continue
+                    contenuto = testo.get_text_range()
+                    # La pagina resta in una variabile fino in fondo al giro:
+                    # gli oggetti che pdfium restituisce vivono quanto lei.
+                    pagina_dopo = dopo[numero]
+                    immagini = _immagini_secondo_pdfium(pagina_dopo)
+                    estratte: dict[int, object] = {}
+                    for tratto in invisibili:
+                        riquadri = _riquadri_del_tratto(testo, tratto)
+                        if _resta_nei_pixel(immagini, estratte, riquadri):
+                            nei_pixel.append((numero, contenuto[tratto[0]:tratto[1]]))
+                finally:
+                    testo.close()
+        finally:
+            dopo.close()
+    finally:
+        prima.close()
+
+    miniature: list[int] = []
+    with pikepdf.open(str(destinazione)) as pdf:
+        for numero, pagina in enumerate(pdf.pages):
+            if "/Thumb" in pagina.obj:
+                miniature.append(numero)
+
+    return {"nei_pixel": nei_pixel, "miniature": miniature,
+            "pagine_immagine": pagine_immagine}
+
+
+def _resta_nei_pixel(immagini, estratte: dict, riquadri) -> bool:
+    """Sotto questi riquadri, in una delle immagini, c'e' ancora qualcosa.
+
+    `estratte` tiene le immagini gia' aperte, una volta per pagina: su un
+    foglio con venti valori la stessa scansione servirebbe venti volte.
+    """
+    for indice, (oggetto, matrice) in enumerate(immagini):
+        zone = _zone_nell_immagine(matrice, riquadri, 0.0)
+        if not zone:
+            continue
+        if indice not in estratte:
+            estratte[indice] = _immagine_secondo_pdfium(oggetto)
+        immagine = estratte[indice]
+        if immagine is None:
+            return True  # non si e' potuto guardare: non e' un si'
+        for zona in zone:
+            if not _zona_piatta(immagine, _in_pixel(zona, immagine.width, immagine.height)):
+                return True
+    return False
+
+
+def _immagine_secondo_pdfium(oggetto):
+    """I pixel di un'immagine come li decodifica pdfium, o `None`.
+
+    Non resa sulla pagina: **estratta**, nella sua griglia di pixel, senza
+    matrice e senza cio' che le sta disegnato sopra.
+    """
+    try:
+        grezza = pdfium.raw.FPDFImageObj_GetBitmap(oggetto)
+        if not grezza:
+            return None
+        bitmap = pdfium.PdfBitmap.from_raw(grezza)
+        try:
+            return bitmap.to_pil().copy()
+        finally:
+            bitmap.close()
+    except Exception:
+        return None
 
 
 def verifica_redazione(sorgente: Path, destinazione: Path,
@@ -1845,6 +2935,14 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
     calcola: senza, la verifica userebbe la stessa funzione con cui si taglia,
     e se quella individuasse meta' dei valori taglierebbe meta' e ne cercherebbe
     meta', uscendo verde senza guardare niente.
+
+    La terza, del 3 ottobre 2026: **non tutto cio' che resta e' testo.** Un
+    valore puo' restare nei pixel di un'immagine, una pagina intera nella sua
+    miniatura, e una pagina fatta di un'immagine puo' non essere mai stata
+    letta. Nessuna delle tre si trova cercando una stringa, e su tutte e tre
+    questa funzione diceva zero. Adesso entrano in `sopravvissuti` insieme ai
+    valori rimasti nel testo, e le tre voci in fondo dicono quanti sono di
+    ciascun genere: vedi `_cio_che_non_e_testo`.
     """
     opzioni = opzioni or PrivacyOptions()
     # Il testo della pagina **e** quello delle annotazioni, che sta altrove e
@@ -1862,18 +2960,23 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
     # ciascuna pagina lo farebbe contare tante volte quante sono. La coda
     # tiene allineati gli indici delle due liste, che e' cio' su cui regge il
     # confronto pagina contro pagina.
-    def _unite(percorso: Path) -> list[str]:
-        flusso = testo_per_pagina(percorso)
+    def _unite(percorso: Path, flusso: list[str]) -> list[str]:
         note = _annotazioni_per_pagina(percorso)
         pagine = [t + "\n" + (note[i] if i < len(note) else "")
                   for i, t in enumerate(flusso)]
         return pagine + [_fuori_dalle_pagine_come_testo(percorso)]
 
-    prima = _unite(sorgente)
-    dopo = _unite(destinazione)
+    flusso_prima = testo_per_pagina(sorgente)
+    prima = _unite(sorgente, flusso_prima)
+    dopo = _unite(destinazione, testo_per_pagina(destinazione))
 
     dichiarati = individuati = 0
     rimasti: list[str] = []
+    # I valori trovati **nel testo della pagina**, senza quelli delle sue
+    # annotazioni: il testo della pagina viene per primo nella stringa unita,
+    # quindi i loro indici sono gli stessi che conosce pdfium. Servono a
+    # `_cio_che_non_e_testo`, che di ognuno va a guardare i pixel.
+    tratti_per_pagina: list[list[tuple[int, int, str]]] = [[] for _ in flusso_prima]
     # **Su quali pagine**, non solo quanti. Chi chiama deve poter distinguere
     # un valore rimasto su una pagina che il rapporto dichiara **non trattata**
     # — dove l'utente e' gia' avvisato e il file si consegna lo stesso — da uno
@@ -1884,19 +2987,35 @@ def verifica_redazione(sorgente: Path, destinazione: Path,
         _, rapporto = apply_privacy_filter(testo, opzioni)
         dichiarati += rapporto.total
         stessa_pagina = dopo[numero] if numero < len(dopo) else ""
-        for a, b, _s in intervalli_da_togliere(testo, opzioni):
+        for a, b, segnaposto in intervalli_da_togliere(testo, opzioni):
             individuati += 1
+            if numero < len(flusso_prima) and b <= len(flusso_prima[numero]):
+                tratti_per_pagina[numero].append((a, b, segnaposto))
             if valore_ancora_presente(testo[a:b], stessa_pagina):
                 rimasti.append(testo[a:b])
                 pagine_con_superstiti.add(numero)
+
+    altro = _cio_che_non_e_testo(sorgente, destinazione, tratti_per_pagina)
+    for numero, valore in altro["nei_pixel"]:
+        rimasti.append(valore)
+        pagine_con_superstiti.add(numero)
+    pagine_con_superstiti.update(altro["miniature"])
+    pagine_con_superstiti.update(altro["pagine_immagine"])
     return {
         "dichiarati_dal_motore": dichiarati,
         "individuati_nel_testo": individuati,
         "persi_prima_di_tagliare": dichiarati - individuati,
-        "sopravvissuti": len(rimasti),
+        # Valori rimasti nel testo o nei pixel, piu' una voce per ogni
+        # miniatura e per ogni pagina-immagine: non sono valori, e sono cose
+        # che nel file redatto non dovevano esserci senza essere dichiarate.
+        "sopravvissuti": (len(rimasti) + len(altro["miniature"])
+                          + len(altro["pagine_immagine"])),
         "esempi": rimasti[:5],
         # L'ultimo indice e' la «pagina» dei metadati (vedi `_unite`): non e'
         # un foglio, e non puo' mai essere in ripiego. Un superstite li' vale
         # come uno su una pagina dichiarata trattata.
         "pagine_con_superstiti": sorted(pagine_con_superstiti),
+        "nei_pixel": len(altro["nei_pixel"]),
+        "miniature_rimaste": altro["miniature"],
+        "pagine_immagine": altro["pagine_immagine"],
     }

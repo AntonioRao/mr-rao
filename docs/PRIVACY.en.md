@@ -704,16 +704,31 @@ silent loss, by definition, appears in none of the three numbers.
     is the typical case, and it used to be counted among the pages treated. A
     **blank** page, on the other hand, is not an alarm: it has nothing to
     remove, and it stays silent;
-  - **a scan that has already been through OCR is refused too, since 1.28.0.**
-    This is the case that fooled the check above: such a page carries **two**
-    copies of the text, the pixels you can see and a layer of invisible
-    characters you can select and search. Extractable text is there, so the
-    page did not look like a scan; redaction removed the invisible characters
-    — the one copy nobody reads — and called the page treated while the name
-    stayed on screen, inside the image. Now, when everything there is to
-    remove sits in invisible characters and the page holds an image, the page
-    goes among the untreated ones; if **every** page is like that, the
-    document is refused as the scan it is;
+  - **a scan that has already been through OCR is treated by removing the
+    pixels from the image, since 1.30.1.** Such a page carries **two** copies
+    of the text: the pixels you can see and a layer of invisible characters
+    you can select and search. Removing only one is not redaction. Both go:
+    the invisible characters from the content stream, and the **pixels inside
+    the embedded image**, in the box the OCR layer declares for each value.
+    The coloured box stays on top, as a mark for the reader and not as the
+    redaction. In 1.30.0 the box was all there was: extracting the image from
+    the file gave the data back whole. **The limit, declared:** the zone
+    removed sits where the OCR layer says the word is; if that layer is
+    misaligned with the image the wrong pixels go, and the file gives no way
+    to notice. If the image cannot be rewritten (JBIG2, an inline image, a
+    CMYK JPEG) the page is **not** covered: it goes among the untreated ones.
+    If **every** page is like that, the document is refused as the scan it
+    is;
+  - **a page made of an image with little text on it is declared untreated,
+    since 1.30.1.** A payslip pasted as a picture, with a seven-word footer:
+    the text is not empty, so it was not a "scan", and it holds no data, so
+    it was passed over. Now, when images cover at least half the page and
+    text takes up less than 1% of it, the page goes among the untreated ones;
+  - **page thumbnails and structure text, since 1.30.1.** Thumbnails
+    (`/Thumb`) are pictures of the original page and are always removed. The
+    text in the structure tree — `/ActualText`, `/Alt`, `/E`, `/T`, what a
+    screen reader reads out — goes through the filter like the document
+    properties;
   - **pages that fall back are not redacted.** When the extracted text cannot
     be found in the content stream, or a span cannot be traced to any glyph,
     the page comes out **as it was**. Those pages appear in
@@ -721,7 +736,14 @@ silent loss, by definition, appears in none of the three numbers.
     **always**, even when there are none, in the suspects' colour — which
     here means "your turn to look". Calling them redacted would be the worst
     possible way to be wrong;
-  - the `'` and `"` text operators are declared out of scope.
+  - the `'` and `"` text operators are declared out of scope;
+  - **three things measured on 3 October 2026 are also still out, and not yet
+    closed** — written here because keeping quiet about them would be worse
+    than having them: an OCR layer placed **under** the image instead of
+    invisible on top of it (the page is treated as digital, and the pixels
+    stay); the **author of a note** (`/T`), which comes out in clear; and
+    **application private data** (`/PieceInfo`), where some programs keep a
+    working copy of the document. They are in `docs/BACKLOG.md`, P6.13.
 
   **The PDF follows the same options as the Markdown, profile included** — and
   since 1.24.0 the profile too. It did not before: the PDF routes built their
