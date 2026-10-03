@@ -48,8 +48,15 @@ Pillow>=12.3.0          # 10.0.0 ne apriva 17, il grosso dei 27
 #   * `pikepdf` **taglia** -- il flusso di contenuto operatore per operatore,
 #     **anche dentro i Form XObject**, che e' dove sta il testo di meta' dei
 #     PDF veri.
-pypdfium2>=4.0.0
-pikepdf>=9.0.0
+#
+# I due minimi qui sotto sono **misurati**, il 3 ottobre 2026: un venv pulito,
+# la versione appena sotto e quella dichiarata, i banchi della redazione PDF.
+# Prima dicevano 4.0.0 e 9.0.0, e non reggevano: con pikepdf sotto la 10.6
+# la redazione di **qualunque** PDF falliva al primo font. Un minimo che
+# nessuno ha mai installato e' una promessa che nessuno ha mai controllato.
+pypdfium2>=5.0.0    # 4.30.0 non sa dire a quale oggetto appartiene un
+                    # carattere: la verifica non vede il testo sotto un'immagine
+pikepdf>=10.3.0     # 10.2.0: i dizionari non hanno .values(), 39 banchi rossi
 # OCR offline. `rapidocr` e non piu' `rapidocr_onnxruntime`: il pacchetto e'
 # stato rinominato e il vecchio nome e' fermo alla 1.2.3, senza piu' rilasci
 # nemmeno di sicurezza. `onnxruntime` va dichiarato a parte, perche' dalla 3.x

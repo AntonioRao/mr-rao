@@ -1,7 +1,9 @@
 # Componenti di terze parti — Mr. Rao
 
 > Generato da `scripts/gen_third_party.py` leggendo i metadati dei pacchetti
-> **realmente installati**. Non modificare a mano: rigenerare.
+> **realmente installati**, fra quelli da cui Mr. Rao dipende: ciò che
+> dichiara in `requirements.txt` e `requirements-build.txt`, e ciò che quei
+> pacchetti si portano dietro. Non modificare a mano: rigenerare.
 
 Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze.
 Le loro licenze restano integre e **prevalgono** sui rispettivi file.
@@ -19,7 +21,7 @@ generatore non ha modo di sapere di più: legge i metadati, non i
 repository. Chi ridistribuisce e ha bisogno della certezza la cerca
 nel sorgente del pacchetto, non in questa tabella.
 
-Pacchetti nell'ambiente: **73** — di cui **6** con obblighi
+Pacchetti da cui dipende: **72** — di cui **6** con obblighi
 oltre la semplice attribuzione (copyleft o eccezioni).
 
 ## Licenze con obblighi particolari
@@ -83,7 +85,7 @@ Mr. Rao non li modifica.
 Arrivano come dipendenze delle precedenti. Sono elencate per intero perché
 l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 
-<details><summary>Elenco completo (51 pacchetti)</summary>
+<details><summary>Elenco completo (50 pacchetti)</summary>
 
 | Progetto | Versione | Licenza | Notice locale |
 |----------|----------|---------|---------------|
@@ -116,7 +118,6 @@ l'obbligo di attribuzione è di chi distribuisce, non di chi riceve.
 | [opencv-python](https://github.com/opencv/opencv-python) | 5.0.0.93 | Apache Software License | — |
 | [packaging](https://packaging.pypa.io/) | 26.3 | Apache-2.0 OR BSD-2-Clause | — |
 | [pefile](https://github.com/erocarrera/pefile) | 2024.8.26 | MIT | — |
-| [pip](https://pip.pypa.io/en/stable/news/) | 26.2.1 | MIT | — |
 | pluggy | 1.6.0 | MIT License | — |
 | [protobuf](https://developers.google.com/protocol-buffers/) | 7.35.1 | 3-Clause BSD License | — |
 | [proxy_tools](http://github.com/jtushman/proxy_tools) | 0.1.0 | MIT License | — |

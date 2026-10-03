@@ -457,7 +457,13 @@ def carica_font(dizionario) -> Font:
             tounicode = {}
     semplice: dict[int, str] = {}
     codifica = dizionario.get("/Encoding")
-    if codifica is not None and hasattr(codifica, "get"):
+    # **Un dizionario, non «qualcosa che ha `get`».** La codifica di un font e'
+    # quasi sempre un nome (`/WinAnsiEncoding`), e in pikepdf anche un nome ha
+    # il metodo `get`: chiederlo a lui, fino alla 10.5.1, solleva. Dalla
+    # 10.6.0 risponde «non c'e'», e il controllo di prima funzionava per
+    # questo e non perche' fosse giusto: con `pikepdf>=9.0.0` dichiarato, su
+    # ogni versione sotto la 10.6 la redazione di qualunque PDF falliva qui.
+    if isinstance(codifica, pikepdf.Dictionary):
         differenze = codifica.get("/Differences")
         if differenze is not None:
             corrente = 0
