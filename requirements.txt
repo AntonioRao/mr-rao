@@ -48,8 +48,8 @@ Pillow>=12.3.0          # 10.0.0 ne apriva 17, il grosso dei 27
 #   * `pikepdf` **taglia** -- il flusso di contenuto operatore per operatore,
 #     **anche dentro i Form XObject**, che e' dove sta il testo di meta' dei
 #     PDF veri.
-pypdfium2>=4.0.0
-pikepdf>=9.0.0
+pypdfium2>=5.0.0
+pikepdf>=10.3.0
 # OCR offline. `rapidocr` e non piu' `rapidocr_onnxruntime`: il pacchetto e'
 # stato rinominato e il vecchio nome e' fermo alla 1.2.3, senza piu' rilasci
 # nemmeno di sicurezza. `onnxruntime` va dichiarato a parte, perche' dalla 3.x
