@@ -87,6 +87,7 @@ invented by us.
 | Dates of birth | `{{DATE}}` | **Off by default.** Only with birth context beside it |
 | Amounts | `{{AMOUNT}}` | **Off by default.** Currency, thousands separator, or accounting context |
 | Your own terms | `{{TERM}}` | The "always hide" list written by whoever is converting |
+| Author of a PDF | `{{AUTHOR}}` | **Redacted PDFs only**, and nothing is recognised: it is a **field**. The author in the document properties and the author of every note are replaced whole, whatever shape they have, when "Names" is on. It has its own placeholder because whoever wrote the document is not one of the people the document is about |
 
 ### Two things Mr. Rao finds and never removes: age and sex
 
@@ -737,8 +738,12 @@ silent loss, by definition, appears in none of the three numbers.
     (`/Author`) and the author of every note (`/T`) come out as a
     placeholder, **whole and whatever shape they have**: a username like
     `mario.rossi` is not a shape the engine recognises, and it does not need
-    to be — that field says *who*, and any value there is an identity. This
-    applies with the "Names" box ticked; unticked, they stay. The name of a
+    to be — that field says *who*, and any value there is an identity. The
+    placeholder is `{{AUTHOR}}`, not the one for names, and it is numbered
+    like the others: two reviewers are `{{AUTHOR_1}}` and `{{AUTHOR_2}}`,
+    and someone who wrote the document and annotated a page has the same
+    number in both places. This applies with the "Names" box ticked;
+    unticked, they stay. The name of a
     **form field** is not touched: there `/T` is the field's name, not a
     person;
   - **application private data is removed, since 1.30.3.** `/PieceInfo` is

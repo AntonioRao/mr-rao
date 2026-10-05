@@ -1232,7 +1232,11 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
         esito.pagine = len(pdf.pages)
         # Prima delle pagine, perche' non dipende dalle pagine: le proprieta'
         # del documento sono testo che nessun flusso di contenuto contiene.
-        esito.metadati_tolti = _redigi_metadati(pdf, opzioni)
+        # Chi ha scritto, e con che numero: una mappa per documento, che le
+        # proprieta' e le note di ogni pagina riempiono insieme. Vedi
+        # `_identita_redatta`.
+        autori: dict[str, int] = {}
+        esito.metadati_tolti = _redigi_metadati(pdf, opzioni, autori)
         esito.valori_da_togliere += esito.metadati_tolti
         # Le altre due stanze fuori dalle pagine: il sommario e gli allegati.
         # Stessa ragione dei metadati -- testo che nessun flusso contiene -- e
@@ -1262,7 +1266,7 @@ def redigi_pdf(sorgente: Path, destinazione: Path,
 
             # Prima del flusso, perche' non dipende dal flusso: una pagina
             # senza una riga di testo puo' avere un campo modulo pieno.
-            esito.valori_da_togliere += _redigi_annotazioni(pdf, pagina, opzioni)
+            esito.valori_da_togliere += _redigi_annotazioni(pdf, pagina, opzioni, autori)
 
             if not testo_estratto.strip() and _pagina_e_una_scansione(pagina):
                 _ripiego(esito, numero, MOTIVO_SCANSIONE)
@@ -1645,7 +1649,7 @@ _RE_SOLO_SEGNAPOSTO = re.compile(r"\s*(?:\{\{[A-Z_]+(?:_\d+)?\}\}\s*)+")
 _RE_AUTORE_XMP = re.compile(r"\b(?:dc:creator|pdf:Author)\b")
 
 
-def _identita_redatta(valore, opzioni: PrivacyOptions) -> str | None:
+def _identita_redatta(valore, opzioni: PrivacyOptions, autori: dict[str, int]) -> str | None:
     """Il segnaposto da mettere in un **campo d'identita'**, o `None` se resta com'e'.
 
     Un campo d'identita' e' un campo che dice *chi*: `/Author` nelle
@@ -1666,13 +1670,39 @@ def _identita_redatta(valore, opzioni: PrivacyOptions) -> str | None:
     Tre casi in cui non si tocca: la casella «Nomi» e' spenta, e chi ha
     scelto di tenere i nomi ha scelto anche questo; il campo e' vuoto; il
     campo contiene gia' soltanto segnaposto.
+
+    Un segnaposto suo, non quello dei nomi
+    --------------------------------------
+
+    Fino a meta' della 1.30.3 qui usciva `{{NAME_1}}`. Era sbagliato in due
+    modi: **chi ha scritto** il documento non e' una delle persone **di cui
+    il documento parla**, e chi rilegge il redatto deve poterle distinguere;
+    e quel numero era fisso, mentre nel testo `{{NAME_1}}` e' un'altra
+    persona, contata dal motore per conto suo.
+
+    `autori` e' la mappa da autore a numero, e vale **per un documento**:
+    nasce in `redigi_pdf` e li' muore, come quella del motore (vedi
+    `RedactionReport.segnaposto`). Stessa regola anche per decidere chi e' lo
+    stesso autore: maiuscole, spazi e punteggiatura non fanno due persone,
+    quindi `mario.rossi` nelle proprieta' e `Mario Rossi` su una nota hanno
+    lo stesso numero. E' cio' che tiene leggibile un documento rivisto da due
+    persone: quali note sono della stessa mano si vede ancora.
+
+    Il letterale e' scritto qui per intero, fra virgolette, apposta:
+    `check_docs.py` e `tests/test_segnaposto_non_riassorbiti.py` trovano i
+    segnaposto leggendo il sorgente.
     """
     if not opzioni.names or not isinstance(valore, pikepdf.String):
         return None
     testo = str(valore)
     if not testo.strip() or _RE_SOLO_SEGNAPOSTO.fullmatch(testo):
         return None
-    return "{{NAME_1}}" if opzioni.numerati else "{{NAME}}"
+    base = "{{AUTHOR}}"
+    if not opzioni.numerati:
+        return base
+    chiave = "".join(c for c in testo.casefold() if c.isalnum())
+    numero = autori.setdefault(chiave, len(autori) + 1)
+    return f"{{{{{base[2:-2]}_{numero}}}}}"
 
 
 def _ha_annotazioni_con_testo(sorgente: Path) -> bool:
@@ -1737,7 +1767,7 @@ def _e_una_nota(annotazione) -> bool:
         return False
 
 
-def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
+def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions, autori: dict[str, int]) -> int:
     """Toglie i dati dalle annotazioni e dai campi modulo di una pagina.
 
     Il testo di una nota gialla e il valore di un campo compilato **non
@@ -1780,7 +1810,7 @@ def _redigi_annotazioni(pdf, pagina, opzioni: PrivacyOptions) -> int:
         # perche' il nome di chi ha scritto non e' nel disegno della nota: e'
         # nella finestrella che il lettore apre, e quella la compone lui.
         if _e_una_nota(annotazione):
-            autore = _identita_redatta(annotazione.get("/T"), opzioni)
+            autore = _identita_redatta(annotazione.get("/T"), opzioni, autori)
             if autore is not None:
                 annotazione["/T"] = pikepdf.String(autore)
                 tolti += 1
@@ -1871,7 +1901,7 @@ _CHIAVI_TESTO_DOCINFO = ("/Title", "/Author", "/Subject", "/Keywords", "/Creator
 _CHIAVI_IDENTITA_DOCINFO = ("/Author",)
 
 
-def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
+def _redigi_metadati(pdf, opzioni: PrivacyOptions, autori: dict[str, int]) -> int:
     """Le proprieta' del documento sono testo come tutto il resto.
 
     E' la stessa classe del difetto delle annotazioni chiuso nella 1.24.0, e
@@ -1917,7 +1947,7 @@ def _redigi_metadati(pdf, opzioni: PrivacyOptions) -> int:
         if not testo.strip():
             continue
         if chiave in _CHIAVI_IDENTITA_DOCINFO:
-            autore = _identita_redatta(valore, opzioni)
+            autore = _identita_redatta(valore, opzioni, autori)
             if autore is not None:
                 pdf.docinfo[chiave] = pikepdf.String(autore)
                 tolti += 1

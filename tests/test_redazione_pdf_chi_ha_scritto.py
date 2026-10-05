@@ -25,6 +25,9 @@ annotazioni, perche' sui **campi modulo** `/T` e' il nome del campo e non va
 toccato.
 
 Con la casella «Nomi» accesa i due campi escono col segnaposto, per intero.
+Il segnaposto e' **suo**, `{{AUTHOR}}`, non quello dei nomi: chi ha scritto
+il documento non e' una delle persone di cui il documento parla, e chi
+rilegge il redatto deve poterle distinguere.
 Spenta, restano: chi ha deciso di tenere i nomi ha deciso anche questo.
 
 2. I dati privati delle applicazioni
@@ -111,7 +114,7 @@ def test_l_autore_esce_col_segnaposto_qualunque_forma_abbia(tmp_path, autore):
     fuori = tmp_path / "fuori.pdf"
     esito = redigi_pdf(dentro, fuori, PrivacyOptions())
 
-    assert _proprieta(fuori)["/Author"] == "{{NAME_1}}", _proprieta(fuori)
+    assert _proprieta(fuori)["/Author"] == "{{AUTHOR_1}}", _proprieta(fuori)
     assert esito.metadati_tolti >= 1, esito
     assert esito.valori_da_togliere >= 1, esito
 
@@ -128,15 +131,15 @@ def test_senza_numeri_il_segnaposto_e_quello_piatto(tmp_path):
     dentro = _pdf_con_proprieta(tmp_path / "dentro.pdf", Author="mario.rossi")
     fuori = tmp_path / "fuori.pdf"
     redigi_pdf(dentro, fuori, PrivacyOptions(numerati=False))
-    assert _proprieta(fuori)["/Author"] == "{{NAME}}"
+    assert _proprieta(fuori)["/Author"] == "{{AUTHOR}}"
 
 
 def test_un_autore_gia_redatto_non_si_conta_di_nuovo(tmp_path):
     """Redigere un file gia' redatto non deve trovarci un dato nuovo."""
-    dentro = _pdf_con_proprieta(tmp_path / "dentro.pdf", Author="{{NAME_1}}")
+    dentro = _pdf_con_proprieta(tmp_path / "dentro.pdf", Author="{{AUTHOR_1}}")
     fuori = tmp_path / "fuori.pdf"
     esito = redigi_pdf(dentro, fuori, PrivacyOptions())
-    assert _proprieta(fuori)["/Author"] == "{{NAME_1}}"
+    assert _proprieta(fuori)["/Author"] == "{{AUTHOR_1}}"
     assert esito.metadati_tolti == 0, esito
     assert verifica_redazione(dentro, fuori, PrivacyOptions())["sopravvissuti"] == 0
 
@@ -254,12 +257,94 @@ def test_l_autore_di_una_nota_esce_col_segnaposto(tmp_path):
     esito = redigi_pdf(dentro, fuori, PrivacyOptions())
 
     nota = _nota(fuori)
-    assert nota["/T"] == "{{NAME_1}}", nota
+    assert nota["/T"] == "{{AUTHOR_1}}", nota
     assert nota["/Contents"] == "Da ricontrollare prima della firma.", nota
     assert esito.valori_da_togliere >= 1, esito
     # Il disegno della nota resta: l'autore non e' nel disegno, e buttarlo
     # vorrebbe dire far sparire un timbro o una nota per cambiare un nome.
     assert nota["aspetto"] == "c'e'", "tolto l'aspetto di una nota di cui e' cambiato solo l'autore"
+
+
+def test_il_segnaposto_dell_autore_non_e_quello_dei_nomi(tmp_path):
+    """Chi ha scritto non e' una delle persone di cui si parla.
+
+    Con il segnaposto dei nomi, in un documento che nomina Mario Rossi e che
+    Mario Rossi ha scritto, il redatto diceva due volte la stessa cosa — e in
+    uno scritto da un altro i numeri dell'autore e delle persone nel testo si
+    mescolavano senza che niente lo dicesse.
+    """
+    pdf = pikepdf.Pdf.new()
+    _pagina(pdf, "Il sig. Mario Rossi firma per accettazione.")
+    pdf.docinfo["/Author"] = "luigi.bianchi"
+    dentro = tmp_path / "dentro.pdf"
+    pdf.save(str(dentro))
+    pdf.close()
+
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori, PrivacyOptions())
+    autore = _proprieta(fuori)["/Author"]
+    assert autore == "{{AUTHOR_1}}", autore
+    assert "NAME" not in autore
+
+
+def _pdf_con_note(percorso, autori: list[str], autore_del_documento: str = ""):
+    """Piu' note, ognuna col suo autore, su due pagine."""
+    pdf = pikepdf.Pdf.new()
+    pagine = [_pagina(pdf), _pagina(pdf)]
+    for indice, autore in enumerate(autori):
+        nota = pikepdf.Dictionary(
+            Type=pikepdf.Name("/Annot"), Subtype=pikepdf.Name("/Text"),
+            Rect=pikepdf.Array([500, 780 - 30 * indice, 520, 800 - 30 * indice]),
+            Contents=pikepdf.String("Da ricontrollare."),
+            T=pikepdf.String(autore))
+        pagina = pagine[indice % 2]
+        if "/Annots" not in pagina:
+            pagina["/Annots"] = pikepdf.Array()
+        pagina["/Annots"].append(pdf.make_indirect(nota))
+    if autore_del_documento:
+        pdf.docinfo["/Author"] = autore_del_documento
+    pdf.save(str(percorso))
+    pdf.close()
+    return percorso
+
+
+def _autori_delle_note(percorso) -> list[str]:
+    with pikepdf.open(str(percorso)) as pdf:
+        return [str(nota["/T"]) for pagina in pdf.pages
+                for nota in pagina.obj.get("/Annots", [])]
+
+
+def test_due_autori_diversi_due_numeri_lo_stesso_autore_lo_stesso_numero(tmp_path):
+    """La regola dei segnaposto numerati vale anche qui.
+
+    In un documento rivisto da due persone, sapere **quali note sono della
+    stessa mano** e' cio' che resta da leggere dopo aver tolto i nomi: con un
+    numero solo per tutti le revisioni diventano un coro. E l'autore del
+    documento, quando e' anche uno dei revisori, e' la stessa persona:
+    maiuscole e punteggiatura non ne fanno due, come nel testo.
+    """
+    # Pagina 1: mario.rossi e ancora Mario Rossi. Pagina 2: luigi.bianchi, che
+    # ha anche scritto il documento. Il numero 1 e' suo perche' le proprieta'
+    # si leggono prima delle pagine: se le note contassero per conto loro, il
+    # primo revisore sarebbe lui il numero 1, e in questo documento il numero
+    # 1 vorrebbe dire due persone.
+    dentro = _pdf_con_note(tmp_path / "dentro.pdf",
+                           ["mario.rossi", "luigi.bianchi", "Mario Rossi"],
+                           autore_del_documento="LUIGI BIANCHI")
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori, PrivacyOptions())
+
+    assert _proprieta(fuori)["/Author"] == "{{AUTHOR_1}}"
+    assert _autori_delle_note(fuori) == [
+        "{{AUTHOR_2}}", "{{AUTHOR_2}}", "{{AUTHOR_1}}"], _autori_delle_note(fuori)
+    assert verifica_redazione(dentro, fuori, PrivacyOptions())["sopravvissuti"] == 0
+
+
+def test_senza_numeri_tutti_gli_autori_hanno_lo_stesso_segnaposto(tmp_path):
+    dentro = _pdf_con_note(tmp_path / "dentro.pdf", ["mario.rossi", "luigi.bianchi"])
+    fuori = tmp_path / "fuori.pdf"
+    redigi_pdf(dentro, fuori, PrivacyOptions(numerati=False))
+    assert _autori_delle_note(fuori) == ["{{AUTHOR}}", "{{AUTHOR}}"]
 
 
 def test_il_nome_di_un_campo_modulo_non_si_tocca(tmp_path):

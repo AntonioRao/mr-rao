@@ -36,6 +36,7 @@ solo, il giorno che viene scritto.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -43,13 +44,22 @@ import pytest
 from mr_rao.privacy import apply_privacy_filter, options_from_dict
 
 RADICE = Path(__file__).resolve().parent.parent
+if str(RADICE / "scripts") not in sys.path:
+    sys.path.insert(0, str(RADICE / "scripts"))
+
+from check_docs import SORGENTI_DEI_SEGNAPOSTO, segnaposto_non_documentati  # noqa: E402
 
 
 def segnaposto_emessi() -> list[str]:
-    """Gli stessi che guarda il gate: quelli scritti nel motore."""
+    """Gli stessi che guarda il gate: quelli scritti nel motore.
+
+    E quello che il motore non emette: `{{AUTHOR}}`, che la redazione dei PDF
+    mette nei campi d'autore. Un PDF redatto puo' ripassare da qui — o il suo
+    autore finire nel testo convertito — e li' vale la stessa regola.
+    """
     sorgenti = "".join(
         (RADICE / "mr_rao" / f).read_text(encoding="utf-8")
-        for f in ("privacy.py", "en_formats.py")
+        for f in SORGENTI_DEI_SEGNAPOSTO
     )
     return sorted(set(re.findall(r'"(\{\{[A-Z_]+\}\})"', sorgenti)))
 
@@ -62,6 +72,22 @@ def test_ce_ne_sono_da_provare():
     cambi il modo di scrivere i segnaposto nel sorgente.
     """
     assert len(segnaposto_emessi()) >= 20
+
+
+def test_fra_quelli_da_provare_c_e_anche_quello_dei_pdf():
+    """`{{AUTHOR}}` non lo emette il motore: lo scrive la redazione dei PDF.
+
+    Finche' le due guardie leggevano solo il motore, un segnaposto nato
+    altrove non entrava ne' in questa prova ne' in quella dei documenti: tutte
+    e due verdi, senza averlo guardato.
+    """
+    assert "{{AUTHOR}}" in segnaposto_emessi()
+
+
+def test_ogni_segnaposto_e_scritto_nei_documenti():
+    """Lo stesso controllo del gate, qui perche' sia rosso anche da `pytest`."""
+    problemi = segnaposto_non_documentati()
+    assert not problemi, "\n".join(problemi)
 
 
 def segnaposto_da_provare() -> list[str]:

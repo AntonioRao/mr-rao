@@ -29,8 +29,11 @@ di default usciva già, ma con gli URL spenti restava.
 
 Tre scelte, e chi le legge può non essere d'accordo:
 
-- **il segnaposto è quello dei nomi** (`{{NAME_1}}`), non uno nuovo. Dice
-  «qui c'era chi ha scritto», che è vero anche quando era un ufficio;
+- **il segnaposto è suo**, `{{AUTHOR}}`, non quello dei nomi. Chi ha scritto
+  il documento non è una delle persone di cui il documento parla, e chi
+  rilegge il redatto deve poterle distinguere. Si numera come gli altri: due
+  revisori sono `{{AUTHOR_1}}` e `{{AUTHOR_2}}`, e lo stesso autore nelle
+  proprietà e su una nota ha lo stesso numero, anche scritto in due modi;
 - **dipende dalla casella «Nomi»**. Spenta, i due campi restano: chi ha
   scelto di tenere i nomi ha scelto anche questo;
 - **`/Creator` resta fuori**, anche se il nome inganna: è il programma con
@@ -110,9 +113,10 @@ Nessuna versione e nessuna licenza è cambiata.
 
 ### Cosa cambia per chi usava la 1.30.2
 
-- l'autore di un PDF redatto è sempre `{{NAME_1}}`, anche quando era un
-  ufficio o un nome generico. È un campo di metadati, e si sbaglia dalla
-  parte di togliere;
+- l'autore di un PDF redatto è `{{AUTHOR_1}}`, anche quando era un ufficio o
+  un nome generico. È un campo di metadati, e si sbaglia dalla parte di
+  togliere. È un **segnaposto nuovo**: chi a valle li cerca per nome ne ha
+  uno in più, ed è nella tabella di `docs/PRIVACY.md`;
 - un PDF redatto non porta più i dati privati del programma che l'ha fatto:
   riaperto lì, non è più modificabile com'era;
 - `verifica_redazione` ha due chiavi in più, `identita_rimaste` e
@@ -125,7 +129,7 @@ misurati, e tutto ciò che questa serie ha chiuso è provato su PDF costruiti
 apposta; una verifica che solleva lascia passare il file; gli altri minimi di
 `requirements.txt`.
 
-2.461 test (erano 2.431), venticinque mutazioni nuove verificate rosse.
+2.471 test (erano 2.431), trentaquattro mutazioni nuove verificate rosse.
 
 ## 1.30.2 — Il testo sotto l'immagine
 

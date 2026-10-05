@@ -88,6 +88,7 @@ inventato da noi.
 | Date di nascita | `{{DATE}}` | **Spento di default.** Solo con contesto di nascita accanto |
 | Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
 | Termini tuoi | `{{TERM}}` | L'elenco «nascondi sempre» scritto da chi converte |
+| Autore di un PDF | `{{AUTHOR}}` | **Solo nei PDF redatti**, e non si riconosce: è un **campo**. L'autore nelle proprietà del documento e quello di ogni nota escono per intero, qualunque forma abbiano, quando «Nomi» è acceso. Ha un segnaposto suo perché chi ha scritto il documento non è una delle persone di cui il documento parla |
 
 ### Due dati che Mr. Rao trova e non toglie mai: età e sesso
 
@@ -730,9 +731,13 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     (`/Author`) e l'autore di ogni nota (`/T`) escono col segnaposto, **per
     intero e qualunque forma abbiano**: un nome utente come `mario.rossi`
     non è una forma che il motore riconosce, e non serve che lo sia — quel
-    campo dice *chi*, e lì qualunque valore è un'identità. Vale con la
-    casella «Nomi» accesa; spenta, restano. Il nome di un **campo modulo**
-    non si tocca: lì `/T` è il nome del campo, non una persona;
+    campo dice *chi*, e lì qualunque valore è un'identità. Il segnaposto è
+    `{{AUTHOR}}`, non quello dei nomi, e si numera come gli altri: due
+    revisori sono `{{AUTHOR_1}}` e `{{AUTHOR_2}}`, e chi ha scritto il
+    documento e ne ha annotato una pagina ha lo stesso numero nei due posti.
+    Vale con la casella «Nomi» accesa; spenta, restano. Il nome di un
+    **campo modulo** non si tocca: lì `/T` è il nome del campo, non una
+    persona;
   - **i dati privati delle applicazioni si tolgono, dalla 1.30.3.**
     `/PieceInfo` è lo spazio in cui un programma tiene le sue cose dentro il
     PDF, e alcuni programmi di grafica ci tengono una copia di lavoro
