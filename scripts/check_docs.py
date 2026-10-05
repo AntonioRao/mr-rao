@@ -290,6 +290,11 @@ def conteggi_incoerenti(
     return problemi
 
 
+#: I moduli che scrivono un segnaposto nel documento. Non solo il motore:
+#: chiunque ne metta uno suo.
+SORGENTI_DEI_SEGNAPOSTO = ("privacy.py", "en_formats.py", "redazione_pdf.py")
+
+
 def segnaposto_non_documentati() -> list[str]:
     """Ogni segnaposto che il motore puo' emettere dev'essere in PRIVACY.md.
 
@@ -305,10 +310,15 @@ def segnaposto_non_documentati() -> list[str]:
     Il segnaposto e' il punto giusto dove guardare perche' e' cio' che
     l'utente **vede nel documento**: un riconoscitore nuovo ne porta uno
     nuovo, e da li' non si scappa.
+
+    `redazione_pdf.py` e' nell'elenco dal 5 ottobre 2026, quando ha avuto un
+    segnaposto che il motore non emette: `{{AUTHOR}}`, per i campi che dicono
+    chi ha scritto. Guardando solo il motore, quello sarebbe uscito nei PDF
+    senza che questa funzione potesse dire di no.
     """
     sorgenti = "".join(
         (ROOT / "mr_rao" / f).read_text(encoding="utf-8")
-        for f in ("privacy.py", "en_formats.py")
+        for f in SORGENTI_DEI_SEGNAPOSTO
         if (ROOT / "mr_rao" / f).is_file()
     )
     emessi = sorted(set(re.findall(r'"(\{\{[A-Z_]+\}\})"', sorgenti)))

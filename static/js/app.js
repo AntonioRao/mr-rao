@@ -979,6 +979,15 @@
       // guarda una cosa e non la dice sembra averla guardata per chi legge.
       const doppio = dati.pagine_riquadro_doppio || [];
       const senzaSegno = dati.pagine_senza_segno || [];
+      // Tre cose che la rotta diceva e il pannello no. Le pagine in cui il
+      // dato stava nei pixel di una scansione sono trattate, ma valgono
+      // quanto l'allineamento dello strato OCR: vanno guardate, e finché
+      // l'avviso restava nel JSON non lo sapeva nessuno. Gli allegati e i
+      // dati privati sono pezzi usciti dal file: chi lo consegna deve
+      // sapere che ha un pezzo in meno di quello che aveva caricato.
+      const coperteOcr = dati.pagine_coperte_sull_ocr || [];
+      const allegati = dati.allegati_rimossi || 0;
+      const datiPrivati = dati.dati_privati_rimossi || 0;
       const elenco = (p) => p.map((n) => n + 1).join(", ");
       const righe = [];
       if (fuori.length) {
@@ -987,6 +996,9 @@
             .replace("{n}", fuori.length)
             .replace("{elenco}", elenco(fuori)),
         );
+      }
+      if (coperteOcr.length) {
+        righe.push(t("pdf_coperte_sull_ocr", { elenco: elenco(coperteOcr) }));
       }
       if (senzaSegno.length) {
         righe.push(
@@ -1002,8 +1014,17 @@
             .replace("{elenco}", elenco(doppio)),
         );
       }
+      if (allegati) {
+        righe.push(t("pdf_allegati_rimossi", { n: allegati }));
+      }
+      if (datiPrivati) {
+        righe.push(t("pdf_dati_privati_rimossi", { n: datiPrivati }));
+      }
       if (righe.length) {
-        els.pdfAvviso.textContent = righe.join(" ");
+        // Una frase per riga (`white-space: pre-line` nel foglio di stile):
+        // finché erano due stavano bene di fila, con sei diventano un muro
+        // in cui l'avviso che conta non si distingue dagli altri.
+        els.pdfAvviso.textContent = righe.join("\n");
         els.pdfAvviso.hidden = false;
       } else {
         els.pdfAvviso.hidden = true;

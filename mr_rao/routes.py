@@ -918,16 +918,22 @@ def anteprima_pdf():
         # qualcosa, e chi legge non ha modo di chiedere cosa c'era.
         "pagine_riquadro_doppio": sorted(esito.pagine_riquadro_sopra),
         "pagine_senza_segno": sorted(esito.pagine_senza_riquadro),
-        # Le pagine in cui il dato stava nei **pixel** di una scansione e il
-        # rettangolo e' stato messo dove lo strato OCR dice che sta la parola.
+        # Le pagine in cui il dato stava nei **pixel** di una scansione: i
+        # pixel sono stati azzerati dentro l'immagine, e sopra c'e' il
+        # rettangolo, dove lo strato OCR dice che sta la parola.
         # Sono trattate — non entrano in `pagine_non_trattate` — ma la
-        # copertura vale quanto l'allineamento di quello strato, che dal file
+        # redazione vale quanto l'allineamento di quello strato, che dal file
         # non si puo' verificare: chi consegna il documento le guarda.
         "pagine_coperte_sull_ocr": sorted(esito.pagine_coperte_sull_ocr),
         # Gli allegati incorporati sono documenti interi che non abbiamo
         # redatto: escono dal file, e chi lo consegna deve sapere che il PDF
         # ha un pezzo in meno di quello che aveva caricato.
         "allegati_rimossi": esito.allegati_tolti,
+        # Stessa ragione per i dati privati delle applicazioni: fra quelli
+        # puo' esserci una copia di lavoro del documento, e si tolgono senza
+        # guardarci dentro. Il PDF redatto non si riapre piu' «com'era» nel
+        # programma che l'ha fatto.
+        "dati_privati_rimossi": esito.dati_privati_tolti,
         "prima": prima,
         "dopo": dopo,
     })

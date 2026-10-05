@@ -87,6 +87,7 @@ invented by us.
 | Dates of birth | `{{DATE}}` | **Off by default.** Only with birth context beside it |
 | Amounts | `{{AMOUNT}}` | **Off by default.** Currency, thousands separator, or accounting context |
 | Your own terms | `{{TERM}}` | The "always hide" list written by whoever is converting |
+| Author of a PDF | `{{AUTHOR}}` | **Redacted PDFs only**, and nothing is recognised: it is a **field**. The author in the document properties and the author of every note are replaced whole, whatever shape they have, when "Names" is on. It has its own placeholder because whoever wrote the document is not one of the people the document is about |
 
 ### Two things Mr. Rao finds and never removes: age and sex
 
@@ -704,16 +705,53 @@ silent loss, by definition, appears in none of the three numbers.
     is the typical case, and it used to be counted among the pages treated. A
     **blank** page, on the other hand, is not an alarm: it has nothing to
     remove, and it stays silent;
-  - **a scan that has already been through OCR is refused too, since 1.28.0.**
-    This is the case that fooled the check above: such a page carries **two**
-    copies of the text, the pixels you can see and a layer of invisible
-    characters you can select and search. Extractable text is there, so the
-    page did not look like a scan; redaction removed the invisible characters
-    — the one copy nobody reads — and called the page treated while the name
-    stayed on screen, inside the image. Now, when everything there is to
-    remove sits in invisible characters and the page holds an image, the page
-    goes among the untreated ones; if **every** page is like that, the
-    document is refused as the scan it is;
+  - **a scan that has already been through OCR is treated by removing the
+    pixels from the image, since 1.30.1.** Such a page carries **two** copies
+    of the text: the pixels you can see and a layer of invisible characters
+    you can select and search. Removing only one is not redaction. Both go:
+    the invisible characters from the content stream, and the **pixels inside
+    the embedded image**, in the box the OCR layer declares for each value.
+    The coloured box stays on top, as a mark for the reader and not as the
+    redaction. In 1.30.0 the box was all there was: extracting the image from
+    the file gave the data back whole. Since 1.30.2 this also covers the
+    other way an OCR tool leaves its text — written normally and then
+    **painted over by the image**, under it instead of on top: paint order is
+    checked, and a glyph with an image painted over it afterwards counts as
+    one that cannot be seen. **The limit, declared:** the zone
+    removed sits where the OCR layer says the word is; if that layer is
+    misaligned with the image the wrong pixels go, and the file gives no way
+    to notice. If the image cannot be rewritten (JBIG2, an inline image, a
+    CMYK JPEG) the page is **not** covered: it goes among the untreated ones.
+    If **every** page is like that, the document is refused as the scan it
+    is;
+  - **a page made of an image with little text on it is declared untreated,
+    since 1.30.1.** A payslip pasted as a picture, with a seven-word footer:
+    the text is not empty, so it was not a "scan", and it holds no data, so
+    it was passed over. Now, when images cover at least half the page and
+    text takes up less than 1% of it, the page goes among the untreated ones;
+  - **page thumbnails and structure text, since 1.30.1.** Thumbnails
+    (`/Thumb`) are pictures of the original page and are always removed. The
+    text in the structure tree — `/ActualText`, `/Alt`, `/E`, `/T`, what a
+    screen reader reads out — goes through the filter like the document
+    properties;
+  - **who wrote the document, since 1.30.3.** The author in the properties
+    (`/Author`) and the author of every note (`/T`) come out as a
+    placeholder, **whole and whatever shape they have**: a username like
+    `mario.rossi` is not a shape the engine recognises, and it does not need
+    to be — that field says *who*, and any value there is an identity. The
+    placeholder is `{{AUTHOR}}`, not the one for names, and it is numbered
+    like the others: two reviewers are `{{AUTHOR_1}}` and `{{AUTHOR_2}}`,
+    and someone who wrote the document and annotated a page has the same
+    number in both places. This applies with the "Names" box ticked;
+    unticked, they stay. The name of a
+    **form field** is not touched: there `/T` is the field's name, not a
+    person;
+  - **application private data is removed, since 1.30.3.** `/PieceInfo` is
+    where a program keeps its own things inside the PDF, and some graphics
+    programs keep a working copy of the whole document there. All of it is
+    removed without looking inside, like attachments, and the panel says how
+    many: the redacted file no longer reopens as it was in the program that
+    made it;
   - **pages that fall back are not redacted.** When the extracted text cannot
     be found in the content stream, or a span cannot be traced to any glyph,
     the page comes out **as it was**. Those pages appear in
@@ -721,7 +759,13 @@ silent loss, by definition, appears in none of the three numbers.
     **always**, even when there are none, in the suspects' colour — which
     here means "your turn to look". Calling them redacted would be the worst
     possible way to be wrong;
-  - the `'` and `"` text operators are declared out of scope.
+  - the `'` and `"` text operators are declared out of scope;
+  - **everything above about images, thumbnails, structure, author and
+    private data is measured on PDFs built for the purpose**, not on a corpus
+    of real documents. In particular, real OCR layers often use a font with
+    no glyphs, and it has not been verified that the box of each word can be
+    derived from one: if it cannot, the page goes among the untreated ones.
+    It is in `docs/BACKLOG.md`, P6.13.
 
   **The PDF follows the same options as the Markdown, profile included** — and
   since 1.24.0 the profile too. It did not before: the PDF routes built their

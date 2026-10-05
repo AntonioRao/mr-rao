@@ -80,8 +80,11 @@ CF = "RSSMRA85M01H501Z"
 
 
 def _pagina_di_testo(pdf, righe: list[str], invisibile: bool = False,
-                     con_immagine: bool = False):
-    """Una pagina in Helvetica, opzionalmente sopra un'immagine e invisibile."""
+                     con_immagine: bool = False, logo: bool = False):
+    """Una pagina in Helvetica, opzionalmente sopra un'immagine e invisibile.
+
+    `logo` mette la stessa immagine in un angolo invece che a tutta pagina.
+    """
     font = pdf.make_indirect(pikepdf.Dictionary(
         Type=pikepdf.Name("/Font"), Subtype=pikepdf.Name("/Type1"),
         BaseFont=pikepdf.Name("/Helvetica"),
@@ -89,7 +92,7 @@ def _pagina_di_testo(pdf, righe: list[str], invisibile: bool = False,
     risorse = pikepdf.Dictionary(Font=pikepdf.Dictionary(F1=font))
 
     comandi: list[str] = []
-    if con_immagine:
+    if con_immagine or logo:
         # Il foglio scansionato: un'immagine a tutta pagina. Grigia e piccola,
         # perche' qui conta che ci sia, non cosa rappresenti.
         larghezza, altezza = 40, 56
@@ -102,7 +105,8 @@ def _pagina_di_testo(pdf, righe: list[str], invisibile: bool = False,
         immagine.BitsPerComponent = 8
         immagine.Filter = pikepdf.Name("/FlateDecode")
         risorse["/XObject"] = pikepdf.Dictionary(Im0=immagine)
-        comandi += ["q", "595 0 0 842 0 0 cm", "/Im0 Do", "Q"]
+        dove = "90 0 0 126 60 700" if logo else "595 0 0 842 0 0"
+        comandi += ["q", f"{dove} cm", "/Im0 Do", "Q"]
 
     comandi += ["BT", "/F1 11 Tf"]
     if invisibile:
@@ -258,10 +262,17 @@ def test_una_pagina_digitale_con_un_logo_resta_trattata(tmp_path):
     """La riga che impedisce di «correggere» rifiutando ogni pagina con
     un'immagine dentro. Il testo qui si **vede**: e' una pagina normale con un
     logo, ed e' la forma di meta' della carta intestata.
+
+    **Corretto il 03/10/2026.** Il «logo» di questo banco era un'immagine a
+    tutta pagina con sopra una riga sola: non una carta intestata, ma la
+    pagina-immagine con poco testo che dalla 1.30.1 si dichiara non trattata
+    (vedi `test_redazione_pdf_cio_che_non_e_testo.py`). Il banco diceva una
+    cosa giusta con la figura sbagliata; adesso il logo e' un logo, in un
+    angolo, e cio' che pretende non e' cambiato.
     """
     pdf = pikepdf.Pdf.new()
     _pagina_di_testo(pdf, [f"Il cliente Mario Rossi, codice fiscale {CF}."],
-                     invisibile=False, con_immagine=True)
+                     invisibile=False, logo=True)
     dentro = tmp_path / "carta.pdf"
     pdf.save(str(dentro))
     pdf.close()

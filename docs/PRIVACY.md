@@ -88,6 +88,7 @@ inventato da noi.
 | Date di nascita | `{{DATE}}` | **Spento di default.** Solo con contesto di nascita accanto |
 | Importi | `{{AMOUNT}}` | **Spento di default.** Valuta, migliaia o contesto contabile |
 | Termini tuoi | `{{TERM}}` | L'elenco «nascondi sempre» scritto da chi converte |
+| Autore di un PDF | `{{AUTHOR}}` | **Solo nei PDF redatti**, e non si riconosce: è un **campo**. L'autore nelle proprietà del documento e quello di ogni nota escono per intero, qualunque forma abbiano, quando «Nomi» è acceso. Ha un segnaposto suo perché chi ha scritto il documento non è una delle persone di cui il documento parla |
 
 ### Due dati che Mr. Rao trova e non toglie mai: età e sesso
 
@@ -696,24 +697,66 @@ silenziosa, per definizione, in nessuno dei tre numeri compare.
     l'allegato firmato a mano — è il caso tipico, e prima usciva contata fra
     quelle trattate. Una pagina **bianca** invece non è un allarme: non ha
     niente da togliere, e resta silenziosa;
-  - **anche la scansione già passata da un OCR si rifiuta, dalla 1.28.0.** È
-    il caso che ingannava il controllo qui sopra: una pagina di questo tipo ha
-    **due** copie del testo, i pixel che si vedono e uno strato di caratteri
-    invisibili che si seleziona e si cerca. Il testo estraibile c'è, quindi la
-    pagina non sembrava una scansione; la redazione toglieva i caratteri
-    invisibili — cioè l'unica delle due copie che nessuno legge — e dichiarava
-    la pagina trattata mentre il nome restava a schermo, dentro l'immagine.
-    Adesso, quando tutto ciò che c'è da togliere sta in caratteri invisibili e
-    la pagina ha un'immagine, la pagina finisce fra quelle non trattate; se
-    **tutte** le pagine sono così, il documento viene rifiutato come la
-    scansione che è;
+  - **la scansione già passata da un OCR si tratta togliendo i pixel
+    dall'immagine, dalla 1.30.1.** Una pagina di questo tipo ha **due** copie
+    del testo: i pixel che si vedono e uno strato di caratteri invisibili che
+    si seleziona e si cerca. Toglierne una sola non è una redazione. Si
+    tolgono tutte e due: i caratteri invisibili dal flusso, e i **pixel dentro
+    l'immagine incorporata**, nel riquadro che lo strato OCR dichiara per
+    ogni valore. Sopra resta il rettangolo colorato, che è un segno per chi
+    legge e non la redazione. Nella 1.30.0 il rettangolo era l'unica cosa:
+    estraendo l'immagine dal file il dato si leggeva intero. Dalla 1.30.2 vale
+    anche per l'altro modo in cui un OCR lascia il suo testo — scritto normale
+    e poi **coperto dall'immagine**, cioè sotto invece che sopra: si guarda
+    l'ordine in cui le cose sono dipinte, e un glifo con un'immagine dipinta
+    sopra dopo di lui conta come uno che non si vede. **Il limite,
+    dichiarato:** la zona tolta sta dove lo strato OCR dice che sta la parola;
+    se quello strato è disallineato rispetto all'immagine si tolgono i pixel
+    sbagliati, e dal file non c'è modo di accorgersene. Se l'immagine non si
+    riesce a riscrivere (JBIG2, immagine in linea, JPEG in quadricromia) la
+    pagina **non** si copre: finisce fra le non trattate. Se **tutte** le
+    pagine sono così, il documento viene rifiutato come la scansione che è;
+  - **una pagina fatta di un'immagine con poco testo sopra si dichiara non
+    trattata, dalla 1.30.1.** Un cedolino incollato come immagine, con un piè
+    di pagina di sette parole: il testo non è vuoto, quindi non era una
+    «scansione», e non contiene dati, quindi si passava oltre. Adesso, quando
+    le immagini coprono almeno metà della pagina e il testo ne occupa meno
+    dell'1%, la pagina finisce fra le non trattate;
+  - **miniature di pagina e testo di struttura, dalla 1.30.1.** Le miniature
+    (`/Thumb`) sono immagini della pagina originale e si tolgono sempre. Il
+    testo dell'albero di struttura — `/ActualText`, `/Alt`, `/E`, `/T`, cioè
+    quello che legge uno screen reader — passa dal filtro come le proprietà
+    del documento;
+  - **chi ha scritto il documento, dalla 1.30.3.** L'autore nelle proprietà
+    (`/Author`) e l'autore di ogni nota (`/T`) escono col segnaposto, **per
+    intero e qualunque forma abbiano**: un nome utente come `mario.rossi`
+    non è una forma che il motore riconosce, e non serve che lo sia — quel
+    campo dice *chi*, e lì qualunque valore è un'identità. Il segnaposto è
+    `{{AUTHOR}}`, non quello dei nomi, e si numera come gli altri: due
+    revisori sono `{{AUTHOR_1}}` e `{{AUTHOR_2}}`, e chi ha scritto il
+    documento e ne ha annotato una pagina ha lo stesso numero nei due posti.
+    Vale con la casella «Nomi» accesa; spenta, restano. Il nome di un
+    **campo modulo** non si tocca: lì `/T` è il nome del campo, non una
+    persona;
+  - **i dati privati delle applicazioni si tolgono, dalla 1.30.3.**
+    `/PieceInfo` è lo spazio in cui un programma tiene le sue cose dentro il
+    PDF, e alcuni programmi di grafica ci tengono una copia di lavoro
+    dell'intero documento. Si tolgono tutti senza guardarci dentro, come gli
+    allegati, e il pannello dice quanti: il file redatto non si riapre più
+    com'era nel programma che l'ha fatto;
   - **le pagine in ripiego non sono redatte.** Quando il testo estratto non si
     ritrova nel flusso di contenuto, o un tratto non si riconduce a nessun
     glifo, la pagina esce **com'era**. Compaiono in `pagine_in_ripiego` con il
     motivo accanto, e il pannello le mostra **sempre**, anche quando sono
     zero, nella tinta dei sospetti — che qui vuol dire «tocca a te guardare».
     Chiamarle redatte sarebbe il modo peggiore di sbagliare;
-  - restano fuori, dichiarati, gli operatori di testo `'` e `"`.
+  - restano fuori, dichiarati, gli operatori di testo `'` e `"`;
+  - **tutto ciò che qui sopra riguarda immagini, miniature, struttura, autore
+    e dati privati è misurato su PDF costruiti apposta**, non su un corpus di
+    documenti veri. In particolare gli strati OCR veri usano spesso un font
+    senza glifi, e non è stato verificato che se ne ricavi il riquadro di
+    ogni parola: se non si ricava, la pagina finisce fra le non trattate. È
+    in `docs/BACKLOG.md`, P6.13.
 
   **Il PDF segue le stesse opzioni del Markdown, profilo compreso** — e dalla
   1.24.0 anche il profilo. Prima no: le rotte del PDF costruivano le opzioni

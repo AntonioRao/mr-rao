@@ -2058,6 +2058,8 @@ input[data-tip] { cursor: pointer; }
   color: var(--text);
   font-size: 0.8rem;
   line-height: 1.5;
+  /* Ogni avviso sulla sua riga: lo script li separa con un a capo. */
+  white-space: pre-line;
 }
 
 .pdf-confronto {

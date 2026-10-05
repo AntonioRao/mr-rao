@@ -10,18 +10,43 @@ in silenzio e sbaglia. Una stesura manuale aveva già attribuito una licenza
 sbagliata a una dipendenza e ne aveva omessa un'altra con obblighi reali —
 proprio la categoria che non si può permettere di sbagliare.
 
+Quali pacchetti, e perché non «tutti quelli installati»
+-------------------------------------------------------
+
+L'elenco parte da ciò che Mr. Rao **dichiara** — `requirements.txt` e
+`requirements-build.txt` — e segue ciò che quei pacchetti si portano dietro.
+Versione e licenza si leggono dai metadati installati; **quali** pacchetti
+elencare no.
+
+Prima erano la stessa cosa: si elencava tutto l'ambiente. Il 3 ottobre 2026
+il controllo era rosso sulla macchina di sviluppo per sedici pacchetti che
+con Mr. Rao non hanno niente a che fare — `rich`, `CacheControl`,
+`license-expression` e gli altri: le dipendenze di uno strumento di audit
+provato una volta e poi disinstallato, rimaste nel venv. Rigenerare, che è
+quello che il messaggio d'errore invita a fare, le avrebbe messe fra le terze
+parti del prodotto, in un file che si distribuisce e che dichiara licenze.
+
+Un ambiente accumula cose; un elenco di licenze deve dire cosa c'è nel
+pacchetto. Con loro esce dall'elenco anche `pip`, che c'era per la stessa
+ragione e che nessun pacchetto distribuito contiene.
+
 Uso:
     venv\\Scripts\\python scripts\\gen_third_party.py            # scrive THIRD_PARTY.md
     venv\\Scripts\\python scripts\\gen_third_party.py --check    # esce 1 se è da rigenerare
 """
 from __future__ import annotations
 
+import re
 import sys
 from importlib.metadata import distributions
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "THIRD_PARTY.md"
+
+# Da dove parte l'elenco. Il secondo include il primo con `-r`, e aggiunge
+# ciò che serve solo a costruire il pacchetto.
+REQUISITI = ("requirements.txt", "requirements-build.txt")
 
 # Dipendenze dirette: come vengono usate nel prodotto.
 #
@@ -105,9 +130,96 @@ def e_copyleft(lic: str) -> bool:
     return any(k in su for k in COPYLEFT)
 
 
+def nome_canonico(nome: str) -> str:
+    """Il nome come lo confronta pip: minuscolo, con un solo tipo di separatore.
+
+    `pdfminer.six`, `pdfminer-six` e `pdfminer_six` sono lo stesso pacchetto, e
+    chi lo richiede lo scrive in uno qualunque dei tre modi.
+    """
+    return re.sub(r"[-_.]+", "-", nome).lower()
+
+
+def dichiarati(file: tuple[Path, ...] | None = None) -> list:
+    """I requisiti scritti a mano nei file di `REQUISITI`.
+
+    Si saltano i commenti e le righe che cominciano con `-` (`-r altro.txt`):
+    i file da leggere sono gia' elencati tutti in `REQUISITI`.
+    """
+    from packaging.requirements import Requirement
+
+    percorsi = file if file is not None else tuple(ROOT / n for n in REQUISITI)
+    visti: dict[str, object] = {}
+    for percorso in percorsi:
+        for riga in percorso.read_text(encoding="utf-8").splitlines():
+            riga = riga.split("#", 1)[0].strip()
+            if not riga or riga.startswith("-"):
+                continue
+            requisito = Requirement(riga)
+            visti.setdefault(nome_canonico(requisito.name), requisito)
+    return list(visti.values())
+
+
+def chiusura(radici, installati: dict) -> tuple[set[str], set[str]]:
+    """Cio' da cui il prodotto dipende: le radici, e tutto cio' che richiedono.
+
+    Torna `(nomi, mancanti)`, con i nomi in forma canonica. `mancanti` sono i
+    pacchetti richiesti in questo ambiente che non risultano installati: non
+    dovrebbero essercene, e se ce ne sono l'elenco esce incompleto.
+
+    Un requisito con una condizione (`; sys_platform == "win32"`,
+    `; extra == "ocr"`) conta solo se la condizione e' vera **qui**: e' la
+    stessa domanda che si fa pip, e senza farla entrerebbero nell'elenco le
+    dipendenze di un altro sistema operativo e di funzioni opzionali che
+    nessuno ha chiesto.
+    """
+    from packaging.requirements import Requirement
+
+    nomi: set[str] = set()
+    mancanti: set[str] = set()
+    visitati: set[tuple[str, tuple[str, ...]]] = set()
+    da_visitare = list(radici)
+    while da_visitare:
+        requisito = da_visitare.pop()
+        nome = nome_canonico(requisito.name)
+        chiave = (nome, tuple(sorted(requisito.extras)))
+        if chiave in visitati:
+            continue
+        visitati.add(chiave)
+        distribuzione = installati.get(nome)
+        if distribuzione is None:
+            mancanti.add(nome)
+            continue
+        nomi.add(nome)
+        for testo in distribuzione.requires or []:
+            figlio = Requirement(testo)
+            if figlio.marker is not None and not any(
+                    figlio.marker.evaluate({"extra": extra})
+                    for extra in (sorted(requisito.extras) or [""])):
+                continue
+            da_visitare.append(figlio)
+    return nomi, mancanti
+
+
+def del_prodotto() -> list:
+    """Le distribuzioni installate da cui Mr. Rao dipende, e solo quelle."""
+    installati = {}
+    for d in distributions():
+        nome = (d.metadata["Name"] or "").strip()
+        if nome:
+            installati.setdefault(nome_canonico(nome), d)
+    nomi, mancanti = chiusura(dichiarati(), installati)
+    if mancanti:
+        # Non si ferma niente: l'elenco dice cio' che c'e'. Ma chi lo genera
+        # deve saperlo, perche' un pacchetto dichiarato e non installato e' un
+        # ambiente che non e' quello del prodotto.
+        print("attenzione: richiesti e non installati, quindi fuori dall'elenco: "
+              + ", ".join(sorted(mancanti)), file=sys.stderr)
+    return [installati[n] for n in sorted(nomi)]
+
+
 def raccogli() -> list[dict]:
     voci = []
-    for d in distributions():
+    for d in del_prodotto():
         nome = (d.metadata["Name"] or "").strip()
         if not nome:
             continue
@@ -155,7 +267,9 @@ def genera() -> str:
     a("# Componenti di terze parti — Mr. Rao")
     a("")
     a("> Generato da `scripts/gen_third_party.py` leggendo i metadati dei pacchetti")
-    a("> **realmente installati**. Non modificare a mano: rigenerare.")
+    a("> **realmente installati**, fra quelli da cui Mr. Rao dipende: ciò che")
+    a("> dichiara in `requirements.txt` e `requirements-build.txt`, e ciò che quei")
+    a("> pacchetti si portano dietro. Non modificare a mano: rigenerare.")
     a("")
     a("Mr. Rao **non** è un fork di questi progetti: li usa come dipendenze.")
     a("Le loro licenze restano integre e **prevalgono** sui rispettivi file.")
@@ -182,7 +296,7 @@ def genera() -> str:
         a("repository. Chi ridistribuisce e ha bisogno della certezza la cerca")
         a("nel sorgente del pacchetto, non in questa tabella.")
         a("")
-    a(f"Pacchetti nell'ambiente: **{len(voci)}** — di cui **{len(copyleft)}** con obblighi")
+    a(f"Pacchetti da cui dipende: **{len(voci)}** — di cui **{len(copyleft)}** con obblighi")
     a("oltre la semplice attribuzione (copyleft o eccezioni).")
     a("")
 

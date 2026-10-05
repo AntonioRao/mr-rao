@@ -1,5 +1,386 @@
 # Changelog
 
+## 1.30.3 — Chi ha scritto, e ciò che il programma ha lasciato dentro
+
+Le ultime tre cose uscite cercando, il 3 ottobre 2026, lo stesso dato su tutti
+i canali di un PDF. Più due che con il PDF non c'entrano e che stavano già su
+`main`.
+
+### 1. L'autore è un campo, non un testo
+
+    /Author (mario.rossi)        →  /Author (mario.rossi), metadati_tolti 0
+    nota con /T (Mario Rossi)    →  /T (Mario Rossi)
+
+`mario.rossi` non è una forma che il motore riconosce. La strada ovvia era
+insegnargliela, ed era sbagliata: nel testo libero `nome.cognome` è anche un
+file, un modulo, un dominio, e un riconoscitore così avrebbe redatto mezza
+documentazione tecnica per chiudere un campo solo.
+
+Ma `/Author` **non è testo libero**. È il campo che dice chi ha scritto, e lì
+qualunque valore è un'identità: non c'è niente da riconoscere, c'è da sapere
+che campo è. Lo stesso per `/T` di una nota, che per convenzione è il nome di
+chi l'ha messa.
+
+Adesso i due campi escono col segnaposto, **per intero**. Anche quando il
+motore ne riconoscerebbe un pezzo: `m.rossi (Mario Rossi)` redatto a metà
+lascerebbe fuori proprio il nome utente. E l'XMP si butta anche quando nomina
+un autore, perché lì c'è la stessa stringa una seconda volta — con le opzioni
+di default usciva già, ma con gli URL spenti restava.
+
+Tre scelte, e chi le legge può non essere d'accordo:
+
+- **il segnaposto è suo**, `{{AUTHOR}}`, non quello dei nomi. Chi ha scritto
+  il documento non è una delle persone di cui il documento parla, e chi
+  rilegge il redatto deve poterle distinguere. Si numera come gli altri: due
+  revisori sono `{{AUTHOR_1}}` e `{{AUTHOR_2}}`, e lo stesso autore nelle
+  proprietà e su una nota ha lo stesso numero, anche scritto in due modi;
+- **dipende dalla casella «Nomi»**. Spenta, i due campi restano: chi ha
+  scelto di tenere i nomi ha scelto anche questo;
+- **`/Creator` resta fuori**, anche se il nome inganna: è il programma con
+  cui il documento è stato scritto, non la persona.
+
+`/T` non era fra le chiavi di testo delle annotazioni, e la ragione era
+buona: su un **campo modulo** è il nome del campo, e cambiarlo rompe il
+modulo. Continua a non toccarsi lì. Con lui entra `/Subj`, l'argomento di una
+nota, che è testo scritto da una persona e passa dal filtro come `/Contents`.
+
+La verifica su questi campi non poteva fare la sua domanda di sempre: cerca
+nel redatto i valori che il motore riconosce nell'originale, e un nome utente
+il motore non lo riconosce. Un autore rimasto usciva verde **per
+costruzione**. Adesso confronta campo con campo: uno rimasto identico è un
+superstite.
+
+### 2. I dati privati delle applicazioni
+
+`/PieceInfo` è lo spazio che il formato lascia a ogni programma per tenere
+nel PDF le sue cose. Alcuni programmi di grafica ci tengono **una copia di
+lavoro dell'intero documento**, per poterlo riaprire com'era. Nessun lettore
+lo mostra, e nessuna parte del modulo lo leggeva: il file redatto usciva con
+l'originale accanto.
+
+Si toglie sempre, come gli allegati e per la stessa ragione — redigerlo
+vorrebbe dire capire il formato privato di ogni programma — e si conta. Lo si
+cerca su **ogni oggetto del file**, non su un elenco di posti: pagina,
+catalogo, Form XObject, e un elenco di posti è un elenco di posti dimenticati.
+Su un file di cinquantamila oggetti costa un terzo di secondo.
+
+Il prezzo è vero e sta scritto nel pannello: il PDF redatto non si riapre più
+com'era nel programma che l'ha fatto.
+
+### 3. Gli avvisi che non arrivavano
+
+`pagine_coperte_sull_ocr` e `allegati_rimossi` uscivano dalla rotta di
+anteprima dalla 1.30.0, con accanto il commento «chi consegna il documento le
+guarda». L'interfaccia non li leggeva. L'avviso esisteva nel JSON e non sullo
+schermo, cioè non esisteva.
+
+Adesso il pannello li mostra, con i dati privati tolti, e **una frase per
+riga**: finché gli avvisi erano due stavano bene di fila, con sei diventano
+un muro in cui quello che conta non si distingue. Verificato nel browser, in
+italiano e in inglese.
+
+### 4. Due minimi che non reggevano
+
+`requirements.txt` diceva `pikepdf>=9.0.0`. In un venv pulito, su ogni
+versione sotto la 10.6.0, **la redazione di qualunque PDF falliva al primo
+font**: 72 banchi rossi su 107. La causa era una riga: si chiedeva
+`/Differences` a «qualunque cosa abbia un metodo `get`», e in pikepdf ce l'ha
+anche un nome — e la codifica di un font è quasi sempre un nome. Dalla 10.6.0
+quel `get` risponde «non c'è»; prima solleva. Il codice funzionava per questo,
+non perché fosse giusto.
+
+Corretta la riga, il minimo vero è la 10.3.0. Per pypdfium2 è la 5.0.0:
+sotto, pdfium non sa dire a quale oggetto appartiene un carattere, e la
+verifica non vede il testo coperto da un'immagine. I due minimi adesso sono
+quelli, con il motivo accanto, e sono **misurati**: verdi al pavimento, rossi
+appena sotto.
+
+Cosa non è stato fatto: gli altri. Di due minimi provati, due non reggevano.
+
+### 5. Le licenze di ciò che c'è nel prodotto, non nel venv
+
+Il passo delle licenze del quality gate era rosso sulla macchina di sviluppo.
+Non per una dipendenza cambiata: nel venv c'erano sedici pacchetti rimasti da
+uno strumento di audit provato e poi disinstallato. Lo script elencava tutto
+ciò che trovava installato, quindi per lui erano terze parti di Mr. Rao — e
+il messaggio diceva «rigenerare», cioè metterli in un file che si distribuisce
+e che dichiara licenze.
+
+Adesso l'elenco parte da ciò che Mr. Rao **dichiara** e segue ciò che quei
+pacchetti richiedono. `THIRD_PARTY.md` passa da 73 a 72: esce `pip`, che
+c'era per la stessa ragione e che nessun pacchetto distribuito contiene.
+Nessuna versione e nessuna licenza è cambiata.
+
+### Cosa cambia per chi usava la 1.30.2
+
+- l'autore di un PDF redatto è `{{AUTHOR_1}}`, anche quando era un ufficio o
+  un nome generico. È un campo di metadati, e si sbaglia dalla parte di
+  togliere. È un **segnaposto nuovo**: chi a valle li cerca per nome ne ha
+  uno in più, ed è nella tabella di `docs/PRIVACY.md`;
+- un PDF redatto non porta più i dati privati del programma che l'ha fatto:
+  riaperto lì, non è più modificabile com'era;
+- `verifica_redazione` ha due chiavi in più, `identita_rimaste` e
+  `dati_privati_rimasti`, e tutte e due entrano in `sopravvissuti`.
+
+### Cosa resta fuori
+
+Tre cose, in `docs/BACKLOG.md` (P6.13): gli strati OCR veri non sono stati
+misurati, e tutto ciò che questa serie ha chiuso è provato su PDF costruiti
+apposta; una verifica che solleva lascia passare il file; gli altri minimi di
+`requirements.txt`.
+
+2.471 test (erano 2.431), trentaquattro mutazioni nuove verificate rosse.
+
+## 1.30.2 — Il testo sotto l'immagine
+
+La 1.30.1 lo aveva misurato e lasciato aperto, scrivendolo: un programma di
+OCR può lasciare il suo testo su una scansione in **due** modi, e ne
+riconoscevamo uno solo.
+
+Il primo è scriverlo invisibile **sopra** l'immagine. Il secondo è scriverlo
+normale e poi **dipingerci sopra l'immagine**. Per chi guarda la pagina sono
+la stessa cosa. Per il modulo no: quei glifi erano in modo di rendering
+normale, quindi «si vedevano», e la pagina prendeva la strada delle pagine
+digitali.
+
+    pagine_in_ripiego [], pagine_coperte_sull_ocr []
+    pixel del codice fiscale ancora nell'immagine estratta
+    verifica_redazione: sopravvissuti 0
+
+È il difetto della 1.30.1 su un altro canale: testo tolto, rettangolo
+disegnato, immagine intatta, rapporto che dice di sì.
+
+### Quello che conta è l'ordine
+
+In un PDF ciò che viene dopo copre ciò che viene prima. Un glifo coperto da
+un'immagine dipinta dopo di lui non si vede, comunque sia scritto, e il dato
+sta nei pixel. Adesso lo si chiede: se dopo il testo di un valore viene
+dipinta un'immagine, e quell'immagine sta sopra un valore, la pagina prende la
+strada delle scansioni — pixel azzerati dentro l'immagine, poi i glifi.
+
+Due cose che non bastano, e che hanno ognuna il suo banco:
+
+- **«nella pagina c'è del testo prima dell'immagine».** Un'intestazione, poi
+  lo sfondo a tutta pagina, poi la lettera: i valori sono scritti *dopo* lo
+  sfondo, gli stanno sopra e si vedono. Conta l'ordine fra *quel* valore e
+  *quell'*immagine;
+- **«l'immagine è dipinta dopo il valore».** Il marchio a piè di pagina molti
+  programmi lo disegnano per ultimo: viene dopo tutto il testo, e sta da
+  un'altra parte del foglio. Dipinta dopo non vuol dire dipinta sopra.
+
+L'ordine si segue nel flusso intero, form compresi: il testo sulla pagina e la
+scansione dentro un form disegnato dopo, o il contrario. Contando le
+istruzioni dentro il proprio contenitore soltanto si confronterebbero numeri
+che non hanno niente a che vedere l'uno con l'altro.
+
+### La verifica lo chiede a un altro motore
+
+`verifica_redazione` chiedeva a pdfium il modo di rendering di ogni carattere.
+Adesso chiede anche **in che ordine sono dipinti gli oggetti della pagina**, e
+se dopo il carattere ce n'è uno che è un'immagine e gli sta sopra. La
+redazione conta le istruzioni del flusso; la verifica guarda la fila degli
+oggetti come l'ha letta pdfium. Due righelli, come nella 1.30.1 e per la
+stessa ragione.
+
+Basta **un** carattere nascosto perché si vadano a guardare i pixel di tutto
+il valore: prima servivano tutti. Un valore coperto a metà ha metà delle sue
+lettere nei pixel.
+
+### Cosa cambia per chi usava la 1.30.1
+
+- una scansione con il testo OCR messo sotto l'immagine esce con i pixel
+  azzerati, fra le pagine da guardare (`pagine_coperte_sull_ocr`), invece che
+  fra quelle a posto;
+- **un'immagine piccola dipinta sopra un valore si buca in quel punto.** È il
+  caso della firma apposta sopra il nome a stampa: sotto quel pezzo di
+  immagine c'è un valore che non si vede, e dentro può esserci scritto lui.
+  Si toglie quel pezzo, il resto dell'immagine resta com'era, e la pagina
+  finisce fra quelle da guardare. Vale anche per una filigrana trasparente:
+  da qui non si distingue da un'immagine che copre, e si sbaglia dalla parte
+  di togliere;
+- se quell'immagine non si può riscrivere, la pagina è **non trattata** —
+  anche se è una pagina digitale con sopra un timbro in un formato che qui
+  non si sa aprire. Prima se ne toglieva il testo e la si chiamava a posto.
+
+Il documento di partenza si apre con pdfium una volta sola, e solo se serve:
+la domanda nuova si fa a ogni pagina con un'immagine dipinta dopo un valore,
+e riaprirlo ogni volta sarebbe costato a ogni fascicolo di carta intestata.
+
+### Cosa resta fuori
+
+Quello che la 1.30.1 elencava, meno questo: l'autore delle note (`/T`),
+`/PieceInfo`, `/Author` con un nome utente, l'avviso sulle pagine da guardare
+che non arriva sullo schermo. E lo stesso limite: **tutto questo è misurato
+su PDF sintetici**, e gli strati OCR veri non sono stati provati.
+
+2.431 test (erano 2.423), quarantadue mutazioni verificate rosse. Un banco mio
+era rosso a ragione: lo «sfondo sotto il testo» aveva un indirizzo
+nell'intestazione, scritta prima dello sfondo — cioè davvero sotto.
+
+## 1.30.1 — Coprire non è cancellare
+
+Il 3 ottobre 2026, misurando `redigi_pdf` su PDF sintetici, sono usciti quattro
+casi in cui il file redatto conteneva ancora il dato. In tutti e quattro il
+rapporto diceva che andava bene, e la verifica finale diceva **zero
+superstiti**: guardava il testo, e nessuna di queste quattro cose è testo.
+Riproducendo il primo ne è uscito un quinto.
+
+### 1. I pixel sotto il rettangolo
+
+Su una scansione con strato OCR la 1.30.0 toglieva il testo invisibile e
+disegnava un rettangolo sopra l'immagine. L'immagine incorporata non la
+toccava nessuno:
+
+    pagine_coperte_sull_ocr [0], pagine_in_ripiego []
+    immagine /Im0 del redatto: identica all'originale = True
+    verifica_redazione: sopravvissuti 0
+
+Basta «salva immagine» in un lettore qualunque per riavere il foglio intero.
+A schermo il dato non si vedeva più, e nel file c'era ancora tutto.
+
+Adesso i pixel si **azzerano dentro l'immagine**, nel riquadro che lo strato
+OCR dichiara per ogni valore, e l'immagine di prima esce dal file. Il
+rettangolo sopra resta, e torna a essere quello che è: un segno per chi legge.
+
+Tre strade, dalla più fedele alla meno. Se il flusso si decomprime (Flate,
+LZW, RunLength) si azzerano i campioni al loro posto e si ricomprime senza
+perdita, senza interpretare lo spazio colore. Un JPEG si riapre e si
+ricomprime **con le sue tabelle**, con la zona allargata al blocco perché un
+blocco metà nero e metà scritto lascia nel nero l'eco dello scritto. Il fax
+(CCITT) e il JPEG 2000 passano da un'immagine e tornano grigio o RGB.
+
+**Se l'immagine non si può riscrivere, la pagina non si copre: si dichiara.**
+JBIG2, un'immagine in linea, un JPEG in quadricromia. Prima uscivano fra le
+«coperte», con un rettangolo sopra un'immagine intatta; adesso finiscono fra
+le non trattate, e senza toccare niente — una pagina con il testo tolto e
+l'immagine intera è il difetto, non una via di mezzo.
+
+Tre cose trovate strada facendo, tutte dello stesso difetto:
+
+- **ne basta uno.** La regola era «*tutti* i valori della pagina sono in testo
+  invisibile». Una scansione con OCR su cui qualcuno ha stampato un timbro di
+  testo vero — «Firmato digitalmente da Mario Rossi» — rispondeva di no per
+  via del nome nel timbro, e prendeva la strada delle pagine digitali con il
+  codice fiscale intero nei pixel;
+- **un valore su due righe non aveva nessun riquadro.** Un riquadro solo
+  sarebbe stato alto quanto le due righe, quindi lo si saltava: andava bene
+  finché era un segno, e non va più bene adesso che dice quali pixel
+  togliere. Ora è un riquadro per riga;
+- **la scansione avvolta in un Form XObject non si vedeva.** L'immagine si
+  cercava solo fra le risorse della pagina: un livello sotto, la pagina
+  usciva come una pagina bianca.
+
+Il riquadro si allarga di un quarto dell'altezza della riga per lato: lo
+strato OCR non è un righello, e mezza lettera fuori è mezza lettera che resta.
+È meno dello spazio fra due parole, e il banco controlla anche che la parola
+accanto non venga toccata.
+
+### 1 bis. Il rettangolo scivolava di un carattere a ogni a capo
+
+Il riquadro si misurava passando a pdfium degli indici presi dal testo
+ricostruito dal flusso. Le due numerazioni coincidono sulla prima riga e poi
+divergono: per pdfium un a capo sono due caratteri, per il flusso uno. Su un
+cedolino di quattro righe il rettangolo dell'IBAN partiva due caratteri prima
+e finiva due caratteri prima, con la coda scoperta. Alla ventesima riga
+sarebbe stato su un'altra parola.
+
+I banchi della 1.30.0 avevano tutti **una riga sola**, dove le due numerazioni
+coincidono. Quelli nuovi ne hanno quattro.
+
+### 2. La miniatura di pagina
+
+`/Thumb` è un'immagine della pagina originale appesa al dizionario della
+pagina. Sopravviveva intatta. Si toglie **sempre**, anche dalle pagine senza
+un valore e da quelle non trattate: non si può sapere cosa ritrae senza
+leggerla, e non vale niente — ogni lettore la rifà aprendo il file.
+
+### 3. Il testo di struttura
+
+Un PDF accessibile porta, accanto a ciò che disegna, ciò che va letto al suo
+posto: `/ActualText`, `/Alt`, `/E`, `/T` sugli elementi di `/StructTreeRoot`.
+Sono stringhe fuori da ogni flusso, come metadati e segnalibri, e uscivano
+così: `/Alt (IBAN IT60X0542811101000000123456)` in chiaro accanto alla riga
+da cui l'IBAN era stato tolto. Adesso passano dal filtro. L'albero **non** si
+butta: è ciò che rende il documento leggibile a chi usa uno screen reader.
+
+Una cosa da sapere: `NETTO IN BUSTA 1.612,34` resta, perché **gli importi
+sono spenti di default** — qui come nel testo delle pagine. Con la casella
+«Importi» accesa sparisce anche quello.
+
+### 4. La pagina-immagine con una riga di testo
+
+Un'immagine a tutta pagina con un cedolino dentro, e un piè di pagina di sette
+parole. Il testo estratto non è vuoto, quindi non era una «scansione»; non ha
+valori, quindi si passava oltre. File identico all'ingresso, esito muto.
+
+Adesso, quando le immagini coprono **almeno metà della pagina** e il testo ne
+occupa **meno dell'1%**, la pagina si dichiara non trattata. Metà e non
+«tutta»: una scansione incollata in un documento di testo arriva con i margini
+attorno, e su un A4 copre il 70% del foglio. L'1% separa il timbro dalla
+lettera — una riga in corpo 8 sta sullo 0,2%, una lettera di cinque righe sul
+3%. Si chiede **prima** di guardare se nel testo ci sono valori: con un nome
+nel timbro si sarebbe tolto quello e la pagina sarebbe uscita «trattata».
+
+Un documento fatto solo di pagine così viene rifiutato come una scansione,
+con la stessa regola e lo stesso messaggio.
+
+### La verifica adesso può dire di no su tutte e quattro
+
+`verifica_redazione` cercava i valori nel testo. Adesso:
+
+- guarda **l'immagine estratta** dal file redatto, non la pagina resa — sulla
+  pagina resa c'è il rettangolo, e una prova che guarda lì è verde per
+  costruzione. Chiede a **pdfium**, non al lettore del flusso con cui si è
+  deciso cosa azzerare: quali caratteri sono invisibili, dove stanno le
+  immagini, cosa c'è nei loro pixel. Due righelli diversi, perché uno solo
+  sbaglierebbe insieme alla redazione e nello stesso verso. Un'immagine che
+  non si riesce a estrarre vale come un no;
+- nomina le pagine che hanno ancora una miniatura;
+- legge il testo di struttura insieme a metadati, segnalibri e allegati;
+- nomina le pagine-immagine. Se siano state dichiarate lo sa l'esito, non
+  lei: il confronto lo fa la rotta, come già faceva per i valori rimasti su
+  una pagina in ripiego.
+
+`sopravvissuti` non conta più solo valori: ci entrano una voce per miniatura
+e una per pagina-immagine, e tre chiavi nuove dicono quanti sono di ciascun
+genere (`nei_pixel`, `miniature_rimaste`, `pagine_immagine`).
+
+### Cosa cambia per chi usava la 1.30.0
+
+- una scansione con OCR la cui immagine non si può riscrivere esce **non
+  trattata** invece che «coperta». È meno, ed è vero;
+- un documento di sole pagine-immagine con un piè di pagina riceve il rifiuto
+  delle scansioni invece di un file identico all'ingresso;
+- un valore su due righe ha un rettangolo per riga.
+
+Un banco esistente pretendeva il difetto, e va detto.
+`test_una_pagina_digitale_con_un_logo_resta_trattata` chiamava «logo»
+un'immagine a tutta pagina con sopra una riga sola: è la pagina del punto 4,
+con un codice fiscale nella riga. Il logo adesso è un logo, in un angolo, e
+ciò che il banco pretende non è cambiato.
+
+### Cosa resta fuori, misurato e non chiuso
+
+Cercando lo stesso dato sugli altri canali ne sono usciti altri. Stanno in
+`docs/BACKLOG.md` (P6.13) e in `docs/PRIVACY.md`, e il primo conta più degli
+altri: **lo strato OCR messo *sotto* l'immagine** invece che invisibile
+sopra. Lì la pagina viene ancora trattata come digitale, i pixel restano e la
+verifica dice zero. Poi l'autore delle note (`/T`), `/PieceInfo`, e `/Author`
+quando contiene un nome utente come `mario.rossi`.
+
+E un limite di tutta questa versione: **è misurata su PDF sintetici.** Gli
+strati OCR veri usano spesso un font senza glifi, e non è stato verificato che
+pdfium ne restituisca riquadri con un'area. Se non li restituisce la pagina
+finisce fra le non trattate, che è l'errore dalla parte giusta — ma «le
+scansioni con OCR si trattano» va detto dopo averlo visto su documenti veri.
+
+2.423 test (erano 2.391), trentadue mutazioni verificate rosse. Cinque erano
+rimaste verdi al primo giro, e ognuna era un banco che non provava niente: il
+timbro «visibile» che ereditava il modo invisibile dallo strato OCR, due rami
+senza nessuna prova, un margine misurato su un pettine nero — dove una fetta
+rimasta e una azzerata hanno lo stesso colore — e l'allineamento del JPEG
+provato con una tolleranza troppo larga per vederlo.
+
 ## 1.30.0 — Le altre stanze del PDF, e due cose che nessuno guardava
 
 Nato da un confronto: il 7 settembre 2026 abbiamo messo Mr. Rao accanto a

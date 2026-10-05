@@ -915,3 +915,26 @@ def test_la_misura_del_riquadro_tiene_conto_del_ritaglio(tmp_path):
         assert quota_visibile(pagina, riquadri) > 0.3
     finally:
         documento.close()
+
+
+def test_una_codifica_che_non_e_un_dizionario_non_si_interroga():
+    """La codifica di un font e' quasi sempre un **nome**, non un dizionario.
+
+    Il codice chiedeva `/Differences` a qualunque cosa avesse un metodo `get`,
+    e in pikepdf ce l'ha anche un nome. Dalla 10.6.0 quel `get` risponde «non
+    c'e'»; fino alla 10.5.1 solleva — e li' la redazione di **qualunque** PDF
+    falliva al primo font, con `pikepdf>=9.0.0` scritto nei requisiti.
+    Misurato il 3 ottobre 2026: 72 banchi rossi su 107 con la 10.5.1.
+
+    Qui si rifa' quel comportamento con un oggetto finto, perche' la prova
+    giri su qualunque versione installata: con un pikepdf nuovo il difetto
+    non si vedrebbe, ed e' esattamente il modo in cui e' rimasto nascosto.
+    """
+    from mr_rao.redazione_pdf import carica_font
+
+    class NomeDiUnaVersioneVecchia:
+        def get(self, chiave):
+            raise ValueError("pikepdf.Object is not a Dictionary or Stream")
+
+    font = carica_font({"/Encoding": NomeDiUnaVersioneVecchia()})
+    assert font.decodifica(b"Rossi") == list("Rossi")
